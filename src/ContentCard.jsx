@@ -1,50 +1,100 @@
 import { useState, useEffect } from 'react';
 
-// Busca imagem de obra de arte no Metropolitan Museum of Art (API aberta).
-// 1) Tenta pelo ID exato da obra (método confiável)
-// 2) Se falhar, busca pelo nome
-function useArtworkImage(metId, metQuery) {
-  const [imgUrl, setImgUrl] = useState(null);
+const MET_BASE = 'https://collectionapi.metmuseum.org/public/collection/v1';
+const CLE_BASE = 'https://openaccess-api.clevelandart.org/api/artworks';
+
+// Busca a imagem de uma obra em várias fontes abertas de museus.
+// Ordem de prioridade:
+//   1) URL direta (content.imagem) — ex.: Wikimedia Commons (domínio público)
+//   2) Metropolitan Museum of Art — por ID (metId) ou por busca (metQuery)
+//   3) Cleveland Museum of Art — por ID (clevelandId) ou por busca (clevelandQuery)
+//   4) Wikimedia Commons — por busca (wikiQuery)
+function useArtworkImage(content) {
+  const direct = content?.imagem;
+  const { metId, metQuery, clevelandId, clevelandQuery, wikiQuery } = content || {};
+  const [imgUrl, setImgUrl] = useState(direct || null);
 
   useEffect(() => {
-    if (!metId && !metQuery) return;
+    if (direct) { setImgUrl(direct); return; }
+    if (!metId && !metQuery && !clevelandId && !clevelandQuery && !wikiQuery) return;
     let cancelled = false;
-    const base = 'https://collectionapi.metmuseum.org/public/collection/v1';
 
-    async function getById(id) {
+    async function metById(id) {
       try {
-        const r = await fetch(`${base}/objects/${id}`);
+        const r = await fetch(`${MET_BASE}/objects/${id}`);
         const d = await r.json();
         return d.primaryImageSmall || d.primaryImage || null;
       } catch { return null; }
     }
-
-    async function getByQuery(q) {
+    async function metBySearch(q) {
       try {
-        const r = await fetch(`${base}/search?q=${encodeURIComponent(q)}&hasImages=true`);
+        const r = await fetch(`${MET_BASE}/search?q=${encodeURIComponent(q)}&hasImages=true`);
         const d = await r.json();
-        const ids = (d.objectIDs || []).slice(0, 6);
-        for (const id of ids) {
+        for (const id of (d.objectIDs || []).slice(0, 6)) {
           if (cancelled) return null;
-          const url = await getById(id);
-          if (url) return url;
+          const u = await metById(id);
+          if (u) return u;
         }
       } catch {}
       return null;
     }
+    async function cleById(id) {
+      try {
+        const r = await fetch(`${CLE_BASE}/${id}`);
+        const d = await r.json();
+        return d.data?.images?.web?.url || null;
+      } catch { return null; }
+    }
+    async function cleBySearch(q) {
+      try {
+        const r = await fetch(`${CLE_BASE}/?q=${encodeURIComponent(q)}&has_image=1&limit=1`);
+        const d = await r.json();
+        return d.data?.[0]?.images?.web?.url || null;
+      } catch { return null; }
+    }
+    async function wikiBySearch(q) {
+      try {
+        const r = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json&origin=*`);
+        const d = await r.json();
+        const first = Object.values(d.query?.pages || {})[0];
+        return first?.imageinfo?.[0]?.thumburl || null;
+      } catch { return null; }
+    }
 
     async function run() {
       let url = null;
-      if (metId) url = await getById(metId);
-      if (!url && metQuery) url = await getByQuery(metQuery);
+      if (!url && metId) url = await metById(metId);
+      if (!url && metQuery) url = await metBySearch(metQuery);
+      if (!url && clevelandId) url = await cleById(clevelandId);
+      if (!url && clevelandQuery) url = await cleBySearch(clevelandQuery);
+      if (!url && wikiQuery) url = await wikiBySearch(wikiQuery);
       if (url && !cancelled) setImgUrl(url);
     }
 
     run();
     return () => { cancelled = true; };
-  }, [metId, metQuery]);
+  }, [direct, metId, metQuery, clevelandId, clevelandQuery, wikiQuery]);
 
   return imgUrl;
+}
+
+// Visualizador de imagem em tela cheia. Fecha no ×, na tecla Esc ou clicando fora.
+function Lightbox({ src, alt, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.93)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, animation: 'lbFade 0.2s ease', cursor: 'zoom-out' }}>
+      <style>{'@keyframes lbFade{from{opacity:0}to{opacity:1}}'}</style>
+      <button onClick={onClose} aria-label="fechar" style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.14)', border: 'none', color: '#fff', fontSize: 26, width: 42, height: 42, borderRadius: '50%', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+      <img src={src} alt={alt} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8, boxShadow: '0 8px 40px rgba(0,0,0,0.6)', cursor: 'default' }} />
+    </div>
+  );
 }
 
 function SaveButton({ content, type }) {
@@ -75,14 +125,14 @@ function SaveButton({ content, type }) {
   );
 }
 
-export default function ContentCard({ typeLabel, typeEmoji, palette, content, onReload, type }) {
+export default function ContentCard({ typeLabel, typeEmoji, palette, content, onReload, onRemove, type, showSave = true }) {
   const [expanded, setExpanded] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [zoom, setZoom] = useState(false);
 
-  const fetchedImg = useArtworkImage(content?.metId, content?.metQuery);
-  const imageUrl = fetchedImg || content?.imagem;
-  const hasImageSlot = !!(content?.metId || content?.metQuery || content?.imagem);
+  const imageUrl = useArtworkImage(content);
+  const hasImageSlot = !!(content?.metId || content?.metQuery || content?.clevelandId || content?.clevelandQuery || content?.wikiQuery || content?.imagem);
 
   if (!content) return null;
 
@@ -97,23 +147,33 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
           <span style={{ fontSize: 10, fontWeight: 700, color: palette.accent, letterSpacing: '2px', textTransform: 'uppercase' }}>{typeLabel}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <SaveButton content={content} type={type} />
+          {showSave && <SaveButton content={content} type={type} />}
           {onReload && (
             <button onClick={() => { onReload(); setExpanded(false); setImgError(false); setImgLoaded(false); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: palette.sub, fontSize: 16, padding: 4 }}>↻</button>
           )}
+          {onRemove && (
+            <button onClick={onRemove} title="remover dos salvos"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: palette.sub, fontSize: 16, padding: '4px 6px', lineHeight: 1 }}>×</button>
+          )}
         </div>
       </div>
 
-      {/* Image — spinner enquanto carrega; sai sozinha se não houver */}
+      {/* Imagem — spinner enquanto carrega; sai sozinha se não houver. Clique para ampliar. */}
       {hasImageSlot && !imgError && (
-        <div style={{ marginBottom: 16, borderRadius: 12, overflow: 'hidden', background: palette.accent + '12', aspectRatio: imgLoaded ? 'auto' : '16/10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ marginBottom: 16, borderRadius: 12, overflow: 'hidden', background: palette.accent + '12', aspectRatio: imgLoaded ? 'auto' : '16/10', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {!imgLoaded && (
             <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${palette.accent}40`, borderTopColor: palette.accent, animation: 'spin 1s linear infinite' }} />
           )}
           {imageUrl && (
-            <img src={imageUrl} alt={content.titulo} onLoad={() => setImgLoaded(true)} onError={() => setImgError(true)}
-              style={{ width: '100%', display: imgLoaded ? 'block' : 'none', maxHeight: 300, objectFit: 'cover' }} />
+            <>
+              <img src={imageUrl} alt={content.titulo} onLoad={() => setImgLoaded(true)} onError={() => setImgError(true)}
+                onClick={() => imgLoaded && setZoom(true)}
+                style={{ width: '100%', display: imgLoaded ? 'block' : 'none', maxHeight: 300, objectFit: 'cover', cursor: 'zoom-in' }} />
+              {imgLoaded && (
+                <span style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: 14, width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>⤢</span>
+              )}
+            </>
           )}
         </div>
       )}
@@ -139,6 +199,8 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
       <button onClick={() => setExpanded(!expanded)} style={{ width: '100%', padding: '12px 0', background: 'transparent', border: '1px solid ' + palette.accent + '50', borderRadius: 12, color: palette.accent, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
         {expanded ? 'menos' : 'ler mais'}
       </button>
+
+      {zoom && imageUrl && <Lightbox src={imageUrl} alt={content.titulo} onClose={() => setZoom(false)} />}
     </div>
   );
 }

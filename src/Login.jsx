@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getSeason, SEASON_THEMES, getGreeting, getDayName, getTodayFact } from './contentLibrary.js';
 
 export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
+
+  // Mantém estação, saudação e data atualizadas ao vivo enquanto a tela fica aberta.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   const season = getSeason();
   const theme = SEASON_THEMES[season];

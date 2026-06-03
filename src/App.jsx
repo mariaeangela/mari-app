@@ -1,7 +1,17 @@
-import { useState } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote } from './contentLibrary.js';
+import { useState, useEffect } from 'react';
+import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
+
+// Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
+// meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
+function useMinuteTick() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
+}
 
 function CardWithContent({ type, offset = 0 }) {
   const info = CONTENT_TYPES.find(t => t.id === type);
@@ -118,28 +128,16 @@ function SavedPage() {
     </div>
   );
   return (
-    <div style={{ padding: '20px 20px 80px' }}>
-      <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 16 }}>
+    <div style={{ paddingBottom: 60 }}>
+      <p style={{ padding: '20px 22px 8px', fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase' }}>
         {saved.length} {saved.length === 1 ? 'item salvo' : 'itens salvos'}
       </p>
       {saved.map(item => {
         const pal = CARD_PALETTES[item.type] || CARD_PALETTES.artwork;
         const info = CONTENT_TYPES.find(t => t.id === item.type);
         return (
-          <div key={item.id} style={{ background: pal.bg, borderRadius: 16, padding: '20px', marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: pal.accent, letterSpacing: '2px', textTransform: 'uppercase' }}>
-                {info?.emoji} {info?.label}
-              </span>
-              <button onClick={() => remove(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: pal.sub, fontSize: 18, padding: 0, lineHeight: 1 }}>x</button>
-            </div>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: pal.text, marginBottom: 6, lineHeight: 1.3 }}>{item.titulo}</h3>
-            <p style={{ fontSize: 10, color: pal.sub, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{item.subtitulo}</p>
-            <p style={{ fontSize: 13, color: pal.sub, lineHeight: 1.7, fontFamily: "'Playfair Display', serif", overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-              {item.corpo}
-            </p>
-            {item.frase && <p style={{ fontSize: 12, color: pal.accent, fontStyle: 'italic', marginTop: 10, fontFamily: "'Playfair Display', serif" }}>{item.frase}</p>}
-          </div>
+          <ContentCard key={item.id} type={item.type} typeLabel={info?.label} typeEmoji={info?.emoji}
+            palette={pal} content={item} onRemove={() => remove(item.id)} showSave={false} />
         );
       })}
     </div>
@@ -182,6 +180,7 @@ function About() {
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => sessionStorage.getItem('diagonal_auth') === '1');
   const [tab, setTab] = useState('feed');
+  useMinuteTick();
   const handleLogin = () => { sessionStorage.setItem('diagonal_auth', '1'); setLoggedIn(true); };
   if (!loggedIn) return <Login onLogin={handleLogin} />;
   return (
@@ -189,7 +188,8 @@ export default function App() {
       <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
         <Header tab={tab} setTab={setTab} />
       </div>
-      {tab === 'feed' && <Feed />}
+      {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
+      {tab === 'feed' && <Feed key={getEditionPeriod()} />}
       {tab === 'explore' && <ExplorePage />}
       {tab === 'saved' && <SavedPage />}
       {tab === 'about' && <About />}

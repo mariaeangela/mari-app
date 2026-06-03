@@ -23,7 +23,16 @@
       "Bash(curl -s \"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=Monet%20Bridge%20Pond%20Water%20Lilies&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p.get\\('title'\\),'|',p.get\\('imageinfo',[{}]\\)[0].get\\('thumburl',''\\)\\) for p in d.get\\('query',{}\\).get\\('pages',{}\\).values\\(\\)]\")",
       "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} | type=%{content_type} | %{size_download} bytes\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg/960px-Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg\")",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s \"https://api.artic.edu/api/v1/artworks/search?q=Monet%20water%20lilies&fields=id,title,image_id&limit=3\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(a['id'],'|',a.get\\('image_id'\\),'|',a['title']\\) for a in d['data']]\")",
+      "Bash(curl -s \"https://openaccess-api.clevelandart.org/api/artworks/?q=Monet&has_image=1&limit=2\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(a['id'],'|',a.get\\('images',{}\\).get\\('web',{}\\).get\\('url'\\),'|',a['title']\\) for a in d['data']]\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} %{content_type}\\\\n\" \"https://www.artic.edu/iiif/2/3c27b499-af56-f0d5-93b5-a7f2f1ad5813/full/843,/0/default.jpg\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} %{content_type}\\\\n\" \"https://openaccess-cdn.clevelandart.org/1960.81/1960.81_web.jpg\")",
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git commit -q -m ' *)"
     ]
   }
 }
