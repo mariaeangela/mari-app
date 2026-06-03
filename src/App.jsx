@@ -42,7 +42,7 @@ function Header({ tab, setTab }) {
 
       {/* Quote of the day */}
       <div style={{ padding: '14px 24px 0' }}>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
           "{quote.texto}"
         </p>
         <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
@@ -141,7 +141,7 @@ function SavedPage() {
   if (saved.length === 0) return (
     <div style={{ padding: '60px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 36, marginBottom: 16 }}>☆</div>
-      <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: '#333', fontStyle: 'italic', marginBottom: 8 }}>Nada salvo ainda.</p>
+      <p style={{ fontFamily: "'Lora', serif", fontSize: 18, color: '#333', fontStyle: 'italic', marginBottom: 8 }}>Nada salvo ainda.</p>
       <p style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>Toque na estrela em qualquer card para salvar aqui.</p>
     </div>
   );
@@ -178,7 +178,7 @@ function MoodPage() {
   if (!mood) {
     return (
       <div style={{ padding: '28px 20px 80px' }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', fontStyle: 'italic', marginBottom: 6 }}>Como você está se sentindo?</h2>
+        <h2 style={{ fontFamily: "'Lora', serif", fontSize: 24, color: '#111', fontStyle: 'italic', marginBottom: 6 }}>Como você está se sentindo?</h2>
         <p style={{ fontSize: 12, color: '#aaa', marginBottom: 24, lineHeight: 1.5 }}>Escolha um humor e eu escolho uma frase para ele.</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {MOODS.map(m => (
@@ -208,7 +208,7 @@ function MoodPage() {
 
       <div style={{ background: mood.color + '12', borderLeft: `4px solid ${mood.color}`, borderRadius: 14, padding: '28px 24px', marginBottom: 22 }}>
         <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, color: mood.color, lineHeight: 0.4, display: 'block', height: 24 }}>“</span>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 21, color: '#1a1a1a', lineHeight: 1.5, margin: '0 0 16px' }}>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 21, color: '#1a1a1a', lineHeight: 1.5, margin: '0 0 16px' }}>
           {quote?.texto}
         </p>
         <p style={{ fontSize: 12, color: '#777', letterSpacing: '0.3px' }}>

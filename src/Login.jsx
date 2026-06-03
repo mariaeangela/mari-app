@@ -81,7 +81,7 @@ export default function Login({ onLogin }) {
 
         {/* Greeting card */}
         <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '20px 22px', marginBottom: 28, border: `1px solid ${theme.accentLight}`, boxShadow: `0 4px 24px ${theme.accent}15` }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: '#111', marginBottom: 4, fontStyle: 'italic' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: 20, color: '#111', marginBottom: 4, fontStyle: 'italic' }}>
             {greeting}, Mari! ✨
           </p>
           <p style={{ fontSize: 12, color: '#777', marginBottom: 14 }}>

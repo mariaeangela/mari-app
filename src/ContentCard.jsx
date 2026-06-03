@@ -191,7 +191,7 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
 
       {expanded && content.frase && (
         <div style={{ borderLeft: '3px solid ' + palette.accent, paddingLeft: 16, marginBottom: 14 }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 15, color: palette.text, lineHeight: 1.65, margin: 0 }}>{content.frase}</p>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15, color: palette.text, lineHeight: 1.65, margin: 0 }}>{content.frase}</p>
         </div>
       )}
       {expanded && content.fonte && <p style={{ fontSize: 10, color: palette.sub + '60', marginBottom: 14 }}>{content.fonte}</p>}
