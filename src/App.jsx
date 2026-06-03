@@ -33,7 +33,7 @@ function Header({ tab, setTab }) {
   return (
     <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
       <div style={{ padding: '48px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 40, fontWeight: 700, color: '#111', letterSpacing: '-2px', lineHeight: 1, fontStyle: 'italic' }}>diagonal</div>
+        <div style={{ fontFamily: "'Bodoni Moda', serif", fontSize: 'clamp(21px, 6vw, 29px)', fontWeight: 600, color: '#111', letterSpacing: 'clamp(3px, 1.3vw, 6px)', lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>diagonal</div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 10, color: '#999', letterSpacing: '1.5px', textTransform: 'uppercase' }}>{days[now.getDay()]}, {now.getDate()} {months[now.getMonth()]}</div>
           <div style={{ fontSize: 10, color: '#ccc', marginTop: 2 }}>edicao diaria</div>

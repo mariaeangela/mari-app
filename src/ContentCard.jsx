@@ -185,7 +185,7 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
       <p style={{ fontSize: 10, color: palette.sub, marginBottom: 16, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 600 }}>{content.subtitulo}</p>
       <div style={{ width: 28, height: 2, background: palette.accent, marginBottom: 16, borderRadius: 2 }} />
 
-      <div style={{ color: palette.sub, fontSize: 15, lineHeight: 1.85, fontFamily: "'Playfair Display', serif", marginBottom: 18, whiteSpace: 'pre-line', overflow: expanded ? 'visible' : 'hidden', display: expanded ? 'block' : '-webkit-box', WebkitLineClamp: expanded ? 'unset' : 4, WebkitBoxOrient: 'vertical' }}>
+      <div style={{ color: palette.text, fontSize: 15.5, lineHeight: 1.8, fontFamily: "'Lora', serif", marginBottom: 18, whiteSpace: 'pre-line', overflow: expanded ? 'visible' : 'hidden', display: expanded ? 'block' : '-webkit-box', WebkitLineClamp: expanded ? 'unset' : 4, WebkitBoxOrient: 'vertical' }}>
         {content.corpo}
       </div>
 
