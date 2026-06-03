@@ -74,7 +74,7 @@ function Header({ tab, setTab }) {
 // conexões a cada edição (6h e 14h). Os demais slots são fixos.
 const CULTURA_TYPES = ['film', 'artist', 'music', 'connection'];
 // Aba Explorar: temas que o usuário escolhe por botão.
-const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now', 'movement', 'letter', 'film'];
+const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now', 'movement', 'letter', 'film', 'mythology', 'religion', 'bible', 'health'];
 
 function Feed() {
   const period = getEditionPeriod();
@@ -84,6 +84,7 @@ function Feed() {
     { type: 'artwork' },
     { type: 'cultura', contentType: cultura },
     { type: 'concept' },
+    { type: 'philosophy' },
     { type: 'city' },
   ];
   return (
