@@ -72,7 +72,7 @@ export default function Login({ onLogin }) {
         </div>
 
         {/* Logo */}
-        <div style={{ fontFamily: "'Bodoni Moda', serif", fontSize: 'clamp(24px, 8vw, 38px)', fontWeight: 600, color: '#111', letterSpacing: 'clamp(3px, 1.5vw, 7px)', lineHeight: 1.1, textTransform: 'uppercase', marginBottom: 6, whiteSpace: 'nowrap' }}>diagonal</div>
+        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 10vw, 48px)', fontWeight: 700, color: '#111', letterSpacing: '1.5px', lineHeight: 1.1, textTransform: 'uppercase', marginBottom: 6, whiteSpace: 'nowrap' }}>diagonal</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
           <div style={{ flex: 1, height: 1.5, background: theme.accent }} />
           <span style={{ fontSize: 9, letterSpacing: '2.5px', color: theme.sub, textTransform: 'uppercase' }}>arte · literatura · história</span>
