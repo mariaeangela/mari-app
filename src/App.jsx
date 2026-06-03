@@ -107,7 +107,7 @@ function ExplorePage() {
               const info = CONTENT_TYPES.find(t => t.id === type);
               const pal = CARD_PALETTES[type];
               return (
-                <button key={type} onClick={() => setSelectedType(type)} style={{ background: pal.bg, border: 'none', borderRadius: 16, padding: '22px 16px', cursor: 'pointer', textAlign: 'left' }}>
+                <button key={type} onClick={() => setSelectedType(type)} style={{ background: pal.bg, border: '1px solid ' + pal.border, borderRadius: 16, padding: '22px 16px', cursor: 'pointer', textAlign: 'left' }}>
                   <div style={{ fontSize: 26, marginBottom: 8 }}>{info?.emoji}</div>
                   <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 14, color: pal.text, fontWeight: 700 }}>{info?.label}</div>
                 </button>
