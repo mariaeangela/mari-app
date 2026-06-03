@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
+import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote, getEditionPeriod, MOODS, MOOD_QUOTES } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 
@@ -54,7 +54,7 @@ function Header({ tab, setTab }) {
           { id: 'feed', label: 'Hoje' },
           { id: 'explore', label: 'Explorar' },
           { id: 'saved', label: 'Salvos' },
-          { id: 'about', label: 'Sobre' },
+          { id: 'quotes', label: 'Frases' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             background: 'none', border: 'none', cursor: 'pointer',
@@ -83,6 +83,7 @@ function Feed() {
   const slots = [
     { type: 'artwork' },
     { type: 'cultura', contentType: cultura },
+    { type: 'photography' },
     { type: 'concept' },
     { type: 'philosophy' },
     { type: 'city' },
@@ -161,35 +162,66 @@ function SavedPage() {
   );
 }
 
-function About() {
-  return (
-    <div style={{ padding: '24px 20px 80px' }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', marginBottom: 4, fontStyle: 'italic' }}>sobre o diagonal</h2>
-      <div style={{ width: 36, height: 2, background: '#111', marginBottom: 20 }} />
-      <p style={{ color: '#666', fontSize: 14, lineHeight: 1.8, marginBottom: 24 }}>
-        O Diagonal e um app de cultura para substituir o scroll vazio das redes sociais por algo que realmente enriquece. Conteudo curado e personalizado, renovado diariamente, com profundidade real.
-      </p>
-      <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 20 }}>
-        {[
-          ['Obra do Dia','Arte além do óbvio, com imagem'],
-          ['Cinema','O que está por trás do filme'],
-          ['Artista','Vidas que inspiram'],
-          ['Cidade','Lugares que você visitou'],
-          ['Cartas','Correspondências históricas'],
-          ['Movimentos','Como a arte muda o mundo'],
-          ['Música','A música além da música'],
-          ['Conceito','Psicologia, filosofia, economia'],
-          ['Xadrez','Histórias do tabuleiro'],
-          ['Contexto','O que ninguém te contou'],
-          ['Conexões','Links entre obras'],
-          ['Agora','Nobel, Oscar, Grammy'],
-        ].map(([title, desc]) => (
-          <div key={title} style={{ marginBottom: 14 }}>
-            <div style={{ color: '#111', fontSize: 13, fontWeight: 600 }}>{title}</div>
-            <div style={{ color: '#aaa', fontSize: 12, marginTop: 1 }}>{desc}</div>
-          </div>
-        ))}
+// Aba "Frases": escolha um humor e receba uma frase pensada para ele.
+function MoodPage() {
+  const [mood, setMood] = useState(null);
+  const [idx, setIdx] = useState(0);
+  const quotes = mood ? (MOOD_QUOTES[mood.id] || []) : [];
+  const quote = quotes.length ? quotes[idx % quotes.length] : null;
+
+  const choose = (m) => {
+    const list = MOOD_QUOTES[m.id] || [];
+    setMood(m);
+    setIdx(Math.floor(Math.random() * (list.length || 1)));
+  };
+
+  if (!mood) {
+    return (
+      <div style={{ padding: '28px 20px 80px' }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', fontStyle: 'italic', marginBottom: 6 }}>Como você está se sentindo?</h2>
+        <p style={{ fontSize: 12, color: '#aaa', marginBottom: 24, lineHeight: 1.5 }}>Escolha um humor e eu escolho uma frase para ele.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {MOODS.map(m => (
+            <button key={m.id} onClick={() => choose(m)} style={{
+              background: m.color + '18', border: `1px solid ${m.color}40`, borderRadius: 16,
+              padding: '20px 14px', cursor: 'pointer', textAlign: 'left', transition: 'transform 0.1s',
+            }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>{m.emoji}</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700 }}>{m.label}</div>
+            </button>
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: '28px 20px 80px' }}>
+      <button onClick={() => setMood(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 22, padding: 0 }}>
+        &larr; outro humor
+      </button>
+
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: mood.color + '1c', borderRadius: 20, padding: '5px 14px', marginBottom: 22 }}>
+        <span style={{ fontSize: 15 }}>{mood.emoji}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#555', letterSpacing: '2px', textTransform: 'uppercase' }}>{mood.label}</span>
+      </div>
+
+      <div style={{ background: mood.color + '12', borderLeft: `4px solid ${mood.color}`, borderRadius: 14, padding: '28px 24px', marginBottom: 22 }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 44, color: mood.color, lineHeight: 0.4, display: 'block', height: 24 }}>“</span>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 21, color: '#1a1a1a', lineHeight: 1.5, margin: '0 0 16px' }}>
+          {quote?.texto}
+        </p>
+        <p style={{ fontSize: 12, color: '#777', letterSpacing: '0.3px' }}>
+          — {quote?.autor}{quote?.obra ? <>, <em>{quote.obra}</em></> : null}
+        </p>
+      </div>
+
+      <button onClick={() => setIdx(i => i + 1)} style={{
+        width: '100%', padding: '14px 0', background: 'transparent', border: `1px solid ${mood.color}80`,
+        borderRadius: 12, color: mood.color === '#90a4ae' ? '#5a6b76' : mood.color, cursor: 'pointer', fontSize: 13, fontWeight: 700,
+      }}>
+        outra frase ↻
+      </button>
     </div>
   );
 }
@@ -209,7 +241,7 @@ export default function App() {
       {tab === 'feed' && <Feed key={getEditionPeriod()} />}
       {tab === 'explore' && <ExplorePage />}
       {tab === 'saved' && <SavedPage />}
-      {tab === 'about' && <About />}
+      {tab === 'quotes' && <MoodPage />}
     </div>
   );
 }

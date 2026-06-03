@@ -135,6 +135,7 @@ export function getDayName() {
 export const CONTENT_TYPES = [
   { id: "artwork", label: "Obra do Dia", emoji: "🎨" },
   { id: "cultura", label: "Cultura", emoji: "🎭" },
+  { id: "photography", label: "Fotografia", emoji: "📷" },
   { id: "film", label: "Cinema", emoji: "🎬" },
   { id: "concept", label: "Conceito", emoji: "🧠" },
   { id: "city", label: "Cidade", emoji: "📍" },
@@ -156,6 +157,7 @@ export const CONTENT_TYPES = [
 export const CARD_PALETTES = {
   artwork:    { bg: '#0f0a1e', accent: '#c77dff', text: '#f0e6ff', sub: '#9a8ab0', border: '#2a1a4a', tag: '#1e1030' },
   cultura:    { bg: '#1a0a18', accent: '#f25ec8', text: '#ffe9f8', sub: '#bb88ac', border: '#3a1234', tag: '#250f22' },
+  photography:{ bg: '#0d0f12', accent: '#aebfcf', text: '#eef2f6', sub: '#8a98a6', border: '#222a32', tag: '#13181d' },
   film:       { bg: '#0a1628', accent: '#4fc3f7', text: '#e0f4ff', sub: '#8ab0c8', border: '#1a3050', tag: '#0d1f38' },
   concept:    { bg: '#0d1f0d', accent: '#69d869', text: '#e6f5e6', sub: '#7aa87a', border: '#1a3a1a', tag: '#102010' },
   city:       { bg: '#1f0a0a', accent: '#ff7043', text: '#fff0ec', sub: '#c09080', border: '#3a1a10', tag: '#280d0d' },
@@ -618,6 +620,46 @@ export const CONTENT_LIBRARY = {
       frase: '"Me interessa o que está por baixo da pele das coisas." — Adriana Varejão',
       fonte: 'Fonte: Instituto Inhotim; Gagosian',
     },
+    {
+      titulo: 'A Escritora Que Reinventou a Língua',
+      subtitulo: 'Clarice Lispector · Brasil · 1920–1977',
+      imagem: null,
+      corpo: 'Nascida na Ucrânia e trazida ao Brasil ainda bebê, fugindo dos pogroms, Clarice Lispector tornou-se uma das vozes mais singulares da literatura mundial. Sua escrita não conta histórias no sentido tradicional: mergulha no instante, na epifania, no fluxo de consciência de personagens — quase sempre mulheres — diante de pequenas revelações que abalam tudo. Ler Clarice é menos seguir um enredo e mais habitar uma mente em estado de descoberta.\n\nMisteriosa em vida, dava poucas entrevistas e cultivava uma aura quase mítica. Estreou aos 23 anos com "Perto do Coração Selvagem" e deixou obras-primas como "A Paixão Segundo G.H." e "A Hora da Estrela", concluído pouco antes de morrer. Sua frase mais célebre virou quase um lema: a simplicidade que só se alcança com muito trabalho — e muita coragem de encarar o próprio abismo.',
+      frase: '"Que ninguém se engane, só se consegue a simplicidade através de muito trabalho." — Clarice Lispector',
+      fonte: 'Fonte: Instituto Moreira Salles; biografia "Clarice", de Benjamin Moser',
+    },
+    {
+      titulo: 'A Dama da Literatura Brasileira',
+      subtitulo: 'Lygia Fagundes Telles · Brasil · 1918–2022',
+      imagem: null,
+      corpo: 'Lygia Fagundes Telles foi uma das maiores escritoras brasileiras do século XX, autora de "As Meninas" — romance que acompanha três jovens durante a ditadura militar, entre o desejo de liberdade e a repressão. Formada em Direito, transitava entre o realismo psicológico e o fantástico, com contos perturbadores em que o cotidiano de repente racha e revela o estranho por baixo.\n\nViveu quase 104 anos e foi a terceira mulher a entrar na Academia Brasileira de Letras, numa época em que o meio literário era dominado por homens. Chegou a ser cotada para o Nobel. Sua prosa elegante e afiada deu voz, sobretudo, a personagens femininas complexas — num país e numa literatura que pouco as ouviam. É leitura essencial para entender o Brasil e a condição da mulher nele.',
+      frase: '"Espiar a vida pelo buraco da fechadura: talvez seja isso, escrever um conto." — eco de Lygia Fagundes Telles',
+      fonte: 'Fonte: Academia Brasileira de Letras; Companhia das Letras',
+    },
+    {
+      titulo: 'A Poeta Que Fez da Perda uma Arte',
+      subtitulo: 'Elizabeth Bishop · EUA / Brasil · 1911–1979',
+      imagem: null,
+      corpo: 'A americana Elizabeth Bishop é uma das maiores poetas do século XX — e parte de sua vida mais intensa aconteceu no Brasil. Veio para uma visita curta em 1951 e ficou quase duas décadas, vivendo um amor profundo e tempestuoso com a arquiteta paisagista Lota de Macedo Soares, que projetou o Parque do Flamengo, no Rio. O Brasil entrou em sua poesia em paisagens, viagens e perdas.\n\nBishop era perfeccionista: publicava pouco e lapidava cada palavra por anos. Seu poema mais famoso, "Uma Arte" (One Art), trata da perda — de chaves, de casas, de pessoas amadas — com uma ironia que mal disfarça a dor. A história de seu amor com Lota, que terminou em tragédia, foi retratada no filme brasileiro "Flores Raras". Sua obra ensina que conter a emoção, em vez de derramá-la, pode torná-la ainda mais devastadora.',
+      frase: '"A arte de perder não é nenhum mistério." — Elizabeth Bishop, "Uma Arte"',
+      fonte: 'Fonte: The Poetry Foundation; Companhia das Letras',
+    },
+    {
+      titulo: 'A Pintora Que Devorou a Arte Europeia',
+      subtitulo: 'Tarsila do Amaral · Brasil · 1886–1973',
+      imagem: null,
+      corpo: 'Tarsila do Amaral é a pintora que deu rosto ao modernismo brasileiro. Formada em Paris, conviveu com a vanguarda europeia — mas voltou os olhos para o Brasil: suas cores tropicais, suas frutas, seus corpos, suas paisagens. Em 1928, pintou "Abaporu" (palavra tupi para "homem que come"), a figura de pés e mãos enormes e cabeça minúscula que inspirou o "Manifesto Antropófago" de seu então marido, Oswald de Andrade.\n\nA ideia era radical e libertadora: em vez de copiar a Europa, o Brasil deveria "devorá-la", digerir suas influências e transformá-las em algo próprio e novo. "Abaporu" tornou-se a pintura brasileira mais valiosa do mundo, e Tarsila, símbolo de uma identidade nacional que ela ajudou a inventar com tinta e ousadia. Sua obra prova que a periferia também podia ditar o que é moderno.',
+      frase: '"Quero ser a pintora da minha terra." — Tarsila do Amaral',
+      fonte: 'Fonte: MASP; Pinacoteca de São Paulo',
+    },
+    {
+      titulo: 'A Pintora Que Transformou a Dor em Cor',
+      subtitulo: 'Frida Kahlo · México · 1907–1954',
+      imagem: null,
+      corpo: 'Aos 18 anos, Frida Kahlo sofreu um acidente de ônibus que lhe perfurou o corpo e a deixou com dores pelo resto da vida. Acamada por meses, começou a pintar com um cavalete adaptado e um espelho no teto — por isso se tornou sua própria modelo. "Pinto a mim mesma porque sou quem mais conheço", disse. Seus autorretratos, intensos e simbólicos, transformaram o sofrimento físico e emocional em imagens inesquecíveis.\n\nMexicana orgulhosa de suas raízes indígenas, casou-se duas vezes com o muralista Diego Rivera, numa relação tão criativa quanto turbulenta. Rejeitava o rótulo de surrealista: "Nunca pintei sonhos. Pintei a minha própria realidade." Ignorada por muito tempo à sombra de Diego, hoje é um ícone global — da arte, da resistência feminina e da identidade latino-americana.',
+      frase: '"Pés, para que os quero, se tenho asas para voar?" — Frida Kahlo',
+      fonte: 'Fonte: Museo Frida Kahlo; Museo Dolores Olmedo',
+    },
   ],
 
   music: [
@@ -985,6 +1027,54 @@ export const CONTENT_LIBRARY = {
       fonte: 'Fonte: Ovídio, "Fastos"; Encyclopaedia Britannica',
     },
   ],
+
+  photography: [
+    {
+      titulo: 'A Foto Que Definiu a Grande Depressão',
+      subtitulo: 'Dorothea Lange · Mãe Migrante · 1936',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg',
+      imagemCredito: 'Library of Congress (FSA) / Wikimedia Commons — domínio público',
+      corpo: 'Em 1936, fotografando trabalhadores rurais miseráveis da Califórnia para um programa do governo americano, Dorothea Lange parou diante de uma barraca. Florence Owens Thompson, mãe de sete filhos, olhava o horizonte com uma mistura de exaustão e determinação, duas crianças encostadas em seus ombros. Lange fez poucos cliques e foi embora. Um deles, "Mãe Migrante", tornou-se a imagem definitiva da Grande Depressão.\n\nA foto teve efeito imediato: publicada nos jornais, ajudou a mobilizar o envio de alimentos aos acampamentos. Mas levanta também uma questão ética que persegue o fotojornalismo até hoje — Florence só foi identificada décadas depois e nunca lucrou com a imagem mais famosa de si mesma. Lange acreditava que a câmera podia ensinar as pessoas a enxergar mesmo sem câmera: a prestar atenção no sofrimento que passa ao lado todos os dias.',
+      frase: '"A câmera é um instrumento que ensina as pessoas a ver sem câmera." — Dorothea Lange',
+      fonte: 'Fonte: Library of Congress; The Museum of Modern Art (MoMA)',
+    },
+    {
+      titulo: 'A Foto Que Transformou Fotografia em Arte',
+      subtitulo: 'Alfred Stieglitz · The Steerage · 1907',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Alfred_Stieglitz_-_The_Steerage_-_Google_Art_Project%2C_from_Getty.jpg/960px-Alfred_Stieglitz_-_The_Steerage_-_Google_Art_Project%2C_from_Getty.jpg',
+      imagemCredito: 'The Metropolitan Museum of Art / Wikimedia Commons — domínio público',
+      corpo: 'No início do século XX, a fotografia ainda era vista como mero registro mecânico, e não como arte. Alfred Stieglitz dedicou a vida a mudar isso. Nesta imagem, feita a bordo de um transatlântico, captou a divisão social da embarcação: a passarela separando a primeira classe da "terceira classe" (steerage), o compartimento dos imigrantes pobres. Geometria, luz e humanidade num único instante.\n\nStieglitz dizia ter visto ali "uma imagem de formas" — e a composição, com o chapéu de palha redondo, as escadas e os varais, é tão rigorosa quanto uma pintura cubista, anos antes do cubismo. Ele expôs fotografias ao lado de Picasso e Matisse em sua galeria em Nova York e, com a revista Camera Work, conquistou para a fotografia o estatuto de arte que hoje tomamos como óbvio.',
+      frase: '"Onde houver luz, é possível fotografar." — Alfred Stieglitz',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+    {
+      titulo: 'A Aposta Que Ajudou a Inventar o Cinema',
+      subtitulo: 'Eadweard Muybridge · O Cavalo em Movimento · 1878',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/The_Horse_in_Motion_high_res.jpg/960px-The_Horse_in_Motion_high_res.jpg',
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Em 1872 surgiu uma dúvida que dividia opiniões: quando um cavalo galopa, existe um instante em que as quatro patas ficam no ar ao mesmo tempo? A olho nu, impossível saber. O fotógrafo Eadweard Muybridge resolveu a questão de forma engenhosa: alinhou uma fileira de câmeras disparadas por fios à medida que o cavalo passava, congelando cada fração do movimento.\n\nA resposta era sim — e a sequência provou muito mais. Ao projetar essas imagens em rápida sucessão num aparelho que ele mesmo inventou, Muybridge fez as fotos "andarem": foi um dos passos decisivos para o nascimento do cinema. A fotografia, que parara o tempo, agora o devolvia em movimento. Curiosamente, o próprio Muybridge teve uma vida turbulenta — chegou a ser julgado, e absolvido, pela morte do amante de sua esposa.',
+      frase: '"Ele parou o tempo — e depois o ensinou a andar." — sobre Muybridge',
+      fonte: 'Fonte: Encyclopaedia Britannica; Smithsonian Institution',
+    },
+    {
+      titulo: 'As Fotos Que Tiraram Crianças das Fábricas',
+      subtitulo: 'Lewis Hine · Mecânico na Usina · c.1920',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Lewis_Hine_Power_house_mechanic_working_on_steam_pump.jpg/960px-Lewis_Hine_Power_house_mechanic_working_on_steam_pump.jpg',
+      imagemCredito: 'Library of Congress / Wikimedia Commons — domínio público',
+      corpo: 'No começo do século XX, milhões de crianças americanas trabalhavam em minas, fábricas e fiações, muitas vezes em condições brutais. O sociólogo e fotógrafo Lewis Hine percorreu o país documentando esse trabalho infantil — por vezes mentindo aos patrões, dizendo ser vendedor, para conseguir entrar e fotografar meninos de oito anos operando máquinas perigosas. Suas imagens chocaram a opinião pública e ajudaram a aprovar leis que restringiram o trabalho infantil.\n\nHine acreditava que a fotografia podia ser uma ferramenta de justiça social. Esta imagem, de um mecânico curvado sobre uma enorme máquina a vapor, mostra outro lado de seu olhar: a dignidade e a força do trabalhador, quase como uma escultura clássica. Para ele, a câmera tanto podia denunciar o que estava errado quanto celebrar a grandeza de quem trabalha.',
+      frase: '"A fotografia pode iluminar as trevas e revelar a luz." — Lewis Hine',
+      fonte: 'Fonte: Library of Congress; George Eastman Museum',
+    },
+    {
+      titulo: 'A Mulher Que Fotografou Almas, Não Rostos',
+      subtitulo: 'Julia Margaret Cameron · retrato de Thomas Carlyle · 1867',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Thomas_Carlyle_MET_DP295239.jpg/960px-Thomas_Carlyle_MET_DP295239.jpg',
+      imagemCredito: 'The Metropolitan Museum of Art / Wikimedia Commons — domínio público',
+      corpo: 'Julia Margaret Cameron só começou a fotografar aos 48 anos, quando a filha lhe deu uma câmera para preencher o tempo. Em poucos anos, tornou-se uma das fotógrafas mais originais do século XIX. Numa época em que se exigiam retratos nítidos e formais, ela fazia o oposto: usava foco suave, longas exposições e luz dramática para captar não a aparência exata, mas a intensidade interior de quem posava.\n\nFotografou os grandes nomes da era vitoriana — o astrônomo John Herschel, o poeta Tennyson, o pensador Thomas Carlyle (neste retrato) — e mulheres encenando cenas mitológicas e literárias. Os críticos da época reclamavam de suas imagens "borradas" e "imperfeitas". Hoje é justamente essa busca pela alma, e não pela exatidão, que faz dela uma pioneira reverenciada da fotografia como arte.',
+      frase: '"Anseio por capturar toda a beleza que passa diante de mim." — Julia Margaret Cameron',
+      fonte: 'Fonte: The Metropolitan Museum of Art; Victoria and Albert Museum',
+    },
+  ],
 };
 
 export function getEditionPeriod() {
@@ -1009,3 +1099,86 @@ export function getRandomContent(type) {
   if (items.length === 0) return null;
   return items[Math.floor(Math.random() * items.length)];
 }
+
+// ============================================================
+// FRASES POR HUMOR — aba "Frases do dia"
+// Para humores difíceis (triste, sem esperança, medo), as frases
+// oferecem acolhimento e perspectiva, não reforço do sofrimento.
+// ============================================================
+export const MOODS = [
+  { id: 'feliz',         label: 'Feliz',          emoji: '😊', color: '#f6b73c' },
+  { id: 'animado',       label: 'Animado',        emoji: '🤩', color: '#ff7a3c' },
+  { id: 'apaixonado',    label: 'Apaixonado',     emoji: '❤️', color: '#ff5d8f' },
+  { id: 'grato',         label: 'Grato',          emoji: '🙏', color: '#9ccc65' },
+  { id: 'inspirado',     label: 'Inspirado',      emoji: '✨', color: '#b388ff' },
+  { id: 'triste',        label: 'Triste',         emoji: '😢', color: '#5c9ce0' },
+  { id: 'sem_esperanca', label: 'Sem esperança',  emoji: '🌧️', color: '#7986cb' },
+  { id: 'solitario',     label: 'Solitário',      emoji: '🌙', color: '#90a4ae' },
+  { id: 'entediado',     label: 'Entediado',      emoji: '😐', color: '#a1887f' },
+  { id: 'preocupado',    label: 'Preocupado',     emoji: '😟', color: '#80cbc4' },
+  { id: 'ansioso',       label: 'Ansioso',        emoji: '😰', color: '#4db6ac' },
+  { id: 'com_medo',      label: 'Com medo',       emoji: '😨', color: '#9575cd' },
+];
+
+export const MOOD_QUOTES = {
+  feliz: [
+    { texto: 'A felicidade só é real quando compartilhada.', autor: 'Into the Wild', obra: 'Jon Krakauer' },
+    { texto: 'Dancem, dancem, senão estaremos perdidos.', autor: 'Pina Bausch', obra: '' },
+    { texto: 'Há flores em toda parte para quem realmente deseja vê-las.', autor: 'Henri Matisse', obra: '' },
+  ],
+  animado: [
+    { texto: 'Aproveitem o dia. Tornem suas vidas extraordinárias.', autor: 'Sociedade dos Poetas Mortos', obra: '' },
+    { texto: 'Vá com confiança na direção dos seus sonhos. Viva a vida que você imaginou.', autor: 'Henry David Thoreau', obra: 'Walden' },
+    { texto: 'Se há mágica neste mundo, ela está na tentativa de entender alguém.', autor: 'Before Sunrise', obra: '' },
+  ],
+  apaixonado: [
+    { texto: 'O amor não é olhar um para o outro, mas olhar juntos na mesma direção.', autor: 'Antoine de Saint-Exupéry', obra: '' },
+    { texto: 'Existe sempre um pouco de loucura no amor. Mas sempre um pouco de razão na loucura.', autor: 'Friedrich Nietzsche', obra: 'Assim Falou Zaratustra' },
+    { texto: 'Tu te tornas eternamente responsável por aquilo que cativas.', autor: 'O Pequeno Príncipe', obra: 'Saint-Exupéry' },
+  ],
+  grato: [
+    { texto: 'A gratidão transforma o que temos em suficiente.', autor: 'provérbio', obra: '' },
+    { texto: 'Gratidão é a memória do coração.', autor: 'provérbio francês', obra: '' },
+    { texto: 'Há um tempo para tudo debaixo do céu.', autor: 'Eclesiastes 3', obra: '' },
+  ],
+  inspirado: [
+    { texto: 'Você não esgota a criatividade. Quanto mais usa, mais você tem.', autor: 'Maya Angelou', obra: '' },
+    { texto: 'Não me interessa como as pessoas se movem, mas o que as move.', autor: 'Pina Bausch', obra: '' },
+    { texto: 'Comece fazendo o necessário, depois o possível, e logo estará fazendo o impossível.', autor: 'atribuída a São Francisco de Assis', obra: '' },
+  ],
+  triste: [
+    { texto: 'As lágrimas são palavras que o coração não consegue dizer.', autor: 'provérbio', obra: '' },
+    { texto: 'A tristeza é um muro entre dois jardins.', autor: 'Khalil Gibran', obra: '' },
+    { texto: 'Ainda que eu ande pelo vale da sombra, não temerei mal algum.', autor: 'Salmo 23', obra: '' },
+  ],
+  sem_esperanca: [
+    { texto: 'No meio do inverno, aprendi enfim que havia em mim um verão invencível.', autor: 'Albert Camus', obra: '' },
+    { texto: 'A esperança é a coisa com penas que pousa na alma.', autor: 'Emily Dickinson', obra: '' },
+    { texto: 'Quem tem um porquê para viver suporta quase qualquer como.', autor: 'Friedrich Nietzsche', obra: '' },
+  ],
+  solitario: [
+    { texto: 'Só somos verdadeiramente livres quando estamos sós.', autor: 'Arthur Schopenhauer', obra: '' },
+    { texto: 'Que os outros se gabem das páginas que escreveram; eu me orgulho das que li.', autor: 'Jorge Luis Borges', obra: '' },
+    { texto: 'A memória é a única coisa que nos pertence de verdade.', autor: 'Past Lives', obra: '' },
+  ],
+  entediado: [
+    { texto: 'A vida é uma aventura ousada ou não é nada.', autor: 'Helen Keller', obra: '' },
+    { texto: 'A curiosidade é a insubordinação na sua forma mais pura.', autor: 'Vladimir Nabokov', obra: '' },
+    { texto: 'Não existem terras estranhas. Quem viaja é que é o estrangeiro.', autor: 'Robert Louis Stevenson', obra: '' },
+  ],
+  preocupado: [
+    { texto: 'Se um problema tem solução, não há por que se preocupar. Se não tem, preocupar-se não adianta.', autor: 'provérbio', obra: '' },
+    { texto: 'A maior parte das coisas com que me preocupei na vida nunca chegou a acontecer.', autor: 'atribuída a Mark Twain', obra: '' },
+    { texto: 'Preocupar-se não tira a dor de amanhã, tira a paz de hoje.', autor: 'provérbio', obra: '' },
+  ],
+  ansioso: [
+    { texto: 'Nada na vida deve ser temido, apenas compreendido.', autor: 'Marie Curie', obra: '' },
+    { texto: 'A ansiedade é a vertigem da liberdade.', autor: 'Søren Kierkegaard', obra: '' },
+    { texto: 'Nenhuma tempestade, por mais forte, dura para sempre.', autor: 'provérbio', obra: '' },
+  ],
+  com_medo: [
+    { texto: 'Coragem não é a ausência de medo, mas a certeza de que algo importa mais que ele.', autor: 'Ambrose Redmoon', obra: '' },
+    { texto: 'A única coisa que devemos temer é o próprio medo.', autor: 'Franklin D. Roosevelt', obra: '' },
+    { texto: 'Sinta o medo e faça mesmo assim.', autor: 'Susan Jeffers', obra: '' },
+  ],
+};
