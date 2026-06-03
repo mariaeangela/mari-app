@@ -67,13 +67,19 @@ function Header({ tab, setTab }) {
   );
 }
 
-const DAILY_FEED = ['artwork', 'film', 'concept', 'city', 'letter', 'movement'];
-const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now'];
+// Aba Hoje: o 2º card é o slot "cultura", que gira entre cinema/artista/música/
+// conexões a cada edição (6h e 14h). Os demais slots são fixos.
+const CULTURA_TYPES = ['film', 'artist', 'music', 'connection'];
+// Aba Explorar: temas que o usuário escolhe por botão.
+const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now', 'movement', 'letter', 'film'];
 
 function Feed() {
+  const period = getEditionPeriod();
+  const cultura = CULTURA_TYPES[((period % CULTURA_TYPES.length) + CULTURA_TYPES.length) % CULTURA_TYPES.length];
+  const slots = ['artwork', cultura, 'concept', 'city'];
   return (
     <div style={{ paddingBottom: 40 }}>
-      {DAILY_FEED.map((type, i) => <CardWithContent key={type} type={type} offset={i} />)}
+      {slots.map((type, i) => <CardWithContent key={type} type={type} offset={i} />)}
     </div>
   );
 }
@@ -103,7 +109,8 @@ function ExplorePage() {
           <button onClick={() => setSelectedType(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 20, padding: 0 }}>
             &larr; voltar
           </button>
-          <CardWithContent type={selectedType} />
+          {/* key por edição: o card do Explorar também remonta às 6h e às 14h */}
+          <CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} />
         </div>
       )}
     </div>
