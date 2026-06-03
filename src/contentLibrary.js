@@ -1,0 +1,580 @@
+// ============================================================
+// DIAGONAL — CONTEÚDO CURADO v3
+// Imagens via Wikimedia Commons (domínio público)
+// ============================================================
+
+export const OPENING_QUOTES = [
+  { texto: "Tudo estava morto e eu estava viva, e só isso era o único problema.", obra: "A Amiga Genial", autor: "Elena Ferrante" },
+  { texto: "Uma vez que você supera a barreira das legendas, um mundo inteiro se abre.", obra: "Parasite", autor: "Bong Joon-ho" },
+  { texto: "O amor não é um estado permanente. É um esforço constante.", obra: "Before Midnight", autor: "Richard Linklater" },
+  { texto: "Há coisas que só se veem com os olhos fechados.", obra: "As Brasas", autor: "Sándor Márai" },
+  { texto: "Ser leve é a coisa mais pesada do mundo.", obra: "A Insustentável Leveza do Ser", autor: "Milan Kundera" },
+  { texto: "Long story short: I survived.", obra: "Long Story Short", autor: "Taylor Swift" },
+  { texto: "Dancem, dancem, senão estamos perdidos.", obra: "Pina", autor: "Pina Bausch" },
+  { texto: "O tempo não para. Não importa o quanto você queira.", obra: "Aftersun", autor: "Charlotte Wells" },
+  { texto: "Existe um momento em que você percebe que seus pais são apenas pessoas.", obra: "Lady Bird", autor: "Greta Gerwig" },
+  { texto: "A memória é a única coisa que nos pertence de verdade.", obra: "Past Lives", autor: "Celine Song" },
+  { texto: "O sertão é dentro da gente.", obra: "Grande Sertão: Veredas", autor: "Guimarães Rosa" },
+  { texto: "Nada se compara às suas mãos.", obra: "Diário", autor: "Frida Kahlo" },
+];
+
+export function getTodayQuote() {
+  const period = getEditionPeriod();
+  return OPENING_QUOTES[((period % OPENING_QUOTES.length) + OPENING_QUOTES.length) % OPENING_QUOTES.length];
+}
+
+// Fatos históricos por dia do ano (mês-dia como chave)
+export const HISTORICAL_FACTS = {
+  "1-1":  "em 1863, Abraham Lincoln assinou a Proclamação de Emancipação, libertando escravizados nos estados confederados.",
+  "1-15": "em 1929, nasceu Martin Luther King Jr., que mudaria para sempre a história dos direitos civis.",
+  "2-14": "em 270 d.C., morreu o bispo Valentim, que deu origem — séculos depois — ao Dia dos Namorados.",
+  "3-8":  "em 1857, operárias de Nova York entraram em greve por melhores condições, semente do Dia Internacional da Mulher.",
+  "4-15": "em 1452, nasceu Leonardo da Vinci — pintor, escultor, arquiteto, músico, matemático, engenheiro e anatomista.",
+  "5-22": "em 1859, nasceu Arthur Conan Doyle, criador de Sherlock Holmes.",
+  "6-2":  "em 1953, foi realizada a coroação da Rainha Elizabeth II na Abadia de Westminster, assistida por 27 milhões de pessoas pela TV.",
+  "6-16": "em 1904, Leopold Bloom passeou por Dublin — dia imortalizado por James Joyce no romance Ulisses.",
+  "7-14": "em 1789, a tomada da Bastilha marcou o início da Revolução Francesa.",
+  "7-20": "em 1969, Neil Armstrong pisou na Lua pela primeira vez. Buzz Aldrin ficou em segundo lugar — literalmente.",
+  "8-6":  "em 1945, a bomba atômica foi lançada sobre Hiroshima, matando 80 mil pessoas instantaneamente.",
+  "9-7":  "em 1822, Dom Pedro I proclamou a independência do Brasil às margens do Ipiranga.",
+  "10-2": "em 1869, nasceu Mahatma Gandhi, que libertaria a Índia do colonialismo britânico por meio da não-violência.",
+  "11-9": "em 1989, o Muro de Berlim caiu, reunificando Alemanha e encerrando simbolicamente a Guerra Fria.",
+  "12-25":"em 1642, nasceu Isaac Newton — no mesmo ano em que morreu Galileu. Como se o universo passasse o bastão.",
+};
+
+export function getTodayFact() {
+  const now = new Date();
+  const key = `${now.getMonth() + 1}-${now.getDate()}`;
+  return HISTORICAL_FACTS[key] || getTodayDefaultFact(now);
+}
+
+function getTodayDefaultFact(now) {
+  const facts = [
+    "a palavra 'livro' vem do latim 'liber', que era a camada interna da casca da árvore onde os romanos escreviam.",
+    "o azul ultramarino usado por Vermeer em suas pinturas custava mais caro que ouro — era lapislázuli moído importado do Afeganistão.",
+    "Frida Kahlo e Diego Rivera se casaram duas vezes — divorciaram em 1939 e voltaram a casar em 1940.",
+    "a Biblioteca de Alexandria tinha uma regra: todo navio que entrasse no porto do Egito devia entregar seus livros para serem copiados.",
+    "Shakespeare inventou mais de 1.700 palavras que usamos até hoje, incluindo 'bedroom', 'lonely' e 'generous'.",
+    "o primeiro romance da história foi escrito por uma mulher japonesa: Murasaki Shikibu, por volta do ano 1000.",
+    "Beethoven compôs algumas de suas obras mais complexas já completamente surdo — ele sentia as vibrações pelo chão.",
+    "o Louvre foi originalmente uma fortaleza medieval antes de virar palácio e depois museu.",
+    "a Torre Eiffel cresce 15 centímetros no verão por causa da dilatação térmica do metal.",
+  ];
+  const day = Math.floor(Date.now() / 86400000);
+  return facts[day % facts.length];
+}
+
+export const SEASON_THEMES = {
+  spring: {
+    name: 'Primavera',
+    emoji: '🌸',
+    greeting_bg: 'linear-gradient(160deg, #fff0f5 0%, #fdf6ff 50%, #f0fff4 100%)',
+    accent: '#d4508a',
+    accentLight: '#fce4ec',
+    text: '#2d1020',
+    sub: '#a06080',
+    decoration: ['#f8bbd0','#e1bee7','#c8e6c9','#f3e5f5'],
+    tagline: 'edição primavera',
+  },
+  summer: {
+    name: 'Verão',
+    emoji: '☀️',
+    greeting_bg: 'linear-gradient(160deg, #fffde7 0%, #fff8e1 50%, #fff3e0 100%)',
+    accent: '#e65100',
+    accentLight: '#ffe0b2',
+    text: '#1a0a00',
+    sub: '#8d4e00',
+    decoration: ['#ffcc02','#ffab40','#ff7043','#ffd54f'],
+    tagline: 'edição verão',
+  },
+  autumn: {
+    name: 'Outono',
+    emoji: '🍂',
+    greeting_bg: 'linear-gradient(160deg, #fbe9e7 0%, #fff8e1 50%, #efebe9 100%)',
+    accent: '#bf360c',
+    accentLight: '#ffccbc',
+    text: '#1a0800',
+    sub: '#8d3b00',
+    decoration: ['#d84315','#e64a19','#bf360c','#ff7043'],
+    tagline: 'edição outono',
+  },
+  winter: {
+    name: 'Inverno',
+    emoji: '❄️',
+    greeting_bg: 'linear-gradient(160deg, #e3f2fd 0%, #f3e5f5 50%, #e8eaf6 100%)',
+    accent: '#1565c0',
+    accentLight: '#bbdefb',
+    text: '#0a0f2a',
+    sub: '#304878',
+    decoration: ['#90caf9','#b39ddb','#80cbc4','#ce93d8'],
+    tagline: 'edição inverno',
+  },
+};
+
+export function getSeason() {
+  const m = new Date().getMonth() + 1;
+  if (m >= 12 || m <= 2) return 'summer';
+  if (m >= 3 && m <= 5) return 'autumn';
+  if (m >= 6 && m <= 8) return 'winter';
+  return 'spring';
+}
+
+export function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+export function getDayName() {
+  const days = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  return days[new Date().getDay()];
+}
+
+// Paletas expressivas por tipo de card
+export const CONTENT_TYPES = [
+  { id: "artwork", label: "Obra do Dia", emoji: "🎨" },
+  { id: "film", label: "Cinema", emoji: "🎬" },
+  { id: "concept", label: "Conceito", emoji: "🧠" },
+  { id: "city", label: "Cidade", emoji: "📍" },
+  { id: "letter", label: "Cartas", emoji: "💌" },
+  { id: "movement", label: "Movimentos", emoji: "🏛️" },
+  { id: "artist", label: "Artista", emoji: "✨" },
+  { id: "music", label: "Música", emoji: "🎵" },
+  { id: "connection", label: "Conexões", emoji: "📖" },
+  { id: "chess", label: "Xadrez", emoji: "♟️" },
+  { id: "context", label: "Contexto", emoji: "🌍" },
+  { id: "now", label: "Agora", emoji: "⭐" },
+];
+
+export const CARD_PALETTES = {
+  artwork:    { bg: '#0f0a1e', accent: '#c77dff', text: '#f0e6ff', sub: '#9a8ab0', border: '#2a1a4a', tag: '#1e1030' },
+  film:       { bg: '#0a1628', accent: '#4fc3f7', text: '#e0f4ff', sub: '#8ab0c8', border: '#1a3050', tag: '#0d1f38' },
+  concept:    { bg: '#0d1f0d', accent: '#69d869', text: '#e6f5e6', sub: '#7aa87a', border: '#1a3a1a', tag: '#102010' },
+  city:       { bg: '#1f0a0a', accent: '#ff7043', text: '#fff0ec', sub: '#c09080', border: '#3a1a10', tag: '#280d0d' },
+  letter:     { bg: '#1a1200', accent: '#ffd54f', text: '#fff9e0', sub: '#b8a060', border: '#3a3000', tag: '#221800' },
+  movement:   { bg: '#00121f', accent: '#26c6da', text: '#e0f8fc', sub: '#6aaaba', border: '#003040', tag: '#001828' },
+  artist:     { bg: '#1f0014', accent: '#f06292', text: '#ffe6f0', sub: '#b8788a', border: '#3a0028', tag: '#280018' },
+  music:      { bg: '#0a0a1f', accent: '#ff9800', text: '#fff8e6', sub: '#b89860', border: '#1a1a40', tag: '#0d0d28' },
+  connection: { bg: '#0f1a0a', accent: '#a5d6a7', text: '#f0f8f0', sub: '#80a880', border: '#203020', tag: '#121f0f' },
+  chess:      { bg: '#1a1000', accent: '#d4a843', text: '#fff8e8', sub: '#b09060', border: '#3a2800', tag: '#221500' },
+  context:    { bg: '#100a1f', accent: '#ba68c8', text: '#f5e8ff', sub: '#9878a8', border: '#281840', tag: '#150d28' },
+  now:        { bg: '#001f1a', accent: '#80cbc4', text: '#e0faf8', sub: '#70a8a4', border: '#003830', tag: '#002820' },
+};
+
+// Imagens via Wikimedia Commons (domínio público)
+export const CONTENT_LIBRARY = {
+  artwork: [
+    {
+      titulo: 'O Retrato Que Causou um Escândalo',
+      subtitulo: 'John Singer Sargent · Madame X · 1884',
+      metId: 12127,
+      metQuery: 'Sargent Madame X',
+      imagemCredito: 'The Metropolitan Museum of Art — domínio público',
+      corpo: 'Quando Sargent expôs este retrato no Salão de Paris de 1884, foi um desastre. A modelo, Virginie Gautreau, uma socialite americana, apareceu com uma pele quase fantasmagórica e uma pose altiva. Mas o que chocou Paris foi um detalhe: originalmente, Sargent pintara uma das alças do vestido caída sobre o ombro, sugerindo sensualidade e desordem. O escândalo foi tão violento que a mãe da modelo implorou para que ele retirasse a tela.\n\nSargent repintou a alça de volta ao ombro, mas o estrago estava feito. Humilhado, ele deixou Paris e mudou-se para Londres. Anos depois, já consagrado, vendeu o quadro ao Metropolitan e disse que era a melhor coisa que já tinha pintado. Pediu apenas que o nome da modelo fosse mantido em segredo — por isso "Madame X".',
+      frase: '"Acho que é a melhor coisa que já fiz." — John Singer Sargent',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+    {
+      titulo: 'O Quadro Pintado de Dentro de um Hospício',
+      subtitulo: 'Vincent van Gogh · Campo de Trigo com Ciprestes · 1889',
+      metId: 436535,
+      metQuery: 'Van Gogh wheat field cypresses',
+      imagemCredito: 'The Metropolitan Museum of Art — domínio público',
+      corpo: 'Van Gogh pintou esta paisagem vibrante enquanto estava internado por vontade própria no asilo de Saint-Rémy, no sul da França, após o episódio em que mutilou a própria orelha. Da janela do quarto, e em caminhadas vigiadas pelos campos, ele via os ciprestes — árvores que o fascinavam e aterrorizavam.\n\nPara Van Gogh, o cipreste era "uma mancha negra numa paisagem ensolarada", tão belo quanto um obelisco egípcio, mas associado à morte e aos cemitérios. As pinceladas em espiral, o céu que parece se mover, o trigo dourado em convulsão — tudo transmite uma mente em turbulência tentando encontrar ordem na natureza. Ele morreria menos de um ano depois.',
+      frase: '"Os ciprestes ocupam meus pensamentos o tempo todo." — Van Gogh a Theo',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+    {
+      titulo: 'O Jardim Que Ele Construiu Para Pintar',
+      subtitulo: 'Claude Monet · Ponte Sobre o Lago de Nenúfares · 1899',
+      imagem: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg/960px-Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg',
+      imagemCredito: 'The Metropolitan Museum of Art — domínio público',
+      corpo: 'O que poucos sabem é que o famoso jardim de nenúfares de Monet em Giverny foi inteiramente projetado e construído por ele — Monet era um paisagista obsessivo. Ele desviou um riacho, contratou jardineiros, importou plantas exóticas e mandou construir a ponte japonesa que aparece em dezenas de suas telas. O motivo que ele tanto pintou não era natural: era uma obra de arte viva, criada por ele.\n\nQuando os vizinhos reclamaram que suas plantas aquáticas exóticas iriam "envenenar a água", Monet teve que pedir autorização oficial. Ele pintou esse jardim por mais de 25 anos, em todas as estações e luzes. A natureza, para ele, não era algo a observar — era algo a compor, como um quadro tridimensional que ele depois transferia para a tela.',
+      frase: '"Meu jardim é minha mais bela obra de arte." — Claude Monet',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+    {
+      titulo: 'A Luz Que Levou Séculos Para Ser Entendida',
+      subtitulo: 'Johannes Vermeer · Jovem com Jarro de Água · c.1662',
+      metId: 437881,
+      metQuery: 'Vermeer woman water pitcher',
+      imagemCredito: 'The Metropolitan Museum of Art — domínio público',
+      corpo: 'Este foi o primeiro Vermeer a entrar numa coleção americana, em 1887 — numa época em que o pintor holandês ainda era praticamente desconhecido. Vermeer havia sido esquecido por quase dois séculos após sua morte; produziu pouquíssimas obras, vendeu pouco e morreu endividado, deixando onze filhos.\n\nO que torna esta tela hipnótica é a luz. Vermeer entendia, antes da fotografia existir, como a luz se comporta ao atravessar uma janela e tocar superfícies diferentes — o metal frio do jarro, o tecido da touca, a parede ao fundo. Pesquisadores acreditam que ele usava uma câmara escura, um aparato óptico, para estudar esses efeitos. Cada Vermeer é menos um retrato e mais um estudo silencioso sobre como enxergamos.',
+      frase: '"Ele pintou o ar entre as coisas." — crítica sobre Vermeer',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+    {
+      titulo: 'A Bailarina de Bronze Que Chocou Paris',
+      subtitulo: 'Edgar Degas · Pequena Dançarina de 14 Anos · 1880',
+      metId: 196439,
+      metQuery: 'Degas little dancer fourteen',
+      imagemCredito: 'The Metropolitan Museum of Art — domínio público',
+      corpo: 'Quando Degas expôs esta escultura de cera, vestida com um tutu de tecido real e uma fita de cetim no cabelo, o público ficou perturbado. Era realista demais. A modelo, Marie van Goethem, era uma jovem bailarina belga do submundo da Ópera de Paris — meninas pobres que frequentemente eram exploradas. Os críticos da época, influenciados por teorias pseudocientíficas, chegaram a dizer que seu rosto tinha "traços de criminalidade".\n\nDegas, que amava o balé, retratava também sua dureza: a exaustão, a pobreza, o trabalho brutal por trás da graça. Esta foi a única escultura que ele expôs em vida. As versões em bronze que vemos hoje, como a do Metropolitan, foram fundidas após sua morte. Degas, assim como Monet e Van Gogh, foi perdendo a visão com a idade — e voltou-se cada vez mais para a escultura, que podia sentir com as mãos.',
+      frase: '"A arte não é o que você vê, mas o que você faz os outros verem." — Edgar Degas',
+      fonte: 'Fonte: The Metropolitan Museum of Art',
+    },
+  ],
+
+  film: [
+    {
+      titulo: 'Por Que Aftersun Dói Tanto',
+      subtitulo: 'Charlotte Wells · 2022',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Aftersun parece, à primeira vista, um filme sobre férias numa cidade turca nos anos 1990. Mas é um dos retratos mais delicados já feitos sobre memória e luto. A diretora Charlotte Wells construiu o filme a partir de fragmentos — imagens de câmera de vídeo, momentos soltos — porque é assim que a memória funciona: aos pedaços.\n\nO filme nunca diz explicitamente o que aconteceu com o pai. Você monta a história nos silêncios, nos olhares, numa cena de dança que parte o coração. É sobre tentar entender, já adulto, alguém que amamos quando éramos crianças — e perceber que nunca o conhecemos por completo.',
+      frase: '"O tempo não para. Não importa o quanto você queira." — eco de Aftersun',
+      fonte: 'Fonte: BFI; A24',
+    },
+    {
+      titulo: 'O Filme Rodado Em Preto e Branco Por Escolha',
+      subtitulo: 'Paweł Pawlikowski · Cold War · 2018',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Cold War foi rodado em preto e branco em formato 4:3 — a proporção quadrada dos filmes antigos. Pawlikowski fez isso conscientemente para criar a sensação de aprisionamento: os personagens quase não cabem no frame, sufocados pelos lados. O formato é a metáfora.\n\nO filme é baseado parcialmente nos pais do próprio diretor. O que poucos sabem: Pawlikowski perdeu sua esposa para uma doença grave enquanto desenvolvia o roteiro, e o filme se tornou também sobre como o amor sobrevive à perda. A cena final, filmada numa ruína abandonada na Polônia, foi a última a ser gravada — e o elenco sabia que era o fim.',
+      frase: '"Amor é quando a distância não diminui o que você sente — só aumenta." — eco de Cold War',
+      fonte: 'Fonte: Cannes Film Festival; BFI',
+    },
+    {
+      titulo: 'O Acidente Que Criou Uma Cena Icônica',
+      subtitulo: 'Wong Kar-wai · No Mood for Love · 2000',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Wong Kar-wai passou 15 meses filmando No Mood for Love — previsto para ser um curta de 30 dias. Ele improvisava quase tudo: não tinha roteiro fixo, filmava cenas sem saber onde encaixariam. A cena icônica da escadaria, com Maggie Cheung em câmera lenta, foi filmada assim apenas porque o diretor achou a atriz linda naquele ângulo.\n\nO filme é sobre dois vizinhos que descobrem que seus cônjuges têm um caso entre si. Mas em vez do escândalo, Wong Kar-wai filmou a contenção: o que eles não fazem, o que não dizem, o que quase acontece. É um filme sobre o desejo como disciplina.',
+      frase: '"Aquele tempo ficou para sempre." — No Mood for Love',
+      fonte: 'Fonte: Cannes Film Festival; BFI Sight & Sound',
+    },
+    {
+      titulo: 'A Trilogia Que Levou 18 Anos',
+      subtitulo: 'Richard Linklater · Before Sunrise/Sunset/Midnight · 1995–2013',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Viena, cenário de Before Sunrise)',
+      corpo: 'A trilogia Before filmou os mesmos dois atores, Ethan Hawke e Julie Delpy, a cada nove anos, acompanhando o mesmo casal envelhecer de verdade. No primeiro filme, eles têm vinte e poucos anos e se conhecem num trem. No último, estão na casa dos quarenta, casados, exaustos, reais.\n\nOs atores co-escreveram os diálogos, trazendo suas próprias experiências de vida. Por isso as conversas soam tão verdadeiras — longas, filosóficas, imperfeitas. É a coisa mais próxima que o cinema já chegou de mostrar o tempo passar de verdade sobre o amor.',
+      frase: '"Se há mágica neste mundo, ela está na tentativa de entender alguém." — Before Sunrise',
+      fonte: 'Fonte: Criterion Collection',
+    },
+    {
+      titulo: 'O Musical Que Deveria Ter Tido Outro Final',
+      subtitulo: 'Damien Chazelle · La La Land · 2016',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'O final de La La Land — aquele "e se" devastador — não estava no roteiro original. Chazelle testou um final feliz convencional e achou vazio. Então escreveu a sequência inteira do sonho, filmada numa única corrida criativa.\n\nO detalhe que muda tudo: durante a sequência imaginada, as cores ficam mais saturadas, mais de sonho — o único momento em que a câmera "mente". E no último plano, quando Mia e Sebastian se olham, nenhum dos dois atores sabia o que fazer. Chazelle os deixou descobrir o gesto sozinhos. O sorriso de Emma Stone naquele instante é genuíno.',
+      frase: '"A melhor coisa que podemos fazer é sermos fiéis ao que amamos." — La La Land',
+      fonte: 'Fonte: Academy Awards; Criterion Collection',
+    },
+  ],
+
+  concept: [
+    {
+      titulo: 'Por Que Você Nunca Consegue Parar de Rolar a Tela',
+      subtitulo: 'Reforço de Razão Variável · B.F. Skinner',
+      imagem: null,
+      imagemCredito: 'Harvard University — domínio público',
+      corpo: 'Nos anos 1950, o psicólogo B.F. Skinner colocou pombos em caixas com alavancas. Quando a alavanca sempre liberava comida, os pombos pressionavam com calma. Quando liberava às vezes, de forma imprevisível — os pombos pressionavam compulsivamente, sem parar.\n\nEsse mecanismo é o princípio exato por trás do Instagram e TikTok. A recompensa imprevisível — às vezes uma postagem incrível, às vezes nada — cria compulsão mais forte que qualquer recompensa garantida. Os designers de redes sociais estudaram Skinner. Cada vez que você rola a tela esperando algo bom, você é o pombo. Saber disso não elimina o impulso — mas explica por que ele é tão difícil de resistir.',
+      frase: '"Nenhum organismo pode resistir indefinidamente a um reforço variável." — B.F. Skinner',
+      fonte: 'Fonte: "Science and Human Behavior", Skinner; Stanford Persuasive Tech Lab',
+    },
+    {
+      titulo: 'O Experimento Que Provou Que Todos Obedecemos',
+      subtitulo: 'O Experimento de Milgram · Yale · 1961',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Em 1961, Stanley Milgram recrutou voluntários para um "experimento de aprendizagem". Um ator fingia ser outro participante. Os voluntários aplicavam choques elétricos crescentes toda vez que ele errava — chegando a 450 volts, marcado com "Perigo: Choque Severo".\n\nO ator gritava, implorava, depois ficava em silêncio. Mas quando o pesquisador dizia "continue, o experimento requer que você prossiga" — 65% chegaram ao nível máximo. Milgram queria entender como soldados nazistas obedeceram ordens de extermínio. Descobriu algo mais amplo: a autoridade legítima faz a maioria das pessoas normais cruzar linhas que jamais cruzariam sozinhas.',
+      frase: '"O maior perigo não é a crueldade — é a obediência irrefletida." — Hannah Arendt',
+      fonte: 'Fonte: "Obedience to Authority", Stanley Milgram, 1974',
+    },
+    {
+      titulo: 'Por Que Lugares Existem Dentro de Nós',
+      subtitulo: 'Topofilia · Yi-Fu Tuan · 1974',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Praga)',
+      corpo: 'Em 1974, o geógrafo Yi-Fu Tuan cunhou a palavra "topofilia" — o amor pelo lugar. Não turismo: a relação afetiva profunda que desenvolvemos com espaços físicos, que moldam quem somos de formas que raramente conseguimos articular.\n\nTuan estudou como o espaço se torna "lugar" quando o habitamos com atenção e afeto. Praga, Cusco, Veneza — cidades que você visitou — existem em você não como postais, mas como camadas de experiência sensorial e emocional. O cheiro da manhã num beco de Burano, a pedra fria de Ollantaytambo sob a palma da mão. A topofilia explica por que certas viagens mudam quem somos — e por que algumas cidades ficam dentro de nós para sempre.',
+      frase: '"O espaço se torna lugar quando ganha definição e significado." — Yi-Fu Tuan',
+      fonte: 'Fonte: "Topophilia", Yi-Fu Tuan, 1974',
+    },
+    {
+      titulo: 'A Teoria Que Explica Por Que Você Procrastina',
+      subtitulo: 'Desconto Hiperbólico · Economia Comportamental',
+      imagem: null,
+      imagemCredito: 'Nobel Prize — domínio público (Daniel Kahneman)',
+      corpo: 'Humanos são péssimos em avaliar o futuro. Quando temos que escolher entre R$100 agora ou R$110 em uma semana, muitos escolhem os R$100 — mesmo sabendo que é irracional. Isso se chama desconto hiperbólico: o cérebro desvaloriza recompensas futuras de forma desproporcional.\n\nEsse mecanismo explica a procrastinação, o tabagismo e a dificuldade de poupar dinheiro. Nosso cérebro evoluiu para valorizar o imediato — na savana, um pássaro na mão valia mais que dois voando. A solução que pesquisadores encontraram: criar "compromissos prévios". Ulisses se amarrou ao mastro antes de ouvir as sereias.',
+      frase: '"Confundimos a experiência com a memória dela." — Daniel Kahneman',
+      fonte: 'Fonte: "Rápido e Devagar", Daniel Kahneman; Nobel de Economia 2002',
+    },
+  ],
+
+  city: [
+    {
+      titulo: 'A Cidade Construída Para Impressionar Deus',
+      subtitulo: 'Cusco · Peru · séc. XIII–XVI',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Os incas não construíam apenas cidades — construíam cosmogramas. Cusco foi planejada no formato de um puma porque o puma habitava o mundo do meio, entre os deuses e os mortos. Quando os espanhóis chegaram, construíram igrejas sobre os templos incas, mas não conseguiram derrubar as fundações.\n\nA engenharia inca era tão precisa que as pedras se encaixam sem argamassa — nem uma folha de papel passa entre elas. Terremotos já derrubaram construções coloniais em Cusco, mas as paredes incas permanecem de pé há mais de 500 anos. Os incas não conheciam a roda nem o ferro. E mesmo assim ergueram isso.',
+      frase: '"Eles puderam roubar o ouro. Não puderam roubar a pedra." — ditado andino',
+      fonte: 'Fonte: UNESCO; Ministerio de Cultura del Perú',
+    },
+    {
+      titulo: 'A Palavra "Gueto" Nasceu Aqui',
+      subtitulo: 'Veneza · Ghetto · 1516',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'A palavra "gueto" tem origem exata: em 1516, Veneza decretou que todos os judeus deveriam morar num único bairro — a ilha da antiga fundição de cobre, chamada "geto" em veneziano. As portas eram trancadas à noite. Mas dentro daquele confinamento, floresceu uma das culturas intelectuais mais ricas da Europa.\n\nO Ghetto veneziano foi lar de famílias que produziram médicos, filósofos e poetas que influenciaram o Renascimento. Quando Napoleão chegou em 1797 e abriu os portões — gesto teatral de libertação — os moradores festejaram. A palavra que nasceu naquele bairro de ilha percorreu o mundo inteiro.',
+      frase: '"O confinamento foi o berço de uma civilização improvável." — historiadores',
+      fonte: 'Fonte: Jewish Museum of Venice; UNESCO',
+    },
+    {
+      titulo: 'A Cidade Que Sobreviveu Por Causa de Uma Intenção Macabra',
+      subtitulo: 'Praga · Tchéquia',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Durante a Segunda Guerra Mundial, Praga foi uma das poucas grandes cidades europeias a não ser destruída pelos bombardeios. Há um detalhe menos contado: Hitler ordenou que Praga fosse preservada para se tornar um "museu da raça extinta" — um monumento ao que havia feito com os judeus.\n\nEssa intenção macabra salvou acidentalmente um dos centros medievais mais intactos da Europa. Hoje, quando você caminha pela Cidade Velha, está andando por ruas que têm a mesma forma do século XIII. Kafka nasceu a 100 metros da Praça da Cidade Velha e passou a vida inteira no raio de alguns quarteirões.',
+      frase: '"Praga não te larga. Esta mãezinha tem garras." — Franz Kafka, em carta',
+      fonte: 'Fonte: Prague City Archives; Kafka Museum',
+    },
+    {
+      titulo: 'O Museu Que Nasceu de Uma Aposta Impossível',
+      subtitulo: 'Instituto Inhotim · Brumadinho · 2006',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Inhotim começou como o jardim particular de Bernardo Paz, empresário mineiro. Ele simplesmente foi comprando obras, construindo pavilhões, contratando arquitetos e paisagistas — sem um plano formal de museu. Quando percebeu o que tinha, abriu para o público.\n\nHoje tem mais de 600 obras de artistas de mais de 40 países, espalhadas por 1.000 hectares de jardim botânico. É o maior museu de arte ao ar livre das Américas — e fica em Brumadinho, a poucos quilômetros da tragédia da barragem de 2019. A beleza e o luto convivendo na mesma paisagem. A Galeria Adriana Varejão lá foi projetada especialmente para suas obras.',
+      frase: '"Arte contemporânea no meio do mato. Por isso funciona." — crítica sobre Inhotim',
+      fonte: 'Fonte: Instituto Inhotim',
+    },
+    {
+      titulo: 'A Capital Com Mais Psicanalistas do Mundo',
+      subtitulo: 'Buenos Aires · Argentina',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Buenos Aires tem a maior concentração de psicanalistas por habitante do mundo — mais de 60 por 100 mil pessoas, quase o dobro de Nova York. Os portenhos tratam a terapia como parte da rotina, como o mate ou o futebol. Nas décadas de ditadura (1976–1983), quando 30 mil pessoas desapareceram, a psicanálise era uma das poucas formas de falar sobre o que acontecia sem ser preso.\n\nA cidade também tem outra dualidade: é simultaneamente a cidade dos tangos melancólicos — nascidos no século XIX entre imigrantes italianos, espanhóis e africanos — e uma das capitais mais vibrantes do feminismo na América Latina. Uma cidade construída sobre trauma que transformou o trauma em cultura.',
+      frase: '"O tango é um pensamento triste que se dança." — Enrique Santos Discépolo',
+      fonte: 'Fonte: Federación de Asociaciones de Psicólogos de la Argentina',
+    },
+  ],
+
+  letter: [
+    {
+      titulo: 'A Carta Que Kafka Nunca Entregou',
+      subtitulo: 'Franz Kafka para o pai Hermann · 1919',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Kafka escreveu para o pai uma carta de 47 páginas — uma das mais longas e devastadoras da história da literatura. Nela, descreve como Hermann Kafka, um homem dominador, o havia destruído sem perceber: as humilhações à mesa do jantar, o desprezo pelo trabalho literário.\n\nA carta nunca chegou a Hermann. A mãe ficou com ela — talvez tenha entendido que seria cruel demais. Kafka morreu de tuberculose quatro anos depois, aos 40 anos, sem ter dito pessoalmente o que escrevera. A carta só foi publicada postumamente e hoje é chave para entender toda a sua obra: o homem culpado sem saber do quê, o pai que é lei e verdugo.',
+      frase: '"Tu me perguntaste por que tenho medo de ti. Como sempre, não soube responder." — Kafka',
+      fonte: 'Fonte: "Carta ao Pai", Franz Kafka; Schocken Books',
+    },
+    {
+      titulo: 'A Carta de Uma Mulher Que Desapareceu',
+      subtitulo: 'Virginia Woolf para Leonard · 1941',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'No dia 28 de março de 1941, Virginia Woolf saiu de casa em direção ao rio Ouse. Antes, deixou duas cartas. Na carta para o marido Leonard, escreveu que estava ouvindo vozes novamente, que não conseguia mais lutar — e que a pessoa mais feliz que poderia ser era por ter sido amada por ele.\n\nA carta é extraordinária em sua lucidez — não é o texto de alguém em colapso, mas de alguém que tomou uma decisão com clareza. O que Leonard fez com as cartas revela muito: ele as preservou, publicou, nunca as escondeu. Queria que o mundo soubesse quem era Virginia — não apenas a escritora, mas a mulher que havia amado.',
+      frase: '"Não acredito que duas pessoas possam ter sido mais felizes do que fomos nós." — Virginia Woolf',
+      fonte: 'Fonte: "The Letters of Virginia Woolf"; Hogarth Press',
+    },
+    {
+      titulo: 'O Irmão Que Sustentou um Gênio',
+      subtitulo: 'Vincent van Gogh para Theo · 1888',
+      metQuery: "Van Gogh self portrait",
+      imagemCredito: 'Musée d\'Orsay — domínio público',
+      corpo: 'Van Gogh vendeu apenas um quadro em vida. O que o manteve vivo, pintando, foi seu irmão Theo — que lhe enviava dinheiro, tintas e, sobretudo, mais de 600 cartas. Nelas, Vincent descreve cada quadro antes de pintá-lo, fala de cores como quem fala de emoções.\n\nQuando Vincent morreu, Theo definhou de tristeza e morreu seis meses depois. Estão enterrados lado a lado. As cartas sobreviveram a ambos — e foi por elas que o mundo finalmente entendeu o que perdera. Numa delas, sobre os girassóis, Vincent escreve sobre a busca de uma luz amarela que fosse pura alegria.',
+      frase: '"Sinto que há nada mais verdadeiramente artístico do que amar as pessoas." — Van Gogh a Theo',
+      fonte: 'Fonte: Van Gogh Museum, Amsterdã',
+    },
+  ],
+
+  movement: [
+    {
+      titulo: 'O Movimento Que Nasceu de Uma Rejeição',
+      subtitulo: 'O Impressionismo · Paris · 1874',
+      imagem: null,
+      imagemCredito: 'Musée Marmottan Monet — domínio público',
+      corpo: 'O Impressionismo foi sistematicamente humilhado antes de triunfar. O Salão Oficial de Paris rejeitava Monet, Renoir e Pissarro ano após ano. Em 1874, organizaram sua própria exposição. O crítico Louis Leroy, querendo insultá-los, chamou-os de "impressionistas" baseado numa obra de Monet. O nome pegou.\n\nO mais fascinante: a maioria das obras hoje consideradas obras-primas eram vendidas por valores irrisórios. Monet vivia na pobreza, vendendo telas por alguns francos para pagar aluguel. O reconhecimento chegou, para a maioria, apenas no fim da vida — ou depois da morte. A história da arte é também uma história de quem decide o que tem valor e quando.',
+      frase: '"Eu pinto o que vejo, não o que outros acham que devo ver." — Claude Monet',
+      fonte: 'Fonte: Musée d\'Orsay, Paris',
+    },
+    {
+      titulo: 'A Semana Que Inventou o Brasil Moderno',
+      subtitulo: 'Semana de Arte Moderna · São Paulo · 1922',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Teatro Municipal de SP)',
+      corpo: 'Em fevereiro de 1922, no Teatro Municipal de São Paulo, um grupo de artistas apresentou obras de Anita Malfatti, Oswald de Andrade e Villa-Lobos — e foi vaiado. A plateia jogou legumes. Os críticos chamaram de aberração. Em 2022, o evento completou 100 anos como o marco fundador da cultura brasileira moderna.\n\nO que a Semana propôs era radical: o Brasil deveria "devorar" as influências europeias e transformá-las em algo próprio. Oswald de Andrade formalizou isso no "Manifesto Antropófago" de 1928: "Tupi or not Tupi, that is the question." Esse princípio virou a base teórica da Tropicália, de Caetano e Gil, e de toda arte brasileira que importou desde então.',
+      frase: '"Tupi or not Tupi, that is the question." — Oswald de Andrade, 1928',
+      fonte: 'Fonte: Instituto de Estudos Brasileiros, USP',
+    },
+    {
+      titulo: 'O Mictório Que Mudou a Arte Para Sempre',
+      subtitulo: 'Arte Conceitual · Marcel Duchamp · 1917',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Em 1917, Marcel Duchamp comprou um mictório, assinou "R. Mutt" e enviou para uma exposição em Nova York intitulando-o de "Fonte". A exposição recusou. Duchamp — que era um dos organizadores — saiu em protesto. A obra foi fotografada, publicada, e mudou para sempre o que consideramos arte.\n\nA pergunta que Duchamp colocou era simples e devastadora: o que faz de um objeto uma obra de arte? A intenção do artista? O contexto? A Arte Conceitual dos anos 1960 radicaliza essa questão: a ideia é a arte. Você não precisa de técnica. Precisa de pensamento.',
+      frase: '"Eu coloquei em cheque o ato de olhar." — Marcel Duchamp',
+      fonte: 'Fonte: MoMA; Tate Modern',
+    },
+  ],
+
+  artist: [
+    {
+      titulo: 'A Coreógrafa Que Perguntava Para Criar',
+      subtitulo: 'Pina Bausch · Wuppertal · 1940–2009',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — uso educacional',
+      corpo: 'O processo criativo de Pina Bausch era único: ela perguntava. Antes de cada espetáculo, passava semanas fazendo perguntas aos bailarinos — sobre a primeira memória que tinham, sobre o que os assustava, sobre um gesto que a mãe repetia. Depois construía a coreografia a partir das respostas. Por isso seus espetáculos pareciam tão verdadeiros: eram.\n\n"Café Müller", ela mesma dançava com os olhos fechados — baseado numa memória real de infância, quando corria pelo restaurante dos pais sem abrir os olhos. Pina morreu em 2009, cinco dias após receber o diagnóstico de câncer, sem contar para os bailarinos que estava doente.',
+      frase: '"Não me interessa como as pessoas se movem. O que me interessa é o que as move." — Pina Bausch',
+      fonte: 'Fonte: Tanztheater Wuppertal Pina Bausch',
+    },
+    {
+      titulo: 'A Fotógrafa Que Fotografava O Invisível',
+      subtitulo: 'Vivian Maier · Chicago · 1926–2009',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Chicago)',
+      corpo: 'Vivian Maier trabalhou durante décadas como babá em Chicago. Carregava sempre uma câmera e fotografava pelas ruas — rostos, sombras, reflexos. Nunca revelou a maioria dos negativos. Nunca mostrou suas fotos para ninguém. Nunca se identificou como fotógrafa.\n\nQuando morreu, um colecionador havia comprado seus pertences num leilão de depósito — incluindo 150 mil negativos não revelados. Ao revelar, descobriu uma das maiores fotógrafas de rua do século XX. Hoje suas fotos são vendidas por dezenas de milhares de dólares. A questão que sua história coloca: existia a arte antes de ser vista?',
+      frase: '"Você tem que se nutrir... explorar a si mesmo." — Vivian Maier',
+      fonte: 'Fonte: Maloof Collection; documentário "Finding Vivian Maier" (2013)',
+    },
+    {
+      titulo: 'O Escritor Que Era Diplomata e Herói',
+      subtitulo: 'Guimarães Rosa · Brasil · 1908–1967',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Guimarães Rosa era médico e diplomata — trabalhou como cônsul do Brasil na Alemanha durante a Segunda Guerra Mundial, onde ajudou a salvar centenas de judeus ao emitir vistos de saída clandestinos, arriscando a própria carreira. Esse aspecto de sua vida ficou obscurecido pela grandeza literária.\n\nRosa escreveu "Grande Sertão: Veredas" enquanto servia como diplomata em Paris — longe do sertão mineiro que descreveu com precisão alucinante. Ele havia percorrido o sertão a cavalo nos anos 1940 com um caderno de campo, anotando palavras e expressões dos vaqueiros. Morreu de infarto três dias após ser empossado na Academia Brasileira de Letras. Havia evitado a posse por anos, com medo que a emoção o matasse.',
+      frase: '"O sertão é dentro da gente." — Grande Sertão: Veredas',
+      fonte: 'Fonte: Academia Brasileira de Letras; Instituto Moreira Salles',
+    },
+  ],
+
+  music: [
+    {
+      titulo: 'O Álbum Gravado Numa Crise de Identidade',
+      subtitulo: 'Taylor Swift · folklore · 2020',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — uso educacional',
+      corpo: 'folklore foi gravado durante a pandemia em total segredo. Swift não anunciou o álbum até horas antes do lançamento. Mas o que tornou a obra revolucionária foi que ela abandonou completamente o pop para escrever sobre personagens fictícios.\n\nA protagonista de "betty" se chama James. O narrador de "this is me trying" é anônimo. "august" conta a mesma história de "cardigan" e "betty" de três perspectivas diferentes — um experimento narrativo que James Joyce faria num romance. Os críticos que a haviam tratado com condescendência renderam-se. folklore ganhou o Grammy de Álbum do Ano.',
+      frase: '"Long story short, I survived." — folklore, Taylor Swift',
+      fonte: 'Fonte: Grammy Awards; Pitchfork; Rolling Stone',
+    },
+    {
+      titulo: 'A Cantora Que Aprendeu a Cantar Duas Vezes',
+      subtitulo: 'Olivia Dean · Londres',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (BRIT School)',
+      corpo: 'Olivia Dean perdeu parcialmente a voz numa turnê em 2022 e precisou parar por meses para se recuperar. Quando voltou, havia passado por terapia fonoaudiológica intensa e afirma ter aprendido a cantar de um jeito completamente novo — com menos força, mais controle, mais vulnerabilidade.\n\nDean canta sobre identidade birracial, sobre a geração que cresceu nas redes sociais, sobre a ansiedade de amar no século XXI — mas com arranjos que soam a Motown dos anos 1960. Passado e presente, em tensão produtiva. Foi indicada ao Mercury Prize, um dos prêmios mais respeitados do Reino Unido.',
+      frase: '"Messy é a palavra mais honesta que conheço." — Olivia Dean',
+      fonte: 'Fonte: Mercury Prize; BRIT School',
+    },
+    {
+      titulo: 'O Cantor Que Escreve Sobre o Tempo',
+      subtitulo: 'Cícero · Rio de Janeiro',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Rio de Janeiro)',
+      corpo: 'Pedro Tkaldzic, o Cícero, lançou seu primeiro álbum aos 19 anos com músicas que soavam como alguém de 50 escrevendo sobre uma vida já vivida — sobre perda, sobre o tempo, sobre a impossibilidade de segurar o que passa.\n\nCícero vem da linhagem de Chico Buarque e Caetano Veloso, mas com uma leveza contemporânea que não imita nenhum deles. Suas canções sobre o Rio falam de uma cidade que existe dentro de cada carioca mesmo quando se está longe — uma cidade emocional, não geográfica. Ele quase nunca dá entrevistas e não tem redes sociais ativas — uma escolha que paradoxalmente o tornou cultuado.',
+      frase: '"O Rio de Janeiro continua lindo... continua sendo." — Cícero',
+      fonte: 'Fonte: crítica musical brasileira; Rádio Eldorado',
+    },
+  ],
+
+  connection: [
+    {
+      titulo: 'O Que Ferrante e Han Kang Sabem Sobre o Corpo',
+      subtitulo: 'A Amiga Genial & A Vegetariana',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Nápoles)',
+      corpo: 'Elena Ferrante e Han Kang têm uma obsessão em comum que raramente é apontada: o corpo feminino como campo de batalha político. Em Ferrante, Lila tem episódios de "dissolução de margens" — sente que seu corpo se desfaz, perde os contornos. Em Han Kang, Yeong-hye decide parar de comer carne como primeiro passo para se tornar planta.\n\nAmbas usam o corpo como linguagem para falar de resistência — não resistência política convencional, mas a recusa íntima de continuar sendo o que a sociedade espera. São personagens que o mundo considera loucas e que os livros nos fazem ver como as únicas pessoas sensatas em mundos insanos.',
+      frase: '"O corpo não mente quando a boca aprende a mentir." — eco de ambas as obras',
+      fonte: 'Fonte: análise literária comparada',
+    },
+    {
+      titulo: 'Dois Filmes Sobre o Que Não Acontece',
+      subtitulo: 'Retrato de uma Jovem em Chamas & Past Lives',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Costa da Bretanha, França)',
+      corpo: '"Retrato de uma Jovem em Chamas" e "Past Lives" compartilham uma estrutura que é, em si, uma declaração artística: ambos são sobre o que não acontece. Sobre o desejo que não se consuma, o amor que não vira vida em comum, a escolha que define tudo ao ser recusada.\n\nCéline Sciamma e Celine Song usam longas sequências de silêncio onde os personagens simplesmente se olham — e nesses olhares está toda a história que os filmes não precisam contar. As duas diretoras filmam amor sem o olhar masculino que dominou o cinema por cem anos. O resultado é uma linguagem diferente: mais lenta, mais atenta ao rosto, mais interessada no que se guarda do que no que se faz.',
+      frase: '"O olhar é o começo e o fim de tudo." — eco de ambos os filmes',
+      fonte: 'Fonte: Cannes Film Festival; Sundance',
+    },
+  ],
+
+  chess: [
+    {
+      titulo: 'A Partida Que Mudou a História da Guerra Fria',
+      subtitulo: 'Fischer vs Spassky · Reykjavik · 1972',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'O match de xadrez entre Bobby Fischer e Boris Spassky em 1972 foi tecnicamente um campeonato mundial. Politicamente, foi uma batalha da Guerra Fria mais intensa que qualquer corrida armamentista. Fischer representava os EUA; Spassky, a URSS. O mundo acompanhava partida a partida como um conflito militar.\n\nFischer era um gênio excêntrico e insuportável — fez exigências absurdas, ameaçou desistir repetidas vezes. Mas quando jogava, era sobrehumano. Ganhou o campeonato com uma exibição que os especialistas ainda chamam de a mais perfeita da história. Depois disso, desapareceu do xadrez por 20 anos. O gênio mais puro do jogo foi também seu personagem mais trágico.',
+      frase: '"O xadrez é vida." — Bobby Fischer',
+      fonte: 'Fonte: FIDE; "Bobby Fischer Goes to War", David Edmonds',
+    },
+    {
+      titulo: 'A Menina Que Derrotou Todos os Homens',
+      subtitulo: 'Judit Polgár · Hungria · 1976–',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'O pai de Judit Polgár tinha uma teoria: gênios são feitos, não nascem. Para prová-la, criou as três filhas imersas no xadrez desde bebês. A mais nova, Judit, tornou-se a maior jogadora da história — e recusou-se a competir apenas contra mulheres. Queria enfrentar os melhores do mundo.\n\nE enfrentou. Judit derrotou Kasparov, Magnus Carlsen e praticamente todos os campeões de sua era. Tornou-se Grande Mestre aos 15 anos, mais jovem que Bobby Fischer. Por décadas, foi a única mulher entre os cem melhores do planeta. Provou que o talento não tem gênero — só precisa de oportunidade.',
+      frase: '"Eu sempre quis jogar contra os melhores, não contra as melhores." — Judit Polgár',
+      fonte: 'Fonte: FIDE; biografia oficial',
+    },
+  ],
+
+  context: [
+    {
+      titulo: 'O Que Estava Acontecendo Quando Ferrante Escreveu',
+      subtitulo: 'A Série Napolitana · Nápoles · 2011–2014',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Elena Ferrante começou a publicar a Série Napolitana em 2011 — exatamente quando a Itália vivia sua pior crise econômica desde a guerra. O desemprego na região de Nápoles chegava a 30%. O crime organizado controlava bairros inteiros.\n\nFerrante escreve sob pseudônimo e nunca revelou sua identidade — um mistério literário que dura décadas. Mas o que ela fez foi dar ao mundo um retrato de Nápoles que os napolitanos reconheceram como verdadeiro pela primeira vez: não o cartão postal pitoresco, mas a cidade de violência cotidiana, de mulheres que precisam ser espertas para sobreviver, de amizades que são também rivalidades de vida inteira.',
+      frase: '"Nápoles é uma cidade que te ama e te destrói ao mesmo tempo." — eco da série',
+      fonte: 'Fonte: The New Yorker; La Repubblica',
+    },
+    {
+      titulo: 'Por Que Kundera Escreveu em Francês',
+      subtitulo: 'A Insustentável Leveza do Ser · 1984',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público (Praga)',
+      corpo: 'Milan Kundera foi expulso do Partido Comunista tcheco duas vezes, perdeu o emprego, viu seus livros serem destruídos após a invasão soviética de 1968, e emigrou para a França em 1975. A Insustentável Leveza do Ser foi publicado no exílio, em 1984.\n\nA leveza que o título anuncia é a leveza de quem perdeu tudo — pátria, língua, pertencimento. O personagem Tomáš, médico que vira limpador de vidraças após se recusar a se retratar politicamente, era um retrato de centenas de intelectuais tchecos reais. O livro foi proibido na Tchecoslováquia até 1989. Kundera morreu em 2023 sem ter voltado a morar no país que o expulsou.',
+      frase: '"O homem não pode nunca saber o que deve querer, porque vive apenas uma vida." — Kundera',
+      fonte: 'Fonte: Le Monde; The Guardian',
+    },
+  ],
+
+  now: [
+    {
+      titulo: 'A Escritora Que Reescreveu a História do Nobel',
+      subtitulo: 'Han Kang · Nobel de Literatura · 2024',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Quando Han Kang recebeu o Nobel de Literatura em outubro de 2024, tornou-se a primeira sul-coreana a ganhar o prêmio. Sua obra nasce diretamente do trauma coletivo coreano — especialmente o massacre de Gwangju em 1980, quando o exército matou centenas de manifestantes civis.\n\n"A Vegetariana" é a obra mais conhecida no Ocidente, mas os críticos coreanos consideram "Atos Humanos" sua obra-prima: narrado a partir das vozes dos mortos de Gwangju, cada capítulo em perspectiva diferente. Han Kang escreveu esse livro após visitar o arquivo dos mortos e folhear fotos das vítimas.',
+      frase: '"As flores de maio... manchadas de sangue." — Atos Humanos, Han Kang',
+      fonte: 'Fonte: Academia Sueca; Nobel Prize 2024',
+    },
+    {
+      titulo: 'O Oscar Que Mudou as Regras',
+      subtitulo: 'Cinema mundial · 2020–2025',
+      imagem: null,
+      imagemCredito: 'Wikimedia Commons — domínio público',
+      corpo: 'Quando Parasita ganhou o Oscar de Melhor Filme em 2020, foi a primeira vez em 92 anos que um filme não falado em inglês vencia a categoria principal. Bong Joon-ho disse no palco: "Uma vez que você supera a barreira das legendas, um mundo inteiro de filmes incríveis o espera."\n\nNos anos seguintes, filmes em outras línguas atraíram audiências antes restritas ao cinema local. A Academia também mudou suas regras para incluir mais votantes internacionais. Para quem já amava Retrato de uma Jovem em Chamas, Incêndios e Past Lives muito antes disso ser mainstream — você estava à frente.',
+      frase: '"Supere a barreira das legendas." — Bong Joon-ho, Oscar 2020',
+      fonte: 'Fonte: Academy of Motion Picture Arts and Sciences',
+    },
+  ],
+};
+
+export function getEditionPeriod() {
+  // Nova edição às 6h e às 14h, todos os dias
+  const now = new Date();
+  const dayNum = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / 86400000);
+  const h = now.getHours();
+  if (h < 6) return dayNum * 2 - 1;      // madrugada: edição da tarde anterior
+  if (h < 14) return dayNum * 2;          // manhã (6h-14h)
+  return dayNum * 2 + 1;                   // tarde/noite (14h-6h)
+}
+
+export function getDailyContent(type, offset = 0) {
+  const items = CONTENT_LIBRARY[type] || [];
+  if (items.length === 0) return null;
+  const period = getEditionPeriod();
+  return items[((period + offset) % items.length + items.length) % items.length];
+}
+
+export function getRandomContent(type) {
+  const items = CONTENT_LIBRARY[type] || [];
+  if (items.length === 0) return null;
+  return items[Math.floor(Math.random() * items.length)];
+}

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config *)",
+      "Bash(echo \"user.name: $\\(git config --global user.name\\)\")",
+      "Bash(echo \"user.email: $\\(git config --global user.email\\)\")",
+      "Bash(echo \"credential.helper: $\\(git config --global credential.helper\\)\")",
+      "Bash(echo \"effective helper: '$\\(git config credential.helper\\)'\")",
+      "Bash(echo \"system helper: '$\\(git config --system credential.helper 2>&1\\)'\")",
+      "Bash(git ls-remote *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/objects/12127\")",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/objects/436535\")",
+      "Bash(curl -s https://collectionapi.metmuseum.org/public/collection/v1/objects/__TRACKED_VAR__)",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/search?q=Monet%20bridge%20water%20lilies&hasImages=true\")",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/search?q=Degas%20little%20dancer%20fourteen&hasImages=true\")",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/objects/436161\")",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/objects/437135\")",
+      "Bash(curl -s \"https://collectionapi.metmuseum.org/public/collection/v1/objects/436135\")",
+      "Bash(curl -s \"https://commons.wikimedia.org/w/api.php?action=query&titles=File:Claude_Monet_-_Bridge_over_a_Pond_of_Water_Lilies_-_Google_Art_Project.jpg&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json\")",
+      "Bash(curl -s \"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=Monet%20Bridge%20Pond%20Water%20Lilies&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=900&format=json\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(p.get\\('title'\\),'|',p.get\\('imageinfo',[{}]\\)[0].get\\('thumburl',''\\)\\) for p in d.get\\('query',{}\\).get\\('pages',{}\\).values\\(\\)]\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} | type=%{content_type} | %{size_download} bytes\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg/960px-Bridge_over_a_Pond_of_Water_Lilies_MET_DT1854.jpg\")",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
