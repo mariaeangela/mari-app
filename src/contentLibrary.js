@@ -134,6 +134,7 @@ export function getDayName() {
 // Paletas expressivas por tipo de card
 export const CONTENT_TYPES = [
   { id: "artwork", label: "Obra do Dia", emoji: "🎨" },
+  { id: "cultura", label: "Cultura", emoji: "🎭" },
   { id: "film", label: "Cinema", emoji: "🎬" },
   { id: "concept", label: "Conceito", emoji: "🧠" },
   { id: "city", label: "Cidade", emoji: "📍" },
@@ -149,6 +150,7 @@ export const CONTENT_TYPES = [
 
 export const CARD_PALETTES = {
   artwork:    { bg: '#0f0a1e', accent: '#c77dff', text: '#f0e6ff', sub: '#9a8ab0', border: '#2a1a4a', tag: '#1e1030' },
+  cultura:    { bg: '#1a0a18', accent: '#f25ec8', text: '#ffe9f8', sub: '#bb88ac', border: '#3a1234', tag: '#250f22' },
   film:       { bg: '#0a1628', accent: '#4fc3f7', text: '#e0f4ff', sub: '#8ab0c8', border: '#1a3050', tag: '#0d1f38' },
   concept:    { bg: '#0d1f0d', accent: '#69d869', text: '#e6f5e6', sub: '#7aa87a', border: '#1a3a1a', tag: '#102010' },
   city:       { bg: '#1f0a0a', accent: '#ff7043', text: '#fff0ec', sub: '#c09080', border: '#3a1a10', tag: '#280d0d' },

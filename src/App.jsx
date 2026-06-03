@@ -13,11 +13,14 @@ function useMinuteTick() {
   }, []);
 }
 
-function CardWithContent({ type, offset = 0 }) {
+// `type` controla a EXIBIÇÃO (rótulo, emoji, cor e id de salvamento);
+// `contentType` controla de onde vem o CONTEÚDO. Para o slot "Cultura" eles
+// diferem: exibe sempre "Cultura", mas o texto vem de cinema/artista/música/conexões.
+function CardWithContent({ type, contentType = type, offset = 0 }) {
   const info = CONTENT_TYPES.find(t => t.id === type);
   const palette = CARD_PALETTES[type] || CARD_PALETTES.artwork;
-  const [content, setContent] = useState(() => getDailyContent(type, offset));
-  const reload = () => setContent(getRandomContent(type));
+  const [content, setContent] = useState(() => getDailyContent(contentType, offset));
+  const reload = () => setContent(getRandomContent(contentType));
   return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={reload} />;
 }
 
@@ -76,10 +79,16 @@ const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now
 function Feed() {
   const period = getEditionPeriod();
   const cultura = CULTURA_TYPES[((period % CULTURA_TYPES.length) + CULTURA_TYPES.length) % CULTURA_TYPES.length];
-  const slots = ['artwork', cultura, 'concept', 'city'];
+  // 2º slot é sempre exibido como "Cultura"; só o conteúdo (contentType) gira.
+  const slots = [
+    { type: 'artwork' },
+    { type: 'cultura', contentType: cultura },
+    { type: 'concept' },
+    { type: 'city' },
+  ];
   return (
     <div style={{ paddingBottom: 40 }}>
-      {slots.map((type, i) => <CardWithContent key={type} type={type} offset={i} />)}
+      {slots.map((s, i) => <CardWithContent key={s.type} type={s.type} contentType={s.contentType} offset={i} />)}
     </div>
   );
 }
