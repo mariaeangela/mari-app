@@ -190,7 +190,9 @@ function MoodPage({ isWide }) {
   const choose = (m) => {
     const list = MOOD_QUOTES[m.id] || [];
     setMood(m);
-    setIdx(Math.floor(Math.random() * (list.length || 1)));
+    // Rotação diária: a frase que abre cada humor muda a cada dia.
+    const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+    setIdx(list.length ? ((day % list.length) + list.length) % list.length : 0);
   };
 
   if (!mood) {
