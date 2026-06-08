@@ -471,6 +471,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Os incas não construíam apenas cidades — construíam cosmogramas. Cusco foi planejada no formato de um puma porque o puma habitava o mundo do meio, entre os deuses e os mortos. Quando os espanhóis chegaram, construíram igrejas sobre os templos incas, mas não conseguiram derrubar as fundações.\n\nA engenharia inca era tão precisa que as pedras se encaixam sem argamassa — nem uma folha de papel passa entre elas. Terremotos já derrubaram construções coloniais em Cusco, mas as paredes incas permanecem de pé há mais de 500 anos. Os incas não conheciam a roda nem o ferro. E mesmo assim ergueram isso.',
       frase: '"Eles puderam roubar o ouro. Não puderam roubar a pedra." — ditado andino',
       fonte: 'Fonte: UNESCO; Ministerio de Cultura del Perú',
+      fonteOficial: {
+        texto: 'Cusco (em espanhol Cuzco ou Cusco, em quíchua Qosqo ou Qusqu) é uma cidade no Peru situada no sudeste do Vale de Huatanay ou Vale Sagrado dos Incas, na região dos Andes, com população de 428 450 habitantes. É a capital da região de Cusco e da província de Cusco.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Cusco',
+      },
     },
     {
       titulo: 'A Palavra "Gueto" Nasceu Aqui',
@@ -480,6 +485,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A palavra "gueto" tem origem exata: em 1516, Veneza decretou que todos os judeus deveriam morar num único bairro — a ilha da antiga fundição de cobre, chamada "geto" em veneziano. As portas eram trancadas à noite. Mas dentro daquele confinamento, floresceu uma das culturas intelectuais mais ricas da Europa.\n\nO Ghetto veneziano foi lar de famílias que produziram médicos, filósofos e poetas que influenciaram o Renascimento. Quando Napoleão chegou em 1797 e abriu os portões — gesto teatral de libertação — os moradores festejaram. A palavra que nasceu naquele bairro de ilha percorreu o mundo inteiro.',
       frase: '"O confinamento foi o berço de uma civilização improvável." — historiadores',
       fonte: 'Fonte: Jewish Museum of Venice; UNESCO',
+      fonteOficial: {
+        texto: 'O Guetto de Veneza (em italiano: Ghetto) era uma zona de Veneza no bairro ("sestiere") de Cannaregio. O nome "Ghetto" é uma deformação do veneziano "getto" que significa "fundição", já que o bairro foi construído no lugar de uma antiga fundição.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Gueto_de_Veneza',
+      },
     },
     {
       titulo: 'A Cidade Que Sobreviveu Por Causa de Uma Intenção Macabra',
@@ -489,6 +499,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Durante a Segunda Guerra Mundial, Praga foi uma das poucas grandes cidades europeias a não ser destruída pelos bombardeios. Há um detalhe menos contado: Hitler ordenou que Praga fosse preservada para se tornar um "museu da raça extinta" — um monumento ao que havia feito com os judeus.\n\nEssa intenção macabra salvou acidentalmente um dos centros medievais mais intactos da Europa. Hoje, quando você caminha pela Cidade Velha, está andando por ruas que têm a mesma forma do século XIII. Kafka nasceu a 100 metros da Praça da Cidade Velha e passou a vida inteira no raio de alguns quarteirões.',
       frase: '"Praga não te larga. Esta mãezinha tem garras." — Franz Kafka, em carta',
       fonte: 'Fonte: Prague City Archives; Kafka Museum',
+      fonteOficial: {
+        texto: 'Praga (em tcheco/checo: Praha) é a capital e a maior cidade da Chéquia, situada na margem do Vltava. Conhecida como "cidade das cem cúpulas", Praga é um dos mais belos e antigos centros urbanos da Europa, famosa pelo extenso patrimônio arquitetônico e rica vida cultural.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Praga',
+      },
     },
     {
       titulo: 'O Museu Que Nasceu de Uma Aposta Impossível',
@@ -498,6 +513,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Inhotim começou como o jardim particular de Bernardo Paz, empresário mineiro. Ele simplesmente foi comprando obras, construindo pavilhões, contratando arquitetos e paisagistas — sem um plano formal de museu. Quando percebeu o que tinha, abriu para o público.\n\nHoje tem mais de 600 obras de artistas de mais de 40 países, espalhadas por 1.000 hectares de jardim botânico. É o maior museu de arte ao ar livre das Américas — e fica em Brumadinho, a poucos quilômetros da tragédia da barragem de 2019. A beleza e o luto convivendo na mesma paisagem. A Galeria Adriana Varejão lá foi projetada especialmente para suas obras.',
       frase: '"Arte contemporânea no meio do mato. Por isso funciona." — crítica sobre Inhotim',
       fonte: 'Fonte: Instituto Inhotim',
+      fonteOficial: {
+        texto: 'O Instituto Inhotim é a sede de um dos mais importantes acervos de arte contemporânea do Brasil e considerado o maior museu a céu aberto do mundo. Está localizado em Brumadinho (Minas Gerais), uma cidade com 38 mil habitantes, a 60 quilômetros de Belo Horizonte.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Instituto_Inhotim',
+      },
     },
     {
       titulo: 'A Capital Com Mais Psicanalistas do Mundo',
@@ -507,6 +527,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Buenos Aires tem a maior concentração de psicanalistas por habitante do mundo — mais de 60 por 100 mil pessoas, quase o dobro de Nova York. Os portenhos tratam a terapia como parte da rotina, como o mate ou o futebol. Nas décadas de ditadura (1976–1983), quando 30 mil pessoas desapareceram, a psicanálise era uma das poucas formas de falar sobre o que acontecia sem ser preso.\n\nA cidade também tem outra dualidade: é simultaneamente a cidade dos tangos melancólicos — nascidos no século XIX entre imigrantes italianos, espanhóis e africanos — e uma das capitais mais vibrantes do feminismo na América Latina. Uma cidade construída sobre trauma que transformou o trauma em cultura.',
       frase: '"O tango é um pensamento triste que se dança." — Enrique Santos Discépolo',
       fonte: 'Fonte: Federación de Asociaciones de Psicólogos de la Argentina',
+      fonteOficial: {
+        texto: 'Buenos Aires, oficialmente Cidade Autônoma de Buenos Aires (CABA), é a capital e maior cidade da Argentina. Está localizada no sudoeste do Rio da Prata e é classificada como uma cidade global alfa−. A cidade propriamente dita tem uma população de 3,1 milhões, enquanto sua área metropolitana tem uma população de 16,7 milhões.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Buenos_Aires',
+      },
     },
     {
       titulo: 'A Cidade Que Inventou uma Palavra para a Saudade',
@@ -516,6 +541,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Lisboa deu ao mundo uma palavra que, dizem, não tem tradução exata: saudade — a presença de uma ausência, a falta que também é doce. Ela embala o fado, o canto melancólico nascido nos bairros populares de Alfama e Mouraria no século XIX, hoje Patrimônio da Humanidade. Não por acaso: Lisboa é uma cidade de partidas, de onde as caravelas saíam para nunca se saber se voltariam.\n\nFoi também palco de uma das maiores catástrofes da história europeia. No terremoto de 1755, seguido de tsunami e incêndio, a cidade ruiu num feriado religioso, matando dezenas de milhares — e abalou a fé do Iluminismo, levando Voltaire a questionar como Deus permitiria tamanho horror. O Marquês de Pombal reconstruiu a Baixa num traçado racional e antissísmico, pioneiro no mundo. Lisboa é uma cidade que aprendeu a renascer.',
       frase: '"O fado não se canta. Acontece." — Amália Rodrigues',
       fonte: 'Fonte: UNESCO; Museu do Fado, Lisboa',
+      fonteOficial: {
+        texto: 'Lisboa é a capital e maior cidade de Portugal, com uma população estimada de 548 703 habitantes em 2022 dentro dos seus limites administrativos numa área de cerca de 100 quilómetros quadrados. É a capital mais ocidental da Europa continental e a única ao longo da costa atlântica. A cidade situa-se na parte ocidental da Península Ibérica, na margem norte do rio Tejo.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Lisboa',
+      },
     },
     {
       titulo: 'A Cidade Que Eram Duas',
@@ -525,6 +555,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Budapeste só existe desde 1873 — antes eram três cidades separadas pelo Danúbio: Buda e Óbuda, nas colinas, e Pest, na planície. A Ponte das Correntes, a primeira permanente sobre o rio, costurou as duas margens e o nome. De um lado, o castelo medieval no alto; do outro, os bulevares e cafés de uma capital moderna.\n\nA cidade flutua sobre mais de cem fontes termais — os romanos já se banhavam ali, e os turcos otomanos deixaram banhos que funcionam até hoje. Sob a beleza, porém, há camadas de dor: Budapeste foi cercada e arrasada na Segunda Guerra, viveu o levante de 1956 esmagado pelos tanques soviéticos e só respirou livre em 1989. Hoje, os "ruin bars" instalados em prédios abandonados transformaram as ruínas em vida noturna — outra forma húngara de renascer.',
       frase: '"O Danúbio não separa Budapeste: é o que a faz ser ela mesma." — dito local',
       fonte: 'Fonte: UNESCO (margens do Danúbio)',
+      fonteOficial: {
+        texto: 'Budapeste (em húngaro: Budapest) é a capital, cidade mais populosa e principal centro financeiro, corporativo, mercantil e cultural da Hungria. Localiza-se nas margens do rio Danúbio. Budapeste foi fundada em 17 de novembro de 1873 com a fusão das cidades de Buda e Óbuda, na margem direita do Danúbio, com Peste, na margem esquerda.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Budapeste',
+      },
     },
   ],
 
@@ -1039,6 +1074,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Medusa nem sempre foi um monstro. Em algumas versões do mito, era uma jovem mortal de rara beleza, transformada pela deusa Atena numa criatura de cabelos de serpentes, cujo olhar petrificava qualquer um que o encarasse. O herói Perseu recebeu a missão impossível de trazer sua cabeça. Venceu não pela força, mas pela astúcia: usou o escudo polido como espelho para enfrentá-la sem olhá-la diretamente e a decapitou enquanto ela dormia.\n\nDo sangue de Medusa nasceu Pégaso, o cavalo alado. E sua cabeça, mesmo morta, manteve o poder de petrificar — Perseu a usou como arma e depois a entregou a Atena, que a fixou em seu escudo. O mito atravessou milênios como símbolo de coragem e engenho, e inspirou artistas de todas as épocas, como esta escultura de Canova. Medusa, hoje, é também relida como a figura de uma mulher punida pela própria beleza.',
       frase: '"Ele a venceu sem jamais encará-la de frente." — sobre Perseu',
       fonte: 'Fonte: Ovídio, "Metamorfoses"; Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'Perseu (em grego: Περσεύς, transl.: Perséus), na mitologia grega, é um semideus conhecido por ser fundador da mítica cidade-estado de Micenas, meio-irmão de Héracles e patrono tanto da casa real de Perseu como da dinastia persênica, tendo sido ancestral, segundo a mitologia, dos imperadores da Pérsia e famoso por ter decapitado a górgona Medusa, monstro que transformava em pedra qualquer um que olhasse em seus olhos.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Perseu',
+      },
     },
     {
       titulo: 'O Enigma da Criatura Que Devorava Quem Errava',
@@ -1049,6 +1089,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A Esfinge grega — corpo de leão, asas de ave e rosto de mulher — aterrorizava a cidade de Tebas. Postada numa passagem, propunha um enigma a quem tentava passar e devorava todos que erravam: "Que ser anda de manhã com quatro pés, ao meio-dia com dois e à tarde com três?". Édipo foi o primeiro a decifrá-lo: o ser humano — que engatinha na infância, caminha ereto na vida adulta e se apoia num bastão na velhice. Derrotada, a Esfinge se lançou de um penhasco.\n\nMas o triunfo de Édipo era o começo de uma tragédia maior. Sem saber, ele caminhava para cumprir a profecia que tentara evitar a vida inteira: matar o próprio pai e casar-se com a própria mãe. O mito, imortalizado por Sófocles, tornou-se o símbolo máximo do destino inescapável — e, séculos depois, batizaria um dos conceitos mais célebres de Freud. Esta tela é de Gustave Moreau.',
       frase: '"Decifra-me ou devoro-te." — o enigma da Esfinge',
       fonte: 'Fonte: Sófocles, "Édipo Rei"; Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'Édipo (em grego clássico: Οἰδίπους; romaniz.: Oidípous, "pés inchados") é um herói da mitologia grega que matou o pai, resolveu o enigma da esfinge que atacava a cidade grega de Tebas, e desposou a mãe. Em função deste incesto, foi ao mesmo tempo pai e irmão de Etéocles, Ismênia, Antígona e de Polinices.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/%C3%89dipo',
+      },
     },
     {
       titulo: 'O Deus Assassinado Que Virou Senhor dos Mortos',
@@ -1059,6 +1104,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Osíris foi um rei justo que ensinou a agricultura aos egípcios — até ser traído e assassinado pelo irmão invejoso, Set, que esquartejou seu corpo e espalhou os pedaços pelo Egito. Sua esposa e irmã, Ísis, percorreu a terra recolhendo cada parte e, com sua magia, reuniu o corpo e o reanimou o suficiente para conceber um filho, Hórus. Osíris então passou a reinar sobre o mundo dos mortos.\n\nEsse mito estava no coração da religião egípcia. A "ressurreição" de Osíris dava a todos a esperança de uma vida após a morte e ligava-se ao ciclo do rio Nilo, que parecia morrer e renascer a cada cheia, fertilizando a terra. Hórus, o filho, tornou-se o deus associado aos faraós vivos. Por milênios, os egípcios prepararam suas tumbas sonhando em renascer como Osíris — uma das mais antigas e influentes histórias de morte e renascimento da humanidade.',
       frase: '"Assim como Osíris vive, também tu viverás." — fórmula funerária egípcia',
       fonte: 'Fonte: Plutarco, "Sobre Ísis e Osíris"; The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Osíris (em egípcio: wsjr) é um deus da mitologia egípcia. Conhecido como o deus dos mortos, além de ser a divindade da vegetação, do julgamento e do além.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Os%C3%ADris',
+      },
     },
     {
       titulo: 'O Deus Que Trocou um Olho Por Sabedoria',
@@ -1067,6 +1117,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Na mitologia nórdica, Odin é o deus supremo — mas, ao contrário de tantos deuses guerreiros, sua obsessão é o conhecimento. Para beber da fonte da sabedoria, guardada junto às raízes da árvore cósmica Yggdrasil, ele aceitou um preço terrível: arrancar o próprio olho. E, para aprender os segredos das runas, pendurou-se de cabeça para baixo na árvore por nove dias e nove noites, ferido pela própria lança, num sacrifício de si para si mesmo.\n\nOdin sabia, ainda, aquilo que nenhum deus quer saber: que o mundo caminhava para o Ragnarök, a batalha final em que os próprios deuses morreriam. Mesmo assim, seguia se preparando. A mitologia nórdica, registrada nas Eddas islandesas, é marcada por essa grandeza trágica — um universo em que até os deuses são mortais e encaram o destino de olhos abertos.',
       frase: '"Sei que pendi na árvore varrida pelo vento, nove longas noites." — Hávamál (Edda Poética)',
       fonte: 'Fonte: "Edda Poética"; "Edda em Prosa", de Snorri Sturluson; Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'Odin ou Ódin (em nórdico antigo: Óðinn) é considerado o deus principal do clã dos deuses Æsir, o clã mais importante de deuses da mitologia nórdica e nas crenças das religiões neopagãs germânicas. Também é conhecido como "Pai de Todos" e o deus nórdico da cura, da vida e da morte.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Odin',
+      },
     },
     {
       titulo: 'O Deus de Duas Faces Que Batiza Janeiro',
@@ -1075,6 +1130,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Os romanos tinham um deus sem equivalente claro na tradição grega: Jano, representado com duas faces opostas, uma olhando para a frente e outra para trás. Era o deus dos começos e dos fins, das portas e das passagens, das transições. Olhava ao mesmo tempo para o passado e para o futuro — por isso seu nome batiza o mês de janeiro, a porta que separa um ano do outro.\n\nJano era invocado no início de qualquer empreitada importante, antes mesmo dos outros deuses. Em Roma havia um templo dedicado a ele cujas portas ficavam abertas em tempos de guerra e eram fechadas em tempos de paz — e, ao longo de séculos, pouquíssimas vezes puderam ser fechadas. Jano é uma das imagens mais elegantes já criadas para algo profundamente humano: todo limiar é, ao mesmo tempo, uma despedida e um recomeço.',
       frase: '"Toda porta olha para dois lados ao mesmo tempo." — sobre Jano',
       fonte: 'Fonte: Ovídio, "Fastos"; Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'A figura de Jano é associada a portas (entrada e saída), bem como a transições. A sua face dupla também simboliza o passado e o futuro. Jano é o deus dos inícios, das decisões e escolhas.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Jano',
+      },
     },
   ],
 
