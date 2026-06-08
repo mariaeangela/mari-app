@@ -13,15 +13,33 @@ function useMinuteTick() {
   }, []);
 }
 
+// Tela larga (notebook/desktop): a partir daqui usamos grade de 3 colunas.
+// No iPhone (abaixo do breakpoint) tudo continua em coluna única, como antes.
+function useIsWide(bp = 860) {
+  const query = `(min-width:${bp}px)`;
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    setWide(m.matches);
+    return () => m.removeEventListener('change', on);
+  }, [query]);
+  return wide;
+}
+
+// Estilo da grade de 3 colunas (somente desktop).
+const GRID_3 = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, alignItems: 'start' };
+
 // `type` controla a EXIBIÇÃO (rótulo, emoji, cor e id de salvamento);
 // `contentType` controla de onde vem o CONTEÚDO. Para o slot "Cultura" eles
 // diferem: exibe sempre "Cultura", mas o texto vem de cinema/artista/música/conexões.
-function CardWithContent({ type, contentType = type, offset = 0 }) {
+function CardWithContent({ type, contentType = type, offset = 0, tile = false }) {
   const info = CONTENT_TYPES.find(t => t.id === type);
   const palette = CARD_PALETTES[type] || CARD_PALETTES.artwork;
   const [content, setContent] = useState(() => getDailyContent(contentType, offset));
   const reload = () => setContent(getRandomContent(contentType));
-  return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={reload} />;
+  return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={reload} tile={tile} />;
 }
 
 function Header({ tab, setTab }) {
@@ -76,7 +94,7 @@ const CULTURA_TYPES = ['film', 'artist', 'music', 'connection'];
 // Aba Explorar: temas que o usuário escolhe por botão.
 const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now', 'movement', 'letter', 'film', 'mythology', 'religion', 'bible', 'health'];
 
-function Feed() {
+function Feed({ isWide }) {
   const period = getEditionPeriod();
   const cultura = CULTURA_TYPES[((period % CULTURA_TYPES.length) + CULTURA_TYPES.length) % CULTURA_TYPES.length];
   // 2º slot é sempre exibido como "Cultura"; só o conteúdo (contentType) gira.
@@ -88,21 +106,20 @@ function Feed() {
     { type: 'philosophy' },
     { type: 'city' },
   ];
-  return (
-    <div style={{ paddingBottom: 40 }}>
-      {slots.map((s, i) => <CardWithContent key={s.type} type={s.type} contentType={s.contentType} offset={i} />)}
-    </div>
-  );
+  const cards = slots.map((s, i) => <CardWithContent key={s.type} type={s.type} contentType={s.contentType} offset={i} tile={isWide} />);
+  return isWide
+    ? <div style={{ ...GRID_3, padding: '18px 18px 48px' }}>{cards}</div>
+    : <div style={{ paddingBottom: 40 }}>{cards}</div>;
 }
 
-function ExplorePage() {
+function ExplorePage({ isWide }) {
   const [selectedType, setSelectedType] = useState(null);
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
         <>
           <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 20 }}>escolha um tema</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
             {EXPLORE_TYPES.map(type => {
               const info = CONTENT_TYPES.find(t => t.id === type);
               const pal = CARD_PALETTES[type];
@@ -116,19 +133,19 @@ function ExplorePage() {
           </div>
         </>
       ) : (
-        <div>
+        <div style={{ maxWidth: isWide ? 560 : 'none', margin: '0 auto' }}>
           <button onClick={() => setSelectedType(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 20, padding: 0 }}>
             &larr; voltar
           </button>
           {/* key por edição: o card do Explorar também remonta às 6h e às 14h */}
-          <CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} />
+          <CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} tile={isWide} />
         </div>
       )}
     </div>
   );
 }
 
-function SavedPage() {
+function SavedPage({ isWide }) {
   const [saved, setSaved] = useState(() => {
     try { return JSON.parse(localStorage.getItem('diagonal_saved') || '[]'); }
     catch { return []; }
@@ -145,25 +162,26 @@ function SavedPage() {
       <p style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>Toque na estrela em qualquer card para salvar aqui.</p>
     </div>
   );
+  const cards = saved.map(item => {
+    const pal = CARD_PALETTES[item.type] || CARD_PALETTES.artwork;
+    const info = CONTENT_TYPES.find(t => t.id === item.type);
+    return (
+      <ContentCard key={item.id} type={item.type} typeLabel={info?.label} typeEmoji={info?.emoji}
+        palette={pal} content={item} onRemove={() => remove(item.id)} showSave={false} tile={isWide} />
+    );
+  });
   return (
     <div style={{ paddingBottom: 60 }}>
       <p style={{ padding: '20px 22px 8px', fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase' }}>
         {saved.length} {saved.length === 1 ? 'item salvo' : 'itens salvos'}
       </p>
-      {saved.map(item => {
-        const pal = CARD_PALETTES[item.type] || CARD_PALETTES.artwork;
-        const info = CONTENT_TYPES.find(t => t.id === item.type);
-        return (
-          <ContentCard key={item.id} type={item.type} typeLabel={info?.label} typeEmoji={info?.emoji}
-            palette={pal} content={item} onRemove={() => remove(item.id)} showSave={false} />
-        );
-      })}
+      {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
     </div>
   );
 }
 
 // Aba "Frases": escolha um humor e receba uma frase pensada para ele.
-function MoodPage() {
+function MoodPage({ isWide }) {
   const [mood, setMood] = useState(null);
   const [idx, setIdx] = useState(0);
   const quotes = mood ? (MOOD_QUOTES[mood.id] || []) : [];
@@ -180,7 +198,7 @@ function MoodPage() {
       <div style={{ padding: '28px 20px 80px' }}>
         <h2 style={{ fontFamily: "'Lora', serif", fontSize: 24, color: '#111', fontStyle: 'italic', marginBottom: 6 }}>Como você está se sentindo?</h2>
         <p style={{ fontSize: 12, color: '#aaa', marginBottom: 24, lineHeight: 1.5 }}>Escolha um humor e eu escolho uma frase para ele.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(160px, 1fr))' : '1fr 1fr', gap: 12 }}>
           {MOODS.map(m => (
             <button key={m.id} onClick={() => choose(m)} style={{
               background: m.color + '18', border: `1px solid ${m.color}40`, borderRadius: 16,
@@ -196,7 +214,7 @@ function MoodPage() {
   }
 
   return (
-    <div style={{ padding: '28px 20px 80px' }}>
+    <div style={{ padding: '28px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <button onClick={() => setMood(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 22, padding: 0 }}>
         &larr; outro humor
       </button>
@@ -230,18 +248,19 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(() => sessionStorage.getItem('diagonal_auth') === '1');
   const [tab, setTab] = useState('feed');
   useMinuteTick();
+  const isWide = useIsWide();
   const handleLogin = () => { sessionStorage.setItem('diagonal_auth', '1'); setLoggedIn(true); };
   if (!loggedIn) return <Login onLogin={handleLogin} />;
   return (
-    <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
         <Header tab={tab} setTab={setTab} />
       </div>
       {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
-      {tab === 'feed' && <Feed key={getEditionPeriod()} />}
-      {tab === 'explore' && <ExplorePage />}
-      {tab === 'saved' && <SavedPage />}
-      {tab === 'quotes' && <MoodPage />}
+      {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
+      {tab === 'explore' && <ExplorePage isWide={isWide} />}
+      {tab === 'saved' && <SavedPage isWide={isWide} />}
+      {tab === 'quotes' && <MoodPage isWide={isWide} />}
     </div>
   );
 }

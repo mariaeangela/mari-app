@@ -125,7 +125,7 @@ function SaveButton({ content, type }) {
   );
 }
 
-export default function ContentCard({ typeLabel, typeEmoji, palette, content, onReload, onRemove, type, showSave = true }) {
+export default function ContentCard({ typeLabel, typeEmoji, palette, content, onReload, onRemove, type, showSave = true, tile = false }) {
   const [expanded, setExpanded] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -137,7 +137,7 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
   if (!content) return null;
 
   return (
-    <div style={{ background: palette.bg, padding: '26px 22px', marginBottom: 2, animation: 'fadeUp 0.4s ease', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: palette.bg, padding: '26px 22px', marginBottom: tile ? 0 : 2, borderRadius: tile ? 16 : 0, border: tile ? '1px solid ' + palette.border : 'none', animation: 'fadeUp 0.4s ease', position: 'relative', overflow: 'hidden' }}>
       <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes spin{to{transform:rotate(360deg)}}'}</style>
       <div style={{ position: 'absolute', top: 0, right: 0, width: 90, height: 90, background: palette.accent + '10', borderRadius: '0 0 0 90px' }} />
 
