@@ -756,6 +756,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'folklore foi gravado durante a pandemia em total segredo. Swift não anunciou o álbum até horas antes do lançamento. Mas o que tornou a obra revolucionária foi que ela abandonou completamente o pop para escrever sobre personagens fictícios.\n\nA protagonista de "betty" se chama James. O narrador de "this is me trying" é anônimo. "august" conta a mesma história de "cardigan" e "betty" de três perspectivas diferentes — um experimento narrativo que James Joyce faria num romance. Os críticos que a haviam tratado com condescendência renderam-se. folklore ganhou o Grammy de Álbum do Ano.',
       frase: '"Long story short, I survived." — folklore, Taylor Swift',
       fonte: 'Fonte: Grammy Awards; Pitchfork; Rolling Stone',
+      fonteOficial: {
+        texto: 'Folklore (estilizado em letras minúsculas) é o oitavo álbum de estúdio da artista musical estadunidense Taylor Swift, lançado em 24 de julho de 2020 através da editora discográfica Republic Records. A concepção de Folklore se deu no contexto da pandemia de COVID-19, quando Swift foi obrigada a entrar em quarentena, vindo a abortar os planos de embarcar em uma turnê mundial para promover seu disco anterior, Lover (2019).',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Folklore_%28%C3%A1lbum_de_Taylor_Swift%29',
+      },
     },
     {
       titulo: 'A Cantora Que Aprendeu a Cantar Duas Vezes',
@@ -765,6 +770,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Olivia Dean perdeu parcialmente a voz numa turnê em 2022 e precisou parar por meses para se recuperar. Quando voltou, havia passado por terapia fonoaudiológica intensa e afirma ter aprendido a cantar de um jeito completamente novo — com menos força, mais controle, mais vulnerabilidade.\n\nDean canta sobre identidade birracial, sobre a geração que cresceu nas redes sociais, sobre a ansiedade de amar no século XXI — mas com arranjos que soam a Motown dos anos 1960. Passado e presente, em tensão produtiva. Foi indicada ao Mercury Prize, um dos prêmios mais respeitados do Reino Unido.',
       frase: '"Messy é a palavra mais honesta que conheço." — Olivia Dean',
       fonte: 'Fonte: Mercury Prize; BRIT School',
+      fonteOficial: {
+        texto: 'Olivia Lauryn Dean (Londres, 14 de março de 1999) é uma cantora neo soul inglesa. Em 2021, foi nomeada Artista Revelação do ano pela Amazon Music; em 2023, foi selecionada como Artista Revelação do Ano pela BBC Music e entrou na shortlist do Mercury Prize.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Olivia_Dean',
+      },
     },
     {
       titulo: 'O Cantor Que Escreve Sobre o Tempo',
@@ -783,6 +793,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Rubel construiu uma das obras mais delicadas da nova MPB cantando baixo, quase ao pé do ouvido. Suas canções soam como cartas íntimas musicadas — sobre amor, dúvida e o desconforto de crescer numa geração hiperconectada e ainda assim solitária. O álbum "Casas", lançado de forma independente, virou fenômeno boca a boca, sem rádio nem grande gravadora.\n\nFilho de gente do teatro e do cinema, Rubel trata cada disco como narrativa: personagens, atmosferas, silêncios que dizem tanto quanto a letra. Ao vivo, transforma o show numa espécie de roda de intimidade coletiva, com plateias que cantam suas músicas como se fossem confissões próprias. É a prova de que, num tempo de algoritmos gritando por atenção, ainda há quem conquiste o público sussurrando.',
       frase: '"A gente se constrói nas casas por onde passa." — eco de Rubel',
       fonte: 'Fonte: crítica musical brasileira',
+      fonteOficial: {
+        texto: 'Rubel Brisolla Rodrigues (Volta Redonda, 10 de abril de 1991) é um cantor, compositor, roteirista e diretor brasileiro. Em setembro de 2018 o álbum Casas recebeu nomeação ao Grammy Latino na categoria Melhor Álbum de Rock ou Música Alternativa em Língua Portuguesa.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Rubel',
+      },
     },
     {
       titulo: 'O Movimento Que Devorou o Brasil e Cuspiu Arte',
@@ -792,6 +807,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1968, no auge da ditadura militar, Caetano Veloso e Gilberto Gil lideraram a Tropicália — uma explosão cultural que misturava guitarra elétrica com berimbau, bolero com rock, o brega com a vanguarda. Era a aplicação musical da "antropofagia" de Oswald de Andrade: devorar tudo, do estrangeiro ao popular, e transformar em algo brasileiríssimo e novo.\n\nO movimento incomodou os dois lados. A esquerda os acusou de "alienados" por usarem guitarra americana; a direita os via como ameaça. Caetano foi vaiado ao defender no palco sua canção "É Proibido Proibir". Em dezembro de 1968, ele e Gil foram presos e depois exilados em Londres. Voltaram anos depois, transformados — e a Tropicália acabou se tornando uma das maiores influências de toda a música brasileira que veio depois.',
       frase: '"É proibido proibir." — Caetano Veloso, 1968',
       fonte: 'Fonte: "Verdade Tropical", Caetano Veloso',
+      fonteOficial: {
+        texto: 'Tropicália, tropicalismo ou movimento tropicalista foi um movimento cultural brasileiro da segunda metade da década de 1960. Embora a música fosse sua expressão principal, o movimento tropicalista se expressava por outras formas de arte, como cinema, teatro e poesia.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Tropic%C3%A1lia',
+      },
     },
   ],
 
@@ -898,6 +918,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Sócrates não escreveu uma única linha. Tudo o que sabemos dele vem de discípulos como Platão. Sua filosofia era uma conversa: andava por Atenas fazendo perguntas, fingindo ignorância, até que seus interlocutores percebessem que não sabiam definir o que julgavam óbvio — justiça, coragem, virtude. Era o "método socrático", a maiêutica: dar à luz, pela pergunta, as ideias que a pessoa já carregava sem saber.\n\nEssa insistência em questionar tudo incomodou o poder. Acusado de "corromper a juventude" e desrespeitar os deuses da cidade, foi condenado à morte. Pôde fugir, mas recusou: violar as leis da cidade trairia tudo o que defendera. Bebeu a cicuta com serenidade, cercado dos amigos — cena imortalizada por David neste quadro. Morreu provando que examinar a própria vida vale mais do que apenas conservá-la.',
       frase: '"Uma vida sem exame não vale a pena ser vivida." — Sócrates (em Platão, Apologia)',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; Platão, "Apologia de Sócrates"',
+      fonteOficial: {
+        texto: 'Sócrates (em grego: Σωκράτης; Alópece, c. 470 a.C. – Atenas, 399 a.C.) foi um filósofo ateniense do período clássico da Grécia Antiga. Creditado como um dos fundadores da filosofia ocidental, é até hoje uma figura enigmática, conhecida principalmente através dos relatos em obras de escritores que viveram mais tarde, especialmente dois de seus alunos, Platão e Xenofonte, bem como pelas peças teatrais de seu contemporâneo Aristófanes.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/S%C3%B3crates',
+      },
     },
     {
       titulo: 'A Caverna Onde Vivemos Sem Saber',
@@ -906,6 +931,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Imagine prisioneiros acorrentados desde o nascimento numa caverna, de costas para a entrada, vendo apenas sombras projetadas numa parede. Para eles, as sombras SÃO a realidade — nunca viram outra coisa. Um deles se liberta, sobe à superfície e pela primeira vez vê o sol, as cores, o mundo real. Ofuscado e perplexo, entende que vivera entre ilusões. É a alegoria mais famosa da filosofia, contada por Platão na "República".\n\nPara Platão, o mundo que percebemos pelos sentidos é como aquelas sombras: cópias imperfeitas de realidades mais altas, as Ideias ou Formas. O filósofo é aquele que se liberta e contempla a verdade — e que, ao voltar para contá-la aos que ficaram, é ridicularizado ou odiado. Vinte e quatro séculos depois, a caverna virou metáfora de tudo: da manipulação política à tela do celular.',
       frase: '"Eles tomariam as sombras das coisas pela verdade." — Platão, A República',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; Platão, "A República", Livro VII',
+      fonteOficial: {
+        texto: 'A alegoria da caverna, também conhecida como parábola da caverna, mito da caverna ou prisioneiros da caverna, é uma alegoria de intenção filósofo-pedagógica, escrita pelo filósofo grego Platão. Encontra-se na obra intitulada A República (Livro VII), e pretende exemplificar como o ser humano pode se libertar da condição de escuridão, que o aprisiona, por meio da luz da verdade.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Alegoria_da_Caverna',
+      },
     },
     {
       titulo: 'A Felicidade Não É um Sentimento, É uma Prática',
@@ -916,6 +946,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Para Aristóteles, o objetivo da vida não é o prazer momentâneo, mas a "eudaimonia" — em geral traduzida como felicidade, mas mais próxima de "florescimento", viver bem e plenamente. E ela não cai do céu: é fruto de uma vida inteira cultivando a virtude, como quem treina uma habilidade. "Uma andorinha não faz verão", escreveu — um dia bom não faz uma vida boa.\n\nSua receita era o "meio-termo": toda virtude fica entre dois excessos. A coragem está entre a covardia e a temeridade; a generosidade, entre a avareza e o esbanjamento. Não é mediocridade, e sim equilíbrio ajustado a cada situação. Aristóteles foi aluno de Platão e mestre de Alexandre, o Grande, e praticamente fundou a lógica, a biologia e a ética como disciplinas. Rembrandt o pintou aqui meditando sobre um busto de Homero.',
       frase: '"Somos aquilo que repetidamente fazemos; a excelência é um hábito." — síntese de Aristóteles',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; Aristóteles, "Ética a Nicômaco"',
+      fonteOficial: {
+        texto: 'Aristóteles (em grego clássico: Ἀριστοτέλης; Estagira, 384 a.C. – Atenas, 322 a.C.) foi um filósofo e polímata da Grécia Antiga. Ao lado de Platão, de quem foi discípulo na Academia, foi um dos pensadores mais influentes da história da civilização ocidental.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Arist%C3%B3teles',
+      },
     },
     {
       titulo: 'A Regra Para Saber Se uma Ação É Certa',
@@ -924,6 +959,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Immanuel Kant era tão metódico que, segundo a lenda, os vizinhos de Königsberg acertavam os relógios pela hora de sua caminhada diária. Dessa mente rigorosa saiu uma das ideias mais influentes da ética: o imperativo categórico. O teste para saber se uma ação é moral seria perguntar "e se todos fizessem isso?". Aja apenas segundo uma regra que você gostaria de ver transformada em lei universal.\n\nDaí vem uma segunda formulação, ainda mais marcante: trate a humanidade, em você e nos outros, sempre também como um fim em si, nunca apenas como um meio. Ou seja, jamais use uma pessoa como mero instrumento. Para Kant, a moralidade não depende das consequências nem dos sentimentos, mas do dever e da razão — e por isso valeria para todo ser racional, em qualquer tempo e lugar.',
       frase: '"Aja apenas segundo a máxima que você possa querer que se torne lei universal." — Kant',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; Kant, "Fundamentação da Metafísica dos Costumes"',
+      fonteOficial: {
+        texto: 'O Imperativo categórico (em alemão: kategorischer Imperativ) é um dos principais conceitos da filosofia de Immanuel Kant. A ética, segundo a visão de Kant, tem como conceito esse sistema. Para o filósofo prussiano, imperativo categórico é o dever de toda pessoa agir conforme princípios dos quais considera que seriam benéficos caso fossem seguidos por todos os seres humanos.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Imperativo_categ%C3%B3rico',
+      },
     },
     {
       titulo: 'E Se Você Tivesse de Reviver Tudo Infinitas Vezes?',
@@ -932,6 +972,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Nietzsche propôs um experimento mental devastador: imagine que um demônio lhe diga que você viverá esta exata vida, com cada dor e cada alegria, infinitas vezes, sem mudar uma vírgula. Você o amaldiçoaria — ou cairia de joelhos em gratidão? É a ideia do "eterno retorno". Não como teoria sobre o cosmos, mas como teste existencial: você está vivendo de um jeito que toparia repetir para sempre?\n\nA resposta que ele buscava era o "amor fati", o amor ao destino. Não apenas suportar o que a vida traz, mas amá-lo — inclusive o sofrimento — como parte necessária de quem você é. Nietzsche, que viveu doente, solitário e por fim tomado pela loucura, fez dessa afirmação radical da vida o coração de seu pensamento: dizer "sim" à existência inteira, sem subtrair nada.',
       frase: '"Minha fórmula para a grandeza no ser humano é amor fati." — Friedrich Nietzsche',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; Nietzsche, "A Gaia Ciência" e "Ecce Homo"',
+      fonteOficial: {
+        texto: 'O eterno retorno (também conhecido como eterna recorrência) é uma teoria de que o universo e toda a existência e energia estiveram recorrentes e continuarão a ocorrer, de forma autossemelhante, um número infinito de vezes através do tempo ou espaço infinito, ou de que há um padrão cíclico de certas recorrências, como em eras na roda do tempo.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Eterno_retorno',
+      },
     },
     {
       titulo: 'O Mal Pode Ser Simplesmente Irrefletido',
@@ -940,6 +985,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1961, a filósofa Hannah Arendt foi a Jerusalém cobrir o julgamento de Adolf Eichmann, um dos organizadores logísticos do Holocausto. Esperava encontrar um monstro. Encontrou um burocrata medíocre, que repetia frases feitas e dizia apenas ter "cumprido ordens". Disso nasceu sua tese mais polêmica: a "banalidade do mal". O horror extremo não exige monstros — pode ser obra de pessoas comuns que deixam de pensar.\n\nPara Arendt, o crime de Eichmann incluía a recusa de exercer o próprio julgamento, de se perguntar se o que fazia era certo. Não era estupidez: era ausência de pensamento, a entrega cômoda à engrenagem. A tese gerou enorme controvérsia, mas tornou-se uma das advertências mais importantes do século XX — e dialoga diretamente com o experimento de Milgram sobre obediência à autoridade.',
       frase: '"Ninguém tem o direito de obedecer (cegamente)." — Hannah Arendt',
       fonte: 'Fonte: Hannah Arendt, "Eichmann em Jerusalém"; Stanford Encyclopedia of Philosophy',
+      fonteOficial: {
+        texto: 'Banalidade do mal é uma expressão criada por Hannah Arendt (1906–1975), teórica política alemã, em seu livro Eichmann em Jerusalém, cujo subtítulo é "um relato sobre a banalidade do mal".',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Banalidade_do_mal',
+      },
     },
   ],
 
