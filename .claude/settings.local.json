@@ -34,7 +34,12 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(git commit -q -m ' *)",
       "Bash(git push *)",
-      "Bash(echo \"remote: $\\(git ls-remote origin -h refs/heads/main)"
+      "Bash(echo \"remote: $\\(git ls-remote origin -h refs/heads/main)",
+      "Bash(mkdir -p .icon_tmp)",
+      "Bash(curl -sL -o .icon_tmp/Playfair.ttf \"https://github.com/google/fonts/raw/main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf\")",
+      "Bash(python -c ' *)",
+      "Bash(sed -i 's/TARGET=0.88/TARGET=0.84/' .icon_tmp/makeD.py)",
+      "Bash(python .icon_tmp/makeD.py)"
     ]
   }
 }
