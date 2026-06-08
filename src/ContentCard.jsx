@@ -189,6 +189,14 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
         {content.corpo}
       </div>
 
+      {expanded && content.fonteOficial && (
+        <div style={{ marginBottom: 18, paddingTop: 14, borderTop: '1px solid ' + palette.border }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: palette.accent, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 9 }}>Da fonte</div>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, margin: '0 0 9px' }}>“{content.fonteOficial.texto}”</p>
+          <a href={content.fonteOficial.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: palette.accent, fontWeight: 700, textDecoration: 'none' }}>{content.fonteOficial.veiculo} ↗</a>
+        </div>
+      )}
+
       {expanded && content.frase && (
         <div style={{ borderLeft: '3px solid ' + palette.accent, paddingLeft: 16, marginBottom: 14 }}>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15, color: palette.text, lineHeight: 1.65, margin: 0 }}>{content.frase}</p>

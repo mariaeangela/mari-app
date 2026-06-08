@@ -237,6 +237,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A imagem japonesa mais reproduzida da história não é uma pintura: é uma gravura em madeira. Hokusai a criou por volta dos 70 anos, dentro da série "Trinta e Seis Vistas do Monte Fuji". A onda colossal, com garras de espuma, ameaça três barcos de pesca; ao fundo, minúsculo e imóvel, o Monte Fuji. O caos e a permanência no mesmo quadro.\n\nHokusai usou o azul da Prússia, pigmento sintético recém-chegado da Europa — a obra é, ela mesma, um encontro entre Oriente e Ocidente. Décadas depois, quando essas gravuras baratas chegaram à França embrulhando porcelana, enlouqueceram Monet, Degas e Van Gogh e deram origem ao "japonismo". Aquela onda redesenhou o olhar do Ocidente.',
       frase: '"Aos 73 anos, comecei a entender um pouco a verdadeira estrutura das coisas." — Hokusai',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'A Grande Onda de Kanagawa, mais conhecida simplesmente como A Onda, é uma famosa xilogravura do mestre japonês Hokusai, especialista em ukiyo-e. Foi publicada em 1830 ou 1831 como a primeira pintura na série Trinta e seis vistas do monte Fuji, sendo a obra mais conhecida do artista.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/A_Grande_Onda_de_Kanagawa',
+      },
     },
     {
       titulo: 'O Homem Que Se Pintou a Vida Inteira',
@@ -400,6 +405,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1999, os psicólogos David Dunning e Justin Kruger publicaram um estudo com um título quase cômico: "Incompetente e sem saber disso". Eles descobriram que as pessoas com menos habilidade numa área tendem a superestimar enormemente sua competência — justamente porque lhes falta o conhecimento necessário para perceber os próprios erros.\n\nO inverso também acontece: especialistas costumam subestimar-se, supondo que o que é fácil para eles é fácil para todos. A inspiração do estudo foi real e bizarra: um ladrão de banco que cobriu o rosto com suco de limão, acreditando que isso o tornaria invisível para as câmeras, como tinta invisível. A lição é desconfortável: quanto menos sabemos, mais certeza temos.',
       frase: '"A ignorância gera confiança com mais frequência do que o conhecimento." — Charles Darwin',
       fonte: 'Fonte: "Unskilled and Unaware of It", Dunning & Kruger, 1999',
+      fonteOficial: {
+        texto: 'O efeito Dunning-Kruger é o viés cognitivo pelo qual pessoas com baixa habilidade em uma tarefa superestimam sua habilidade. Alguns pesquisadores também incluem em sua definição o efeito oposto para as pessoas de alto desempenho: sua tendência a subestimar suas habilidades.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Efeito_Dunning%E2%80%93Kruger',
+      },
     },
     {
       titulo: 'O Estado em Que o Tempo Desaparece',
