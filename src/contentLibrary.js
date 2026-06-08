@@ -334,6 +334,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Aftersun parece, à primeira vista, um filme sobre férias numa cidade turca nos anos 1990. Mas é um dos retratos mais delicados já feitos sobre memória e luto. A diretora Charlotte Wells construiu o filme a partir de fragmentos — imagens de câmera de vídeo, momentos soltos — porque é assim que a memória funciona: aos pedaços.\n\nO filme nunca diz explicitamente o que aconteceu com o pai. Você monta a história nos silêncios, nos olhares, numa cena de dança que parte o coração. É sobre tentar entender, já adulto, alguém que amamos quando éramos crianças — e perceber que nunca o conhecemos por completo.',
       frase: '"O tempo não para. Não importa o quanto você queira." — eco de Aftersun',
       fonte: 'Fonte: BFI; A24',
+      fonteOficial: {
+        texto: 'Aftersun é um filme de drama britânico-americano de 2022. Escrito e dirigido por Charlotte Wells, é estrelado por Paul Mescal, Frankie Corio e Celia Rowlson-Hall.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Aftersun',
+      },
     },
     {
       titulo: 'O Filme Rodado Em Preto e Branco Por Escolha',
@@ -343,6 +348,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Cold War foi rodado em preto e branco em formato 4:3 — a proporção quadrada dos filmes antigos. Pawlikowski fez isso conscientemente para criar a sensação de aprisionamento: os personagens quase não cabem no frame, sufocados pelos lados. O formato é a metáfora.\n\nO filme é baseado parcialmente nos pais do próprio diretor. O que poucos sabem: Pawlikowski perdeu sua esposa para uma doença grave enquanto desenvolvia o roteiro, e o filme se tornou também sobre como o amor sobrevive à perda. A cena final, filmada numa ruína abandonada na Polônia, foi a última a ser gravada — e o elenco sabia que era o fim.',
       frase: '"Amor é quando a distância não diminui o que você sente — só aumenta." — eco de Cold War',
       fonte: 'Fonte: Cannes Film Festival; BFI',
+      fonteOficial: {
+        texto: 'Zimna wojna (bra: Guerra Fria; prt: Cold War - Guerra Fria) é um filme franco-britano-polonês de 2018, dos gêneros drama romântico e ficção histórica, dirigido por Paweł Pawlikowski, com roteiro de Janusz Glowacki e do próprio diretor.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Zimna_wojna',
+      },
     },
     {
       titulo: 'O Acidente Que Criou Uma Cena Icônica',
@@ -352,6 +362,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Wong Kar-wai passou 15 meses filmando No Mood for Love — previsto para ser um curta de 30 dias. Ele improvisava quase tudo: não tinha roteiro fixo, filmava cenas sem saber onde encaixariam. A cena icônica da escadaria, com Maggie Cheung em câmera lenta, foi filmada assim apenas porque o diretor achou a atriz linda naquele ângulo.\n\nO filme é sobre dois vizinhos que descobrem que seus cônjuges têm um caso entre si. Mas em vez do escândalo, Wong Kar-wai filmou a contenção: o que eles não fazem, o que não dizem, o que quase acontece. É um filme sobre o desejo como disciplina.',
       frase: '"Aquele tempo ficou para sempre." — No Mood for Love',
       fonte: 'Fonte: Cannes Film Festival; BFI Sight & Sound',
+      fonteOficial: {
+        texto: 'Faa yeung nin wa (bra: Amor à Flor da Pele; prt: Disponível para Amar) é um filme de drama romântico de 2000 escrito, dirigido e produzido por Wong Kar-wai. Uma coprodução entre Hong Kong e França, o filme acompanha um homem (Tony Leung) e uma mulher (Maggie Cheung) em 1962 que descobrem que seus cônjuges estão tendo um caso.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Faa_yeung_nin_wa',
+      },
     },
     {
       titulo: 'A Trilogia Que Levou 18 Anos',
@@ -361,6 +376,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A trilogia Before filmou os mesmos dois atores, Ethan Hawke e Julie Delpy, a cada nove anos, acompanhando o mesmo casal envelhecer de verdade. No primeiro filme, eles têm vinte e poucos anos e se conhecem num trem. No último, estão na casa dos quarenta, casados, exaustos, reais.\n\nOs atores co-escreveram os diálogos, trazendo suas próprias experiências de vida. Por isso as conversas soam tão verdadeiras — longas, filosóficas, imperfeitas. É a coisa mais próxima que o cinema já chegou de mostrar o tempo passar de verdade sobre o amor.',
       frase: '"Se há mágica neste mundo, ela está na tentativa de entender alguém." — Before Sunrise',
       fonte: 'Fonte: Criterion Collection',
+      fonteOficial: {
+        texto: 'Before Sunrise (bra/prt: Antes do Amanhecer) é um filme produzido pelos Estados Unidos e Áustria, lançado em 1995, do gênero romance, dirigido por Richard Linklater e escrito por Kim Krizan e Linklater. O filme acompanha Jesse (Ethan Hawke), um jovem estadunidense, e Céline (Julie Delpy), uma jovem francesa, que se encontram num trem e desembarcam em Viena.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Antes_do_Amanhecer',
+      },
     },
     {
       titulo: 'O Musical Que Deveria Ter Tido Outro Final',
@@ -370,6 +390,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O final de La La Land — aquele "e se" devastador — não estava no roteiro original. Chazelle testou um final feliz convencional e achou vazio. Então escreveu a sequência inteira do sonho, filmada numa única corrida criativa.\n\nO detalhe que muda tudo: durante a sequência imaginada, as cores ficam mais saturadas, mais de sonho — o único momento em que a câmera "mente". E no último plano, quando Mia e Sebastian se olham, nenhum dos dois atores sabia o que fazer. Chazelle os deixou descobrir o gesto sozinhos. O sorriso de Emma Stone naquele instante é genuíno.',
       frase: '"A melhor coisa que podemos fazer é sermos fiéis ao que amamos." — La La Land',
       fonte: 'Fonte: Academy Awards; Criterion Collection',
+      fonteOficial: {
+        texto: 'La La Land (no Brasil, La La Land - Cantando Estações; em Portugal, La La Land: Melodia de Amor) é um filme romântico-musical estadunidense de 2016 escrito e dirigido por Damien Chazelle. Estrelado por Ryan Gosling e Emma Stone, segue a história de um pianista de jazz e uma aspirante a atriz que se conhecem e se apaixonam em Los Angeles.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/La_La_Land_%28filme%29',
+      },
     },
     {
       titulo: 'O Filme Onde Olhar É a Forma de Tocar',
@@ -379,6 +404,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Sciamma filmou uma história de amor entre uma pintora e sua modelo numa ilha da Bretanha no século XVIII — e fez questão de eliminar o "olhar masculino" que dominou o cinema por cem anos. Quase não há homens em cena. A câmera observa os rostos com a mesma atenção com que a pintora estuda a modelo: olhar, aqui, é a primeira forma de tocar.\n\nO detalhe genial: o roteiro transforma o mito de Orfeu e Eurídice na chave do filme. Por que Orfeu se vira para trás e perde a amada? Sciamma responde que ele faz a escolha "da poeta, não do amante" — prefere a lembrança eterna à presença mortal. Todo o filme é sobre isso: guardar alguém na memória como quem guarda um quadro.',
       frase: '"Não me lamento. Me lembro." — Retrato de uma Jovem em Chamas',
       fonte: 'Fonte: Cannes Film Festival (melhor roteiro); BFI',
+      fonteOficial: {
+        texto: 'Portrait de la jeune fille en feu (bra: Retrato de uma Jovem em Chamas; prt: Retrato da Rapariga em Chamas) é um filme de drama histórico escrito e dirigido por Céline Sciamma. No Festival de Cannes 2019, foi selecionado para competir para o Palme d\'Or. Na mesma cerimônia, venceu o Queer Palm.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Portrait_de_la_jeune_fille_en_feu',
+      },
     },
     {
       titulo: 'Três Horas Dentro de um Carro Vermelho',
@@ -388,6 +418,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A partir de um conto curtíssimo de Haruki Murakami, Hamaguchi construiu um filme de quase três horas sobre luto, culpa e a impossibilidade de conhecer de verdade quem amamos. Um ator e diretor de teatro, viúvo, monta uma versão multilíngue de "Tio Vânia" enquanto é levado todos os dias por uma motorista silenciosa em seu velho Saab vermelho.\n\nO genial é como o teatro invade a vida: os atores ensaiam em línguas diferentes — japonês, coreano, mandarim, língua de sinais — e só se entendem pela emoção, não pela palavra. O filme argumenta que talvez seja assim com todo amor: nunca falamos exatamente a mesma língua. Ganhou o Oscar de Melhor Filme Internacional e levou o cinema lento japonês ao mundo.',
       frase: '"Os que sobrevivem continuam pensando nos mortos." — Drive My Car',
       fonte: 'Fonte: Academy Awards; Cannes (melhor roteiro)',
+      fonteOficial: {
+        texto: 'Drive My Car (em japonês: ドライブ·マイ·カー, Hepburn: Doraibu mai kā) é um filme de drama japonês de 2021 co-escrito e dirigido por Ryūsuke Hamaguchi. É baseado principalmente no conto de mesmo nome de Haruki Murakami, de 2014.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Doraibu_mai_k%C4%81',
+      },
     },
     {
       titulo: 'O Retrato de Quem Não Sabe o Que Quer',
@@ -397,6 +432,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Dividido em doze capítulos, um prólogo e um epílogo — como um romance —, o filme acompanha Julie, perto dos trinta, trocando de cursos, empregos e amores enquanto tenta descobrir quem é. Trier filma a indecisão como ninguém: a sensação contemporânea de que escolher um caminho significa matar todos os outros.\n\nHá uma cena em que o mundo inteiro congela e só Julie corre livre por Oslo até o homem que deseja — puro cinema sobre o instante em que decidimos mudar de vida. Mas o filme é honesto: nem toda escolha leva à felicidade, e amadurecer é também aprender a perder. Renate Reinsve ganhou o prêmio de melhor atriz em Cannes por esse papel.',
       frase: '"Eu me sinto uma espectadora da minha própria vida." — A Pior Pessoa do Mundo',
       fonte: 'Fonte: Cannes Film Festival; Neon',
+      fonteOficial: {
+        texto: 'Verdens verste menneske (bra/prt: A Pior Pessoa do Mundo) é um filme de comédia dramática norueguês de 2021 dirigido por Joachim Trier. É o terceiro longa da chamada trilogia de Oslo, ao lado de Reprise (2006) e Oslo, 31. august (2011).',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/A_Pior_Pessoa_do_Mundo',
+      },
     },
   ],
 
@@ -409,6 +449,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Nos anos 1950, o psicólogo B.F. Skinner colocou pombos em caixas com alavancas. Quando a alavanca sempre liberava comida, os pombos pressionavam com calma. Quando liberava às vezes, de forma imprevisível — os pombos pressionavam compulsivamente, sem parar.\n\nEsse mecanismo é o princípio exato por trás do Instagram e TikTok. A recompensa imprevisível — às vezes uma postagem incrível, às vezes nada — cria compulsão mais forte que qualquer recompensa garantida. Os designers de redes sociais estudaram Skinner. Cada vez que você rola a tela esperando algo bom, você é o pombo. Saber disso não elimina o impulso — mas explica por que ele é tão difícil de resistir.',
       frase: '"Nenhum organismo pode resistir indefinidamente a um reforço variável." — B.F. Skinner',
       fonte: 'Fonte: "Science and Human Behavior", Skinner; Stanford Persuasive Tech Lab',
+      fonteOficial: {
+        texto: 'O conceito de condicionamento operante foi criado pelo escritor e psicólogo Burrhus Frederic Skinner. Este refere-se ao procedimento através do qual é modelada uma resposta no organismo através de reforço diferencial e aproximações sucessivas.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Condicionamento_operante',
+      },
     },
     {
       titulo: 'O Experimento Que Provou Que Todos Obedecemos',
@@ -418,6 +463,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1961, Stanley Milgram recrutou voluntários para um "experimento de aprendizagem". Um ator fingia ser outro participante. Os voluntários aplicavam choques elétricos crescentes toda vez que ele errava — chegando a 450 volts, marcado com "Perigo: Choque Severo".\n\nO ator gritava, implorava, depois ficava em silêncio. Mas quando o pesquisador dizia "continue, o experimento requer que você prossiga" — 65% chegaram ao nível máximo. Milgram queria entender como soldados nazistas obedeceram ordens de extermínio. Descobriu algo mais amplo: a autoridade legítima faz a maioria das pessoas normais cruzar linhas que jamais cruzariam sozinhas.',
       frase: '"O maior perigo não é a crueldade — é a obediência irrefletida." — Hannah Arendt',
       fonte: 'Fonte: "Obedience to Authority", Stanley Milgram, 1974',
+      fonteOficial: {
+        texto: 'A Experiência de Milgram (ou Experimento de Milgram) foi uma experiência científica desenvolvida pelo psicólogo Stanley Milgram. A experiência tinha como objectivo responder à questão de como é que os participantes observados tendem a obedecer às autoridades, mesmo que as suas ordens contradigam o bom-senso individual.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Experi%C3%AAncia_de_Milgram',
+      },
     },
     {
       titulo: 'Por Que Lugares Existem Dentro de Nós',
@@ -427,6 +477,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1974, o geógrafo Yi-Fu Tuan cunhou a palavra "topofilia" — o amor pelo lugar. Não turismo: a relação afetiva profunda que desenvolvemos com espaços físicos, que moldam quem somos de formas que raramente conseguimos articular.\n\nTuan estudou como o espaço se torna "lugar" quando o habitamos com atenção e afeto. Praga, Cusco, Veneza — cidades que você visitou — existem em você não como postais, mas como camadas de experiência sensorial e emocional. O cheiro da manhã num beco de Burano, a pedra fria de Ollantaytambo sob a palma da mão. A topofilia explica por que certas viagens mudam quem somos — e por que algumas cidades ficam dentro de nós para sempre.',
       frase: '"O espaço se torna lugar quando ganha definição e significado." — Yi-Fu Tuan',
       fonte: 'Fonte: "Topophilia", Yi-Fu Tuan, 1974',
+      fonteOficial: {
+        texto: 'Topofilia (del griego topos, "lugar" y -philia, "amor a") es un fuerte sentido de pertenencia a un lugar, que a menudo se mezcla con el sentimiento personal de identidad cultural y el afecto por ciertos aspectos de dicho lugar.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/Topofilia',
+      },
     },
     {
       titulo: 'A Teoria Que Explica Por Que Você Procrastina',
@@ -436,6 +491,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Humanos são péssimos em avaliar o futuro. Quando temos que escolher entre R$100 agora ou R$110 em uma semana, muitos escolhem os R$100 — mesmo sabendo que é irracional. Isso se chama desconto hiperbólico: o cérebro desvaloriza recompensas futuras de forma desproporcional.\n\nEsse mecanismo explica a procrastinação, o tabagismo e a dificuldade de poupar dinheiro. Nosso cérebro evoluiu para valorizar o imediato — na savana, um pássaro na mão valia mais que dois voando. A solução que pesquisadores encontraram: criar "compromissos prévios". Ulisses se amarrou ao mastro antes de ouvir as sereias.',
       frase: '"Confundimos a experiência com a memória dela." — Daniel Kahneman',
       fonte: 'Fonte: "Rápido e Devagar", Daniel Kahneman; Nobel de Economia 2002',
+      fonteOficial: {
+        texto: 'In economics, hyperbolic discounting is a time-inconsistent model of delay discounting. It is one of the cornerstones of behavioral economics and its brain-basis is actively being studied by neuroeconomics researchers.',
+        veiculo: 'Wikipédia (em inglês)',
+        url: 'https://en.wikipedia.org/wiki/Hyperbolic_discounting',
+      },
     },
     {
       titulo: 'Por Que Os Incompetentes São Tão Confiantes',
@@ -459,6 +519,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O psicólogo húngaro Mihály Csíkszentmihályi passou décadas estudando os momentos em que as pessoas se sentem mais vivas. Descobriu um estado que chamou de "flow" (fluxo): a imersão total numa atividade desafiadora à medida certa, em que o tempo parece sumir, o ego se cala e ação e consciência se fundem. Músicos, atletas, escritores e cirurgiões o descrevem quase com as mesmas palavras.\n\nA receita do flow é precisa: um objetivo claro, retorno imediato e um desafio que seja difícil o bastante para não entediar, mas não tão difícil a ponto de gerar ansiedade. Csíkszentmihályi sobreviveu a um campo de prisioneiros na Segunda Guerra e dedicou a vida a uma pergunta: o que torna a vida digna de ser vivida? Sua resposta foi: não o prazer passivo, mas o engajamento profundo.',
       frase: '"As melhores horas da vida acontecem quando levamos corpo e mente ao limite." — Csíkszentmihályi',
       fonte: 'Fonte: "Flow: A Psicologia do Alto Desempenho e da Felicidade", 1990',
+      fonteOficial: {
+        texto: 'Fluxo (do inglês: flow) é um estado mental de operação em que a pessoa está totalmente imersa no que está fazendo, caracterizado por um sentimento de total envolvimento e sucesso no processo da atividade. Proposto pelo psicólogo Mihaly Csikszentmihalyi, o conceito tem sido utilizado numa grande variedade de campos.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Fluxo_%28psicologia%29',
+      },
     },
   ],
 
