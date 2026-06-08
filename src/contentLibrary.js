@@ -188,6 +188,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Quando Sargent expôs este retrato no Salão de Paris de 1884, foi um desastre. A modelo, Virginie Gautreau, uma socialite americana, apareceu com uma pele quase fantasmagórica e uma pose altiva. Mas o que chocou Paris foi um detalhe: originalmente, Sargent pintara uma das alças do vestido caída sobre o ombro, sugerindo sensualidade e desordem. O escândalo foi tão violento que a mãe da modelo implorou para que ele retirasse a tela.\n\nSargent repintou a alça de volta ao ombro, mas o estrago estava feito. Humilhado, ele deixou Paris e mudou-se para Londres. Anos depois, já consagrado, vendeu o quadro ao Metropolitan e disse que era a melhor coisa que já tinha pintado. Pediu apenas que o nome da modelo fosse mantido em segredo — por isso "Madame X".',
       frase: '"Acho que é a melhor coisa que já fiz." — John Singer Sargent',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Madame X ou o Retrato de Madame X é o título informal de um retrato, de dimensões 208.6 × 109.9 cm, datado de 1884, de autoria do famoso pintor norte-americano John Singer Sargent, nascido na Itália.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Retrato_de_Madame_X',
+      },
     },
     {
       titulo: 'O Quadro Pintado de Dentro de um Hospício',
@@ -198,6 +203,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Van Gogh pintou esta paisagem vibrante enquanto estava internado por vontade própria no asilo de Saint-Rémy, no sul da França, após o episódio em que mutilou a própria orelha. Da janela do quarto, e em caminhadas vigiadas pelos campos, ele via os ciprestes — árvores que o fascinavam e aterrorizavam.\n\nPara Van Gogh, o cipreste era "uma mancha negra numa paisagem ensolarada", tão belo quanto um obelisco egípcio, mas associado à morte e aos cemitérios. As pinceladas em espiral, o céu que parece se mover, o trigo dourado em convulsão — tudo transmite uma mente em turbulência tentando encontrar ordem na natureza. Ele morreria menos de um ano depois.',
       frase: '"Os ciprestes ocupam meus pensamentos o tempo todo." — Van Gogh a Theo',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Campo de trigo con cipreses es una serie de pinturas al óleo de 1889 de Vincent van Gogh, como parte de su serie de trigales. Todos fueron pintados en el asilo de Saint-Paul-de-Mausole en Saint-Rémy-de-Provence, cerca de Arlés, donde Van Gogh se autointernó desde mayo de 1889 hasta mayo de 1890. Las obras se inspiraron en la vista desde la ventana del asilo hacia las montañas del macizo de los Alpilles.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/Campo_de_trigo_con_cipreses',
+      },
     },
     {
       titulo: 'O Jardim Que Ele Construiu Para Pintar',
@@ -217,6 +227,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Este foi o primeiro Vermeer a entrar numa coleção americana, em 1887 — numa época em que o pintor holandês ainda era praticamente desconhecido. Vermeer havia sido esquecido por quase dois séculos após sua morte; produziu pouquíssimas obras, vendeu pouco e morreu endividado, deixando onze filhos.\n\nO que torna esta tela hipnótica é a luz. Vermeer entendia, antes da fotografia existir, como a luz se comporta ao atravessar uma janela e tocar superfícies diferentes — o metal frio do jarro, o tecido da touca, a parede ao fundo. Pesquisadores acreditam que ele usava uma câmara escura, um aparato óptico, para estudar esses efeitos. Cada Vermeer é menos um retrato e mais um estudo silencioso sobre como enxergamos.',
       frase: '"Ele pintou o ar entre as coisas." — crítica sobre Vermeer',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Woman with a Water Jug (Dutch: Vrouw met waterkan), also known as Young Woman with a Water Pitcher, is a painting finished between 1660–1662 by the Dutch painter Johannes Vermeer in the Baroque style. It is oil on canvas, 45.7cm × 40.6 cm, and is on display at the Metropolitan Museum of Art, New York.',
+        veiculo: 'Wikipédia (em inglês)',
+        url: 'https://en.wikipedia.org/wiki/Woman_with_a_Water_Jug',
+      },
     },
     {
       titulo: 'A Bailarina de Bronze Que Chocou Paris',
@@ -227,6 +242,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Quando Degas expôs esta escultura de cera, vestida com um tutu de tecido real e uma fita de cetim no cabelo, o público ficou perturbado. Era realista demais. A modelo, Marie van Goethem, era uma jovem bailarina belga do submundo da Ópera de Paris — meninas pobres que frequentemente eram exploradas. Os críticos da época, influenciados por teorias pseudocientíficas, chegaram a dizer que seu rosto tinha "traços de criminalidade".\n\nDegas, que amava o balé, retratava também sua dureza: a exaustão, a pobreza, o trabalho brutal por trás da graça. Esta foi a única escultura que ele expôs em vida. As versões em bronze que vemos hoje, como a do Metropolitan, foram fundidas após sua morte. Degas, assim como Monet e Van Gogh, foi perdendo a visão com a idade — e voltou-se cada vez mais para a escultura, que podia sentir com as mãos.',
       frase: '"A arte não é o que você vê, mas o que você faz os outros verem." — Edgar Degas',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'La pequeña bailarina de catorce años (en francés, La Petite Danseuse de quatorze ans) es una escultura creada en 1881 por Edgar Degas que representa a una joven estudiante de danza llamada Marie van Goethem. La escultura fue hecha originalmente en cera y se vació en bronce apenas en 1922.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/La_peque%C3%B1a_bailarina_de_catorce_a%C3%B1os',
+      },
     },
     {
       titulo: 'A Onda Que Invadiu a Arte Ocidental',
@@ -252,6 +272,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Rembrandt fez cerca de 80 autorretratos ao longo da vida — mais que qualquer mestre antes dele. Não por vaidade: era seu laboratório. Sem precisar pagar modelo, estudava luz, sombra e, acima de tudo, a passagem do tempo no próprio rosto. Vistos em sequência, formam uma autobiografia em tinta, do jovem ambicioso ao velho arruinado.\n\nNeste de 1660 ele tem 54 anos e já perdeu quase tudo: a esposa Saskia, o dinheiro, a casa leiloada para pagar dívidas. E mesmo assim se encara sem autopiedade, com uma honestidade quase cruel. As rugas, o cansaço, a dignidade teimosa — está tudo ali, pintado com a pastosidade grossa que ninguém ousara antes.',
       frase: '"A pintura é neta da natureza; está aparentada com Deus." — Rembrandt',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'The dozens of self-portraits by Rembrandt were an important part of his oeuvre. Rembrandt created approaching one hundred self-portraits including over forty paintings, thirty-one etchings and about seven drawings; some remain uncertain as to the identity of either the subject (mostly etchings) or the artist (mostly paintings), or the definition of a portrait.',
+        veiculo: 'Wikipédia (em inglês)',
+        url: 'https://en.wikipedia.org/wiki/Self-portraits_by_Rembrandt',
+      },
     },
     {
       titulo: 'A Cidade Sob um Céu de Apocalipse',
@@ -262,6 +287,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Esta é uma das primeiras paisagens puras da arte ocidental — e uma das mais perturbadoras. El Greco, um cretense formado em Veneza e radicado na Espanha, pintou Toledo sob um céu verde-elétrico prenhe de tempestade, deslocando construções de seus lugares reais. Ele não quis retratar a cidade: quis retratar a alma dela.\n\nPor séculos pareceu apenas "estranho". Quatro séculos depois, essa luz sobrenatural soa como expressionismo puro — e por isso El Greco foi ressuscitado e idolatrado no século XX por Cézanne e Picasso. A Toledo medieval, de ladeiras de pedra, foi imortalizada aqui não como ela é, mas como ela assombra.',
       frase: '"El Greco pintou o que existe por trás do visível." — eco da crítica',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Vista de Toledo o Toledo bajo una tormenta es un lienzo realizado por Doménikos Theotocópuli, conocido como el Greco. Esta pintura y la Vista y plano de Toledo constituyen las dos únicas pinturas del paisaje conocidas de este pintor que han llegado hasta nuestros días.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/Vista_de_Toledo',
+      },
     },
     {
       titulo: 'O Quadro Construído Ponto a Ponto',
@@ -272,6 +302,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Seurat ergueu seu quadro mais famoso literalmente ponto a ponto. Ele inventou o pontilhismo: em vez de misturar tintas na paleta, encostava pontinhos de cor pura lado a lado e deixava que o olho do espectador, à distância, fizesse a mistura. Era arte fundada em óptica e paciência — dois anos de trabalho para uma única tela.\n\nEste é um dos muitos estudos que ele pintou antes da versão final, hoje no Art Institute de Chicago. Seurat morreu aos 31 anos, deixando pouquíssimas obras, mas desviou o rumo da arte moderna. Cada ponto é uma decisão; o conjunto, uma tarde de domingo suspensa numa luz que parece vibrar.',
       frase: '"Dizem que veem poesia no que faço. Eu só apliquei meu método." — Georges Seurat',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Tarde de domingo en la isla de la Gran Jatte (en francés: Un dimanche après-midi à l\'Île de la Grande Jatte) es un cuadro del pintor neoimpresionista francés Georges Pierre Seurat, ejemplo de divisionismo considerado por muchos una de las pinturas más relevantes del siglo XIX.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/Tarde_de_domingo_en_la_isla_de_la_Grande_Jatte',
+      },
     },
     {
       titulo: 'O Pintor Que Era Também um Foragido',
@@ -282,6 +317,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Caravaggio revolucionou a pintura com o tenebrismo: contrastes brutais de luz e treva, como um holofote rasgando o escuro. Mas sua vida era tão violenta quanto suas telas. Brigão e jogador, matou um homem num duelo em Roma em 1606 e passou os últimos anos foragido, pintando em fuga por Nápoles, Malta e Sicília.\n\nEsta crucificação nasceu nesse exílio. Caravaggio usava gente comum das ruas como modelo para santos — pés sujos, rostos marcados — o que escandalizava a Igreja e tornava o sagrado chocantemente humano. Morreu aos 38 anos numa praia, em circunstâncias nunca esclarecidas, tentando voltar a Roma para receber um perdão papal que não chegou a tempo.',
       frase: '"Ele trouxe a luz para dentro do escuro — e nunca mais saiu de lá." — eco da crítica',
       fonte: 'Fonte: Cleveland Museum of Art',
+      fonteOficial: {
+        texto: 'La Crucifixión de San Andrés (1607) es una pintura del maestro barroco italiano Caravaggio. Está en la colección del Museo de Arte de Cleveland, que lo adquirió de la colección Arnaiz en Madrid en 1976, habiendo sido llevado a España en 1610 por el V duque de Benavente, virrey español de Nápoles.',
+        veiculo: 'Wikipédia (em espanhol)',
+        url: 'https://es.wikipedia.org/wiki/La_crucifixi%C3%B3n_de_San_Andr%C3%A9s',
+      },
     },
   ],
 
