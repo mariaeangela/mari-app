@@ -1196,6 +1196,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em vez de mandar contar calorias, nutricionistas da Escola de Saúde Pública de Harvard propuseram uma imagem simples: o "Prato Saudável". Metade do prato deve ser de vegetais e frutas, com variedade de cores; um quarto, de grãos integrais (arroz integral, aveia, pães integrais, em vez dos refinados); e um quarto, de proteínas saudáveis — peixes, aves, leguminosas e oleaginosas, limitando carnes vermelhas e evitando as processadas.\n\nA bebida principal deve ser água; o azeite aparece como óleo preferido; e a atividade física entra na própria figura, como parte inseparável do conjunto. A lógica não é uma dieta da moda, e sim um padrão sustentável: mais comida de verdade, menos ultraprocessados. É o tipo de orientação que a ciência considera bem estabelecida — lembrando que cada pessoa, sobretudo com alguma condição de saúde, deve ajustar o plano com um profissional.',
       frase: '"Mais importante do que contar calorias é a qualidade do que está no prato." — Harvard T.H. Chan',
       fonte: 'Fonte: Harvard T.H. Chan School of Public Health — "The Healthy Eating Plate"',
+      fonteOficial: {
+        texto: 'Uma dieta saudável é uma dieta que ajuda a manter ou melhorar a saúde. Uma dieta saudável fornece ao corpo o essencial da nutrição humana, isto é, fluidos, macronutrientes, micronutrientes e quantidade adequada de calorias.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Dieta_saud%C3%A1vel',
+      },
     },
     {
       titulo: 'Quanto Exercício o Corpo Realmente Precisa',
@@ -1204,6 +1209,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A Organização Mundial da Saúde é direta: adultos devem acumular de 150 a 300 minutos de atividade física moderada por semana — ou de 75 a 150 minutos de atividade vigorosa — além de exercícios para fortalecer os músculos em pelo menos dois dias. Parece muito, mas equivale a cerca de 20 a 40 minutos diários de caminhada acelerada, e pode ser dividido em blocos curtos ao longo do dia.\n\nA mensagem mais libertadora da OMS, porém, é outra: "todo movimento conta". Qualquer atividade é melhor que nenhuma, e os benefícios começam antes de você atingir a meta. Reduzir o tempo sentado já ajuda. O exercício regular diminui o risco de doenças cardíacas, diabetes tipo 2, vários tipos de câncer e também de depressão — um dos "remédios" mais poderosos e baratos que existem.',
       frase: '"Todo movimento conta. Fazer alguma atividade é melhor do que não fazer nenhuma." — OMS',
       fonte: 'Fonte: Organização Mundial da Saúde — Diretrizes de Atividade Física (2020)',
+      fonteOficial: {
+        texto: 'O exercício físico é qualquer atividade que mantém ou aumenta a aptidão física em geral, e tem o objetivo de alcançar a saúde e também a recreação. Para muitos médicos e especialistas, exercícios físicos realizados de forma regular ou frequente estimulam o sistema imunológico, ajudam a prevenir doenças (como cardiopatia, doenças cardiovasculares, diabetes tipo 2), moderam o colesterol e ajudam a prevenir a obesidade. Além disso, melhoram a saúde mental e ajudam a prevenir a depressão.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Exerc%C3%ADcio_f%C3%ADsico',
+      },
     },
     {
       titulo: 'Por Que Mexer o Corpo Cuida da Mente',
@@ -1212,6 +1222,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A ligação entre corpo e mente deixou de ser intuição para virar consenso científico. A atividade física regular reduz sintomas de depressão e ansiedade, em parte por atuar sobre substâncias ligadas ao bem-estar e por melhorar o sono. A OMS e instituições como a Harvard Medical School recomendam o exercício como parte do cuidado com a saúde mental — não no lugar do tratamento, mas como um aliado poderoso dele.\n\nO sono é a outra metade da equação. Dormir mal aumenta a irritabilidade, prejudica a memória e está associado a transtornos de humor; dormir bem ajuda o cérebro a consolidar aprendizados e a se recuperar. Pequenos hábitos têm efeito real: luz natural pela manhã, menos telas à noite, horários regulares. E procurar ajuda profissional quando o sofrimento persiste é sinal de cuidado, não de fraqueza.',
       frase: '"Não há saúde sem saúde mental." — Organização Mundial da Saúde',
       fonte: 'Fonte: OMS; Harvard Medical School — Harvard Health Publishing',
+      fonteOficial: {
+        texto: 'A saúde mental abrange o bem-estar emocional, psicológico e social, influenciando a cognição, a percepção e o comportamento. A saúde mental desempenha um papel crucial na vida diária de um indivíduo no gerenciamento do estresse, no relacionamento com outras pessoas e na contribuição para a vida em geral. Da perspectiva da psicologia positiva, a saúde mental não é meramente a ausência de doença mental: é um estado mais amplo de bem-estar que inclui a capacidade de aproveitar a vida e criar um equilíbrio entre as atividades da vida e os esforços para alcançar resiliência psicológica.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Sa%C3%BAde_mental',
+      },
     },
     {
       titulo: 'Por Que Correr Devagar Te Faz Correr Mais Rápido',
@@ -1220,6 +1235,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Uma das descobertas mais consistentes da fisiologia do esporte, associada ao pesquisador Stephen Seiler, é o treino "polarizado": atletas de resistência de elite passam cerca de 80% do tempo treinando em ritmo fácil — leve o bastante para conseguir conversar — e apenas 20% em alta intensidade. A maioria dos corredores amadores faz o contrário: corre rápido demais nos dias fáceis e nunca forte de verdade nos dias duros.\n\nCorrer fácil constrói a base aeróbica, fortalece o coração e os músculos e reduz o risco de lesão; os poucos treinos intensos dão o estímulo para evoluir. Outra regra de ouro é a progressão gradual: aumentar volume e intensidade aos poucos, respeitando a recuperação — boa parte das lesões na corrida vem de fazer "demais, cedo demais". Quem está começando se beneficia de alternar trechos de corrida e caminhada.',
       frase: '"A maioria corre rápido demais nos dias fáceis e devagar demais nos difíceis." — Stephen Seiler',
       fonte: 'Fonte: pesquisa de Stephen Seiler; American College of Sports Medicine (ACSM)',
+      fonteOficial: {
+        texto: 'Corrida é um método de locomoção terrestre pelo qual humanos e outros animais se movem rapidamente a pé. A corrida é uma marcha com uma fase aérea na qual todos os pés estão acima do solo. A corrida em humanos está associada à melhoria da saúde e expectativa de vida.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Corrida',
+      },
     },
     {
       titulo: 'As Duas Leis Que Constroem Músculo',
@@ -1228,6 +1248,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O princípio central do treino de força é a "sobrecarga progressiva": para o músculo crescer e ficar mais forte, é preciso desafiá-lo um pouco mais ao longo do tempo — mais carga, mais repetições ou melhor execução. E o músculo não cresce na academia, e sim no descanso que vem depois: é durante a recuperação e o sono que o corpo reconstrói as fibras, mais resistentes. Por isso treinar o mesmo grupo todos os dias, sem pausa, atrapalha em vez de ajudar.\n\nA nutrição completa o trabalho. Revisões científicas indicam que ingerir proteína suficiente — em torno de 1,6 grama por quilo de peso ao dia para quem treina força, distribuída ao longo do dia — favorece o ganho de massa. Não é preciso exagerar em suplementos: comida de verdade costuma dar conta. E a técnica correta, de preferência com orientação, previne lesões e faz cada série render mais.',
       frase: '"O estímulo cria o potencial; o descanso transforma esse potencial em força." — princípio do treino',
       fonte: 'Fonte: American College of Sports Medicine; Morton et al., British Journal of Sports Medicine (2018)',
+      fonteOficial: {
+        texto: 'O treinamento de força, conhecido popularmente como musculação, é uma forma de exercício contra resistência, praticado normalmente em academias, para o treinamento e desenvolvimento dos músculos esqueléticos, com aumento de massa corporal usando a sobrecarga tensional (poucas repetições com peso alto). Esta forma de treinamento físico é utilizada para fins atléticos, estéticos e de saúde, auxiliando no tratamento de doenças musculares, ósseas e metabólicas e na melhora da mobilidade e da postura.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Muscula%C3%A7%C3%A3o',
+      },
     },
   ],
 
@@ -1437,6 +1462,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1936, fotografando trabalhadores rurais miseráveis da Califórnia para um programa do governo americano, Dorothea Lange parou diante de uma barraca. Florence Owens Thompson, mãe de sete filhos, olhava o horizonte com uma mistura de exaustão e determinação, duas crianças encostadas em seus ombros. Lange fez poucos cliques e foi embora. Um deles, "Mãe Migrante", tornou-se a imagem definitiva da Grande Depressão.\n\nA foto teve efeito imediato: publicada nos jornais, ajudou a mobilizar o envio de alimentos aos acampamentos. Mas levanta também uma questão ética que persegue o fotojornalismo até hoje — Florence só foi identificada décadas depois e nunca lucrou com a imagem mais famosa de si mesma. Lange acreditava que a câmera podia ensinar as pessoas a enxergar mesmo sem câmera: a prestar atenção no sofrimento que passa ao lado todos os dias.',
       frase: '"A câmera é um instrumento que ensina as pessoas a ver sem câmera." — Dorothea Lange',
       fonte: 'Fonte: Library of Congress; The Museum of Modern Art (MoMA)',
+      fonteOficial: {
+        texto: 'Dorothea Lange (Hoboken, 26 de maio de 1895 — São Francisco, 11 de outubro de 1965) foi uma fotógrafa estadunidense, célebre por seu trabalho documental para a Farm Security Administration durante a Grande Depressão.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Dorothea_Lange',
+      },
     },
     {
       titulo: 'A Foto Que Transformou Fotografia em Arte',
@@ -1446,6 +1476,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'No início do século XX, a fotografia ainda era vista como mero registro mecânico, e não como arte. Alfred Stieglitz dedicou a vida a mudar isso. Nesta imagem, feita a bordo de um transatlântico, captou a divisão social da embarcação: a passarela separando a primeira classe da "terceira classe" (steerage), o compartimento dos imigrantes pobres. Geometria, luz e humanidade num único instante.\n\nStieglitz dizia ter visto ali "uma imagem de formas" — e a composição, com o chapéu de palha redondo, as escadas e os varais, é tão rigorosa quanto uma pintura cubista, anos antes do cubismo. Ele expôs fotografias ao lado de Picasso e Matisse em sua galeria em Nova York e, com a revista Camera Work, conquistou para a fotografia o estatuto de arte que hoje tomamos como óbvio.',
       frase: '"Onde houver luz, é possível fotografar." — Alfred Stieglitz',
       fonte: 'Fonte: The Metropolitan Museum of Art',
+      fonteOficial: {
+        texto: 'Alfred Stieglitz (1 de janeiro de 1864 - 13 de julho de 1946) foi um fotógrafo norte-americano. Foi o primeiro fotógrafo a ter suas fotos expostas num museu. Nasceu em Nova Iorque, lugar em que ingressou no movimento pictorialista.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Alfred_Stieglitz',
+      },
     },
     {
       titulo: 'A Aposta Que Ajudou a Inventar o Cinema',
@@ -1483,6 +1518,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Julia Margaret Cameron só começou a fotografar aos 48 anos, quando a filha lhe deu uma câmera para preencher o tempo. Em poucos anos, tornou-se uma das fotógrafas mais originais do século XIX. Numa época em que se exigiam retratos nítidos e formais, ela fazia o oposto: usava foco suave, longas exposições e luz dramática para captar não a aparência exata, mas a intensidade interior de quem posava.\n\nFotografou os grandes nomes da era vitoriana — o astrônomo John Herschel, o poeta Tennyson, o pensador Thomas Carlyle (neste retrato) — e mulheres encenando cenas mitológicas e literárias. Os críticos da época reclamavam de suas imagens "borradas" e "imperfeitas". Hoje é justamente essa busca pela alma, e não pela exatidão, que faz dela uma pioneira reverenciada da fotografia como arte.',
       frase: '"Anseio por capturar toda a beleza que passa diante de mim." — Julia Margaret Cameron',
       fonte: 'Fonte: The Metropolitan Museum of Art; Victoria and Albert Museum',
+      fonteOficial: {
+        texto: 'Julia Margaret Cameron (Calcutá, 11 de junho de 1815 - Kalutara, 26 de janeiro de 1879) foi uma fotógrafa britânica. Tornou-se conhecida por suas fotografias de celebridades da época. Sua carreira foi curta, durante cerca de 11 anos, entre 1864 e 1875. Começou a fotografar aos 48 anos, quando ganhou uma câmera fotográfica de presente.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Julia_Margaret_Cameron',
+      },
     },
   ],
 };
