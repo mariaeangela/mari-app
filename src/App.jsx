@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote, getEditionPeriod, MOODS, MOOD_QUOTES } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
+import { SavedProvider, useSaved } from './savedStore.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -146,15 +147,7 @@ function ExplorePage({ isWide }) {
 }
 
 function SavedPage({ isWide }) {
-  const [saved, setSaved] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('diagonal_saved') || '[]'); }
-    catch { return []; }
-  });
-  const remove = (id) => {
-    const updated = saved.filter(i => i.id !== id);
-    localStorage.setItem('diagonal_saved', JSON.stringify(updated));
-    setSaved(updated);
-  };
+  const { items: saved, remove } = useSaved();
   if (saved.length === 0) return (
     <div style={{ padding: '60px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 36, marginBottom: 16 }}>☆</div>
@@ -254,15 +247,17 @@ export default function App() {
   const handleLogin = () => { sessionStorage.setItem('diagonal_auth', '1'); setLoggedIn(true); };
   if (!loggedIn) return <Login onLogin={handleLogin} />;
   return (
-    <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
-        <Header tab={tab} setTab={setTab} />
+    <SavedProvider>
+      <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
+          <Header tab={tab} setTab={setTab} />
+        </div>
+        {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
+        {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
+        {tab === 'explore' && <ExplorePage isWide={isWide} />}
+        {tab === 'saved' && <SavedPage isWide={isWide} />}
+        {tab === 'quotes' && <MoodPage isWide={isWide} />}
       </div>
-      {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
-      {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
-      {tab === 'explore' && <ExplorePage isWide={isWide} />}
-      {tab === 'saved' && <SavedPage isWide={isWide} />}
-      {tab === 'quotes' && <MoodPage isWide={isWide} />}
-    </div>
+    </SavedProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSaved, savedId } from './savedStore';
 
 const MET_BASE = 'https://collectionapi.metmuseum.org/public/collection/v1';
 const CLE_BASE = 'https://openaccess-api.clevelandart.org/api/artworks';
@@ -98,25 +99,12 @@ function Lightbox({ src, alt, onClose }) {
 }
 
 function SaveButton({ content, type }) {
-  const getId = () => `${type}_${content.titulo}`;
-  const isSaved = () => {
-    try { return JSON.parse(localStorage.getItem('diagonal_saved') || '[]').some(i => i.id === getId()); }
-    catch { return false; }
-  };
-  const [saved, setSaved] = useState(isSaved);
+  const { isSaved, toggle: toggleSaved } = useSaved();
+  const id = savedId(type, content);
+  const saved = isSaved(id);
   const toggle = (e) => {
     e.stopPropagation();
-    try {
-      const list = JSON.parse(localStorage.getItem('diagonal_saved') || '[]');
-      if (saved) {
-        localStorage.setItem('diagonal_saved', JSON.stringify(list.filter(i => i.id !== getId())));
-        setSaved(false);
-      } else {
-        list.unshift({ id: getId(), type, ...content, savedAt: Date.now() });
-        localStorage.setItem('diagonal_saved', JSON.stringify(list));
-        setSaved(true);
-      }
-    } catch {}
+    toggleSaved({ id, type, ...content, savedAt: Date.now() });
   };
   return (
     <button onClick={toggle} title={saved ? 'Salvo!' : 'Salvar'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: '0 4px', opacity: saved ? 1 : 0.35, transition: 'all 0.2s', transform: saved ? 'scale(1.2)' : 'scale(1)' }}>
