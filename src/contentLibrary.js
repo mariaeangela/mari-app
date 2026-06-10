@@ -1239,6 +1239,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Por séculos acreditou-se que Moisés escrevera sozinho os cinco primeiros livros da Bíblia (a Torá, ou Pentateuco). A partir do século XIX, porém, estudiosos notaram algo curioso no texto: repetições, dois relatos diferentes da Criação, mudanças bruscas de estilo e até nomes distintos para Deus em trechos diferentes. Disso nasceu a "hipótese documental": a ideia de que a Torá foi composta a partir de várias fontes, escritas em épocas e contextos diversos e depois costuradas por editores.\n\nEssa leitura, hoje dominante na academia, não diminui o texto — ao contrário, revela uma obra construída ao longo de séculos por uma cultura inteira tentando compreender sua origem, sua lei e seu Deus. Ler a Bíblia historicamente é enxergar camadas: cada fonte responde às perguntas de seu tempo, e o conjunto guarda a memória de um povo em formação.',
       frase: '"A Bíblia não caiu pronta do céu: foi escrita, reescrita e editada por gerações." — síntese acadêmica',
       fonte: 'Fonte: Richard Elliott Friedman, "Quem Escreveu a Bíblia?"; Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'A hipótese documental, desenvolvida por Julius Wellhausen, também conhecida como Teoria das Fontes ou Crítica das Fontes, é a teoria segundo a qual os cinco primeiros livros do Antigo Testamento (chamados de Pentateuco) são resultado de uma composição a partir de quatro fontes principais: eloísta, javista, sacerdotal e deuteronomista.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Hip%C3%B3tese_documental',
+      },
     },
     {
       titulo: 'A Pedra Que Trouxe o Rei Davi Para a História',
@@ -1247,6 +1252,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1993, arqueólogos que escavavam Tel Dan, no norte de Israel, encontraram fragmentos de uma estela de pedra com uma inscrição em aramaico, gravada por um rei inimigo de Israel por volta do século IX a.C. Nela aparece a expressão "Casa de Davi" (Beit David). Foi a primeira evidência fora da Bíblia a mencionar a dinastia de Davi — sinal de que, qualquer que fosse a dimensão real de seu reino, ele foi lembrado como fundador de uma linhagem real concreta.\n\nO achado é um bom exemplo de como a arqueologia dialoga com o texto bíblico: nem o confirma por inteiro, nem o descarta. Muitos episódios não deixaram rastros materiais, e outros parecem ampliados pela tradição. Mas pedras como a de Tel Dan mostram que por trás das narrativas há um substrato histórico real, que os pesquisadores seguem investigando com rigor.',
       frase: '"...a Casa de Davi." — inscrição da Estela de Tel Dan',
       fonte: 'Fonte: Israel Antiquities Authority; Biblical Archaeology Review',
+      fonteOficial: {
+        texto: 'A Estela de Tel Dã é uma estela negra de basalto descoberta em um sítio arqueológico durante escavações ao norte de Israel em Tel Dã. Foi esculpida a mando de um rei arameu, contendo inscrições em aramaico, onde se comemorava uma vitória sobre um reino local. As opiniões finais do consenso entre os acadêmicos e arqueólogos epigrafistas é que os três fragmentos são uma referência ao Rei Davi.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Estela_de_Tel_D%C3%A3',
+      },
     },
     {
       titulo: 'O Livro Que Encara o Sofrimento Sem Respostas Fáceis',
@@ -1255,6 +1265,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O Livro de Jó é considerado uma das maiores obras-primas literárias da Antiguidade, escrito num hebraico poético de altíssima sofisticação. Conta a história de um homem justo que perde tudo — filhos, bens, saúde — sem ter feito nada de errado, e que se recusa a aceitar a explicação fácil de seus amigos, segundo a qual ele "deveria ter pecado em segredo". Jó exige de Deus uma resposta para o sofrimento dos inocentes.\n\nO espantoso é que o livro não dá a resposta esperada. Quando Deus enfim fala, não explica o porquê do sofrimento — apenas confronta Jó com a imensidão e o mistério do mundo. É um texto que, lido como literatura e filosofia, recusa as consolações simplistas e encara de frente a pergunta mais difícil da humanidade: por que os bons sofrem? Por isso fascina crentes e céticos há milênios.',
       frase: '"O Senhor deu, o Senhor tomou." — Livro de Jó',
       fonte: 'Fonte: Encyclopaedia Britannica; estudos literários da Bíblia Hebraica',
+      fonteOficial: {
+        texto: 'O Livro de Jó é um dos livros do Tanakh e do Antigo Testamento, que integra a seção do ketuvim e dos livros poéticos. Aborda a questão da bondade de Deus diante do sofrimento humano a partir da história de Jó, um homem justo que cai em desgraça total após uma aposta entre Deus e o Diabo. O texto tem sido amplamente elogiado por suas qualidades, com Alfred Tennyson chamando-o de "o maior poema dos tempos antigos e modernos".',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Livro_de_J%C3%B3',
+      },
     },
     {
       titulo: 'O Livro Mais Inesperado da Bíblia',
@@ -1263,6 +1278,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'No meio da Bíblia há um livro de ceticismo quase moderno: o Eclesiastes, ou Cohélet ("aquele que reúne", o pregador). Seu autor observa que tudo passa — riqueza, sabedoria, prazer, trabalho — e repete o refrão "vaidade das vaidades, tudo é vaidade", em que "vaidade" traduz uma palavra hebraica (hével) que significa literalmente "sopro" ou "vapor": aquilo que não se consegue segurar.\n\nÉ um texto da chamada "literatura sapiencial", como Jó e os Provérbios — escritos que buscam sabedoria prática para viver, não dogmas. Mas, em vez de desespero, o Eclesiastes chega a uma conclusão serena: já que não controlamos o futuro, resta apreciar com gratidão as coisas simples — comer, beber, o trabalho honesto, a companhia de quem se ama. É um convite, surpreendentemente atual, a viver o presente.',
       frase: '"Há um tempo para tudo debaixo do céu." — Eclesiastes 3',
       fonte: 'Fonte: Encyclopaedia Britannica; estudos da literatura sapiencial',
+      fonteOficial: {
+        texto: 'O Livro de Eclesiastes é um dos livros da Tanakh e do Antigo Testamento que integra a seção do ketuvim e dos livros poéticos. É composto por um conjunto de poemas, provérbios e textos narrativos tradicionalmente atribuídos ao rei Salomão, que procuram discutir o propósito da existência humana. Considerado o grande livro da sabedoria judaico-cristã, a sua mensagem geral é que tudo é vaidade, isto é, a vida é fugaz e incompreensível, e o dever do homem, enquanto vive, é temer a Deus, obedecer os seus mandamentos e aproveitar as pequenas felicidades da vida.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Eclesiastes',
+      },
     },
   ],
 
@@ -1287,6 +1307,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O islã, segunda maior religião do mundo, organiza a vida do fiel em torno de cinco pilares. O primeiro é a profissão de fé (shahada): não há divindade além de Deus, e Maomé é seu profeta. Os outros quatro são práticas: a oração cinco vezes ao dia (salat), a caridade obrigatória aos necessitados (zakat), o jejum durante o mês do Ramadã (sawm) e a peregrinação a Meca ao menos uma vez na vida, para quem tiver condições (hajj).\n\nO islã se entende como continuação das tradições de Abraão, Moisés e Jesus, reconhecidos como profetas anteriores. A própria palavra "islã" significa "submissão" — a entrega à vontade de Deus (Alá, que em árabe quer dizer simplesmente "Deus"). Por trás dos rituais há uma ideia de disciplina, comunidade e justiça social que estrutura o cotidiano de cerca de um quarto da humanidade.',
       frase: '"Na peregrinação, ricos e pobres vestem o mesmo branco diante de Deus." — sobre o hajj',
       fonte: 'Fonte: Encyclopaedia Britannica',
+      fonteOficial: {
+        texto: 'Islamismo é uma religião abraâmica monoteísta centrada no Alcorão e nos ensinamentos do profeta Maomé. Seus crentes são chamados muçulmanos e totalizam aproximadamente 1,9 bilhão de pessoas em todo o mundo, o que faz deles a segunda maior população religiosa do mundo depois dos cristãos. Os Cinco Pilares — considerados atos obrigatórios de adoração — compreendem o credo islâmico (shahada), as orações diárias (salah), a esmola (zakat), o jejum (sawm) no mês do Ramadã e a peregrinação (haje) a Meca.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Islamismo',
+      },
     },
     {
       titulo: 'A Tradição Que Vê o Tempo Como um Círculo',
@@ -1321,6 +1346,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Uma das contribuições mais revolucionárias do judaísmo à humanidade foi a ideia de um dia semanal de descanso: o Shabat. Do pôr do sol de sexta ao de sábado, interrompe-se o trabalho para se dedicar ao repouso, à família, ao estudo e ao sagrado. Numa época em que o trabalho era incessante, instituir um descanso obrigatório para todos — inclusive servos e estrangeiros — foi uma ideia social ousada, que ajudou a moldar o próprio conceito moderno de "fim de semana".\n\nOutra ideia poderosa é o tikkun olam, "reparar o mundo": a noção de que cabe aos seres humanos colaborar para consertar e aperfeiçoar o mundo, por meio da justiça e da bondade. O judaísmo, uma das mais antigas religiões monoteístas, é também uma cultura e uma longa história de resistência — sustentada menos por um território do que por um livro, uma lei e uma memória partilhada.',
       frase: '"Não cabe a ti concluir a obra, mas tampouco és livre para dela te afastar." — Pirkei Avot',
       fonte: 'Fonte: Encyclopaedia Britannica; Mishná (Pirkei Avot)',
+      fonteOficial: {
+        texto: 'Judaísmo é uma religião étnica abraâmica e monoteísta que abrange as tradições espirituais, culturais e legais coletivas do povo judeu. Os judeus religiosos consideram o judaísmo como seu meio de observar a aliança mosaica, que eles acreditam ter sido estabelecida entre Deus e o povo judeu. É considerada uma das primeiras religiões monoteístas.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Juda%C3%ADsmo',
+      },
     },
   ],
 
@@ -1425,6 +1455,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1872 surgiu uma dúvida que dividia opiniões: quando um cavalo galopa, existe um instante em que as quatro patas ficam no ar ao mesmo tempo? A olho nu, impossível saber. O fotógrafo Eadweard Muybridge resolveu a questão de forma engenhosa: alinhou uma fileira de câmeras disparadas por fios à medida que o cavalo passava, congelando cada fração do movimento.\n\nA resposta era sim — e a sequência provou muito mais. Ao projetar essas imagens em rápida sucessão num aparelho que ele mesmo inventou, Muybridge fez as fotos "andarem": foi um dos passos decisivos para o nascimento do cinema. A fotografia, que parara o tempo, agora o devolvia em movimento. Curiosamente, o próprio Muybridge teve uma vida turbulenta — chegou a ser julgado, e absolvido, pela morte do amante de sua esposa.',
       frase: '"Ele parou o tempo — e depois o ensinou a andar." — sobre Muybridge',
       fonte: 'Fonte: Encyclopaedia Britannica; Smithsonian Institution',
+      fonteOficial: {
+        texto: 'Eadweard J. Muybridge (9 de abril de 1830 – 8 de maio de 1904), nascido Edward James Muggeridge, foi um fotógrafo inglês conhecido por seus experimentos com o uso de múltiplas câmeras para captar o movimento, além de inventor do zoopraxiscópio, um dispositivo para projetar os retratos em movimento que seria o precursor da película de celulóide, usada ainda hoje.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Eadweard_Muybridge',
+      },
     },
     {
       titulo: 'As Fotos Que Tiraram Crianças das Fábricas',
@@ -1434,6 +1469,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'No começo do século XX, milhões de crianças americanas trabalhavam em minas, fábricas e fiações, muitas vezes em condições brutais. O sociólogo e fotógrafo Lewis Hine percorreu o país documentando esse trabalho infantil — por vezes mentindo aos patrões, dizendo ser vendedor, para conseguir entrar e fotografar meninos de oito anos operando máquinas perigosas. Suas imagens chocaram a opinião pública e ajudaram a aprovar leis que restringiram o trabalho infantil.\n\nHine acreditava que a fotografia podia ser uma ferramenta de justiça social. Esta imagem, de um mecânico curvado sobre uma enorme máquina a vapor, mostra outro lado de seu olhar: a dignidade e a força do trabalhador, quase como uma escultura clássica. Para ele, a câmera tanto podia denunciar o que estava errado quanto celebrar a grandeza de quem trabalha.',
       frase: '"A fotografia pode iluminar as trevas e revelar a luz." — Lewis Hine',
       fonte: 'Fonte: Library of Congress; George Eastman Museum',
+      fonteOficial: {
+        texto: 'Lewis Wickes Hine (Oshkosh, Wisconsin, 26 de setembro de 1874 – Hastings-on-Hudson, Nova Iorque, 3 de novembro de 1940) foi um fotógrafo e sociólogo estadunidense pioneiro da fotografia documental e importante figura da mudança na legislação de trabalho infantil nos Estados Unidos, com mais de 5 mil fotografias sob a guarda da Biblioteca do Congresso.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Lewis_Hine',
+      },
     },
     {
       titulo: 'A Mulher Que Fotografou Almas, Não Rostos',
