@@ -1019,6 +1019,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O match de xadrez entre Bobby Fischer e Boris Spassky em 1972 foi tecnicamente um campeonato mundial. Politicamente, foi uma batalha da Guerra Fria mais intensa que qualquer corrida armamentista. Fischer representava os EUA; Spassky, a URSS. O mundo acompanhava partida a partida como um conflito militar.\n\nFischer era um gênio excêntrico e insuportável — fez exigências absurdas, ameaçou desistir repetidas vezes. Mas quando jogava, era sobrehumano. Ganhou o campeonato com uma exibição que os especialistas ainda chamam de a mais perfeita da história. Depois disso, desapareceu do xadrez por 20 anos. O gênio mais puro do jogo foi também seu personagem mais trágico.',
       frase: '"O xadrez é vida." — Bobby Fischer',
       fonte: 'Fonte: FIDE; "Bobby Fischer Goes to War", David Edmonds',
+      fonteOficial: {
+        texto: 'O título do Campeonato Mundial de Xadrez de 1972 foi disputado entre o então campeão Boris Spassky da União Soviética e o desafiante Bobby Fischer dos Estados Unidos. O match foi realizado em Reiquiavique, capital da Islândia, e ficou conhecido como o Match do Século, devido ao contexto em que ocorreu e à polarização entre as duas superpotências da Guerra Fria.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Campeonato_Mundial_de_Xadrez_de_1972',
+      },
     },
     {
       titulo: 'A Menina Que Derrotou Todos os Homens',
@@ -1028,6 +1033,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O pai de Judit Polgár tinha uma teoria: gênios são feitos, não nascem. Para prová-la, criou as três filhas imersas no xadrez desde bebês. A mais nova, Judit, tornou-se a maior jogadora da história — e recusou-se a competir apenas contra mulheres. Queria enfrentar os melhores do mundo.\n\nE enfrentou. Judit derrotou Kasparov, Magnus Carlsen e praticamente todos os campeões de sua era. Tornou-se Grande Mestre aos 15 anos, mais jovem que Bobby Fischer. Por décadas, foi a única mulher entre os cem melhores do planeta. Provou que o talento não tem gênero — só precisa de oportunidade.',
       frase: '"Eu sempre quis jogar contra os melhores, não contra as melhores." — Judit Polgár',
       fonte: 'Fonte: FIDE; biografia oficial',
+      fonteOficial: {
+        texto: 'Judit Polgár (Budapeste, 23 de julho de 1976) é uma Grande Mestre de Xadrez húngara, considerada a mais forte jogadora de xadrez da história. Em 1991, tornou-se a pessoa mais jovem a conquistar o título de Grande Mestre Internacional, aos 15 anos e quatro meses, batendo o recorde do ex-campeão mundial Bobby Fischer.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Judit_Polg%C3%A1r',
+      },
     },
   ],
 
@@ -1040,6 +1050,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Elena Ferrante começou a publicar a Série Napolitana em 2011 — exatamente quando a Itália vivia sua pior crise econômica desde a guerra. O desemprego na região de Nápoles chegava a 30%. O crime organizado controlava bairros inteiros.\n\nFerrante escreve sob pseudônimo e nunca revelou sua identidade — um mistério literário que dura décadas. Mas o que ela fez foi dar ao mundo um retrato de Nápoles que os napolitanos reconheceram como verdadeiro pela primeira vez: não o cartão postal pitoresco, mas a cidade de violência cotidiana, de mulheres que precisam ser espertas para sobreviver, de amizades que são também rivalidades de vida inteira.',
       frase: '"Nápoles é uma cidade que te ama e te destrói ao mesmo tempo." — eco da série',
       fonte: 'Fonte: The New Yorker; La Repubblica',
+      fonteOficial: {
+        texto: 'Elena Ferrante é o pseudônimo de uma escritora italiana, cuja identidade é mantida em segredo. Ela escreveu oito romances e vários livros de não-ficção em italiano desde 1991. Seus romances mais conhecidos são a série Romances de Nápoles, cujo primeiro livro é A Amiga Genial, que se tornou um sucesso de vendas internacional e foi adaptado como série homônima pela HBO.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Elena_Ferrante',
+      },
     },
     {
       titulo: 'Por Que Kundera Escreveu em Francês',
@@ -1049,6 +1064,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Milan Kundera foi expulso do Partido Comunista tcheco duas vezes, perdeu o emprego, viu seus livros serem destruídos após a invasão soviética de 1968, e emigrou para a França em 1975. A Insustentável Leveza do Ser foi publicado no exílio, em 1984.\n\nA leveza que o título anuncia é a leveza de quem perdeu tudo — pátria, língua, pertencimento. O personagem Tomáš, médico que vira limpador de vidraças após se recusar a se retratar politicamente, era um retrato de centenas de intelectuais tchecos reais. O livro foi proibido na Tchecoslováquia até 1989. Kundera morreu em 2023 sem ter voltado a morar no país que o expulsou.',
       frase: '"O homem não pode nunca saber o que deve querer, porque vive apenas uma vida." — Kundera',
       fonte: 'Fonte: Le Monde; The Guardian',
+      fonteOficial: {
+        texto: 'A Insustentável Leveza do Ser (em tcheco: Nesnesitelná lehkost bytí) é um romance do escritor tcheco Milan Kundera, publicado originalmente em 1984. A obra narra a história de duas mulheres, dois homens e um cão durante a Primavera de Praga, em 1968, um período significativo na história da Tchecoslováquia.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/A_Insustent%C3%A1vel_Leveza_do_Ser',
+      },
     },
   ],
 
@@ -1061,6 +1081,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Quando Han Kang recebeu o Nobel de Literatura em outubro de 2024, tornou-se a primeira sul-coreana a ganhar o prêmio. Sua obra nasce diretamente do trauma coletivo coreano — especialmente o massacre de Gwangju em 1980, quando o exército matou centenas de manifestantes civis.\n\n"A Vegetariana" é a obra mais conhecida no Ocidente, mas os críticos coreanos consideram "Atos Humanos" sua obra-prima: narrado a partir das vozes dos mortos de Gwangju, cada capítulo em perspectiva diferente. Han Kang escreveu esse livro após visitar o arquivo dos mortos e folhear fotos das vítimas.',
       frase: '"As flores de maio... manchadas de sangue." — Atos Humanos, Han Kang',
       fonte: 'Fonte: Academia Sueca; Nobel Prize 2024',
+      fonteOficial: {
+        texto: 'Han Kang (Gwangju, 27 de novembro de 1970) é uma escritora sul-coreana. Foi distinguida em 2024 com o Prémio Nobel de Literatura pela sua intensa prosa poética que confronta traumas históricos e expõe a fragilidade da vida humana.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Han_Kang',
+      },
     },
     {
       titulo: 'O Oscar Que Mudou as Regras',
@@ -1070,6 +1095,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Quando Parasita ganhou o Oscar de Melhor Filme em 2020, foi a primeira vez em 92 anos que um filme não falado em inglês vencia a categoria principal. Bong Joon-ho disse no palco: "Uma vez que você supera a barreira das legendas, um mundo inteiro de filmes incríveis o espera."\n\nNos anos seguintes, filmes em outras línguas atraíram audiências antes restritas ao cinema local. A Academia também mudou suas regras para incluir mais votantes internacionais. Para quem já amava Retrato de uma Jovem em Chamas, Incêndios e Past Lives muito antes disso ser mainstream — você estava à frente.',
       frase: '"Supere a barreira das legendas." — Bong Joon-ho, Oscar 2020',
       fonte: 'Fonte: Academy of Motion Picture Arts and Sciences',
+      fonteOficial: {
+        texto: 'Gisaengchung (bra: Parasita; prt: Parasitas) é um filme de suspense e comédia negra sul-coreano de 2019, dirigido por Bong Joon-ho, que co-escreveu o roteiro com Han Jin-won e co-produziu. O filme segue uma família pobre que planeja se tornar empregada de uma família rica, infiltrando-se em sua casa como parasitas e passando-se por indivíduos altamente qualificados.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Gisaengchung',
+      },
     },
   ],
 
@@ -1244,6 +1274,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O budismo nasceu na Índia, há cerca de 2.500 anos, do despertar de Siddhartha Gautama, o Buda ("o desperto"). Seu núcleo são as Quatro Nobres Verdades: existe o sofrimento (dukkha); o sofrimento tem uma causa (o apego, o desejo insaciável); é possível fazer esse sofrimento cessar; e há um caminho para isso — o Nobre Caminho Óctuplo, que combina conduta ética, disciplina mental e sabedoria.\n\nUma ideia central é a impermanência (anicca): tudo está em constante transformação, e boa parte do nosso sofrimento vem de tentar agarrar o que, por natureza, escorre entre os dedos. O budismo, em muitas de suas formas, não gira em torno de um deus criador, mas de uma prática para libertar a mente — o que o aproxima, para muitos, tanto de uma religião quanto de uma filosofia de vida.',
       frase: '"Tudo o que surge está sujeito a cessar." — atribuído ao Buda',
       fonte: 'Fonte: Encyclopaedia Britannica; Cânone Páli',
+      fonteOficial: {
+        texto: 'Budismo é uma religião, filosofia e estilo de vida baseada nos ensinamentos de Sidarta Gautama, conhecido como o Buda. De caráter filosófico, é considerado não teísta porque o conceito budista de Deus é diferente do conceito ocidental, onde um único ser supremo, divino, eterno, celestial e todo-poderoso é criador de todas as coisas.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Budismo',
+      },
     },
     {
       titulo: 'Os Cinco Pilares Que Sustentam uma Vida',
@@ -1260,6 +1295,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O hinduísmo é menos uma religião única do que uma vasta família de tradições nascidas na Índia ao longo de milênios, sem um fundador único. Algumas ideias, porém, atravessam quase todas. O karma: cada ação gera consequências que moldam o futuro. O samsara: o ciclo de morte e renascimento pelo qual a alma transita. E o dharma: o dever, a ordem correta que cada um deve seguir conforme seu papel no mundo.\n\nO objetivo último é o moksha — a libertação desse ciclo, a fusão do eu individual (atman) com a realidade absoluta e última (Brahman). Por trás da imensa multiplicidade de deuses, rituais e escolas, muitas correntes hindus afirmam uma intuição radical: a de que o divino e o mais profundo de nós mesmos são, no fundo, uma só e mesma realidade.',
       frase: '"Tu és aquilo." (Tat tvam asi) — Upanishads',
       fonte: 'Fonte: Encyclopaedia Britannica; Upanishads',
+      fonteOficial: {
+        texto: 'Hinduísmo é um termo genérico para uma ampla gama de tradições religiosas e espirituais indianas (sampradayas) que são unificadas pelo conceito de dharma, uma ordem universal mantida por seus seguidores por meio de rituais e vida justa. O hinduísmo é a terceira maior religião do mundo, com aproximadamente 1,2 bilhão de seguidores, ou cerca de 15% da população global.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Hindu%C3%ADsmo',
+      },
     },
     {
       titulo: 'A Sabedoria de Agir Sem Forçar',
@@ -1268,6 +1308,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O taoismo, tradição chinesa atribuída ao sábio Lao Tsé, gira em torno do Tao — "o caminho", o princípio último e indizível que flui através de todas as coisas. Seu conceito mais fascinante é o wu wei, muitas vezes traduzido como "não-ação", mas que significa algo mais sutil: agir sem forçar, em harmonia com o curso natural das coisas, como a água que não luta contra a pedra e, ainda assim, a molda.\n\nA água, aliás, é a grande metáfora taoista: é o que há de mais suave e flexível e, mesmo assim, vence o duro e o rígido. Em vez de impor a vontade ao mundo, o sábio taoista observa, se adapta e encontra o momento certo de agir com o mínimo de esforço. É uma filosofia que influenciou profundamente a arte, a medicina e o pensamento da China — e que conversa com ideias muito atuais sobre fluidez e equilíbrio.',
       frase: '"Nada no mundo é mais suave que a água, mas nada a supera ao desgastar o duro." — Tao Te Ching',
       fonte: 'Fonte: Stanford Encyclopedia of Philosophy; "Tao Te Ching", atribuído a Lao Tsé',
+      fonteOficial: {
+        texto: 'O taoismo, também chamado daoismo e tauismo, é uma tradição filosófica e religiosa originária do Leste Asiático que enfatiza a vida em harmonia com o Tao, a ordem geral do universo, que em mandarim significa caminho ou princípio, e no taoismo designa a fonte e a força motriz por trás de tudo existente. A principal obra do taoismo é o Tao Te Ching, um livro conciso e ambíguo que contém os ensinamentos atribuídos a Lao Zi.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Taoismo',
+      },
     },
     {
       titulo: 'O Dia de Descanso Que Atravessou Três Mil Anos',
