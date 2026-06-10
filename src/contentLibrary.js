@@ -637,6 +637,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Kafka escreveu para o pai uma carta de 47 páginas — uma das mais longas e devastadoras da história da literatura. Nela, descreve como Hermann Kafka, um homem dominador, o havia destruído sem perceber: as humilhações à mesa do jantar, o desprezo pelo trabalho literário.\n\nA carta nunca chegou a Hermann. A mãe ficou com ela — talvez tenha entendido que seria cruel demais. Kafka morreu de tuberculose quatro anos depois, aos 40 anos, sem ter dito pessoalmente o que escrevera. A carta só foi publicada postumamente e hoje é chave para entender toda a sua obra: o homem culpado sem saber do quê, o pai que é lei e verdugo.',
       frase: '"Tu me perguntaste por que tenho medo de ti. Como sempre, não soube responder." — Kafka',
       fonte: 'Fonte: "Carta ao Pai", Franz Kafka; Schocken Books',
+      fonteOficial: {
+        texto: 'Carta ao Pai (em alemão Brief an den Vater) é uma das obras do escritor checo Franz Kafka. O livro é na verdade a publicação póstuma de uma carta que Kafka escreveu para o seu pai e que nunca chegou a ser enviada. Entre os dias 10 e 19 de novembro de 1919, Franz Kafka, insatisfeito com a fria recepção paterna diante do anúncio de seu noivado com Julie Wohryzek, escreveu ao pai, o comerciante judeu Hermann Kafka, uma longa carta com mais de cem páginas manuscritas.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Carta_ao_Pai',
+      },
     },
     {
       titulo: 'A Carta de Uma Mulher Que Desapareceu',
@@ -646,6 +651,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'No dia 28 de março de 1941, Virginia Woolf saiu de casa em direção ao rio Ouse. Antes, deixou duas cartas. Na carta para o marido Leonard, escreveu que estava ouvindo vozes novamente, que não conseguia mais lutar — e que a pessoa mais feliz que poderia ser era por ter sido amada por ele.\n\nA carta é extraordinária em sua lucidez — não é o texto de alguém em colapso, mas de alguém que tomou uma decisão com clareza. O que Leonard fez com as cartas revela muito: ele as preservou, publicou, nunca as escondeu. Queria que o mundo soubesse quem era Virginia — não apenas a escritora, mas a mulher que havia amado.',
       frase: '"Não acredito que duas pessoas possam ter sido mais felizes do que fomos nós." — Virginia Woolf',
       fonte: 'Fonte: "The Letters of Virginia Woolf"; Hogarth Press',
+      fonteOficial: {
+        texto: 'Adeline Virginia Woolf, nascida Adeline Virginia Stephen (Kensington, 25 de janeiro de 1882 – Lewes, 28 de março de 1941), foi uma escritora, ensaísta e editora britânica. É considerada uma das principais escritoras do século XX, consagrada por seus romances feministas e pelo uso do fluxo de consciência. Woolf foi membro do Grupo de Bloomsbury e desempenhou um papel de significância dentro da sociedade literária londrina durante o período entre guerras.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Virginia_Woolf',
+      },
     },
     {
       titulo: 'O Irmão Que Sustentou um Gênio',
@@ -655,6 +665,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Van Gogh vendeu apenas um quadro em vida. O que o manteve vivo, pintando, foi seu irmão Theo — que lhe enviava dinheiro, tintas e, sobretudo, mais de 600 cartas. Nelas, Vincent descreve cada quadro antes de pintá-lo, fala de cores como quem fala de emoções.\n\nQuando Vincent morreu, Theo definhou de tristeza e morreu seis meses depois. Estão enterrados lado a lado. As cartas sobreviveram a ambos — e foi por elas que o mundo finalmente entendeu o que perdera. Numa delas, sobre os girassóis, Vincent escreve sobre a busca de uma luz amarela que fosse pura alegria.',
       frase: '"Sinto que há nada mais verdadeiramente artístico do que amar as pessoas." — Van Gogh a Theo',
       fonte: 'Fonte: Van Gogh Museum, Amsterdã',
+      fonteOficial: {
+        texto: 'Theodorus van Gogh (Zundert, 1 de maio de 1857 – Utreque, 25 de janeiro de 1891) foi um negociante de arte dos Países Baixos, irmão mais novo do pintor Vincent van Gogh. O apoio financeiro dado por Theo a seu irmão, a partir de 1880, lhe permitiu dedicar-se exclusivamente à pintura.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Theo_van_Gogh_%28comerciante_de_arte%29',
+      },
     },
     {
       titulo: 'As Cartas Que Ensinaram Gerações a Serem Artistas',
@@ -664,6 +679,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1902, um jovem cadete militar de 19 anos chamado Franz Kappus escreveu ao poeta Rainer Maria Rilke pedindo opinião sobre seus versos — e perguntando se devia mesmo ser poeta. Rilke, com apenas 27 anos, respondeu com dez cartas ao longo de cinco anos que se tornariam um dos textos mais amados sobre a vida criativa: "Cartas a um Jovem Poeta".\n\nRilke nunca comenta os poemas de Kappus. Em vez disso, devolve a pergunta: vá para dentro de si e descubra se você morreria caso o proibissem de escrever. Fala de solidão, de paciência, de viver as perguntas em vez de exigir respostas. Kappus nunca virou um grande poeta — mas teve a generosidade de publicar as cartas após a morte de Rilke, entendendo que o presente não era para ele, e sim para o mundo.',
       frase: '"Tenha paciência com tudo o que está irresolvido e tente amar as próprias perguntas." — Rilke',
       fonte: 'Fonte: "Cartas a um Jovem Poeta", R. M. Rilke',
+      fonteOficial: {
+        texto: 'René Karl Wilhelm Johann Josef Maria Rilke (Praga, atual República Tcheca, 4 de dezembro de 1875 — Valmont, Suíça, 29 de dezembro de 1926), mais conhecido como Rainer Maria Rilke, foi um poeta e romancista austríaco. Ele é amplamente reconhecido como um dos poetas de língua alemã mais liricamente intensos. Seus escritos incluem um romance, várias coleções de poesia e vários volumes de correspondência, entre eles a coletânea de dez cartas publicada após sua morte sob o título Cartas a um Jovem Poeta.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Rainer_Maria_Rilke',
+      },
     },
     {
       titulo: 'A Carta de Amor Endereçada a Ninguém',
@@ -673,6 +693,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Quando Beethoven morreu em 1827, encontraram numa gaveta secreta uma carta de dez páginas, escrita a lápis, em tom febril, dirigida apenas à "Amada Imortal" (Unsterbliche Geliebte). Nunca foi enviada. Nunca traz um nome. E até hoje ninguém sabe com certeza quem era a destinatária — o maior mistério romântico da história da música.\n\nNa carta, Beethoven oscila entre o êxtase e o desespero: ama profundamente, mas algo impossível os separa. "Meu anjo, meu tudo, meu próprio eu", escreve. Já surdo, isolado, ele guardou aquele amor a vida inteira sem realizá-lo. Os candidatos a "amada" são vários, e o enigma já virou filme e obsessão de musicólogos. Talvez o mais comovente seja que o homem que compôs a "Ode à Alegria" tenha vivido a própria vida em solidão.',
       frase: '"Sempre teu, sempre minha, sempre nós." — Beethoven, à Amada Imortal',
       fonte: 'Fonte: Beethoven-Haus, Bonn',
+      fonteOficial: {
+        texto: 'Amada Imortal (Unsterbliche Geliebte em alemão) é como ficou conhecida uma pessoa desconhecida a quem foi endereçada uma carta de amor escrita pelo compositor alemão Ludwig van Beethoven nos dias 6 e 7 de julho de 1812 em Teplice, atual República Checa. A carta possivelmente não foi enviada e foi encontrada na casa do compositor após sua morte. Não há consenso entre os estudiosos sobre quem seria a mulher a quem o texto foi endereçado; dois dos nomes mais defendidos são Antonie Brentano e Josephine Brunsvik.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Amada_Imortal',
+      },
     },
   ],
 
@@ -685,6 +710,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O Impressionismo foi sistematicamente humilhado antes de triunfar. O Salão Oficial de Paris rejeitava Monet, Renoir e Pissarro ano após ano. Em 1874, organizaram sua própria exposição. O crítico Louis Leroy, querendo insultá-los, chamou-os de "impressionistas" baseado numa obra de Monet. O nome pegou.\n\nO mais fascinante: a maioria das obras hoje consideradas obras-primas eram vendidas por valores irrisórios. Monet vivia na pobreza, vendendo telas por alguns francos para pagar aluguel. O reconhecimento chegou, para a maioria, apenas no fim da vida — ou depois da morte. A história da arte é também uma história de quem decide o que tem valor e quando.',
       frase: '"Eu pinto o que vejo, não o que outros acham que devo ver." — Claude Monet',
       fonte: 'Fonte: Musée d\'Orsay, Paris',
+      fonteOficial: {
+        texto: 'O impressionismo foi um movimento que surgiu na pintura francesa do século XIX, no momento da chamada Belle Époque. O nome do movimento é derivado da obra "Impressão, nascer do sol" (1872), de Claude Monet. Começou com um grupo de jovens pintores que rompeu com as regras da pintura vigentes até então. A luz e o movimento, com pinceladas soltas, tornam-se o principal elemento da pintura, sendo que geralmente as telas eram pintadas ao ar livre para que o pintor pudesse capturar melhor as variações de cores da natureza.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Impressionismo',
+      },
     },
     {
       titulo: 'A Semana Que Inventou o Brasil Moderno',
@@ -694,6 +724,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em fevereiro de 1922, no Teatro Municipal de São Paulo, um grupo de artistas apresentou obras de Anita Malfatti, Oswald de Andrade e Villa-Lobos — e foi vaiado. A plateia jogou legumes. Os críticos chamaram de aberração. Em 2022, o evento completou 100 anos como o marco fundador da cultura brasileira moderna.\n\nO que a Semana propôs era radical: o Brasil deveria "devorar" as influências europeias e transformá-las em algo próprio. Oswald de Andrade formalizou isso no "Manifesto Antropófago" de 1928: "Tupi or not Tupi, that is the question." Esse princípio virou a base teórica da Tropicália, de Caetano e Gil, e de toda arte brasileira que importou desde então.',
       frase: '"Tupi or not Tupi, that is the question." — Oswald de Andrade, 1928',
       fonte: 'Fonte: Instituto de Estudos Brasileiros, USP',
+      fonteOficial: {
+        texto: 'Semana de Arte Moderna, também chamada de Semana de 22, foi um evento cultural que ocorreu no Theatro Municipal de São Paulo de 13 a 17 de fevereiro de 1922. Contou com exposição de pinturas, esculturas e maquetes arquitetônicas, além de conferências e concertos. Os participantes da Semana almejavam uma renovação cultural no Brasil por meio de novas técnicas na pintura, literatura, arquitetura, escultura e música. Influenciados pelas vanguardas europeias, defendiam a liberdade criativa e a experimentação, e propunham criar uma arte afinada com a realidade brasileira.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Semana_de_Arte_Moderna',
+      },
     },
     {
       titulo: 'O Mictório Que Mudou a Arte Para Sempre',
@@ -703,6 +738,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1917, Marcel Duchamp comprou um mictório, assinou "R. Mutt" e enviou para uma exposição em Nova York intitulando-o de "Fonte". A exposição recusou. Duchamp — que era um dos organizadores — saiu em protesto. A obra foi fotografada, publicada, e mudou para sempre o que consideramos arte.\n\nA pergunta que Duchamp colocou era simples e devastadora: o que faz de um objeto uma obra de arte? A intenção do artista? O contexto? A Arte Conceitual dos anos 1960 radicaliza essa questão: a ideia é a arte. Você não precisa de técnica. Precisa de pensamento.',
       frase: '"Eu coloquei em cheque o ato de olhar." — Marcel Duchamp',
       fonte: 'Fonte: MoMA; Tate Modern',
+      fonteOficial: {
+        texto: 'Fonte ou A Fonte (em inglês: Fountain) é uma obra ready-made datada de 1917 e realizada pelo artista dadaísta Marcel Duchamp. Trata-se de um urinol branco de porcelana exibido em ângulo invertido e marcado lateralmente com uma assinatura em tinta preta, "R. Mutt". Surgiu em abril de 1917, como uma peça de encanamento comum escolhida por Duchamp e enviada para a exposição inaugural da Sociedade dos Artistas Independentes, realizada no Grand Central Palace em Nova Iorque. A peça original está perdida, mas foi documentada pelo fotógrafo Alfred Stieglitz.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Fonte_%28Duchamp%29',
+      },
     },
     {
       titulo: 'A Escola Que Desenhou o Mundo Moderno',
@@ -712,6 +752,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A Bauhaus durou apenas catorze anos, mas redesenhou o século XX. Fundada por Walter Gropius na Alemanha do pós-guerra, pregava uma ideia revolucionária: acabar com a fronteira entre arte e artesanato, entre o belo e o útil. Uma cadeira, uma luminária, a fonte de um cartaz — tudo deveria unir forma e função, sem ornamento inútil. "A forma segue a função" virou a gramática do design moderno.\n\nQuando os nazistas chegaram ao poder em 1933, fecharam a escola, chamando-a de "degenerada" e "bolchevique". Mas o exílio espalhou suas ideias pelo mundo: seus professores levaram a Bauhaus para os Estados Unidos e até para Tel Aviv, que ganhou o maior conjunto de arquitetura do estilo no planeta. Quase tudo o que hoje parece "limpo" e "minimalista" — do mobiliário ao seu celular — descende daquela escola.',
       frase: '"A meta final de toda atividade plástica é a construção." — Walter Gropius, Manifesto Bauhaus',
       fonte: 'Fonte: Bauhaus-Archiv, Berlim; UNESCO',
+      fonteOficial: {
+        texto: 'A Staatliches Bauhaus, comumente conhecida como Bauhaus, foi uma escola de arte vanguardista na Alemanha. A Bauhaus foi uma das maiores e mais importantes expressões do que é chamado Modernismo no design e na arquitetura, sendo a primeira escola de design do mundo. A escola foi fundada por Walter Gropius em 12 de abril de 1919, a partir da reunião da Escola do Grão-Duque para Artes Plásticas. A intenção primária era fazer da Bauhaus uma escola combinada de arquitetura, artesanato e uma academia de artes.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Bauhaus',
+      },
     },
     {
       titulo: 'O Movimento Que Foi Caçar Sonhos',
@@ -721,6 +766,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Em 1924, o poeta André Breton publicou o "Manifesto Surrealista" e declarou guerra à razão. Influenciados pelas teorias de Freud sobre o inconsciente, os surrealistas queriam libertar a imaginação dos grilhões da lógica: pintar sonhos, escrever sem controle consciente, deixar o acaso e o desejo guiarem a criação. Dalí derretia relógios, Magritte negava que um cachimbo fosse um cachimbo.\n\nO que poucos lembram é quanta gente brilhante o machismo do grupo deixou à sombra. Leonora Carrington, Remedios Varo, Dorothea Tanning — pintoras surrealistas extraordinárias — só foram plenamente reconhecidas décadas depois. Frida Kahlo, aliás, rejeitava o rótulo: "Nunca pintei sonhos", dizia. "Pintei a minha própria realidade." O surrealismo provou que o estranho podia ser mais verdadeiro que o real.',
       frase: '"Isto não é um cachimbo." — René Magritte',
       fonte: 'Fonte: Centre Pompidou; MoMA',
+      fonteOficial: {
+        texto: 'O surrealismo ou sobrerrealismo foi um movimento artístico e literário nascido em Paris na década de 1920, inserido no contexto das vanguardas que viriam a definir o modernismo no período entre as duas Grandes Guerras Mundiais. Fortemente influenciado pela Psicanálise de Sigmund Freud, o surrealismo enfatiza o papel do inconsciente na atividade criativa. Um dos seus objetivos foi produzir uma arte que, segundo o movimento, estava sendo destruída pelo racionalismo. O poeta e crítico André Breton era o principal líder e mentor deste movimento.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Surrealismo',
+      },
     },
   ],
 
@@ -733,6 +783,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'O processo criativo de Pina Bausch era único: ela perguntava. Antes de cada espetáculo, passava semanas fazendo perguntas aos bailarinos — sobre a primeira memória que tinham, sobre o que os assustava, sobre um gesto que a mãe repetia. Depois construía a coreografia a partir das respostas. Por isso seus espetáculos pareciam tão verdadeiros: eram.\n\n"Café Müller", ela mesma dançava com os olhos fechados — baseado numa memória real de infância, quando corria pelo restaurante dos pais sem abrir os olhos. Pina morreu em 2009, cinco dias após receber o diagnóstico de câncer, sem contar para os bailarinos que estava doente.',
       frase: '"Não me interessa como as pessoas se movem. O que me interessa é o que as move." — Pina Bausch',
       fonte: 'Fonte: Tanztheater Wuppertal Pina Bausch',
+      fonteOficial: {
+        texto: 'Philippine Bausch, mais conhecida como Pina Bausch (Solingen, 27 de julho de 1940 — Wuppertal, 30 de junho de 2009), foi uma coreógrafa, dançarina, pedagoga de dança e diretora de balé alemã.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Pina_Bausch',
+      },
     },
     {
       titulo: 'A Fotógrafa Que Fotografava O Invisível',
@@ -742,6 +797,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Vivian Maier trabalhou durante décadas como babá em Chicago. Carregava sempre uma câmera e fotografava pelas ruas — rostos, sombras, reflexos. Nunca revelou a maioria dos negativos. Nunca mostrou suas fotos para ninguém. Nunca se identificou como fotógrafa.\n\nQuando morreu, um colecionador havia comprado seus pertences num leilão de depósito — incluindo 150 mil negativos não revelados. Ao revelar, descobriu uma das maiores fotógrafas de rua do século XX. Hoje suas fotos são vendidas por dezenas de milhares de dólares. A questão que sua história coloca: existia a arte antes de ser vista?',
       frase: '"Você tem que se nutrir... explorar a si mesmo." — Vivian Maier',
       fonte: 'Fonte: Maloof Collection; documentário "Finding Vivian Maier" (2013)',
+      fonteOficial: {
+        texto: 'Vivian Dorothea Maier (Nova Iorque, 1 de fevereiro de 1926 – Oak Park, 21 de abril de 2009) foi uma fotógrafa norte-americana que se especializou na chamada street photography (fotografia de rua). Trabalhou por 40 anos como babá, principalmente em Chicago, enquanto tirava fotos em seu tempo livre. Ao longo da vida Vivian tirou mais de 150 mil fotos, principalmente de moradores e da arquitetura de Chicago, Nova Iorque e Los Angeles.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Vivian_Maier',
+      },
     },
     {
       titulo: 'O Escritor Que Era Diplomata e Herói',
@@ -751,6 +811,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Guimarães Rosa era médico e diplomata — trabalhou como cônsul do Brasil na Alemanha durante a Segunda Guerra Mundial, onde ajudou a salvar centenas de judeus ao emitir vistos de saída clandestinos, arriscando a própria carreira. Esse aspecto de sua vida ficou obscurecido pela grandeza literária.\n\nRosa escreveu "Grande Sertão: Veredas" enquanto servia como diplomata em Paris — longe do sertão mineiro que descreveu com precisão alucinante. Ele havia percorrido o sertão a cavalo nos anos 1940 com um caderno de campo, anotando palavras e expressões dos vaqueiros. Morreu de infarto três dias após ser empossado na Academia Brasileira de Letras. Havia evitado a posse por anos, com medo que a emoção o matasse.',
       frase: '"O sertão é dentro da gente." — Grande Sertão: Veredas',
       fonte: 'Fonte: Academia Brasileira de Letras; Instituto Moreira Salles',
+      fonteOficial: {
+        texto: 'João Guimarães Rosa (Cordisburgo, 27 de junho de 1908 – Rio de Janeiro, 19 de novembro de 1967) foi um médico, diplomata, escritor e poeta brasileiro, identificado com a terceira geração do modernismo no Brasil e reconhecido por muitos como o maior escritor brasileiro do século XX. Seu estilo é marcado por neologismos, coloquialidade e fluxo de consciência e sua ficção ambienta-se no sertão mineiro. Seu romance Grande Sertão: Veredas, sua magnum opus, é reconhecido internacionalmente entre os maiores romances do século XX.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Guimar%C3%A3es_Rosa',
+      },
     },
     {
       titulo: 'A Artista Que Transformou o Próprio Corpo em Obra',
@@ -760,6 +825,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Marina Abramović fez do próprio corpo seu material de trabalho — e levou a arte da performance a extremos que beiram o insuportável. Em "Rhythm 0" (1974), ofereceu-se imóvel ao público por seis horas, ao lado de 72 objetos, de uma rosa a uma arma carregada, com a permissão de usarem qualquer um deles nela. O experimento revelou o quão rápido pessoas comuns se tornam cruéis quando não há consequência.\n\nDécadas depois, em "A Artista Está Presente" (2010), no MoMA, ela sentou em silêncio diante de estranhos, um a um, durante quase três meses. Quando seu antigo amor e parceiro de arte, Ulay, sentou-se à sua frente sem aviso, os dois choraram de mãos dadas — um reencontro que correu o mundo. Abramović prova que a presença, a pura atenção a outro ser humano, pode ser a obra de arte mais radical de todas.',
       frase: '"A performance é estar presente, de verdade, custe o que custar." — Marina Abramović',
       fonte: 'Fonte: MoMA; Marina Abramović Institute',
+      fonteOficial: {
+        texto: 'Marina Abramović (em sérvio: Марина Абрамовић; nascida em Belgrado, em 30 de novembro de 1946) é uma artista performática. Iniciou sua carreira no início da década de 1970 e manteve-se em atividade desde então. Seu trabalho explora os limites do corpo (body art), arte de resistência, as relações entre o artista e a plateia e as possibilidades da mente.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Marina_Abramovi%C4%87',
+      },
     },
     {
       titulo: 'A Pintora Que Faz a Tela Sangrar',
@@ -769,6 +839,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Adriana Varejão é uma das artistas brasileiras mais importantes vivas. Suas obras mais célebres parecem, à primeira vista, painéis de azulejos coloniais portugueses, lisos e decorativos — até que a superfície se rompe e de dentro escorre o que parece carne e vísceras. É uma metáfora visceral, literalmente: a violência por baixo do verniz civilizado da colonização do Brasil.\n\nVarejão investiga a história brasileira como uma ferida que insiste em não cicatrizar — a mistura de povos, a brutalidade escondida sob a beleza barroca. No Instituto Inhotim, em Minas Gerais, há uma galeria construída especialmente para abrigar sua obra, num dos espaços mais impressionantes da arte contemporânea das Américas. Ver um Varejão de perto é entender que toda superfície bonita guarda uma história que ela não conta sozinha.',
       frase: '"Me interessa o que está por baixo da pele das coisas." — Adriana Varejão',
       fonte: 'Fonte: Instituto Inhotim; Gagosian',
+      fonteOficial: {
+        texto: 'Adriana Varejão (Rio de Janeiro, 1964) é uma artista plástica brasileira contemporânea.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Adriana_Varej%C3%A3o',
+      },
     },
     {
       titulo: 'A Escritora Que Reinventou a Língua',
@@ -777,6 +852,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Nascida na Ucrânia e trazida ao Brasil ainda bebê, fugindo dos pogroms, Clarice Lispector tornou-se uma das vozes mais singulares da literatura mundial. Sua escrita não conta histórias no sentido tradicional: mergulha no instante, na epifania, no fluxo de consciência de personagens — quase sempre mulheres — diante de pequenas revelações que abalam tudo. Ler Clarice é menos seguir um enredo e mais habitar uma mente em estado de descoberta.\n\nMisteriosa em vida, dava poucas entrevistas e cultivava uma aura quase mítica. Estreou aos 23 anos com "Perto do Coração Selvagem" e deixou obras-primas como "A Paixão Segundo G.H." e "A Hora da Estrela", concluído pouco antes de morrer. Sua frase mais célebre virou quase um lema: a simplicidade que só se alcança com muito trabalho — e muita coragem de encarar o próprio abismo.',
       frase: '"Que ninguém se engane, só se consegue a simplicidade através de muito trabalho." — Clarice Lispector',
       fonte: 'Fonte: Instituto Moreira Salles; biografia "Clarice", de Benjamin Moser',
+      fonteOficial: {
+        texto: 'Clarice Lispector, nascida Chaya Pinkhasivna Lispector (Chechelnyk, 10 de dezembro de 1920 – Rio de Janeiro, 9 de dezembro de 1977), foi uma escritora e jornalista de origem ucraniana-judaica. Radicada no Brasil desde a primeira infância, naturalizou-se brasileira em 1943. Autora de romances, contos e ensaios, é considerada uma das escritoras brasileiras mais importantes do século XX. Sua obra está repleta de cenas cotidianas simples e tramas psicológicas, tendo como uma de suas principais características a epifania de personagens comuns em momentos do cotidiano.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Clarice_Lispector',
+      },
     },
     {
       titulo: 'A Dama da Literatura Brasileira',
@@ -785,6 +865,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Lygia Fagundes Telles foi uma das maiores escritoras brasileiras do século XX, autora de "As Meninas" — romance que acompanha três jovens durante a ditadura militar, entre o desejo de liberdade e a repressão. Formada em Direito, transitava entre o realismo psicológico e o fantástico, com contos perturbadores em que o cotidiano de repente racha e revela o estranho por baixo.\n\nViveu quase 104 anos e foi a terceira mulher a entrar na Academia Brasileira de Letras, numa época em que o meio literário era dominado por homens. Chegou a ser cotada para o Nobel. Sua prosa elegante e afiada deu voz, sobretudo, a personagens femininas complexas — num país e numa literatura que pouco as ouviam. É leitura essencial para entender o Brasil e a condição da mulher nele.',
       frase: '"Espiar a vida pelo buraco da fechadura: talvez seja isso, escrever um conto." — eco de Lygia Fagundes Telles',
       fonte: 'Fonte: Academia Brasileira de Letras; Companhia das Letras',
+      fonteOficial: {
+        texto: 'Lygia Fagundes da Silva Telles (São Paulo, 19 de abril de 1918 – São Paulo, 3 de abril de 2022), também conhecida como "a dama da literatura brasileira", foi uma escritora brasileira, considerada por acadêmicos, críticos e leitores uma das mais importantes e notáveis escritoras brasileiras do século XX. Além de advogada, romancista e contista, Lygia teve grande representação no pós-modernismo, e suas obras retratavam temas clássicos e universais como a morte, o amor, o medo e a loucura, além da fantasia.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Lygia_Fagundes_Telles',
+      },
     },
     {
       titulo: 'A Poeta Que Fez da Perda uma Arte',
@@ -793,6 +878,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'A americana Elizabeth Bishop é uma das maiores poetas do século XX — e parte de sua vida mais intensa aconteceu no Brasil. Veio para uma visita curta em 1951 e ficou quase duas décadas, vivendo um amor profundo e tempestuoso com a arquiteta paisagista Lota de Macedo Soares, que projetou o Parque do Flamengo, no Rio. O Brasil entrou em sua poesia em paisagens, viagens e perdas.\n\nBishop era perfeccionista: publicava pouco e lapidava cada palavra por anos. Seu poema mais famoso, "Uma Arte" (One Art), trata da perda — de chaves, de casas, de pessoas amadas — com uma ironia que mal disfarça a dor. A história de seu amor com Lota, que terminou em tragédia, foi retratada no filme brasileiro "Flores Raras". Sua obra ensina que conter a emoção, em vez de derramá-la, pode torná-la ainda mais devastadora.',
       frase: '"A arte de perder não é nenhum mistério." — Elizabeth Bishop, "Uma Arte"',
       fonte: 'Fonte: The Poetry Foundation; Companhia das Letras',
+      fonteOficial: {
+        texto: 'Elizabeth Bishop (Worcester, 8 de fevereiro de 1911 – 6 de outubro de 1979) foi uma autora americana, considerada uma das mais importantes poetisas do século XX a escrever em língua inglesa.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Elizabeth_Bishop',
+      },
     },
     {
       titulo: 'A Pintora Que Devorou a Arte Europeia',
@@ -801,6 +891,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Tarsila do Amaral é a pintora que deu rosto ao modernismo brasileiro. Formada em Paris, conviveu com a vanguarda europeia — mas voltou os olhos para o Brasil: suas cores tropicais, suas frutas, seus corpos, suas paisagens. Em 1928, pintou "Abaporu" (palavra tupi para "homem que come"), a figura de pés e mãos enormes e cabeça minúscula que inspirou o "Manifesto Antropófago" de seu então marido, Oswald de Andrade.\n\nA ideia era radical e libertadora: em vez de copiar a Europa, o Brasil deveria "devorá-la", digerir suas influências e transformá-las em algo próprio e novo. "Abaporu" tornou-se a pintura brasileira mais valiosa do mundo, e Tarsila, símbolo de uma identidade nacional que ela ajudou a inventar com tinta e ousadia. Sua obra prova que a periferia também podia ditar o que é moderno.',
       frase: '"Quero ser a pintora da minha terra." — Tarsila do Amaral',
       fonte: 'Fonte: MASP; Pinacoteca de São Paulo',
+      fonteOficial: {
+        texto: 'Tarsila de Aguiar do Amaral (Capivari, 1 de setembro de 1886 – São Paulo, 17 de janeiro de 1973) foi uma pintora, desenhista, escultora, ilustradora, cronista e tradutora brasileira. É considerada uma das principais artistas modernistas latino-americanas, além de ser considerada a pintora que melhor alcançou as aspirações brasileiras de expressão nacionalista nesse estilo artístico. Foi fundamental na formação do movimento estético Antropofagia; foi Tarsila quem, com seu célebre quadro Abaporu, inspirou o famoso Manifesto Antropófago de Oswald de Andrade.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Tarsila_do_Amaral',
+      },
     },
     {
       titulo: 'A Pintora Que Transformou a Dor em Cor',
@@ -809,6 +904,11 @@ export const CONTENT_LIBRARY = {
       corpo: 'Aos 18 anos, Frida Kahlo sofreu um acidente de ônibus que lhe perfurou o corpo e a deixou com dores pelo resto da vida. Acamada por meses, começou a pintar com um cavalete adaptado e um espelho no teto — por isso se tornou sua própria modelo. "Pinto a mim mesma porque sou quem mais conheço", disse. Seus autorretratos, intensos e simbólicos, transformaram o sofrimento físico e emocional em imagens inesquecíveis.\n\nMexicana orgulhosa de suas raízes indígenas, casou-se duas vezes com o muralista Diego Rivera, numa relação tão criativa quanto turbulenta. Rejeitava o rótulo de surrealista: "Nunca pintei sonhos. Pintei a minha própria realidade." Ignorada por muito tempo à sombra de Diego, hoje é um ícone global — da arte, da resistência feminina e da identidade latino-americana.',
       frase: '"Pés, para que os quero, se tenho asas para voar?" — Frida Kahlo',
       fonte: 'Fonte: Museo Frida Kahlo; Museo Dolores Olmedo',
+      fonteOficial: {
+        texto: 'Magdalena Carmen Frida Kahlo y Calderón (Coyoacán, 6 de julho de 1907 – idem, 13 de julho de 1954), mais conhecida como Frida Kahlo, foi uma pintora mexicana conhecida pelos seus muitos retratos, autorretratos e obras inspiradas na natureza e artefactos do México. Inspirada pela cultura popular do país, empregou um estilo de arte popular naïf para explorar questões de identidade, pós-colonialismo, género, classe e raça na sociedade mexicana. As suas pinturas tinham frequentemente fortes elementos autobiográficos e misturavam realismo com fantasia.',
+        veiculo: 'Wikipédia',
+        url: 'https://pt.wikipedia.org/wiki/Frida_Kahlo',
+      },
     },
   ],
 
