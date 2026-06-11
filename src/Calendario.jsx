@@ -13,10 +13,8 @@ const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
 // Rótulo da corrida: "6km - Centro Histórico" (distância antes do nome).
 const corridaLabel = (x) => (x.distancia ? `${x.distancia}km - ` : '') + exTitulo(x);
-// Ordena por horário (sem horário vai pro fim).
-const byTime = (a, b) => (a.horaInicio || '99:99').localeCompare(b.horaInicio || '99:99');
-// Ordem do dia na Agenda: eventos de trabalho SEM horário no topo, depois itens
-// com horário em ordem cronológica, e por fim os demais sem horário.
+// Ordem do dia (Agenda e detalhe do dia): eventos de trabalho SEM horário no
+// topo, depois itens com horário em ordem cronológica, e por fim os demais sem horário.
 const dayOrder = (a, b) => {
   const rank = (it) => (it._tipo === 'evento' && it.categoria === 'trabalho' && !it.horaInicio) ? 0 : (it.horaInicio ? 1 : 2);
   const ra = rank(a), rb = rank(b);
@@ -374,7 +372,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
         {[['Eventos', events], ['Exercício', exercicios], ['Tarefas', tasks], ['Rolês', roles], ['Cultura', cultura]].map(([t, lista]) => lista.length > 0 && (
           <div key={t}>
             <label style={labelStyle}>{t}</label>
-            {lista.slice().sort(byTime).map(it => linha(it,
+            {lista.slice().sort(dayOrder).map(it => linha(it,
               it._tipo === 'tarefa'
                 ? <span onClick={(e) => { e.stopPropagation(); cal.toggleTask(it.id, it._doneKey); }} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc' }}>{it.feita ? '☑' : '☐'}</span>
                 : it.horaInicio ? <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span> : null
