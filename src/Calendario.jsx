@@ -336,6 +336,7 @@ function AddSheet({ initialDate, editing, onClose }) {
 function DayModal({ date, onClose, onAdd, onEdit }) {
   const cal = useCalendar();
   const key = ymd(date);
+  const todayKey = ymd(hoje());
   const { events, exercicios, tasks, roles, cultura } = itemsForDay(cal.data, date);
   const mood = cal.data.moods[key];
 
@@ -368,6 +369,20 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
 
         <label style={labelStyle}>Diário (uma linha)</label>
         <input value={cal.data.diary[key] || ''} onChange={e => cal.setDiary(key, e.target.value)} placeholder="como foi o dia?" style={inputStyle} />
+
+        {key > todayKey && (
+          <>
+            <label style={labelStyle}>✉ Bilhete para o futuro</label>
+            <textarea value={cal.data.bilhetes[key] || ''} onChange={e => cal.setBilhete(key, e.target.value)} rows={2}
+              placeholder="escreva algo para você ler quando este dia chegar" style={{ ...inputStyle, resize: 'vertical' }} />
+          </>
+        )}
+        {key <= todayKey && cal.data.bilhetes[key] && (
+          <>
+            <label style={labelStyle}>✉ Bilhete</label>
+            <p style={{ fontSize: 14, color: '#5b4a2e', fontStyle: 'italic', lineHeight: 1.5, background: '#fff7ec', border: '1px solid #f0dcc0', borderRadius: 10, padding: '10px 12px' }}>{cal.data.bilhetes[key]}</p>
+          </>
+        )}
 
         {[['Eventos', events], ['Exercício', exercicios], ['Tarefas', tasks], ['Rolês', roles], ['Cultura', cultura]].map(([t, lista]) => lista.length > 0 && (
           <div key={t}>
@@ -443,6 +458,96 @@ function Legenda({ items }) {
           <span style={{ width: 10, height: 10, borderRadius: '50%', background: it.cor }} />{it.label}
         </span>
       ))}
+    </div>
+  );
+}
+
+// ---------------- Visão Humor (Mês / Ano / Diário) ----------------
+function HumorView({ data, onDayClick }) {
+  const [sub, setSub] = useState('mes');
+  const [refDate, setRefDate] = useState(() => { const t = hoje(); return new Date(t.getFullYear(), t.getMonth(), 1); });
+  const [year, setYear] = useState(() => hoje().getFullYear());
+  const moodLegenda = MOODS.map(m => ({ label: m.label, cor: m.cor }));
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14, justifyContent: 'center' }}>
+        {[['mes', 'Mês'], ['ano', 'Ano'], ['diario', 'Diário']].map(([id, label]) => (
+          <button key={id} onClick={() => setSub(id)} style={{
+            padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            border: '1px solid ' + (sub === id ? '#111' : '#e2e2e2'), background: sub === id ? '#111' : '#fff', color: sub === id ? '#fff' : '#888',
+          }}>{label}</button>
+        ))}
+      </div>
+      {sub === 'mes' && <><MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={onDayClick} moodMode /><Legenda items={moodLegenda} /></>}
+      {sub === 'ano' && <YearMoodGrid year={year} setYear={setYear} moods={data.moods} onDayClick={onDayClick} legenda={moodLegenda} />}
+      {sub === 'diario' && <DiarioList refDate={refDate} setRefDate={setRefDate} data={data} onDayClick={onDayClick} />}
+    </div>
+  );
+}
+
+function MiniMonth({ year, month, moods, onDayClick }) {
+  const startPad = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < startPad; i++) cells.push(null);
+  for (let d = 1; d <= days; d++) cells.push(d);
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: '#888', fontWeight: 700, marginBottom: 5, textTransform: 'capitalize' }}>{MESES[month]}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {cells.map((d, i) => {
+          if (d === null) return <div key={i} />;
+          const date = new Date(year, month, d);
+          const mood = moods[ymd(date)];
+          return <button key={i} onClick={() => onDayClick(date)} title={String(d)} style={{
+            aspectRatio: '1', borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
+            background: mood ? MOOD_BY_ID[mood]?.cor : '#f1f1f1',
+          }} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function YearMoodGrid({ year, setYear, moods, onDayClick, legenda }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <button onClick={() => setYear(year - 1)} style={navBtn}>‹</button>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#222' }}>{year}</span>
+        <button onClick={() => setYear(year + 1)} style={navBtn}>›</button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {Array.from({ length: 12 }, (_, m) => <MiniMonth key={m} year={year} month={m} moods={moods} onDayClick={onDayClick} />)}
+      </div>
+      <Legenda items={legenda} />
+    </div>
+  );
+}
+
+function DiarioList({ refDate, setRefDate, data, onDayClick }) {
+  const y = refDate.getFullYear(), m = refDate.getMonth();
+  const days = new Date(y, m + 1, 0).getDate();
+  const entries = [];
+  for (let d = days; d >= 1; d--) {  // mais recente primeiro
+    const date = new Date(y, m, d); const k = ymd(date);
+    if (data.moods[k] || data.diary[k]) entries.push({ date, k, mood: data.moods[k], diary: data.diary[k] });
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <button onClick={() => setRefDate(new Date(y, m - 1, 1))} style={navBtn}>‹</button>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222', textTransform: 'capitalize' }}>{MESES[m]} {y}</span>
+        <button onClick={() => setRefDate(new Date(y, m + 1, 1))} style={navBtn}>›</button>
+      </div>
+      {!entries.length ? <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada escrito neste mês ainda.</p>
+        : entries.map(e => (
+          <button key={e.k} onClick={() => onDayClick(e.date)} style={{ ...rowBtn, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#999', minWidth: 22 }}>{e.date.getDate()}</span>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: e.mood ? MOOD_BY_ID[e.mood]?.cor : '#e2e2e2', flexShrink: 0, marginTop: 4 }} />
+            <span style={{ flex: 1, fontSize: 14, color: e.diary ? '#222' : '#bbb', fontStyle: 'italic', lineHeight: 1.4 }}>{e.diary || '(sem diário)'}</span>
+          </button>
+        ))}
     </div>
   );
 }
@@ -534,15 +639,24 @@ export default function Calendario({ isWide }) {
   const [refDate, setRefDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [dayModal, setDayModal] = useState(null);
   const [addSheet, setAddSheet] = useState(null);
+  const [bilheteAberto, setBilheteAberto] = useState(false);
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
+  const bilheteHoje = cal.data.bilhetes[ymd(today)];
   const tarefasSemData = cal.data.tasks.filter(t => !t.data);
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <NesteDia data={cal.data} today={today} />
       <Countdown data={cal.data} today={today} />
+
+      {bilheteHoje && (
+        <div onClick={() => setBilheteAberto(v => !v)} style={{ marginBottom: 14, padding: '10px 14px', borderRadius: 12, background: '#fff7ec', border: '1px solid #f0dcc0', cursor: 'pointer' }}>
+          <div style={{ fontSize: 12.5, color: '#a9772f', fontWeight: 700 }}>✉ você te deixou um bilhete{bilheteAberto ? '' : ' — toque para ler'}</div>
+          {bilheteAberto && <p style={{ fontSize: 14, color: '#5b4a2e', fontStyle: 'italic', lineHeight: 1.5, marginTop: 8 }}>{bilheteHoje}</p>}
+        </div>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <div style={{ display: 'flex', gap: 3, background: '#f0f0f0', borderRadius: 10, padding: 3, flex: 1 }}>
@@ -559,15 +673,14 @@ export default function Calendario({ isWide }) {
 
       {view === 'agenda' && <AgendaView onEdit={(it) => setAddSheet({ editing: it })} />}
       {view === 'exercicio' && <ExSummary data={cal.data} />}
-      {view !== 'agenda' && (
+      {(view === 'mes' || view === 'exercicio') && (
         <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal}
-          moodMode={view === 'humor'}
           getDots={view === 'exercicio'
             ? (d) => itemsForDay(cal.data, d).exercicios
             : (d) => itemsGeral(cal.data, d)} />
       )}
+      {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
       {view === 'mes' && <Legenda items={LEGENDA} />}
-      {view === 'humor' && <Legenda items={MOODS.map(m => ({ label: m.label, cor: m.cor }))} />}
       {view === 'exercicio' && <Legenda items={EXERCICIO_LEGENDA} />}
 
       {/* Próximas corridas — só na visão Exercício */}

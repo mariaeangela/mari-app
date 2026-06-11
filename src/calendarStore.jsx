@@ -16,7 +16,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario } from './cloud';
 
 const KEY = 'diagonal_calendario';
-const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, savedRoles: [] };
+const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [] };
 const CalContext = createContext(null);
 
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -118,11 +118,17 @@ export function CalendarProvider({ children }) {
     if (texto && texto.trim()) diary[dayKey] = texto; else delete diary[dayKey];
     patch({ diary });
   };
+  // Bilhete para o futuro: texto que aparece quando o dia chega.
+  const setBilhete = (dayKey, texto) => {
+    const bilhetes = { ...data.bilhetes };
+    if (texto && texto.trim()) bilhetes[dayKey] = texto; else delete bilhetes[dayKey];
+    patch({ bilhetes });
+  };
 
   const value = {
     data, saveEvent, deleteEvent, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask,
-    addRole, updateRole, deleteRole, saveCultura, deleteCultura, setMood, setDiary,
+    addRole, updateRole, deleteRole, saveCultura, deleteCultura, setMood, setDiary, setBilhete,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

@@ -69,6 +69,13 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   intervalo, hora, repetir, "com quem". Tarefas têm ✓ (com ou sem data). Rolês:
   opções do dia c/ horário (sem ✓; editar usa updateRole p/ não duplicar).
   Exercício: treino/corrida c/ hora e distância (corrida). Cultura alimentará Projetos.
+- Visão Humor tem sub-abas: Mês (grade), Ano (12 mini-meses coloridos por humor,
+  YearMoodGrid/MiniMonth) e Diário (DiarioList: dias do mês com humor+linha do
+  diário, mais recente primeiro). Tudo dentro da aba Humor (não polui o Mês).
+- Bilhete para o futuro: `bilhetes{}` (chave = dia). Escreve-se no DayModal de um
+  dia FUTURO; no dia marcado aparece um aviso no topo do calendário (toque p/ ler).
+- IDEIA pendente (não feita): "era/música do mês" — legenda pequena sob o nome do
+  mês, guardada por mês (como humor/diário). Aguardando decisão da usuária.
 - FALTA (Leva 2): aba Projetos lendo/agrupando cultura+exercício por mês/ano
   (retrospectiva: nº museu/academia, livros lidos...), "quem você viu" somado,
   e a aba Estudos (estudos saiu do calendário; vai viver só em Projetos).
