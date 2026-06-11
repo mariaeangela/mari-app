@@ -2,7 +2,7 @@
 
 App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 `mariaeangela/mari-app` (branch `main`). Publicar = `git push origin main`
-(a Vercel republica sozinha). Senha do app (login): `ts1312`.
+(a Vercel republica sozinha). Senha do app (login): `taylor13` (em `src/Login.jsx`).
 
 ## Arquitetura
 - `src/App.jsx` — tabs (Hoje/Explorar/Salvos), Header, responsivo

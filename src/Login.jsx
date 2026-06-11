@@ -23,7 +23,7 @@ export default function Login({ onLogin }) {
   const fact = getTodayFact();
 
   const handleSubmit = () => {
-    if (password === 'ts1312') {
+    if (password === 'taylor13') {
       onLogin();
     } else {
       setError(true);
