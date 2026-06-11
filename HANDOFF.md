@@ -38,24 +38,29 @@ localStorage, que o iOS apagava). Camada:
 ## Aba Calendário — Leva 1 (NOVO)
 Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
 `calendario` de `/api/data` (POST faz merge; convive com `saved`).
-- `src/calendarConfig.js` — CATEGORIES (8 categorias de evento c/ cor),
-  ROLE_COR/CULTURA_COR/TAREFA_COR, CULTURA_SUBTIPOS (livro/filme/série/
-  exposição/museu/show/espetáculo), MOODS (5: ótimo/bem/triste/estressado/
-  ansioso, sem emoji), utilidades de data, e `getOnThisDay()` (fato curado de
-  HISTORICAL_FACTS, senão efemérides da Wikipédia pt via api.wikimedia.org,
-  com cache em memória por MM-DD).
+- `src/calendarConfig.js` — CATEGORIES (5 categorias de evento: trabalho,
+  viagem*, aniversários*, saúde, datas pessoais; * = `aguardado`, entra na
+  contagem regressiva). EXERCICIO_SUBTIPOS (treino, corrida*). CULTURA_SUBTIPOS
+  (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
+  ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
+  `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da
+  Wikipédia pt via api.wikimedia.org, cache em memória por MM-DD).
 - `src/calendarStore.jsx` — CalendarProvider/useCalendar; cache local
   (`diagonal_calendario`) + sync nuvem (cloud.js: fetchCalendario/pushCalendario).
-  Dados: events[], tasks[], roles[], cultura[], moods{}, diary{}, savedRoles[].
+  Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
+  savedRoles[].
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
-  regressiva; `+` no topo abre AddSheet (escolhe data no form); visões
-  Mês (grade c/ pontinhos), Agenda (lista), Humor (mapa de cores); DayModal
-  com humor + diário de uma linha + itens do dia. Eventos suportam intervalo,
-  hora, repetir (semanal/mensal/anual), "com quem". Tarefas têm ✓. Rolês são
-  lista de opções do dia (sem ✓). Cultura alimentará a aba Projetos.
-- FALTA (Leva 2): retrospectiva e agregações ligadas a Projetos (contagem de
-  cultura por mês/ano, "quem você viu" somado). Categoria `estudos` deve se
-  conectar a uma futura aba de Estudos (manter id estável).
+  regressiva (só viagem/aniversário/corrida). `+` no topo abre AddSheet (tipos:
+  Evento, Exercício, Tarefa, Rolê, Cultura — escolhe data no form). Visões: Mês
+  (grade c/ pontinhos + LEGENDA), Agenda (Próximos/Passado), Exercício (lista
+  treino/corrida + contagem), Humor (mapa de cores). DayModal: humor + diário +
+  itens do dia. Sempre no fim da página: "Lendo no momento" (cultura subtipo
+  lendo) e "Tarefas sem data". Eventos: intervalo, hora, repetir, "com quem".
+  Tarefas têm ✓ (com ou sem data). Rolês: opções do dia c/ horário (sem ✓).
+  Exercício: treino/corrida c/ hora e distância (corrida). Cultura alimentará Projetos.
+- FALTA (Leva 2): aba Projetos lendo/agrupando cultura+exercício por mês/ano
+  (retrospectiva: nº museu/academia, livros lidos...), "quem você viu" somado,
+  e a aba Estudos (estudos saiu do calendário; vai viver só em Projetos).
 
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:

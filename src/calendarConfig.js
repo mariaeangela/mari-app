@@ -3,26 +3,33 @@
 import { HISTORICAL_FACTS } from './contentLibrary.js';
 
 // --- Categorias de EVENTO (cor + rótulo). Ids estáveis (usados nos dados). ---
+// `aguardado: true` = entra na contagem regressiva ("faltam X dias").
 export const CATEGORIES = [
   { id: 'trabalho',     label: 'Trabalho',       cor: '#4f7cff' },
-  { id: 'viagem',       label: 'Viagem',         cor: '#19b3a6' },
-  { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f' },
-  { id: 'treino',       label: 'Treino',         cor: '#8e7cff' },
-  { id: 'corridas',     label: 'Corridas',       cor: '#ef6c4d' },
+  { id: 'viagem',       label: 'Viagem',         cor: '#19b3a6', aguardado: true },
+  { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f', aguardado: true },
   { id: 'saude',        label: 'Saúde',          cor: '#54c08a' },
   { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740' },
-  { id: 'estudos',      label: 'Estudos',        cor: '#3f51b5' },
 ];
 export const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 
-// Rolês e Cultura são TIPOS próprios (não categorias de evento), com cor própria.
+// Exercício é um TIPO próprio (treino/corrida), fora de "Evento".
+export const EXERCICIO_SUBTIPOS = [
+  { id: 'treino',  label: 'Treino',  cor: '#8e7cff' },
+  { id: 'corrida', label: 'Corrida', cor: '#ef6c4d', aguardado: true },
+];
+export const EXERCICIO_BY_ID = Object.fromEntries(EXERCICIO_SUBTIPOS.map(e => [e.id, e]));
+
+// Rolês, Cultura e Tarefas são TIPOS próprios, com cor própria.
 export const ROLE_COR = '#ff8a3d';      // coral
 export const CULTURA_COR = '#c2548f';   // berry
 export const TAREFA_COR = '#6b7280';    // cinza-ardósia
 
 // --- Subtipos de CULTURA (alimentam a futura aba Projetos). ---
+// 'lendo' = livro em andamento (aparece fixo no fim da página); 'lido' = livro concluído.
 export const CULTURA_SUBTIPOS = [
-  { id: 'livro',      label: 'Livro' },
+  { id: 'lendo',      label: 'Lendo' },
+  { id: 'lido',       label: 'Lido' },
   { id: 'filme',      label: 'Filme' },
   { id: 'serie',      label: 'Série' },
   { id: 'exposicao',  label: 'Exposição' },
@@ -31,6 +38,15 @@ export const CULTURA_SUBTIPOS = [
   { id: 'espetaculo', label: 'Espetáculo' },
 ];
 export const CULTURA_BY_ID = Object.fromEntries(CULTURA_SUBTIPOS.map(c => [c.id, c]));
+
+// Legenda de cores (mostrada na visão Mês).
+export const LEGENDA = [
+  ...CATEGORIES.map(c => ({ label: c.label, cor: c.cor })),
+  ...EXERCICIO_SUBTIPOS.map(e => ({ label: e.label, cor: e.cor })),
+  { label: 'Rolê', cor: ROLE_COR },
+  { label: 'Cultura', cor: CULTURA_COR },
+  { label: 'Tarefa', cor: TAREFA_COR },
+];
 
 // --- Escala de HUMOR (sem emoji; só cor + nome). ---
 export const MOODS = [
