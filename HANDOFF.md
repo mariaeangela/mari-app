@@ -16,6 +16,24 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 - `src/Login.jsx` — tela sazonal + saudação.
 - Ícone do app: pintura da nadadora (`public/apple-touch-icon.png` etc.).
 
+## Persistência na nuvem (salvos) — NOVO
+Os "Salvos" agora são permanentes e sincronizam entre aparelhos (antes só
+localStorage, que o iOS apagava). Camada:
+- `api/data.js` — função serverless da Vercel. GET/POST em Redis (Upstash for
+  Redis, criado no painel Vercel → Storage → conectado ao projeto mari-app; envs
+  `KV_REST_API_URL`/`KV_REST_API_TOKEN` injetadas automaticamente). POST faz
+  MERGE raso (chave `diagonal:data`), então já comporta `projetos` no futuro.
+  `pickEnv()` casa as envs por sufixo, tolerando qualquer prefixo da Vercel.
+- `src/cloud.js` — cliente GET/POST best-effort (debounce no POST).
+- `src/savedStore.jsx` — store central (contexto `SavedProvider`/`useSaved`):
+  cache local instantâneo + sync na nuvem; ao abrir com nuvem vazia e local
+  cheio, MIGRA o local para cima. `localStorage` segue como cache/fallback
+  offline (rodando `npm run dev` local não tem /api → cai no localStorage).
+- A estrela (`ContentCard`) e a aba Salvos (`App.jsx`) usam `useSaved()`.
+- IMPORTANTE p/ a 1ª vez: abrir primeiro no aparelho que JÁ tem os salvos
+  (ele empurra pra nuvem); os outros aparelhos depois recebem da nuvem.
+- Banco: `@upstash/redis`. Endpoint de produção: `/api/data`.
+
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:
 ```
