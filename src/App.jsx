@@ -3,6 +3,8 @@ import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTod
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
+import { CalendarProvider } from './calendarStore.jsx';
+import Calendario from './Calendario.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -73,6 +75,7 @@ function Header({ tab, setTab }) {
           { id: 'feed', label: 'Hoje' },
           { id: 'explore', label: 'Explorar' },
           { id: 'saved', label: 'Salvos' },
+          { id: 'calendar', label: 'Calendário' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             background: 'none', border: 'none', cursor: 'pointer',
@@ -181,15 +184,18 @@ export default function App() {
   if (!loggedIn) return <Login onLogin={handleLogin} />;
   return (
     <SavedProvider>
-      <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-        <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
-          <Header tab={tab} setTab={setTab} />
+      <CalendarProvider>
+        <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
+            <Header tab={tab} setTab={setTab} />
+          </div>
+          {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
+          {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
+          {tab === 'explore' && <ExplorePage isWide={isWide} />}
+          {tab === 'saved' && <SavedPage isWide={isWide} />}
+          {tab === 'calendar' && <Calendario isWide={isWide} />}
         </div>
-        {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
-        {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
-        {tab === 'explore' && <ExplorePage isWide={isWide} />}
-        {tab === 'saved' && <SavedPage isWide={isWide} />}
-      </div>
+      </CalendarProvider>
     </SavedProvider>
   );
 }

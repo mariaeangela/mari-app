@@ -34,3 +34,33 @@ export function pushSaved(saved) {
     }).catch(() => {});
   }, 400);
 }
+
+// Busca o objeto do calendário da nuvem. Devolve o objeto, ou null se a nuvem
+// estiver inacessível OU ainda não houver calendário salvo (primeira vez).
+export async function fetchCalendario() {
+  try {
+    const res = await fetch(ENDPOINT, { method: 'GET' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && typeof data.calendario === 'object' && data.calendario) || null;
+  } catch {
+    return null;
+  }
+}
+
+// Envia o objeto do calendário (mescla no servidor; não apaga saved/projetos).
+let ctimer = null;
+let cpending = null;
+export function pushCalendario(cal) {
+  cpending = cal;
+  if (ctimer) clearTimeout(ctimer);
+  ctimer = setTimeout(() => {
+    const body = JSON.stringify({ calendario: cpending });
+    ctimer = null;
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).catch(() => {});
+  }, 500);
+}

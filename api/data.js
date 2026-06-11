@@ -49,6 +49,7 @@ module.exports = async function handler(req, res) {
       const next = { ...current };
       if (Array.isArray(body.saved)) next.saved = body.saved;
       if (body.projetos !== undefined) next.projetos = body.projetos;
+      if (body.calendario !== undefined) next.calendario = body.calendario;
       await redis.set(DATA_KEY, next);
       res.status(200).json({ ok: true });
       return;
