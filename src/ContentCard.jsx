@@ -123,7 +123,7 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
   const hasImageSlot = !!(content?.metId || content?.metQuery || content?.clevelandId || content?.clevelandQuery || content?.wikiQuery || content?.imagem);
 
   if (!content) return null;
-  // Formato novo (Texto): texto real (original + tradução) → Sobre a obra → contexto → ficha.
+  // Formato novo (Texto): texto real (original + tradução) → Contexto → Sobre a obra → ficha.
   const isNovo = !!(content.original || content.traducao);
 
   return (
@@ -167,16 +167,19 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
             </div>
           )}
 
+          {expanded && content.contexto && (
+            <div style={{ marginBottom: 16, paddingTop: 14, borderTop: '1px solid ' + palette.border }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: palette.accent, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 9 }}>Contexto</div>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, margin: 0 }}>{content.contexto}</p>
+            </div>
+          )}
+
           {expanded && content.sobreObra && (
             <div style={{ marginBottom: 16, paddingTop: 14, borderTop: '1px solid ' + palette.border }}>
               <div style={{ fontSize: 9, fontWeight: 700, color: palette.accent, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 9 }}>Sobre a obra</div>
               <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, margin: '0 0 8px' }}>“{content.sobreObra.texto}”</p>
               <p style={{ fontSize: 11, color: palette.sub, margin: 0 }}>— {content.sobreObra.autor}{content.sobreObra.fonte ? ', ' + content.sobreObra.fonte : ''} {content.sobreObra.url && <a href={content.sobreObra.url} target="_blank" rel="noopener noreferrer" style={{ color: palette.accent, fontWeight: 700, textDecoration: 'none' }}>↗</a>}</p>
             </div>
-          )}
-
-          {expanded && content.contexto && (
-            <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, marginBottom: 14 }}>{content.contexto}</p>
           )}
 
           {expanded && content.ficha && (
