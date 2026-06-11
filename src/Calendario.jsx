@@ -47,15 +47,17 @@ function taskOccursOn(t, date) {
   return recurOccursOn(t.data, t.repetir, date);
 }
 
-// Um exercício é "treino" (grupo muscular)?
-const ehTreino = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino';
+// "Rotina" = não aparece no Mês/Agenda (só na visão Exercício): treinos
+// musculares (costas/peitoral/perna) e corrida treino. Corrida prova e Outros aparecem.
+const ehRotina = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino' || x.subtipo === 'corrida_treino';
+const ehCorrida = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida';
 
 function itemsForDay(data, date) {
   const key = ymd(date);
   const events = data.events.filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo }));
   const exercicios = data.exercicios.filter(x => x.data === key)
-    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: x.subtipo === 'corrida' ? corridaLabel(x) : exTitulo(x) }));
+    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: ehCorrida(x) ? corridaLabel(x) : exTitulo(x) }));
   const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
@@ -71,7 +73,7 @@ function itemsForDay(data, date) {
 // Itens do dia para as visões Mês/Agenda: exclui os treinos de grupo muscular
 // (que só aparecem na visão Exercício). Corrida e "outros" permanecem.
 function itemsGeral(data, date) {
-  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && ehTreino(it)));
+  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && ehRotina(it)));
 }
 
 // ---------------- "Neste dia" ----------------
@@ -292,7 +294,7 @@ function AddSheet({ initialDate, editing, onClose }) {
             <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} style={inputStyle} />
           </>
         )}
-        {tipo === 'exercicio' && subtipoEx === 'corrida' && (
+        {tipo === 'exercicio' && EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' && (
           <>
             <label style={labelStyle}>Distância em km (opcional)</label>
             <input type="number" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5" style={inputStyle} />
@@ -599,7 +601,7 @@ function AgendaView({ onEdit }) {
 // ---------------- Próximas corridas (abaixo do calendário de Exercício) ----------------
 function ProximasCorridas({ data, today, onEdit }) {
   const tk = ymd(today);
-  const list = data.exercicios.filter(x => x.subtipo === 'corrida' && x.data >= tk).sort((a, b) => a.data.localeCompare(b.data));
+  const list = data.exercicios.filter(x => ehCorrida(x) && x.subtipo !== 'corrida_treino' && x.data >= tk).sort((a, b) => a.data.localeCompare(b.data));
   return (
     <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
       <div style={{ fontSize: 11, color: EXERCICIO_BY_ID.corrida.cor, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Próximas corridas</div>
@@ -621,7 +623,7 @@ function ProximasCorridas({ data, today, onEdit }) {
 // ---------------- Resumo de Exercício (acima do calendário de exercício) ----------------
 function ExSummary({ data }) {
   const grupo = (g) => data.exercicios.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === g).length;
-  const nT = grupo('treino'), nC = data.exercicios.filter(x => x.subtipo === 'corrida').length, nO = grupo('outros');
+  const nT = grupo('treino'), nC = grupo('corrida'), nO = grupo('outros');
   return (
     <div style={{ display: 'flex', gap: 16, marginBottom: 14, fontSize: 12.5, color: '#777' }}>
       <span><b style={{ color: '#5b8def' }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>

@@ -17,22 +17,21 @@ export const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 //   treino (costas/peitoral/perna, cor por grupo muscular), corrida, outros.
 const COR_OUTROS = '#8d99ae';
 export const EXERCICIO_SUBTIPOS = [
-  { id: 'costas',    label: 'Costas',    grupo: 'treino',  cor: '#5b8def' },
-  { id: 'peitoral',  label: 'Peitoral',  grupo: 'treino',  cor: '#c77dff' },
-  { id: 'perna',     label: 'Perna',     grupo: 'treino',  cor: '#2bb673' },
-  { id: 'corrida',   label: 'Corrida',   grupo: 'corrida', cor: '#ef6c4d', aguardado: true },
-  { id: 'natacao',   label: 'Natação',   grupo: 'outros',  cor: COR_OUTROS },
-  { id: 'caminhada', label: 'Caminhada', grupo: 'outros',  cor: COR_OUTROS },
-  { id: 'trilha',    label: 'Trilha',    grupo: 'outros',  cor: COR_OUTROS },
-  { id: 'jogo',      label: 'Jogo',      grupo: 'outros',  cor: COR_OUTROS },
-  { id: 'danca',     label: 'Dança',     grupo: 'outros',  cor: COR_OUTROS },
+  { id: 'costas',         label: 'Costas',         grupo: 'treino',  cor: '#5b8def' },
+  { id: 'peitoral',       label: 'Peitoral',       grupo: 'treino',  cor: '#c77dff' },
+  { id: 'perna',          label: 'Perna',          grupo: 'treino',  cor: '#2bb673' },
+  { id: 'corrida_treino', label: 'Corrida treino', grupo: 'corrida', cor: '#f0a35e' },
+  { id: 'corrida_prova',  label: 'Corrida prova',  grupo: 'corrida', cor: '#ef6c4d', aguardado: true },
+  { id: 'outros',         label: 'Outros',         grupo: 'outros',  cor: COR_OUTROS },
 ];
 export const EXERCICIO_BY_ID = Object.fromEntries(EXERCICIO_SUBTIPOS.map(e => [e.id, e]));
-// Legenda da visão Exercício (grupos de treino + corrida + outros).
+// Compatibilidade com dados antigos (subtipos que não existem mais).
+EXERCICIO_BY_ID.corrida = EXERCICIO_BY_ID.corrida_prova;
+['natacao', 'caminhada', 'trilha', 'jogo', 'danca'].forEach(k => { EXERCICIO_BY_ID[k] = EXERCICIO_BY_ID.outros; });
+// Legenda da visão Exercício.
 export const EXERCICIO_LEGENDA = [
-  { label: 'Costas', cor: '#5b8def' }, { label: 'Peitoral', cor: '#c77dff' },
-  { label: 'Perna', cor: '#2bb673' }, { label: 'Corrida', cor: '#ef6c4d' },
-  { label: 'Outros', cor: COR_OUTROS },
+  { label: 'Costas', cor: '#5b8def' }, { label: 'Peitoral', cor: '#c77dff' }, { label: 'Perna', cor: '#2bb673' },
+  { label: 'Corrida treino', cor: '#f0a35e' }, { label: 'Corrida prova', cor: '#ef6c4d' }, { label: 'Outros', cor: COR_OUTROS },
 ];
 
 // Rolês, Cultura e Tarefas são TIPOS próprios, com cor própria.
@@ -57,7 +56,8 @@ export const CULTURA_BY_ID = Object.fromEntries(CULTURA_SUBTIPOS.map(c => [c.id,
 // Legenda de cores da visão Mês (treinos não aparecem no Mês; só corrida).
 export const LEGENDA = [
   ...CATEGORIES.map(c => ({ label: c.label, cor: c.cor })),
-  { label: 'Corrida', cor: EXERCICIO_BY_ID.corrida.cor },
+  { label: 'Corrida prova', cor: EXERCICIO_BY_ID.corrida_prova.cor },
+  { label: 'Outros', cor: COR_OUTROS },
   { label: 'Rolê', cor: ROLE_COR },
   { label: 'Cultura', cor: CULTURA_COR },
   { label: 'Tarefa', cor: TAREFA_COR },
