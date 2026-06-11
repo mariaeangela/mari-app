@@ -8,9 +8,19 @@
 // projetos (e vice-versa). Assim a futura aba Projetos reusa o mesmo endpoint.
 const { Redis } = require('@upstash/redis');
 
+// Acha a URL/token do Redis entre as envs, tolerando prefixos que a Vercel
+// possa adicionar (ex.: STORAGE_KV_REST_API_URL). Casa pelo sufixo do nome.
+function pickEnv(suffixes) {
+  for (const [k, v] of Object.entries(process.env)) {
+    if (!v) continue;
+    if (suffixes.some(s => k === s || k.endsWith('_' + s))) return v;
+  }
+  return undefined;
+}
+
 const redis = new Redis({
-  url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: pickEnv(['KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL']),
+  token: pickEnv(['KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN']),
 });
 
 const DATA_KEY = 'diagonal:data';
