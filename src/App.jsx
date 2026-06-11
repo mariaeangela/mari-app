@@ -199,8 +199,7 @@ function MoodPage({ isWide }) {
               background: m.color + '18', border: `1px solid ${m.color}40`, borderRadius: 16,
               padding: '20px 14px', cursor: 'pointer', textAlign: 'left', transition: 'transform 0.1s',
             }}>
-              <div style={{ fontSize: 26, marginBottom: 8 }}>{m.emoji}</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700 }}>{m.label}</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: '#222', fontWeight: 700 }}>{m.label}</div>
             </button>
           ))}
         </div>
@@ -214,8 +213,7 @@ function MoodPage({ isWide }) {
         &larr; outro humor
       </button>
 
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: mood.color + '1c', borderRadius: 20, padding: '5px 14px', marginBottom: 22 }}>
-        <span style={{ fontSize: 15 }}>{mood.emoji}</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', background: mood.color + '1c', borderRadius: 20, padding: '5px 14px', marginBottom: 22 }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: '#555', letterSpacing: '2px', textTransform: 'uppercase' }}>{mood.label}</span>
       </div>
 
