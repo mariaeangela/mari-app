@@ -11,6 +11,8 @@ import {
 
 const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
+// Ordena por horário (sem horário vai pro fim).
+const byTime = (a, b) => (a.horaInicio || '99:99').localeCompare(b.horaInicio || '99:99');
 
 function eventOccursOn(ev, date) {
   const dayKey = ymd(date);
@@ -38,7 +40,14 @@ function itemsForDay(data, date) {
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo }));
   const cultura = data.cultura.filter(c => c.data === key)
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
-  return { events, exercicios, tasks, roles, cultura, all: [...events, ...exercicios, ...tasks, ...roles, ...cultura] };
+  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(byTime);
+  return { events, exercicios, tasks, roles, cultura, all };
+}
+
+// Itens do dia para as visões Mês/Agenda: exclui treinos (que só aparecem na
+// visão Exercício). Corridas permanecem.
+function itemsGeral(data, date) {
+  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && it.subtipo === 'treino'));
 }
 
 // ---------------- "Neste dia" ----------------
@@ -141,7 +150,10 @@ function AddSheet({ initialDate, editing, onClose }) {
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
     else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined });
     else if (tipo === 'tarefa') cal.saveTask({ ...base, data: inicio || undefined, nota: nota || undefined, feita: editing?.feita || false });
-    else if (tipo === 'role') { if (editing?.id) cal.deleteRole(editing.id); cal.addRole({ data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined }); }
+    else if (tipo === 'role') {
+      const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined };
+      if (editing?.id) cal.updateRole({ ...r, id: editing.id }); else cal.addRole(r);
+    }
     else if (tipo === 'cultura') cal.saveCultura({ ...base, subtipo: subtipoCult, data: inicio, nota: nota || undefined, comQuem: comQuem || undefined });
     onClose();
   };
@@ -317,7 +329,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
         {[['Eventos', events], ['Exercício', exercicios], ['Tarefas', tasks], ['Rolês', roles], ['Cultura', cultura]].map(([t, lista]) => lista.length > 0 && (
           <div key={t}>
             <label style={labelStyle}>{t}</label>
-            {lista.map(it => linha(it,
+            {lista.slice().sort(byTime).map(it => linha(it,
               it._tipo === 'tarefa'
                 ? <span onClick={(e) => { e.stopPropagation(); cal.toggleTask(it.id); }} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc' }}>{it.feita ? '☑' : '☐'}</span>
                 : it.horaInicio ? <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span> : null
@@ -332,7 +344,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
 }
 
 // ---------------- Visão Mês ----------------
-function MonthView({ refDate, setRefDate, onDayClick, moodMode }) {
+function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
   const cal = useCalendar();
   const y = refDate.getFullYear(), m = refDate.getMonth();
   const startPad = new Date(y, m, 1).getDay();
@@ -355,7 +367,7 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode }) {
         {cells.map((date, i) => {
           if (!date) return <div key={i} />;
           const key = ymd(date);
-          const { all } = itemsForDay(cal.data, date);
+          const dots = moodMode ? [] : (getDots ? getDots(date) : itemsForDay(cal.data, date).all);
           const mood = cal.data.moods[key];
           const isToday = key === todayKey;
           return (
@@ -365,9 +377,9 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode }) {
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '4px 2px',
             }}>
               <span style={{ fontSize: 12.5, color: isToday ? '#111' : '#555', fontWeight: isToday ? 700 : 500 }}>{date.getDate()}</span>
-              {!moodMode && all.length > 0 && (
+              {!moodMode && dots.length > 0 && (
                 <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', marginTop: 3 }}>
-                  {all.slice(0, 4).map((it, j) => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: it._cor }} />)}
+                  {dots.slice(0, 4).map((it, j) => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: it._cor }} />)}
                 </div>
               )}
               {moodMode && mood && <span style={{ fontSize: 8, color: '#666', marginTop: 'auto', paddingBottom: 2 }}>{MOOD_BY_ID[mood]?.label}</span>}
@@ -399,9 +411,9 @@ function AgendaView({ onEdit }) {
   const start = hoje();
   const dias = [];
   if (modo === 'proximos') {
-    for (let i = 0; i < 90; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const { all } = itemsForDay(cal.data, d); if (all.length) dias.push({ d, all }); }
+    for (let i = 0; i < 90; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const all = itemsGeral(cal.data, d); if (all.length) dias.push({ d, all }); }
   } else {
-    for (let i = 1; i <= 180; i++) { const d = new Date(start); d.setDate(start.getDate() - i); const { all } = itemsForDay(cal.data, d); if (all.length) dias.push({ d, all }); }
+    for (let i = 1; i <= 180; i++) { const d = new Date(start); d.setDate(start.getDate() - i); const all = itemsGeral(cal.data, d); if (all.length) dias.push({ d, all }); }
   }
   return (
     <div>
@@ -431,30 +443,14 @@ function AgendaView({ onEdit }) {
   );
 }
 
-// ---------------- Visão Exercício ----------------
-function ExercicioView({ onEdit }) {
-  const cal = useCalendar();
-  const list = cal.data.exercicios.slice().sort((a, b) => b.data.localeCompare(a.data) || (b.horaInicio || '').localeCompare(a.horaInicio || ''));
-  const nT = list.filter(x => x.subtipo === 'treino').length;
-  const nC = list.filter(x => x.subtipo === 'corrida').length;
+// ---------------- Resumo de Exercício (acima do calendário de exercício) ----------------
+function ExSummary({ data }) {
+  const nT = data.exercicios.filter(x => x.subtipo === 'treino').length;
+  const nC = data.exercicios.filter(x => x.subtipo === 'corrida').length;
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16, fontSize: 12.5, color: '#777' }}>
-        <span><b style={{ color: EXERCICIO_BY_ID.treino.cor }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>
-        <span><b style={{ color: EXERCICIO_BY_ID.corrida.cor }}>{nC}</b> corrida{nC === 1 ? '' : 's'}</span>
-      </div>
-      {!list.length ? <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhum treino ou corrida ainda. Toque no + → Exercício.</p>
-        : list.map(x => {
-          const sub = EXERCICIO_BY_ID[x.subtipo]; const d = parseYmd(x.data);
-          return (
-            <button key={x.id} onClick={() => onEdit({ ...x, _tipo: 'exercicio' })} style={rowBtn}>
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: sub?.cor, flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{exTitulo(x)}</span>
-              {x.distancia && <span style={{ fontSize: 12, color: '#999' }}>{x.distancia} km</span>}
-              <span style={{ fontSize: 11, color: '#aaa' }}>{d.getDate()}/{pad2(d.getMonth() + 1)}</span>
-            </button>
-          );
-        })}
+    <div style={{ display: 'flex', gap: 16, marginBottom: 14, fontSize: 12.5, color: '#777' }}>
+      <span><b style={{ color: EXERCICIO_BY_ID.treino.cor }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>
+      <span><b style={{ color: EXERCICIO_BY_ID.corrida.cor }}>{nC}</b> corrida{nC === 1 ? '' : 's'}</span>
     </div>
   );
 }
@@ -491,20 +487,31 @@ export default function Calendario({ isWide }) {
       </div>
 
       {view === 'agenda' && <AgendaView onEdit={(it) => setAddSheet({ editing: it })} />}
-      {view === 'exercicio' && <ExercicioView onEdit={(it) => setAddSheet({ editing: it })} />}
-      {(view === 'mes' || view === 'humor') && <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal} moodMode={view === 'humor'} />}
+      {view === 'exercicio' && <ExSummary data={cal.data} />}
+      {view !== 'agenda' && (
+        <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal}
+          moodMode={view === 'humor'}
+          getDots={view === 'exercicio'
+            ? (d) => itemsForDay(cal.data, d).exercicios
+            : (d) => itemsGeral(cal.data, d)} />
+      )}
       {view === 'mes' && <Legenda items={LEGENDA} />}
       {view === 'humor' && <Legenda items={MOODS.map(m => ({ label: m.label, cor: m.cor }))} />}
+      {view === 'exercicio' && <Legenda items={EXERCICIO_SUBTIPOS.map(e => ({ label: e.label, cor: e.cor }))} />}
 
       {/* Sempre no fim da página: Lendo no momento + Tarefas sem data */}
       {lendo.length > 0 && (
         <div style={{ marginTop: 26, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: CULTURA_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Lendo no momento</div>
           {lendo.map(c => (
-            <button key={c.id} onClick={() => setAddSheet({ editing: { ...c, _tipo: 'cultura' } })} style={rowBtn}>
+            <div key={c.id} style={rowBtn}>
               <span style={{ width: 9, height: 9, borderRadius: '50%', background: CULTURA_COR, flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 14, color: '#222', fontStyle: 'italic' }}>{c.titulo}</span>
-            </button>
+              <span onClick={() => setAddSheet({ editing: { ...c, _tipo: 'cultura' } })} style={{ flex: 1, fontSize: 14, color: '#222', fontStyle: 'italic', cursor: 'pointer' }}>{c.titulo}</span>
+              <button onClick={() => cal.saveCultura({ ...c, subtipo: 'lido', data: ymd(today) })}
+                style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid ' + CULTURA_COR + '66', background: '#fff', color: CULTURA_COR, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                concluído
+              </button>
+            </div>
           ))}
         </div>
       )}

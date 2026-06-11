@@ -7,9 +7,9 @@ import { HISTORICAL_FACTS } from './contentLibrary.js';
 export const CATEGORIES = [
   { id: 'trabalho',     label: 'Trabalho',       cor: '#4f7cff' },
   { id: 'viagem',       label: 'Viagem',         cor: '#19b3a6', aguardado: true },
-  { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f', aguardado: true },
+  { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f' },
   { id: 'saude',        label: 'Saúde',          cor: '#54c08a' },
-  { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740' },
+  { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740', aguardado: true },
 ];
 export const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 

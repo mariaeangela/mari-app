@@ -39,8 +39,9 @@ localStorage, que o iOS apagava). Camada:
 Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
 `calendario` de `/api/data` (POST faz merge; convive com `saved`).
 - `src/calendarConfig.js` — CATEGORIES (5 categorias de evento: trabalho,
-  viagem*, aniversários*, saúde, datas pessoais; * = `aguardado`, entra na
-  contagem regressiva). EXERCICIO_SUBTIPOS (treino, corrida*). CULTURA_SUBTIPOS
+  viagem*, aniversários, saúde, datas pessoais*; * = `aguardado`, entra na
+  contagem regressiva — viagem/datas pessoais/corrida, NÃO aniversário).
+  EXERCICIO_SUBTIPOS (treino, corrida*). CULTURA_SUBTIPOS
   (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
   ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
   `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da
@@ -52,11 +53,15 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
   regressiva (só viagem/aniversário/corrida). `+` no topo abre AddSheet (tipos:
   Evento, Exercício, Tarefa, Rolê, Cultura — escolhe data no form). Visões: Mês
-  (grade c/ pontinhos + LEGENDA), Agenda (Próximos/Passado), Exercício (lista
-  treino/corrida + contagem), Humor (mapa de cores). DayModal: humor + diário +
-  itens do dia. Sempre no fim da página: "Lendo no momento" (cultura subtipo
-  lendo) e "Tarefas sem data". Eventos: intervalo, hora, repetir, "com quem".
-  Tarefas têm ✓ (com ou sem data). Rolês: opções do dia c/ horário (sem ✓).
+  (grade c/ pontinhos + LEGENDA), Agenda (Próximos/Passado), Exercício (também
+  um CALENDÁRIO, só pontinhos de treino+corrida, + contagem), Humor (mapa de
+  cores). Treino só aparece na visão Exercício; corrida aparece em todas. Itens
+  do dia em ordem cronológica de horário (helper byTime; itemsGeral exclui
+  treino do Mês/Agenda). DayModal: humor + diário + itens do dia. Sempre no fim
+  da página: "Lendo no momento" (cultura subtipo lendo) com botão "concluído"
+  que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Eventos:
+  intervalo, hora, repetir, "com quem". Tarefas têm ✓ (com ou sem data). Rolês:
+  opções do dia c/ horário (sem ✓; editar usa updateRole p/ não duplicar).
   Exercício: treino/corrida c/ hora e distância (corrida). Cultura alimentará Projetos.
 - FALTA (Leva 2): aba Projetos lendo/agrupando cultura+exercício por mês/ano
   (retrospectiva: nº museu/academia, livros lidos...), "quem você viu" somado,

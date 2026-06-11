@@ -82,6 +82,7 @@ export function CalendarProvider({ children }) {
       ? [...data.savedRoles, r.titulo] : data.savedRoles;
     patch({ roles: [...data.roles, { ...r, id: uid('r') }], savedRoles });
   };
+  const updateRole = (r) => patch({ roles: data.roles.map(x => x.id === r.id ? r : x) });
   const deleteRole = (id) => patch({ roles: data.roles.filter(x => x.id !== id) });
 
   // ---- Cultura ----
@@ -107,7 +108,7 @@ export function CalendarProvider({ children }) {
   const value = {
     data, saveEvent, deleteEvent, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask,
-    addRole, deleteRole, saveCultura, deleteCultura, setMood, setDiary,
+    addRole, updateRole, deleteRole, saveCultura, deleteCultura, setMood, setDiary,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }
