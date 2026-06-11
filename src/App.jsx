@@ -176,11 +176,13 @@ function SavedPage({ isWide }) {
 }
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(() => sessionStorage.getItem('diagonal_auth') === '1');
+  // Não memoriza o login: a senha é pedida sempre que o app abre/recarrega.
+  const [loggedIn, setLoggedIn] = useState(false);
   const [tab, setTab] = useState('feed');
   useMinuteTick();
   const isWide = useIsWide();
-  const handleLogin = () => { sessionStorage.setItem('diagonal_auth', '1'); setLoggedIn(true); };
+  useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
+  const handleLogin = () => { setLoggedIn(true); };
   if (!loggedIn) return <Login onLogin={handleLogin} />;
   return (
     <SavedProvider>
