@@ -35,6 +35,28 @@ localStorage, que o iOS apagava). Camada:
   (ele empurra pra nuvem); os outros aparelhos depois recebem da nuvem.
 - Banco: `@upstash/redis`. Endpoint de produção: `/api/data`.
 
+## Aba Calendário — Leva 1 (NOVO)
+Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
+`calendario` de `/api/data` (POST faz merge; convive com `saved`).
+- `src/calendarConfig.js` — CATEGORIES (8 categorias de evento c/ cor),
+  ROLE_COR/CULTURA_COR/TAREFA_COR, CULTURA_SUBTIPOS (livro/filme/série/
+  exposição/museu/show/espetáculo), MOODS (5: ótimo/bem/triste/estressado/
+  ansioso, sem emoji), utilidades de data, e `getOnThisDay()` (fato curado de
+  HISTORICAL_FACTS, senão efemérides da Wikipédia pt via api.wikimedia.org,
+  com cache em memória por MM-DD).
+- `src/calendarStore.jsx` — CalendarProvider/useCalendar; cache local
+  (`diagonal_calendario`) + sync nuvem (cloud.js: fetchCalendario/pushCalendario).
+  Dados: events[], tasks[], roles[], cultura[], moods{}, diary{}, savedRoles[].
+- `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
+  regressiva; `+` no topo abre AddSheet (escolhe data no form); visões
+  Mês (grade c/ pontinhos), Agenda (lista), Humor (mapa de cores); DayModal
+  com humor + diário de uma linha + itens do dia. Eventos suportam intervalo,
+  hora, repetir (semanal/mensal/anual), "com quem". Tarefas têm ✓. Rolês são
+  lista de opções do dia (sem ✓). Cultura alimentará a aba Projetos.
+- FALTA (Leva 2): retrospectiva e agregações ligadas a Projetos (contagem de
+  cultura por mês/ano, "quem você viu" somado). Categoria `estudos` deve se
+  conectar a uma futura aba de Estudos (manter id estável).
+
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:
 ```
