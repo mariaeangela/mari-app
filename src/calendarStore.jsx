@@ -5,7 +5,8 @@
 //   events:     [{ id, titulo, categoria, inicio, fim?, horaInicio?, horaFim?,
 //                  repetir:'nao'|'semanal'|'mensal'|'anual', nota?, comQuem? }]
 //   exercicios: [{ id, subtipo:'treino'|'corrida', titulo?, data, horaInicio?, distancia?, nota? }]
-//   tasks:      [{ id, titulo, data?, feita:false, nota? }]
+//   tasks:      [{ id, titulo, data?, repetir?, nota?,
+//                  feita?(sem data) , feitas?[]( dias concluídos, p/ as com data) }]
 //   roles:      [{ id, data, titulo, horaInicio?, comQuem? }]  // opções do dia (sem ✓)
 //   cultura:    [{ id, subtipo, titulo, data, nota?, comQuem? }]
 //   moods:      { 'YYYY-MM-DD': moodId }
@@ -74,7 +75,19 @@ export function CalendarProvider({ children }) {
     if (t.id) patch({ tasks: data.tasks.map(x => x.id === t.id ? t : x) });
     else patch({ tasks: [...data.tasks, { feita: false, ...t, id: uid('t') }] });
   };
-  const toggleTask = (id) => patch({ tasks: data.tasks.map(x => x.id === id ? { ...x, feita: !x.feita } : x) });
+  // Conclusão: tarefa com data usa `feitas` (lista de dias concluídos, para as
+  // que repetem); tarefa sem data usa o booleano `feita`.
+  const toggleTask = (id, dateKey) => patch({
+    tasks: data.tasks.map(x => {
+      if (x.id !== id) return x;
+      if (dateKey) {
+        const set = new Set(x.feitas || []);
+        set.has(dateKey) ? set.delete(dateKey) : set.add(dateKey);
+        return { ...x, feitas: [...set] };
+      }
+      return { ...x, feita: !x.feita };
+    }),
+  });
   const deleteTask = (id) => patch({ tasks: data.tasks.filter(x => x.id !== id) });
 
   // ---- Rolês (opções do dia) ----

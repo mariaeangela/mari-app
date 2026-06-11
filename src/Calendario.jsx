@@ -6,11 +6,13 @@ import { useCalendar } from './calendarStore.jsx';
 import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
-  MOODS, MOOD_BY_ID, LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
+  MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
 } from './calendarConfig.js';
 
 const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
+// Rótulo da corrida: "6km - Centro Histórico" (distância antes do nome).
+const corridaLabel = (x) => (x.distancia ? `${x.distancia}km - ` : '') + exTitulo(x);
 // Ordena por horário (sem horário vai pro fim).
 const byTime = (a, b) => (a.horaInicio || '99:99').localeCompare(b.horaInicio || '99:99');
 // Ordem do dia na Agenda: eventos de trabalho SEM horário no topo, depois itens
@@ -22,28 +24,42 @@ const dayOrder = (a, b) => {
   return ra === 1 ? a.horaInicio.localeCompare(b.horaInicio) : 0;
 };
 
+// Ocorrência de algo que começa em startKey e repete (usado por evento e tarefa).
+function recurOccursOn(startKey, repetir, date) {
+  const dayKey = ymd(date);
+  if (dayKey < startKey) return false;
+  const start = parseYmd(startKey);
+  if (repetir === 'semanal') return date.getDay() === start.getDay();
+  if (repetir === 'mensal') return date.getDate() === start.getDate();
+  if (repetir === 'anual') return date.getMonth() === start.getMonth() && date.getDate() === start.getDate();
+  return false;
+}
+
 function eventOccursOn(ev, date) {
   const dayKey = ymd(date);
   if (!ev.repetir || ev.repetir === 'nao') {
     const fim = ev.fim || ev.inicio;
     return dayKey >= ev.inicio && dayKey <= fim;
   }
-  if (dayKey < ev.inicio) return false;
-  const start = parseYmd(ev.inicio);
-  if (ev.repetir === 'semanal') return date.getDay() === start.getDay();
-  if (ev.repetir === 'mensal') return date.getDate() === start.getDate();
-  if (ev.repetir === 'anual') return date.getMonth() === start.getMonth() && date.getDate() === start.getDate();
-  return false;
+  return recurOccursOn(ev.inicio, ev.repetir, date);
 }
+
+function taskOccursOn(t, date) {
+  if (!t.repetir || t.repetir === 'nao') return t.data === ymd(date);
+  return recurOccursOn(t.data, t.repetir, date);
+}
+
+// Um exercício é "treino" (grupo muscular)?
+const ehTreino = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino';
 
 function itemsForDay(data, date) {
   const key = ymd(date);
   const events = data.events.filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo }));
   const exercicios = data.exercicios.filter(x => x.data === key)
-    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: exTitulo(x) }));
-  const tasks = data.tasks.filter(t => t.data === key)
-    .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo }));
+    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: x.subtipo === 'corrida' ? corridaLabel(x) : exTitulo(x) }));
+  const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
+    .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo }));
   // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
@@ -54,10 +70,10 @@ function itemsForDay(data, date) {
   return { events, exercicios, tasks, roles, cultura, all };
 }
 
-// Itens do dia para as visões Mês/Agenda: exclui treinos (que só aparecem na
-// visão Exercício). Corridas permanecem.
+// Itens do dia para as visões Mês/Agenda: exclui os treinos de grupo muscular
+// (que só aparecem na visão Exercício). Corrida e "outros" permanecem.
 function itemsGeral(data, date) {
-  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && it.subtipo === 'treino'));
+  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && ehTreino(it)));
 }
 
 // ---------------- "Neste dia" ----------------
@@ -139,6 +155,7 @@ function AddSheet({ initialDate, editing, onClose }) {
   const [categoria, setCategoria] = useState(editing?.categoria || CATEGORIES[0].id);
   const [subtipoCult, setSubtipoCult] = useState((editing?._tipo === 'cultura' && editing?.subtipo) || CULTURA_SUBTIPOS[0].id);
   const [subtipoEx, setSubtipoEx] = useState((editing?._tipo === 'exercicio' && editing?.subtipo) || EXERCICIO_SUBTIPOS[0].id);
+  const [semDataChk, setSemDataChk] = useState(editing?._tipo === 'tarefa' && !editing?.data);
   const [inicio, setInicio] = useState(editing?.inicio || editing?.data || d0);
   const [fim, setFim] = useState(editing?.fim || '');
   const [horaInicio, setHoraInicio] = useState(editing?.horaInicio || '');
@@ -159,7 +176,7 @@ function AddSheet({ initialDate, editing, onClose }) {
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
     else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined });
-    else if (tipo === 'tarefa') cal.saveTask({ ...base, data: inicio || undefined, nota: nota || undefined, feita: editing?.feita || false });
+    else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined };
       if (editing?.id) cal.updateRole({ ...r, id: editing.id }); else cal.addRole(r);
@@ -168,7 +185,6 @@ function AddSheet({ initialDate, editing, onClose }) {
     onClose();
   };
 
-  const semData = tipo === 'tarefa';
   return (
     <div onClick={onClose} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={sheet}>
@@ -192,10 +208,10 @@ function AddSheet({ initialDate, editing, onClose }) {
         {tipo === 'exercicio' && (
           <>
             <label style={labelStyle}>Tipo</label>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {EXERCICIO_SUBTIPOS.map(s => (
                 <button key={s.id} onClick={() => setSubtipoEx(s.id)} style={{
-                  flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  flex: '1 0 auto', padding: '8px 12px', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                   border: '1.5px solid ' + (subtipoEx === s.id ? s.cor : '#e2e2e2'),
                   background: subtipoEx === s.id ? s.cor + '22' : '#fff', color: subtipoEx === s.id ? '#333' : '#888',
                 }}>{s.label}</button>
@@ -234,8 +250,27 @@ function AddSheet({ initialDate, editing, onClose }) {
           </>
         )}
 
-        <label style={labelStyle}>{tipo === 'evento' ? 'Início' : 'Data'}{semData ? ' (opcional)' : ''}</label>
-        <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
+        {tipo === 'tarefa' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, fontSize: 13, color: '#444', cursor: 'pointer' }}>
+            <input type="checkbox" checked={semDataChk} onChange={e => setSemDataChk(e.target.checked)} />
+            Sem data (vai para a lista "Tarefas sem data")
+          </label>
+        )}
+        {!(tipo === 'tarefa' && semDataChk) && (
+          <>
+            <label style={labelStyle}>{tipo === 'evento' ? 'Início' : 'Data'}</label>
+            <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
+          </>
+        )}
+        {tipo === 'tarefa' && !semDataChk && (
+          <>
+            <label style={labelStyle}>Repetir</label>
+            <select value={repetir} onChange={e => setRepetir(e.target.value)} style={inputStyle}>
+              <option value="nao">Não repete</option><option value="semanal">Toda semana</option>
+              <option value="mensal">Todo mês</option><option value="anual">Todo ano</option>
+            </select>
+          </>
+        )}
 
         {tipo === 'evento' && (
           <>
@@ -341,7 +376,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
             <label style={labelStyle}>{t}</label>
             {lista.slice().sort(byTime).map(it => linha(it,
               it._tipo === 'tarefa'
-                ? <span onClick={(e) => { e.stopPropagation(); cal.toggleTask(it.id); }} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc' }}>{it.feita ? '☑' : '☐'}</span>
+                ? <span onClick={(e) => { e.stopPropagation(); cal.toggleTask(it.id, it._doneKey); }} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc' }}>{it.feita ? '☑' : '☐'}</span>
                 : it.horaInicio ? <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span> : null
             ))}
           </div>
@@ -439,10 +474,15 @@ function AgendaView({ onEdit }) {
         : dias.map(({ d, all }) => (
           <div key={ymd(d)} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 12, color: '#888', fontWeight: 700, marginBottom: 6 }}>{DIAS_SEMANA[d.getDay()]}, {d.getDate()} {MESES[d.getMonth()].slice(0, 3)}</div>
-            {all.map(it => (
+            {all.map(it => it._tipo === 'tarefa' ? (
+              <div key={it.id} style={rowBtn}>
+                <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
+                <span onClick={() => onEdit(it)} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+              </div>
+            ) : (
               <button key={it.id} onClick={() => onEdit(it)} style={rowBtn}>
                 <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it._titulo}</span>
                 {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
                 {it._tipo === 'cultura' && <span style={{ fontSize: 10, color: CULTURA_COR, textTransform: 'uppercase' }}>{CULTURA_BY_ID[it.subtipo]?.label}</span>}
               </button>
@@ -466,8 +506,7 @@ function ProximasCorridas({ data, today, onEdit }) {
           return (
             <button key={x.id} onClick={() => onEdit({ ...x, _tipo: 'exercicio' })} style={rowBtn}>
               <span style={{ fontSize: 12, color: EXERCICIO_BY_ID.corrida.cor, fontWeight: 700, minWidth: 52 }}>{d.getDate()} {MESES[d.getMonth()].slice(0, 3)}</span>
-              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{exTitulo(x)}</span>
-              {x.distancia && <span style={{ fontSize: 12, color: '#999' }}>{x.distancia} km</span>}
+              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{corridaLabel(x)}</span>
               {x.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{x.horaInicio}</span>}
             </button>
           );
@@ -478,12 +517,13 @@ function ProximasCorridas({ data, today, onEdit }) {
 
 // ---------------- Resumo de Exercício (acima do calendário de exercício) ----------------
 function ExSummary({ data }) {
-  const nT = data.exercicios.filter(x => x.subtipo === 'treino').length;
-  const nC = data.exercicios.filter(x => x.subtipo === 'corrida').length;
+  const grupo = (g) => data.exercicios.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === g).length;
+  const nT = grupo('treino'), nC = data.exercicios.filter(x => x.subtipo === 'corrida').length, nO = grupo('outros');
   return (
     <div style={{ display: 'flex', gap: 16, marginBottom: 14, fontSize: 12.5, color: '#777' }}>
-      <span><b style={{ color: EXERCICIO_BY_ID.treino.cor }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>
+      <span><b style={{ color: '#5b8def' }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>
       <span><b style={{ color: EXERCICIO_BY_ID.corrida.cor }}>{nC}</b> corrida{nC === 1 ? '' : 's'}</span>
+      <span><b style={{ color: '#8d99ae' }}>{nO}</b> outro{nO === 1 ? '' : 's'}</span>
     </div>
   );
 }
@@ -530,7 +570,7 @@ export default function Calendario({ isWide }) {
       )}
       {view === 'mes' && <Legenda items={LEGENDA} />}
       {view === 'humor' && <Legenda items={MOODS.map(m => ({ label: m.label, cor: m.cor }))} />}
-      {view === 'exercicio' && <Legenda items={EXERCICIO_SUBTIPOS.map(e => ({ label: e.label, cor: e.cor }))} />}
+      {view === 'exercicio' && <Legenda items={EXERCICIO_LEGENDA} />}
 
       {/* Próximas corridas — só na visão Exercício */}
       {view === 'exercicio' && <ProximasCorridas data={cal.data} today={today} onEdit={(it) => setAddSheet({ editing: it })} />}

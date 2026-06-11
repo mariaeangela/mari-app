@@ -9,16 +9,31 @@ export const CATEGORIES = [
   { id: 'viagem',       label: 'Viagem',         cor: '#19b3a6', aguardado: true },
   { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f' },
   { id: 'saude',        label: 'Saúde',          cor: '#54c08a' },
-  { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740', aguardado: true },
+  { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740' },
 ];
 export const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 
-// Exercício é um TIPO próprio (treino/corrida), fora de "Evento".
+// Exercício é um TIPO próprio, fora de "Evento". Cada subtipo tem um `grupo`:
+//   treino (costas/peitoral/perna, cor por grupo muscular), corrida, outros.
+const COR_OUTROS = '#8d99ae';
 export const EXERCICIO_SUBTIPOS = [
-  { id: 'treino',  label: 'Treino',  cor: '#8e7cff' },
-  { id: 'corrida', label: 'Corrida', cor: '#ef6c4d', aguardado: true },
+  { id: 'costas',    label: 'Costas',    grupo: 'treino',  cor: '#5b8def' },
+  { id: 'peitoral',  label: 'Peitoral',  grupo: 'treino',  cor: '#c77dff' },
+  { id: 'perna',     label: 'Perna',     grupo: 'treino',  cor: '#2bb673' },
+  { id: 'corrida',   label: 'Corrida',   grupo: 'corrida', cor: '#ef6c4d', aguardado: true },
+  { id: 'natacao',   label: 'Natação',   grupo: 'outros',  cor: COR_OUTROS },
+  { id: 'caminhada', label: 'Caminhada', grupo: 'outros',  cor: COR_OUTROS },
+  { id: 'trilha',    label: 'Trilha',    grupo: 'outros',  cor: COR_OUTROS },
+  { id: 'jogo',      label: 'Jogo',      grupo: 'outros',  cor: COR_OUTROS },
+  { id: 'danca',     label: 'Dança',     grupo: 'outros',  cor: COR_OUTROS },
 ];
 export const EXERCICIO_BY_ID = Object.fromEntries(EXERCICIO_SUBTIPOS.map(e => [e.id, e]));
+// Legenda da visão Exercício (grupos de treino + corrida + outros).
+export const EXERCICIO_LEGENDA = [
+  { label: 'Costas', cor: '#5b8def' }, { label: 'Peitoral', cor: '#c77dff' },
+  { label: 'Perna', cor: '#2bb673' }, { label: 'Corrida', cor: '#ef6c4d' },
+  { label: 'Outros', cor: COR_OUTROS },
+];
 
 // Rolês, Cultura e Tarefas são TIPOS próprios, com cor própria.
 export const ROLE_COR = '#ff8a3d';      // coral
@@ -39,10 +54,10 @@ export const CULTURA_SUBTIPOS = [
 ];
 export const CULTURA_BY_ID = Object.fromEntries(CULTURA_SUBTIPOS.map(c => [c.id, c]));
 
-// Legenda de cores (mostrada na visão Mês).
+// Legenda de cores da visão Mês (treinos não aparecem no Mês; só corrida).
 export const LEGENDA = [
   ...CATEGORIES.map(c => ({ label: c.label, cor: c.cor })),
-  ...EXERCICIO_SUBTIPOS.map(e => ({ label: e.label, cor: e.cor })),
+  { label: 'Corrida', cor: EXERCICIO_BY_ID.corrida.cor },
   { label: 'Rolê', cor: ROLE_COR },
   { label: 'Cultura', cor: CULTURA_COR },
   { label: 'Tarefa', cor: TAREFA_COR },

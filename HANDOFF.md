@@ -42,9 +42,12 @@ localStorage, que o iOS apagava). Camada:
 Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
 `calendario` de `/api/data` (POST faz merge; convive com `saved`).
 - `src/calendarConfig.js` — CATEGORIES (5 categorias de evento: trabalho,
-  viagem*, aniversários, saúde, datas pessoais*; * = `aguardado`, entra na
-  contagem regressiva — viagem/datas pessoais/corrida, NÃO aniversário).
-  EXERCICIO_SUBTIPOS (treino, corrida*). CULTURA_SUBTIPOS
+  viagem*, aniversários, saúde, datas pessoais; * = `aguardado` → contagem
+  regressiva é SÓ viagem + corrida). EXERCICIO_SUBTIPOS tem `grupo`: treino
+  (costas/peitoral/perna, cor por grupo), corrida* e outros (natação/caminhada/
+  trilha/jogo/dança, cor cinza). EXERCICIO_LEGENDA agrupa em Costas/Peitoral/
+  Perna/Corrida/Outros. itemsGeral exclui só o grupo 'treino' do Mês/Agenda
+  (corrida e outros aparecem). Corrida exibida como "{dist}km - {nome}". CULTURA_SUBTIPOS
   (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
   ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
   `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da
