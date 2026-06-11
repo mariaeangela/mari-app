@@ -11,7 +11,7 @@
 //   moods:      { 'YYYY-MM-DD': moodId }
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario } from './cloud';
 
 const KEY = 'diagonal_calendario';
@@ -30,13 +30,14 @@ function writeLocal(d) {
 
 export function CalendarProvider({ children }) {
   const [data, setData] = useState(readLocal);
+  const dirty = useRef(false); // não deixa a nuvem tardia sobrescrever ação local
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const local = readLocal();
       const cloud = await fetchCalendario();
-      if (!alive) return;
+      if (!alive || dirty.current) return;
       if (!cloud) {
         // nuvem vazia/offline: se já há algo local, empurra pra cima (migração)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
@@ -51,7 +52,7 @@ export function CalendarProvider({ children }) {
     return () => { alive = false; };
   }, []);
 
-  const persist = (next) => { setData(next); writeLocal(next); pushCalendario(next); };
+  const persist = (next) => { dirty.current = true; setData(next); writeLocal(next); pushCalendario(next); };
   const patch = (part) => persist({ ...data, ...part });
 
   // ---- Eventos ----

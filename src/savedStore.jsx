@@ -5,7 +5,7 @@
 //
 // Fluxo: ao abrir, mostra o cache local na hora e, em paralelo, busca a nuvem
 // e reconcilia. Toda mudança grava no local (já) e empurra para a nuvem (logo).
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchSaved, pushSaved } from './cloud';
 
 const KEY = 'diagonal_saved';
@@ -25,6 +25,9 @@ function writeLocal(items) {
 
 export function SavedProvider({ children }) {
   const [items, setItems] = useState(readLocal);
+  // Se o usuário já mexeu (salvou/removeu) antes da nuvem responder, NÃO deixa
+  // a resposta tardia da nuvem sobrescrever a ação dele (corrigia o "X não remove").
+  const dirty = useRef(false);
 
   // Carrega da nuvem uma vez e reconcilia com o cache local.
   useEffect(() => {
@@ -32,7 +35,7 @@ export function SavedProvider({ children }) {
     (async () => {
       const local = readLocal();
       const cloud = await fetchSaved(); // array | null
-      if (!alive) return;
+      if (!alive || dirty.current) return;  // já mexeu -> mantém a ação local
       if (cloud === null) return;       // offline -> mantém o local
       if (cloud.length === 0 && local.length > 0) {
         // Primeira vez com nuvem vazia: migra os salvos deste aparelho para cima.
@@ -47,6 +50,7 @@ export function SavedProvider({ children }) {
   }, []);
 
   const persist = (next) => {
+    dirty.current = true;
     setItems(next);
     writeLocal(next);   // imediato
     pushSaved(next);    // best-effort, com debounce

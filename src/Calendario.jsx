@@ -13,6 +13,14 @@ const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
 // Ordena por horário (sem horário vai pro fim).
 const byTime = (a, b) => (a.horaInicio || '99:99').localeCompare(b.horaInicio || '99:99');
+// Ordem do dia na Agenda: eventos de trabalho SEM horário no topo, depois itens
+// com horário em ordem cronológica, e por fim os demais sem horário.
+const dayOrder = (a, b) => {
+  const rank = (it) => (it._tipo === 'evento' && it.categoria === 'trabalho' && !it.horaInicio) ? 0 : (it.horaInicio ? 1 : 2);
+  const ra = rank(a), rb = rank(b);
+  if (ra !== rb) return ra - rb;
+  return ra === 1 ? a.horaInicio.localeCompare(b.horaInicio) : 0;
+};
 
 function eventOccursOn(ev, date) {
   const dayKey = ymd(date);
@@ -38,9 +46,11 @@ function itemsForDay(data, date) {
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo }));
   const roles = data.roles.filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo }));
-  const cultura = data.cultura.filter(c => c.data === key)
+  // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
+  // (e volta para o calendário como 'lido' quando concluído).
+  const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo')
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
-  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(byTime);
+  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(dayOrder);
   return { events, exercicios, tasks, roles, cultura, all };
 }
 
@@ -443,6 +453,29 @@ function AgendaView({ onEdit }) {
   );
 }
 
+// ---------------- Próximas corridas (abaixo do calendário de Exercício) ----------------
+function ProximasCorridas({ data, today, onEdit }) {
+  const tk = ymd(today);
+  const list = data.exercicios.filter(x => x.subtipo === 'corrida' && x.data >= tk).sort((a, b) => a.data.localeCompare(b.data));
+  return (
+    <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+      <div style={{ fontSize: 11, color: EXERCICIO_BY_ID.corrida.cor, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Próximas corridas</div>
+      {!list.length ? <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic' }}>Nenhuma corrida marcada.</p>
+        : list.map(x => {
+          const d = parseYmd(x.data);
+          return (
+            <button key={x.id} onClick={() => onEdit({ ...x, _tipo: 'exercicio' })} style={rowBtn}>
+              <span style={{ fontSize: 12, color: EXERCICIO_BY_ID.corrida.cor, fontWeight: 700, minWidth: 52 }}>{d.getDate()} {MESES[d.getMonth()].slice(0, 3)}</span>
+              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{exTitulo(x)}</span>
+              {x.distancia && <span style={{ fontSize: 12, color: '#999' }}>{x.distancia} km</span>}
+              {x.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{x.horaInicio}</span>}
+            </button>
+          );
+        })}
+    </div>
+  );
+}
+
 // ---------------- Resumo de Exercício (acima do calendário de exercício) ----------------
 function ExSummary({ data }) {
   const nT = data.exercicios.filter(x => x.subtipo === 'treino').length;
@@ -499,8 +532,11 @@ export default function Calendario({ isWide }) {
       {view === 'humor' && <Legenda items={MOODS.map(m => ({ label: m.label, cor: m.cor }))} />}
       {view === 'exercicio' && <Legenda items={EXERCICIO_SUBTIPOS.map(e => ({ label: e.label, cor: e.cor }))} />}
 
-      {/* Sempre no fim da página: Lendo no momento + Tarefas sem data */}
-      {lendo.length > 0 && (
+      {/* Próximas corridas — só na visão Exercício */}
+      {view === 'exercicio' && <ProximasCorridas data={cal.data} today={today} onEdit={(it) => setAddSheet({ editing: it })} />}
+
+      {/* Lendo no momento — só na visão Mês */}
+      {view === 'mes' && lendo.length > 0 && (
         <div style={{ marginTop: 26, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: CULTURA_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Lendo no momento</div>
           {lendo.map(c => (
@@ -515,7 +551,7 @@ export default function Calendario({ isWide }) {
           ))}
         </div>
       )}
-      {tarefasSemData.length > 0 && (
+      {(view === 'mes' || view === 'agenda') && tarefasSemData.length > 0 && (
         <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Tarefas sem data</div>
           {tarefasSemData.map(t => (

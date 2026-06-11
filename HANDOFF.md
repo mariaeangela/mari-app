@@ -26,6 +26,9 @@ localStorage, que o iOS apagava). Camada:
   MERGE raso (chave `diagonal:data`), então já comporta `projetos` no futuro.
   `pickEnv()` casa as envs por sufixo, tolerando qualquer prefixo da Vercel.
 - `src/cloud.js` — cliente GET/POST best-effort (debounce no POST).
+- Anti-corrida (ambos os stores): um `dirty` ref impede que a resposta TARDIA
+  da nuvem sobrescreva uma ação que o usuário acabou de fazer (corrigia o "X dos
+  Salvos não remove" quando clicado antes do fetch da nuvem terminar).
 - `src/savedStore.jsx` — store central (contexto `SavedProvider`/`useSaved`):
   cache local instantâneo + sync na nuvem; ao abrir com nuvem vazia e local
   cheio, MIGRA o local para cima. `localStorage` segue como cache/fallback
