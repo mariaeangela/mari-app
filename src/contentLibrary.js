@@ -213,7 +213,7 @@ export const CONTENT_LIBRARY = {
       traducao: 'Da escuridão,\npor um caminho ainda mais escuro\nagora devo seguir —\nilumina de longe,\nó lua na crista da montanha.',
       tradutorRotulo: 'tradução livre, a partir do japonês',
       sobreObra: {
-        texto: 'Komachi e Shikibu se destacam como duas das maiores poetas de uma era de grandeza... porque usaram essa forma como um meio de reflexão e introspecção. Cada uma enfrentou a própria experiência com uma franqueza e uma honestidade incomuns em qualquer época.',
+        texto: 'Izumi Shikibu foi uma mulher comprometida com uma vida de consciência religiosa e de intensidade erótica — em igual medida.',
         autor: 'Jane Hirshfield',
         fonte: 'introdução a "The Ink Dark Moon" (trad. livre)',
         url: 'https://www.penguinrandomhouse.com/books/80489/the-ink-dark-moon-by-ono-no-komachi-and-izumi-shikibu-translated-with-an-introduction-and-notes-by-jane-hirshfield-and-mariko-aratani/',
