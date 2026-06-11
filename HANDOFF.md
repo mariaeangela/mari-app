@@ -5,14 +5,15 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 (a Vercel republica sozinha). Senha do app (login): `ts1312`.
 
 ## Arquitetura
-- `src/App.jsx` — tabs (Hoje/Explorar/Salvos/Frases), Header, responsivo
+- `src/App.jsx` — tabs (Hoje/Explorar/Salvos), Header, responsivo
   (grade de 3 colunas no desktop via `useIsWide`, coluna única no mobile),
   relógio vivo (`useMinuteTick`) → edição muda às 6h/14h, datas à meia-noite.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (cards por tema),
-  CARD_PALETTES (tema claro/pastel), MOODS + MOOD_QUOTES (25 frases/humor,
-  rotação diária), getEditionPeriod.
+  CARD_PALETTES (tema claro/pastel), OPENING_QUOTES (frase literária do header
+  em Hoje — mantida), getEditionPeriod.
+  Obs.: a aba "Frases" (humores + MOOD_QUOTES) foi REMOVIDA por completo.
 - `src/Login.jsx` — tela sazonal + saudação.
 - Ícone do app: pintura da nadadora (`public/apple-touch-icon.png` etc.).
 
