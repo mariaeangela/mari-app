@@ -132,29 +132,23 @@ export function getDayName() {
 }
 
 // Paletas expressivas por tipo de card
+// 5 categorias consolidadas (era 18). Veja CATEGORY_SOURCES para o mapeamento.
 export const CONTENT_TYPES = [
-  { id: "artwork", label: "Obra do Dia", emoji: "🎨" },
-  { id: "cultura", label: "Cultura", emoji: "🎭" },
-  { id: "photography", label: "Fotografia", emoji: "📷" },
-  { id: "film", label: "Cinema", emoji: "🎬" },
-  { id: "concept", label: "Conceito", emoji: "🧠" },
-  { id: "city", label: "Cidade", emoji: "📍" },
-  { id: "letter", label: "Cartas", emoji: "💌" },
-  { id: "movement", label: "Movimentos", emoji: "🏛️" },
-  { id: "artist", label: "Artista", emoji: "✨" },
-  { id: "music", label: "Música", emoji: "🎵" },
-  { id: "connection", label: "Conexões", emoji: "📖" },
-  { id: "chess", label: "Xadrez", emoji: "♟️" },
-  { id: "context", label: "Contexto", emoji: "🌍" },
-  { id: "now", label: "Agora", emoji: "⭐" },
-  { id: "philosophy", label: "Filosofia", emoji: "🦉" },
-  { id: "health", label: "Saúde", emoji: "🌿" },
-  { id: "bible", label: "Bíblia", emoji: "📜" },
-  { id: "religion", label: "Religião", emoji: "🛐" },
-  { id: "mythology", label: "Mitologia", emoji: "🏺" },
+  { id: "texto",  label: "Texto",          emoji: "📖" },
+  { id: "imagem", label: "Imagem",         emoji: "🎨" },
+  { id: "cena",   label: "Cena",           emoji: "🎬" },
+  { id: "mito",   label: "Mito & Sagrado", emoji: "🏺" },
+  { id: "mundo",  label: "Mundo",          emoji: "🌍" },
 ];
 
 export const CARD_PALETTES = {
+  // 5 categorias consolidadas
+  texto:      { bg: '#f6f3ea', accent: '#7f671a', text: '#4a3d18', sub: '#8d7835', border: '#e6e1d1', tag: '#f6f3ea' },
+  imagem:     { bg: '#f1eaf6', accent: '#862acb', text: '#41205b', sub: '#965cc1', border: '#ddd1e6', tag: '#f1eaf6' },
+  cena:       { bg: '#eaf2f6', accent: '#1f7398', text: '#20485b', sub: '#3b7d9b', border: '#d1dfe6', tag: '#eaf2f6' },
+  mito:       { bg: '#f6efea', accent: '#98592a', text: '#5a3920', sub: '#9d6a43', border: '#e6dad1', tag: '#f6efea' },
+  mundo:      { bg: '#eaf5f4', accent: '#2f746d', text: '#2c4e4b', sub: '#4c7f7b', border: '#d2e4e3', tag: '#eaf5f4' },
+  // paletas antigas (mantidas p/ Salvos antigos)
   artwork:    { bg: '#f1eaf6', accent: '#862acb', text: '#41205b', sub: '#965cc1', border: '#ddd1e6', tag: '#f1eaf6' },
   cultura:    { bg: '#f6eaf2', accent: '#ba2690', text: '#5b204a', sub: '#bc4e9c', border: '#e6d1e0', tag: '#f6eaf2' },
   photography:{ bg: '#ecf0f3', accent: '#3e6c98', text: '#2c3e4e', sub: '#5c7b99', border: '#d6dbe1', tag: '#ecf0f3' },
@@ -178,6 +172,57 @@ export const CARD_PALETTES = {
 
 // Imagens via Wikimedia Commons (domínio público)
 export const CONTENT_LIBRARY = {
+  // === TEXTO (formato novo: texto real → "Sobre a obra" → contexto → ficha) ===
+  texto: [
+    {
+      titulo: 'o que não digo, o que não mereço',
+      original: 'el poema que no digo,\nel que no merezco.\nMiedo de ser dos\ncamino del espejo:\nalguien en mí dormido\nme come y me bebe.',
+      originalRotulo: 'espanhol · Argentina, 1962',
+      traducao: 'o poema que não digo,\no que não mereço.\nMedo de ser dois\ncaminho do espelho:\nalguém em mim adormecido\nme come e me bebe.',
+      tradutorRotulo: 'tradução livre',
+      sobreObra: {
+        texto: 'Cristalização verbal por amálgama de insônia apaixonada e lucidez meridiana, numa dissolução de realidade submetida às mais altas temperaturas. O produto não contém uma só partícula de mentira.',
+        autor: 'Octavio Paz',
+        fonte: 'prólogo a Árbol de Diana, 1962 (trad. livre)',
+        url: 'https://cvc.cervantes.es/literatura/escritores/pizarnik/obra/arbol.htm',
+      },
+      contexto: 'Alejandra Pizarnik (Buenos Aires, 1936–1972) escrevia poemas curtíssimos e incandescentes, em que cada palavra parece custar caro. Este é o número 14 de "Árbol de Diana" (1962), livro que Octavio Paz prefaciou depois de conhecê-la em Paris. Poeta de culto — obcecada pelo duplo, pelo espelho e pelo silêncio —, morreu aos 36. Quase não circula traduzida em português.',
+      ficha: 'Alejandra Pizarnik · Árbol de Diana, 14 · 1962 · espanhol (Argentina)',
+      fonteTexto: { veiculo: 'texto original', url: 'https://www.poesi.as/apz62014.htm' },
+    },
+    {
+      titulo: 'quando é apenas o que aparenta',
+      original: 'El hombre, cuando es solamente lo que parece ser, casi no es nada.',
+      originalRotulo: 'espanhol · Argentina, 1943',
+      traducao: 'O homem, quando é apenas aquilo que aparenta ser, quase não é nada.',
+      tradutorRotulo: 'tradução livre',
+      sobreObra: {
+        texto: 'Eu trocaria tudo o que escrevi por estas linhas.',
+        autor: 'Roger Caillois',
+        fonte: 'ao descobrir as "Voces" e traduzi-las ao francês, 1949',
+        url: 'https://poetpsy.wordpress.com/catalogue/antonio-porchia-popsy-in-extenso/',
+      },
+      contexto: 'Antonio Porchia (1885–1968) era um operário ítalo-argentino do bairro da Boca que publicou um único livro na vida: "Voces" (1943), uma coleção de aforismos. Borges o admirava; na França, foi "descoberto" por Roger Caillois, e André Breton o chamou do "pensamento mais dúctil em língua espanhola". Seus aforismos têm a respiração do zen e do taoismo — mas vêm de um tipógrafo pobre de Buenos Aires. (Há tradução brasileira de Thomaz Albornoz Neves, pela tan editorial.)',
+      ficha: 'Antonio Porchia · Voces · 1943 · espanhol (Argentina)',
+      fonteTexto: { veiculo: 'Voces', url: 'https://taneditorial.com.br/antonio-porchia/' },
+    },
+    {
+      titulo: 'da escuridão, para outra escuridão',
+      original: 'kuraki yori\nkuraki michi ni zo\nirinu beki\nharuka ni terase\nyama no ha no tsuki',
+      originalRotulo: 'japonês (romaji) · período Heian, séc. XI',
+      traducao: 'Da escuridão,\npor um caminho ainda mais escuro\nagora devo seguir —\nilumina de longe,\nó lua na crista da montanha.',
+      tradutorRotulo: 'tradução livre, a partir do japonês',
+      sobreObra: {
+        texto: 'Komachi e Shikibu se destacam como duas das maiores poetas de uma era de grandeza... porque usaram essa forma como um meio de reflexão e introspecção. Cada uma enfrentou a própria experiência com uma franqueza e uma honestidade incomuns em qualquer época.',
+        autor: 'Jane Hirshfield',
+        fonte: 'introdução a "The Ink Dark Moon" (trad. livre)',
+        url: 'https://www.penguinrandomhouse.com/books/80489/the-ink-dark-moon-by-ono-no-komachi-and-izumi-shikibu-translated-with-an-introduction-and-notes-by-jane-hirshfield-and-mariko-aratani/',
+      },
+      contexto: 'Izumi Shikibu (c. 974–1034) foi uma das maiores poetas da corte Heian, no Japão, célebre por seus poemas de amor sem pudor. Este "waka" é diferente: ela o enviou ao monge Shōkū pedindo orientação espiritual, e o primeiro verso ("da escuridão, para outra escuridão") cita o Sutra de Lótus. Mil anos depois, ainda corta. A tradução inglesa de referência é de Jane Hirshfield e Mariko Aratani.',
+      ficha: 'Izumi Shikibu · Shūi Wakashū · séc. XI · japonês (Heian)',
+      fonteTexto: { veiculo: 'The Ink Dark Moon (trad. Hirshfield & Aratani)', url: 'https://www.penguinrandomhouse.com/books/80489/the-ink-dark-moon-by-ono-no-komachi-and-izumi-shikibu-translated-with-an-introduction-and-notes-by-jane-hirshfield-and-mariko-aratani/' },
+    },
+  ],
   artwork: [
     {
       titulo: 'O Retrato Que Causou um Escândalo',
@@ -1548,4 +1593,32 @@ export function getRandomContent(type) {
   const items = CONTENT_LIBRARY[type] || [];
   if (items.length === 0) return null;
   return items[Math.floor(Math.random() * items.length)];
+}
+
+// --- Categorias consolidadas (5). Cada uma junta vários arrays antigos. ---
+// (Xadrez e Saúde foram cortados; Conexões vive em "Texto".)
+export const CATEGORY_SOURCES = {
+  // Texto = só o array novo (vitrine no padrão novo). Os antigos (letter,
+  // philosophy, concept, connection) ficam guardados p/ reformatar em lote.
+  texto:  ['texto'],
+  imagem: ['artwork', 'artist', 'photography', 'movement'],
+  cena:   ['film', 'music'],
+  mito:   ['mythology', 'religion', 'bible'],
+  mundo:  ['city', 'context', 'now'],
+};
+
+function categoryPool(catId) {
+  const srcs = CATEGORY_SOURCES[catId] || [catId];
+  return srcs.flatMap(s => CONTENT_LIBRARY[s] || []);
+}
+export function getCategoryDaily(catId, offset = 0) {
+  const pool = categoryPool(catId);
+  if (pool.length === 0) return null;
+  const period = getEditionPeriod();
+  return pool[((period + offset) % pool.length + pool.length) % pool.length];
+}
+export function getCategoryRandom(catId) {
+  const pool = categoryPool(catId);
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
 }

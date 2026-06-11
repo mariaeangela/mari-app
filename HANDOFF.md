@@ -10,10 +10,30 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   relógio vivo (`useMinuteTick`) → edição muda às 6h/14h, datas à meia-noite.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
-- `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (cards por tema),
-  CARD_PALETTES (tema claro/pastel), OPENING_QUOTES (frase literária do header
-  em Hoje — mantida), getEditionPeriod.
+- `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
+  ANTIGO, ainda usados), CARD_PALETTES, OPENING_QUOTES (frase do header), getEditionPeriod.
   Obs.: a aba "Frases" (humores + MOOD_QUOTES) foi REMOVIDA por completo.
+
+## Conteúdo dos cards — REFORMA em curso (qualidade > quantidade)
+A pedido da usuária: textos menos mainstream, mais escrita HUMANA real (e menos
+texto de AI), com traduções e coisas obscuras.
+- **18 temas → 5 categorias** (`CONTENT_TYPES` + `CATEGORY_SOURCES` em
+  contentLibrary): **Texto** (cartas/filosofia/conceito/conexões + curadoria nova),
+  **Imagem** (artwork/artist/photography/movement), **Cena** (film/music),
+  **Mito & Sagrado** (mythology/religion/bible), **Mundo** (city/context/now).
+  Cortados: **xadrez** e **health** (orfãos nos dados). Conexões preservada.
+  Feed e Explorar usam `getCategoryDaily/getCategoryRandom(catId)` (App.jsx).
+- **Formato novo de card** (array `texto` em CONTENT_LIBRARY; ContentCard detecta
+  via `content.original||content.traducao`): titulo → original + tradução →
+  "Sobre a obra" (trecho real de crítica/estudo, atribuído) → contexto (1 parág.
+  meu) → ficha + fontes. SEM depender de imagem. Cards antigos (corpo/fonteOficial)
+  seguem no formato antigo (renderização dupla no ContentCard).
+- FEITO (vitrine): categoria **Texto** com 3 cards novos verificados (Pizarnik,
+  Porchia, Izumi Shikibu) — original+tradução+Sobre a obra+contexto+ficha.
+- FALTA: reformatar **Imagem, Cena, Mito & Sagrado, Mundo** (e os textos antigos
+  letter/philosophy/concept/connection) no padrão novo, em lotes verificados na
+  web; podar cards fracos. Política: original+tradução; análise humana real;
+  nada inventado.
 - `src/Login.jsx` — tela sazonal + saudação.
 - Ícone do app: pintura da nadadora (`public/apple-touch-icon.png` etc.).
 

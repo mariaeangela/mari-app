@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, getDailyContent, getRandomContent, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
+import { CONTENT_TYPES, CARD_PALETTES, getCategoryDaily, getCategoryRandom, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
@@ -37,11 +37,11 @@ const GRID_3 = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16
 // `type` controla a EXIBIÇÃO (rótulo, emoji, cor e id de salvamento);
 // `contentType` controla de onde vem o CONTEÚDO. Para o slot "Cultura" eles
 // diferem: exibe sempre "Cultura", mas o texto vem de cinema/artista/música/conexões.
-function CardWithContent({ type, contentType = type, offset = 0, tile = false }) {
+function CardWithContent({ type, offset = 0, tile = false }) {
   const info = CONTENT_TYPES.find(t => t.id === type);
-  const palette = CARD_PALETTES[type] || CARD_PALETTES.artwork;
-  const [content, setContent] = useState(() => getDailyContent(contentType, offset));
-  const reload = () => setContent(getRandomContent(contentType));
+  const palette = CARD_PALETTES[type] || CARD_PALETTES.texto;
+  const [content, setContent] = useState(() => getCategoryDaily(type, offset));
+  const reload = () => setContent(getCategoryRandom(type));
   return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={reload} tile={tile} />;
 }
 
@@ -91,25 +91,13 @@ function Header({ tab, setTab }) {
   );
 }
 
-// Aba Hoje: o 2º card é o slot "cultura", que gira entre cinema/artista/música/
-// conexões a cada edição (6h e 14h). Os demais slots são fixos.
-const CULTURA_TYPES = ['film', 'artist', 'music', 'connection'];
-// Aba Explorar: temas que o usuário escolhe por botão.
-const EXPLORE_TYPES = ['artist', 'music', 'connection', 'chess', 'context', 'now', 'movement', 'letter', 'film', 'mythology', 'religion', 'bible', 'health'];
+// Aba Explorar e Hoje: as 5 categorias consolidadas.
+const EXPLORE_TYPES = ['texto', 'imagem', 'cena', 'mito', 'mundo'];
 
 function Feed({ isWide }) {
-  const period = getEditionPeriod();
-  const cultura = CULTURA_TYPES[((period % CULTURA_TYPES.length) + CULTURA_TYPES.length) % CULTURA_TYPES.length];
-  // 2º slot é sempre exibido como "Cultura"; só o conteúdo (contentType) gira.
-  const slots = [
-    { type: 'artwork' },
-    { type: 'cultura', contentType: cultura },
-    { type: 'photography' },
-    { type: 'concept' },
-    { type: 'philosophy' },
-    { type: 'city' },
-  ];
-  const cards = slots.map((s, i) => <CardWithContent key={s.type} type={s.type} contentType={s.contentType} offset={i} tile={isWide} />);
+  // Um card por categoria; cada um gira pelo seu próprio acervo a cada edição.
+  const slots = ['texto', 'imagem', 'cena', 'mundo', 'mito'];
+  const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} />);
   return isWide
     ? <div style={{ ...GRID_3, padding: '18px 18px 48px' }}>{cards}</div>
     : <div style={{ paddingBottom: 40 }}>{cards}</div>;

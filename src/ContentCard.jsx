@@ -123,6 +123,8 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
   const hasImageSlot = !!(content?.metId || content?.metQuery || content?.clevelandId || content?.clevelandQuery || content?.wikiQuery || content?.imagem);
 
   if (!content) return null;
+  // Formato novo (Texto): texto real (original + tradução) → Sobre a obra → contexto → ficha.
+  const isNovo = !!(content.original || content.traducao);
 
   return (
     <div style={{ background: palette.bg, padding: '26px 22px', marginBottom: tile ? 0 : 2, borderRadius: tile ? 16 : 0, border: tile ? '1px solid ' + palette.border : 'none', animation: 'fadeUp 0.4s ease', position: 'relative', overflow: 'hidden' }}>
@@ -147,6 +149,51 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
         </div>
       </div>
 
+      {isNovo && (
+        <>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, fontWeight: 700, color: palette.text, marginBottom: 14, lineHeight: 1.25 }}>{content.titulo}</h2>
+
+          {content.original && (
+            <div style={{ marginBottom: 14 }}>
+              <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15.5, lineHeight: 1.7, color: palette.text, whiteSpace: 'pre-line', margin: 0 }}>{content.original}</p>
+              {content.originalRotulo && <p style={{ fontSize: 10, color: palette.sub, marginTop: 6, letterSpacing: '0.5px' }}>{content.originalRotulo}</p>}
+            </div>
+          )}
+
+          {content.traducao && (
+            <div style={{ borderLeft: '3px solid ' + palette.accent, paddingLeft: 16, marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: 16, lineHeight: 1.7, color: palette.text, whiteSpace: 'pre-line', margin: 0 }}>{content.traducao}</p>
+              {content.tradutorRotulo && <p style={{ fontSize: 10, color: palette.sub, marginTop: 6 }}>— {content.tradutorRotulo}</p>}
+            </div>
+          )}
+
+          {expanded && content.sobreObra && (
+            <div style={{ marginBottom: 16, paddingTop: 14, borderTop: '1px solid ' + palette.border }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: palette.accent, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 9 }}>Sobre a obra</div>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, margin: '0 0 8px' }}>“{content.sobreObra.texto}”</p>
+              <p style={{ fontSize: 11, color: palette.sub, margin: 0 }}>— {content.sobreObra.autor}{content.sobreObra.fonte ? ', ' + content.sobreObra.fonte : ''} {content.sobreObra.url && <a href={content.sobreObra.url} target="_blank" rel="noopener noreferrer" style={{ color: palette.accent, fontWeight: 700, textDecoration: 'none' }}>↗</a>}</p>
+            </div>
+          )}
+
+          {expanded && content.contexto && (
+            <p style={{ fontFamily: "'Lora', serif", fontSize: 14.5, lineHeight: 1.75, color: palette.text, marginBottom: 14 }}>{content.contexto}</p>
+          )}
+
+          {expanded && content.ficha && (
+            <p style={{ fontSize: 11, color: palette.sub, marginBottom: 6, letterSpacing: '0.3px' }}>{content.ficha}</p>
+          )}
+          {expanded && content.fonteTexto && (
+            <a href={content.fonteTexto.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: palette.accent, fontWeight: 700, textDecoration: 'none', display: 'inline-block', marginBottom: 14 }}>{content.fonteTexto.veiculo} ↗</a>
+          )}
+
+          <button onClick={() => setExpanded(!expanded)} style={{ width: '100%', padding: '12px 0', background: 'transparent', border: '1px solid ' + palette.accent + '50', borderRadius: 12, color: palette.accent, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            {expanded ? 'menos' : 'ler mais'}
+          </button>
+        </>
+      )}
+
+      {!isNovo && (
+      <>
       {/* Imagem — spinner enquanto carrega; sai sozinha se não houver. Clique para ampliar. */}
       {hasImageSlot && !imgError && (
         <div style={{ marginBottom: 16, borderRadius: 12, overflow: 'hidden', background: palette.accent + '12', aspectRatio: imgLoaded ? 'auto' : '16/10', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
@@ -195,6 +242,8 @@ export default function ContentCard({ typeLabel, typeEmoji, palette, content, on
       <button onClick={() => setExpanded(!expanded)} style={{ width: '100%', padding: '12px 0', background: 'transparent', border: '1px solid ' + palette.accent + '50', borderRadius: 12, color: palette.accent, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
         {expanded ? 'menos' : 'ler mais'}
       </button>
+      </>
+      )}
 
       {zoom && imageUrl && <Lightbox src={imageUrl} alt={content.titulo} onClose={() => setZoom(false)} />}
     </div>
