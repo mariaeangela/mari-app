@@ -10,6 +10,15 @@ import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
 const DEFAULT = { compras: { listas: [], itens: [] } };
+
+// Moedas (item da compra guarda a `moeda`; padrão BRL).
+export const MOEDAS = [
+  { id: 'BRL', simbolo: 'R$' },
+  { id: 'USD', simbolo: 'US$' },
+  { id: 'EUR', simbolo: '€' },
+  { id: 'GBP', simbolo: '£' },
+];
+export const simboloMoeda = (id) => (MOEDAS.find(m => m.id === id)?.simbolo) || 'R$';
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 

@@ -1,7 +1,7 @@
 // Aba "Life": hub pessoal. Seção "Listas de compras" funcional; demais seções
 // ainda em placeholder (vamos desenhar uma a uma).
 import { useState } from 'react';
-import { useLife } from './lifeStore.jsx';
+import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 
 const SECOES = [
   { id: 'compras',  label: 'Listas de compras',   desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -26,6 +26,7 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [listaId, setListaId] = useState(editing?.listaId || listaAtual);
   const [orcamento, setOrcamento] = useState(editing?.orcamento || '');
+  const [moeda, setMoeda] = useState(editing?.moeda || 'BRL');
   const [dataLimite, setDataLimite] = useState(editing?.dataLimite || '');
   const [links, setLinks] = useState(editing?.links?.length ? editing.links : ['']);
 
@@ -36,6 +37,7 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
     const obj = {
       titulo: titulo.trim(), listaId,
       orcamento: orcamento || undefined,
+      moeda,
       dataLimite: dataLimite || undefined,
       links: links.map(l => l.trim()).filter(Boolean),
     };
@@ -60,8 +62,13 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
           {listas.map(l => <option key={l.id} value={l.id}>{l.nome}</option>)}
         </select>
 
-        <label style={labelStyle}>Até quanto posso gastar — R$ (opcional)</label>
-        <input type="number" inputMode="decimal" value={orcamento} onChange={e => setOrcamento(e.target.value)} placeholder="ex.: 500" style={inputStyle} />
+        <label style={labelStyle}>Quanto posso gastar (opcional)</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select value={moeda} onChange={e => setMoeda(e.target.value)} style={{ ...inputStyle, width: 92, flexShrink: 0 }}>
+            {MOEDAS.map(m => <option key={m.id} value={m.id}>{m.simbolo}</option>)}
+          </select>
+          <input type="number" inputMode="decimal" value={orcamento} onChange={e => setOrcamento(e.target.value)} placeholder="ex.: 500" style={inputStyle} />
+        </div>
 
         <label style={labelStyle}>Data limite (opcional — deixe vazio se não tem)</label>
         <input type="date" value={dataLimite} onChange={e => setDataLimite(e.target.value)} style={inputStyle} />
@@ -128,7 +135,7 @@ function ComprasSection({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque em "+ adicionar".</p>
       ) : itens.map(it => {
-        const meta = [it.orcamento ? 'R$ ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
+        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
         return (
           <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
             <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
