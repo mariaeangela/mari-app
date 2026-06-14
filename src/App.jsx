@@ -95,6 +95,13 @@ function Header({ tab, setTab }) {
 
 // Aba Explorar e Hoje: as 5 categorias consolidadas.
 const EXPLORE_TYPES = ['texto', 'imagem', 'cena', 'mito', 'mundo'];
+const TYPE_DESC = {
+  texto: 'poesia, fragmentos, ensaios',
+  imagem: 'arte, artistas, fotografia',
+  cena: 'cinema e música',
+  mito: 'mitologia, religião, bíblia',
+  mundo: 'cidades, história, agora',
+};
 
 function Feed({ isWide }) {
   // Um card por categoria; cada um gira pelo seu próprio acervo a cada edição.
@@ -115,11 +122,12 @@ function ExplorePage({ isWide }) {
           <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
             {EXPLORE_TYPES.map(type => {
               const info = CONTENT_TYPES.find(t => t.id === type);
-              const pal = CARD_PALETTES[type];
+              const cor = CARD_PALETTES[type]?.accent || '#888';
               return (
-                <button key={type} onClick={() => setSelectedType(type)} style={{ background: pal.bg, border: '1px solid ' + pal.border, borderRadius: 16, padding: '22px 16px', cursor: 'pointer', textAlign: 'left' }}>
-                  <div style={{ fontSize: 26, marginBottom: 8 }}>{info?.emoji}</div>
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 14, color: pal.text, fontWeight: 700 }}>{info?.label}</div>
+                <button key={type} onClick={() => setSelectedType(type)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+                  <div style={{ width: 24, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2, marginBottom: 4 }}>{info?.label}</div>
+                  <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.4 }}>{TYPE_DESC[type]}</div>
                 </button>
               );
             })}
