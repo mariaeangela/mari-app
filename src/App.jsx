@@ -3,8 +3,9 @@ import { CONTENT_TYPES, CARD_PALETTES, getCategoryDaily, getCategoryRandom, getT
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
-import { CalendarProvider } from './calendarStore.jsx';
-import Calendario from './Calendario.jsx';
+import { CalendarProvider, useCalendar } from './calendarStore.jsx';
+import Calendario, { itemsGeral } from './Calendario.jsx';
+import { getOnThisDay } from './calendarConfig.js';
 import LifePage from './Life.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -103,13 +104,58 @@ const TYPE_DESC = {
   mundo: 'cidades, história, agora',
 };
 
+// "Neste dia, em XXXX..." — fato histórico (movido do calendário para a Hoje).
+function NesteDiaFato() {
+  const [fato, setFato] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    getOnThisDay(new Date()).then(f => { if (alive) setFato(f); });
+    return () => { alive = false; };
+  }, []);
+  if (!fato) return null;
+  return (
+    <p style={{ fontSize: 13, color: '#555', lineHeight: 1.55, fontStyle: 'italic', marginBottom: 18 }}>
+      <span style={{ fontStyle: 'normal', fontWeight: 700, color: '#999' }}>Neste dia, </span>{fato.texto}
+      {fato.fonte === 'Wikipédia' && <span style={{ fontSize: 10, color: '#bbb' }}> · via Wikipédia</span>}
+    </p>
+  );
+}
+
+// Lista do que está marcado para hoje (eventos, tarefas, rolês, cultura…).
+function HojeAgenda() {
+  const cal = useCalendar();
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const items = itemsGeral(cal.data, hoje);
+  if (!items.length) return null;
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>hoje</p>
+      {items.map(it => (
+        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
+          {it._tipo === 'tarefa'
+            ? <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
+            : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
+          <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+          {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Feed({ isWide }) {
-  // Um card por categoria; cada um gira pelo seu próprio acervo a cada edição.
-  const slots = ['texto', 'imagem', 'cena', 'mundo', 'mito'];
+  // Hoje: "neste dia" + agenda do dia + dois cards (texto e imagem).
+  const slots = ['texto', 'imagem'];
   const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} />);
-  return isWide
-    ? <div style={{ ...GRID_3, padding: '18px 18px 48px' }}>{cards}</div>
-    : <div style={{ paddingBottom: 40 }}>{cards}</div>;
+  return (
+    <div style={{ paddingBottom: 40 }}>
+      <div style={{ padding: '20px 20px 0' }}>
+        <NesteDiaFato />
+        <HojeAgenda />
+      </div>
+      {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
+    </div>
+  );
 }
 
 function ExplorePage({ isWide }) {

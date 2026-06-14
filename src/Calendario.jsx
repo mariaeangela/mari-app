@@ -75,20 +75,13 @@ function itemsForDay(data, date) {
 
 // Itens do dia para as visões Mês/Agenda: exclui os treinos de grupo muscular
 // (que só aparecem na visão Exercício). Corrida e "outros" permanecem.
-function itemsGeral(data, date) {
+export function itemsGeral(data, date) {
   return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && ehRotina(it)));
 }
 
-// ---------------- "Neste dia" ----------------
+// ---------------- "Neste dia" (data + suas lembranças). O fato histórico
+// "Neste dia, em XXXX..." foi para a aba Hoje. ----------------
 function NesteDia({ data, today }) {
-  const [fato, setFato] = useState(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    let alive = true; setLoading(true);
-    getOnThisDay(today).then(f => { if (alive) { setFato(f); setLoading(false); } });
-    return () => { alive = false; };
-  }, [ymd(today)]);
-
   const lembrancas = useMemo(() => {
     const mmdd = `${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
     const y = today.getFullYear();
@@ -110,13 +103,6 @@ function NesteDia({ data, today }) {
       <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>
         {DIAS_SEMANA[today.getDay()]} · {today.getFullYear()}
       </div>
-      {loading ? <p style={{ fontSize: 12, color: '#ccc', fontStyle: 'italic' }}>buscando um fato deste dia…</p>
-        : fato ? (
-          <p style={{ fontSize: 13, color: '#555', lineHeight: 1.55, fontStyle: 'italic' }}>
-            <span style={{ fontStyle: 'normal', fontWeight: 700, color: '#999' }}>Neste dia, </span>{fato.texto}
-            {fato.fonte === 'Wikipédia' && <span style={{ fontSize: 10, color: '#bbb' }}> · via Wikipédia</span>}
-          </p>
-        ) : null}
       {lembrancas.slice(0, 3).map((l, i) => (
         <p key={i} style={{ fontSize: 12.5, color: '#8a6d3b', lineHeight: 1.5, marginTop: i === 0 ? 8 : 0 }}>
           <span style={{ fontWeight: 700 }}>Você, há {l.anos} {l.anos === 1 ? 'ano' : 'anos'}:</span> {l.titulo}
