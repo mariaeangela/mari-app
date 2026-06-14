@@ -64,3 +64,30 @@ export function pushCalendario(cal) {
     }).catch(() => {});
   }, 500);
 }
+
+// Aba Life (listas de compras etc.) — mesmo padrão.
+export async function fetchLife() {
+  try {
+    const res = await fetch(ENDPOINT, { method: 'GET' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && typeof data.life === 'object' && data.life) || null;
+  } catch {
+    return null;
+  }
+}
+let ltimer = null;
+let lpending = null;
+export function pushLife(life) {
+  lpending = life;
+  if (ltimer) clearTimeout(ltimer);
+  ltimer = setTimeout(() => {
+    const body = JSON.stringify({ life: lpending });
+    ltimer = null;
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).catch(() => {});
+  }, 500);
+}

@@ -6,6 +6,7 @@ import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsGeral } from './Calendario.jsx';
 import { getOnThisDay } from './calendarConfig.js';
+import { LifeProvider } from './lifeStore.jsx';
 import LifePage from './Life.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -231,17 +232,19 @@ export default function App() {
   return (
     <SavedProvider>
       <CalendarProvider>
-        <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-          <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
-            <Header tab={tab} setTab={setTab} />
+        <LifeProvider>
+          <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
+              <Header tab={tab} setTab={setTab} />
+            </div>
+            {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
+            {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
+            {tab === 'explore' && <ExplorePage isWide={isWide} />}
+            {tab === 'saved' && <SavedPage isWide={isWide} />}
+            {tab === 'calendar' && <Calendario isWide={isWide} />}
+            {tab === 'life' && <LifePage isWide={isWide} />}
           </div>
-          {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
-          {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
-          {tab === 'explore' && <ExplorePage isWide={isWide} />}
-          {tab === 'saved' && <SavedPage isWide={isWide} />}
-          {tab === 'calendar' && <Calendario isWide={isWide} />}
-          {tab === 'life' && <LifePage isWide={isWide} />}
-        </div>
+        </LifeProvider>
       </CalendarProvider>
     </SavedProvider>
   );

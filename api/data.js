@@ -50,6 +50,7 @@ module.exports = async function handler(req, res) {
       if (Array.isArray(body.saved)) next.saved = body.saved;
       if (body.projetos !== undefined) next.projetos = body.projetos;
       if (body.calendario !== undefined) next.calendario = body.calendario;
+      if (body.life !== undefined) next.life = body.life;
       await redis.set(DATA_KEY, next);
       res.status(200).json({ ok: true });
       return;
