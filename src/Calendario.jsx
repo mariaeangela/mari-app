@@ -35,6 +35,7 @@ function recurOccursOn(startKey, repetir, date) {
 
 function eventOccursOn(ev, date) {
   const dayKey = ymd(date);
+  if ((ev.excecoes || []).includes(dayKey)) return false;  // ocorrência apagada
   if (!ev.repetir || ev.repetir === 'nao') {
     const fim = ev.fim || ev.inicio;
     return dayKey >= ev.inicio && dayKey <= fim;
@@ -43,7 +44,9 @@ function eventOccursOn(ev, date) {
 }
 
 function taskOccursOn(t, date) {
-  if (!t.repetir || t.repetir === 'nao') return t.data === ymd(date);
+  const dayKey = ymd(date);
+  if ((t.excecoes || []).includes(dayKey)) return false;
+  if (!t.repetir || t.repetir === 'nao') return t.data === dayKey;
   return recurOccursOn(t.data, t.repetir, date);
 }
 
@@ -55,11 +58,11 @@ const ehCorrida = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida';
 function itemsForDay(data, date) {
   const key = ymd(date);
   const events = data.events.filter(e => eventOccursOn(e, date))
-    .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo }));
+    .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo, _dia: key }));
   const exercicios = data.exercicios.filter(x => x.data === key)
     .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: ehCorrida(x) ? corridaLabel(x) : exTitulo(x) }));
   const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
-    .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, feita: (t.feitas || []).includes(key) }));
+    .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo }));
   // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
@@ -171,8 +174,23 @@ function AddSheet({ initialDate, editing, onClose }) {
   ];
   const podeSalvar = tipo === 'exercicio' ? true : titulo.trim().length > 0;
 
+  // Monta o objeto do tipo escolhido (sem id) — usado na conversão de tipo.
+  const buildObj = () => {
+    if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
+    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined };
+    if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: false };
+    if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined };
+    return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, nota: nota || undefined, comQuem: comQuem || undefined };
+  };
+
   const salvar = () => {
     if (!podeSalvar) return;
+    const origTipo = editing?._tipo;
+    if (editing && origTipo && tipo !== origTipo) {  // mudou de tipo -> vira novo item
+      cal.convertItem(origTipo, editing.id, tipo, buildObj());
+      onClose();
+      return;
+    }
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
     else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined });
@@ -193,16 +211,17 @@ function AddSheet({ initialDate, editing, onClose }) {
           <button onClick={onClose} style={closeBtn}>×</button>
         </div>
 
-        {!editing && (
-          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-            {TIPOS.map(t => (
-              <button key={t.id} onClick={() => setTipo(t.id)} style={{
-                flex: '1 0 auto', padding: '8px 10px', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                border: '1px solid ' + (tipo === t.id ? '#111' : '#e2e2e2'),
-                background: tipo === t.id ? '#111' : '#fff', color: tipo === t.id ? '#fff' : '#666',
-              }}>{t.label}</button>
-            ))}
-          </div>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          {TIPOS.map(t => (
+            <button key={t.id} onClick={() => setTipo(t.id)} style={{
+              flex: '1 0 auto', padding: '8px 10px', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              border: '1px solid ' + (tipo === t.id ? '#111' : '#e2e2e2'),
+              background: tipo === t.id ? '#111' : '#fff', color: tipo === t.id ? '#fff' : '#666',
+            }}>{t.label}</button>
+          ))}
+        </div>
+        {editing && tipo !== editing._tipo && (
+          <p style={{ fontSize: 11, color: '#a9772f', marginTop: 6 }}>Vai converter de "{TIPOS.find(t => t.id === editing._tipo)?.label}" para "{TIPOS.find(t => t.id === tipo)?.label}".</p>
         )}
 
         {tipo === 'exercicio' && (
@@ -314,17 +333,30 @@ function AddSheet({ initialDate, editing, onClose }) {
           </>
         )}
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-          {editing && (
-            <button onClick={() => {
-              if (tipo === 'evento') cal.deleteEvent(editing.id);
-              else if (tipo === 'exercicio') cal.deleteExercicio(editing.id);
-              else if (tipo === 'tarefa') cal.deleteTask(editing.id);
-              else if (tipo === 'role') cal.deleteRole(editing.id);
-              else if (tipo === 'cultura') cal.deleteCultura(editing.id);
+        <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
+          {editing && (() => {
+            const ot = editing._tipo;
+            const recorrente = (ot === 'evento' || ot === 'tarefa') && editing.repetir && editing.repetir !== 'nao' && editing._dia;
+            const apagarSerie = () => {
+              if (ot === 'evento') cal.deleteEvent(editing.id);
+              else if (ot === 'exercicio') cal.deleteExercicio(editing.id);
+              else if (ot === 'tarefa') cal.deleteTask(editing.id);
+              else if (ot === 'role') cal.deleteRole(editing.id);
+              else if (ot === 'cultura') cal.deleteCultura(editing.id);
               onClose();
-            }} style={delBtn}>Apagar</button>
-          )}
+            };
+            const apagarEsteDia = () => {
+              if (ot === 'evento') cal.addEventExcecao(editing.id, editing._dia);
+              else cal.addTaskExcecao(editing.id, editing._dia);
+              onClose();
+            };
+            return recorrente
+              ? <>
+                  <button onClick={apagarEsteDia} style={delBtn}>Só este dia</button>
+                  <button onClick={apagarSerie} style={delBtn}>A série toda</button>
+                </>
+              : <button onClick={apagarSerie} style={delBtn}>Apagar</button>;
+          })()}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>
             {editing ? 'Salvar' : 'Adicionar'}
           </button>

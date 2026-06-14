@@ -62,6 +62,8 @@ export function CalendarProvider({ children }) {
     else patch({ events: [...data.events, { ...ev, id: uid('e') }] });
   };
   const deleteEvent = (id) => patch({ events: data.events.filter(e => e.id !== id) });
+  // Apaga só UMA ocorrência de um evento recorrente (adiciona o dia às exceções).
+  const addEventExcecao = (id, dia) => patch({ events: data.events.map(e => e.id === id ? { ...e, excecoes: [...(e.excecoes || []), dia] } : e) });
 
   // ---- Exercícios (treino/corrida) ----
   const saveExercicio = (x) => {
@@ -89,6 +91,7 @@ export function CalendarProvider({ children }) {
     }),
   });
   const deleteTask = (id) => patch({ tasks: data.tasks.filter(x => x.id !== id) });
+  const addTaskExcecao = (id, dia) => patch({ tasks: data.tasks.map(t => t.id === id ? { ...t, excecoes: [...(t.excecoes || []), dia] } : t) });
 
   // ---- Rolês (opções do dia) ----
   const addRole = (r) => {
@@ -105,6 +108,18 @@ export function CalendarProvider({ children }) {
     else patch({ cultura: [...data.cultura, { ...c, id: uid('c') }] });
   };
   const deleteCultura = (id) => patch({ cultura: data.cultura.filter(x => x.id !== id) });
+
+  // Converte um item de um tipo para outro (ex.: evento -> tarefa) num único
+  // patch: remove do array de origem e cria no de destino.
+  const ARR = { evento: 'events', exercicio: 'exercicios', tarefa: 'tasks', role: 'roles', cultura: 'cultura' };
+  const convertItem = (fromTipo, fromId, toTipo, obj) => {
+    const fromKey = ARR[fromTipo], toKey = ARR[toTipo];
+    if (!fromKey || !toKey) return;
+    const next = { ...data };
+    next[fromKey] = data[fromKey].filter(i => i.id !== fromId);
+    next[toKey] = [...next[toKey], { ...obj, id: uid('v') }];
+    persist(next);
+  };
 
   // ---- Humor & Diário (por dia) ----
   const setMood = (dayKey, moodId) => {
@@ -126,9 +141,9 @@ export function CalendarProvider({ children }) {
   };
 
   const value = {
-    data, saveEvent, deleteEvent, saveExercicio, deleteExercicio,
-    saveTask, toggleTask, deleteTask,
-    addRole, updateRole, deleteRole, saveCultura, deleteCultura, setMood, setDiary, setBilhete,
+    data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
+    saveTask, toggleTask, deleteTask, addTaskExcecao,
+    addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }
