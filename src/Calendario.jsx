@@ -739,7 +739,7 @@ export default function Calendario({ isWide }) {
                 <div onClick={() => setCompraAberta(aberta ? null : it.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                   <span style={{ fontSize: 12, color: '#e07a2f', fontWeight: 700, minWidth: 40 }}>{it.dataLimite.slice(8, 10)}/{it.dataLimite.slice(5, 7)}</span>
                   <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1 }}>{it.titulo}</span>
-                  {it.orcamento && <span style={{ fontSize: 12, color: '#999' }}>até R$ {it.orcamento}</span>}
+                  {it.orcamento && <span style={{ fontSize: 12, color: '#999' }}>R$ {it.orcamento}</span>}
                 </div>
                 {aberta && (
                   <div style={{ marginTop: 8, paddingLeft: 50 }}>

@@ -128,7 +128,7 @@ function ComprasSection({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque em "+ adicionar".</p>
       ) : itens.map(it => {
-        const meta = [it.orcamento ? 'até R$ ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
+        const meta = [it.orcamento ? 'R$ ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
         return (
           <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
             <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
