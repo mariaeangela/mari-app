@@ -3,6 +3,7 @@
 // "+" no topo adiciona escolhendo a data no formulário.
 import { useState, useMemo, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
+import { useLife } from './lifeStore.jsx';
 import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
@@ -657,14 +658,20 @@ export default function Calendario({ isWide }) {
   const cal = useCalendar();
   const [view, setView] = useState('mes');
   const [refDate, setRefDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const life = useLife();
   const [dayModal, setDayModal] = useState(null);
   const [addSheet, setAddSheet] = useState(null);
   const [bilheteAberto, setBilheteAberto] = useState(false);
+  const [compraAberta, setCompraAberta] = useState(null);
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
   const bilheteHoje = cal.data.bilhetes[ymd(today)];
   const tarefasSemData = cal.data.tasks.filter(t => !t.data);
+  // Compras com data limite no mês exibido (refDate).
+  const mesKey = `${refDate.getFullYear()}-${pad2(refDate.getMonth() + 1)}`;
+  const comprasDoMes = (life.compras.itens || []).filter(i => i.dataLimite && i.dataLimite.slice(0, 7) === mesKey)
+    .sort((a, b) => a.dataLimite.localeCompare(b.dataLimite));
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
@@ -720,6 +727,30 @@ export default function Calendario({ isWide }) {
               </button>
             </div>
           ))}
+        </div>
+      )}
+      {view === 'mes' && comprasDoMes.length > 0 && (
+        <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+          <div style={{ fontSize: 11, color: '#e07a2f', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Compras do mês</div>
+          {comprasDoMes.map(it => {
+            const aberta = compraAberta === it.id;
+            return (
+              <div key={it.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+                <div onClick={() => setCompraAberta(aberta ? null : it.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <span style={{ fontSize: 12, color: '#e07a2f', fontWeight: 700, minWidth: 40 }}>{it.dataLimite.slice(8, 10)}/{it.dataLimite.slice(5, 7)}</span>
+                  <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1 }}>{it.titulo}</span>
+                  {it.orcamento && <span style={{ fontSize: 12, color: '#999' }}>até R$ {it.orcamento}</span>}
+                </div>
+                {aberta && (
+                  <div style={{ marginTop: 8, paddingLeft: 50 }}>
+                    {(it.links || []).length ? (it.links || []).map((l, i) => (
+                      <a key={i} href={l} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: 12.5, color: '#e07a2f', fontWeight: 600, textDecoration: 'none', marginBottom: 3, wordBreak: 'break-all' }}>{l} ↗</a>
+                    )) : <span style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic' }}>sem links</span>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       {(view === 'mes' || view === 'agenda') && tarefasSemData.length > 0 && (
