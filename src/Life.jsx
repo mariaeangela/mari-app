@@ -310,6 +310,28 @@ const CULT_TIPOS = [
   { id: 'filme', label: 'Filme' }, { id: 'evento', label: 'Evento' },
 ];
 const cultTipoLabel = (id) => CULT_TIPOS.find(t => t.id === id)?.label || 'Evento';
+const DIAS_SEM = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const DIAS_ABREV = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const fmtHora = (h) => h ? h.replace(':00', 'h').replace(':', 'h') : '';
+// Formata o funcionamento (objeto novo {dias,abre,fecha} ou string antiga).
+function fmtFuncionamento(f) {
+  if (!f) return '';
+  if (typeof f === 'string') return f;
+  const { dias = [], abre, fecha } = f;
+  let d = '';
+  if (dias.length) {
+    const set = [...dias].sort((a, b) => a - b);
+    if (set.length === 7) d = 'todo dia';
+    else if (set.length === 6) d = 'fecha ' + DIAS_ABREV[[0, 1, 2, 3, 4, 5, 6].find(x => !set.includes(x))];
+    else {
+      let contig = true;
+      for (let i = 1; i < set.length; i++) if (set[i] !== set[i - 1] + 1) contig = false;
+      d = (contig && set.length >= 2) ? DIAS_ABREV[set[0]] + ' a ' + DIAS_ABREV[set[set.length - 1]] : set.map(x => DIAS_ABREV[x]).join(', ');
+    }
+  }
+  const h = (abre || fecha) ? [fmtHora(abre), fmtHora(fecha)].filter(Boolean).join('–') : '';
+  return [d, h].filter(Boolean).join(' · ');
+}
 
 function CulturalForm({ editing, onClose }) {
   const life = useLife();
@@ -319,15 +341,20 @@ function CulturalForm({ editing, onClose }) {
   const [local, setLocal] = useState(editing?.local || '');
   const [dataMax, setDataMax] = useState(editing?.dataMax || '');
   const [preco, setPreco] = useState(editing?.preco || '');
-  const [funcionamento, setFuncionamento] = useState(editing?.funcionamento || '');
+  const f0 = (editing && typeof editing.funcionamento === 'object') ? editing.funcionamento : {};
+  const [dias, setDias] = useState(f0.dias || []);
+  const [abre, setAbre] = useState(f0.abre || '');
+  const [fecha, setFecha] = useState(f0.fecha || '');
+  const toggleDia = (i) => setDias(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i]);
   const podeSalvar = nome.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
+    const func = (dias.length || abre || fecha) ? { dias: [...dias].sort((a, b) => a - b), abre: abre || undefined, fecha: fecha || undefined } : undefined;
     life.saveCulturalItem({
       id: editing?.id, nome: nome.trim(), tipo,
       cidade: cidade.trim() || undefined, local: local.trim() || undefined,
       dataMax: dataMax || undefined, preco: preco.trim() || undefined,
-      funcionamento: funcionamento.trim() || undefined,
+      funcionamento: func,
     });
     onClose();
   };
@@ -352,8 +379,25 @@ function CulturalForm({ editing, onClose }) {
         <input type="date" value={dataMax} onChange={e => setDataMax(e.target.value)} style={inputStyle} />
         <label style={labelStyle}>Preço (opcional)</label>
         <input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: R$ 40 · grátis" style={inputStyle} />
-        <label style={labelStyle}>Funcionamento (opcional)</label>
-        <input value={funcionamento} onChange={e => setFuncionamento(e.target.value)} placeholder="ex.: todo dia · sex a dom · fecha segunda" style={inputStyle} />
+        <label style={labelStyle}>Dias de funcionamento (opcional)</label>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          {DIAS_SEM.map((d, i) => {
+            const on = dias.includes(i);
+            return (
+              <button key={i} onClick={() => toggleDia(i)} style={{
+                padding: '7px 11px', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+                border: '1.5px solid ' + (on ? COR_CULTURAL : '#e2e2e2'),
+                background: on ? COR_CULTURAL + '22' : '#fff', color: on ? '#6a2350' : '#999',
+              }}>{d}</button>
+            );
+          })}
+        </div>
+        <label style={labelStyle}>Horário (opcional)</label>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input type="time" value={abre} onChange={e => setAbre(e.target.value)} style={inputStyle} />
+          <span style={{ color: '#999', fontSize: 13 }}>às</span>
+          <input type="time" value={fecha} onChange={e => setFecha(e.target.value)} style={inputStyle} />
+        </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteCulturalItem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
@@ -407,7 +451,7 @@ function CulturalSection({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada em cartaz por aqui. Toque no + para adicionar.</p>
       ) : itens.map(it => {
-        const meta = [it.local, it.dataMax ? 'até ' + fmtData(it.dataMax) : null, it.preco, it.funcionamento].filter(Boolean).join(' · ');
+        const meta = [it.local, it.dataMax ? 'até ' + fmtData(it.dataMax) : null, it.preco, fmtFuncionamento(it.funcionamento) || null].filter(Boolean).join(' · ');
         return (
           <button key={it.id} onClick={() => setForm({ editing: it })} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
