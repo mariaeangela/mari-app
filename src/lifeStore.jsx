@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [] } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -121,13 +121,14 @@ export function LifeProvider({ children }) {
     ? { ...financas, snapshots: financas.snapshots.map(s => s.id === snap.id ? snap : s) }
     : { ...financas, snapshots: [...financas.snapshots, { ...snap, id: uid('f') }] });
   const deleteFinancasSnapshot = (id) => setFinancas({ ...financas, snapshots: financas.snapshots.filter(s => s.id !== id) });
+  const setFinancasUsdRate = (usdRate) => setFinancas({ ...financas, usdRate });
 
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
-    financas, saveFinancasSnapshot, deleteFinancasSnapshot,
+    financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

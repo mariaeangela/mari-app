@@ -1,6 +1,6 @@
 // Aba "Life": hub pessoal. Seção "Listas de compras" funcional; demais seções
 // ainda em placeholder (vamos desenhar uma a uma).
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 
 const SECOES = [
@@ -32,7 +32,11 @@ const fmtBRL = (n) => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimum
 const fmtBRLcurto = (n) => { const v = Number(n) || 0; if (v >= 1e6) return 'R$ ' + (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M'; if (v >= 1e3) return 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k'; return fmtBRL(v); };
 const fmtMes = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]}/${y.slice(2)}`; };
 const fmtMesLongo = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]} de ${y}`; };
-const somaHoldings = (hs) => (hs || []).reduce((s, h) => s + (Number(h.valor) || 0), 0);
+const fmtUSD = (n) => 'US$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Valor de um ativo em R$ (converte de USD pela cotação `rate` quando moeda === 'USD').
+const valorBRL = (h, rate) => (h.moeda === 'USD' ? (Number(h.valor) || 0) * (Number(rate) || 0) : (Number(h.valor) || 0));
+// Total da CARTEIRA (exclui itens marcados como `externo`, ex.: FGTS).
+const totalCarteiraBRL = (holdings, rate) => (holdings || []).filter(h => !h.externo).reduce((s, h) => s + valorBRL(h, rate), 0);
 
 function ComprasForm({ editing, listaAtual, listas, onClose }) {
   const life = useLife();
@@ -529,42 +533,69 @@ function EvolucaoFin({ pontos }) {
   );
 }
 
-function FinTabela({ holdings, total }) {
-  const rows = [...holdings].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
-  if (!rows.length) return <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Sem ativos neste mês.</p>;
+function LinhaAtivo({ h, denom, rate, pctLabel }) {
+  const v = valorBRL(h, rate);
+  const pct = denom ? (v / denom * 100) : 0;
+  const sub = [h.categoria, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
-      <thead>
-        <tr style={{ borderBottom: '1.5px solid #eee', color: '#aaa', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          <th style={{ textAlign: 'left', padding: '8px 6px', fontWeight: 600 }}>Ativo</th>
-          <th style={{ textAlign: 'right', padding: '8px 6px', fontWeight: 600 }}>Valor</th>
-          <th style={{ textAlign: 'right', padding: '8px 6px', fontWeight: 600, width: 52 }}>%</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((h, i) => {
-          const v = Number(h.valor) || 0;
-          const pct = total ? (v / total * 100) : 0;
-          return (
-            <tr key={h.id || i} style={{ borderBottom: '1px solid #f3f3f3' }}>
-              <td style={{ padding: '10px 6px' }}>
-                <div style={{ color: '#222', fontWeight: 600 }}>{h.nome}</div>
-                {h.categoria && <div style={{ fontSize: 11, color: '#aaa', marginTop: 1 }}>{h.categoria}</div>}
-              </td>
-              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)}</td>
-              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999' }}>{pct.toFixed(1)}%</td>
+    <tr style={{ borderBottom: '1px solid #f3f3f3' }}>
+      <td style={{ padding: '10px 6px' }}>
+        <div style={{ color: '#222', fontWeight: 600 }}>{h.nome}</div>
+        {sub && <div style={{ fontSize: 11, color: '#aaa', marginTop: 1 }}>{sub}</div>}
+      </td>
+      <td style={{ padding: '10px 6px', textAlign: 'right', color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)}</td>
+      <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999', whiteSpace: 'nowrap' }} title={pctLabel}>{pct.toFixed(1)}%</td>
+    </tr>
+  );
+}
+
+function FinTabela({ holdings, rate }) {
+  const carteira = [...holdings].filter(h => !h.externo).sort((a, b) => valorBRL(b, rate) - valorBRL(a, rate));
+  const externos = [...holdings].filter(h => h.externo).sort((a, b) => valorBRL(b, rate) - valorBRL(a, rate));
+  const total = carteira.reduce((s, h) => s + valorBRL(h, rate), 0);
+  if (!carteira.length && !externos.length) return <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Sem ativos neste mês.</p>;
+  const thStyle = { color: '#aaa', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 };
+  return (
+    <>
+      {carteira.length > 0 && (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+          <thead>
+            <tr style={{ borderBottom: '1.5px solid #eee' }}>
+              <th style={{ ...thStyle, textAlign: 'left', padding: '8px 6px' }}>Ativo</th>
+              <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px' }}>Valor</th>
+              <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px', width: 52 }}>%</th>
             </tr>
-          );
-        })}
-      </tbody>
-      <tfoot>
-        <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
-          <td style={{ padding: '10px 6px', color: '#111' }}>Total</td>
-          <td style={{ padding: '10px 6px', textAlign: 'right', color: '#1a7a4f', whiteSpace: 'nowrap' }}>{fmtBRL(total)}</td>
-          <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999' }}>100%</td>
-        </tr>
-      </tfoot>
-    </table>
+          </thead>
+          <tbody>
+            {carteira.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} />)}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
+              <td style={{ padding: '10px 6px', color: '#111' }}>Total da carteira</td>
+              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#1a7a4f', whiteSpace: 'nowrap' }}>{fmtBRL(total)}</td>
+              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999' }}>100%</td>
+            </tr>
+          </tfoot>
+        </table>
+      )}
+      {externos.length > 0 && (
+        <div style={{ marginTop: 22 }}>
+          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 4px', fontWeight: 600 }}>Fora da carteira</p>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
+            <thead>
+              <tr style={{ borderBottom: '1.5px solid #eee' }}>
+                <th style={{ ...thStyle, textAlign: 'left', padding: '8px 6px' }}>Item</th>
+                <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px' }}>Valor</th>
+                <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px', width: 64 }}>% da carteira</th>
+              </tr>
+            </thead>
+            <tbody>
+              {externos.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} pctLabel="em relação ao total da carteira" />)}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -587,28 +618,51 @@ function FinPizza({ fatias, total }) {
   );
 }
 
-function FinEvolucao({ snaps }) {
-  const pontos = snaps.map(s => ({ mes: s.mes, total: somaHoldings(s.holdings) }));
-  if (pontos.length < 2) return <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0', lineHeight: 1.6 }}>Adicione pelo menos dois meses pra ver a evolução da carteira.</p>;
+function FinEvolucao({ snaps, rate }) {
+  const externosNomes = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => h.externo).map(h => h.nome)))];
+  const series = [
+    { key: '_carteira', label: 'Carteira', pontos: snaps.map(s => ({ mes: s.mes, total: totalCarteiraBRL(s.holdings, rate) })) },
+    ...externosNomes.map(nome => ({ key: nome, label: nome, pontos: snaps.map(s => ({ mes: s.mes, total: (s.holdings || []).filter(h => h.externo && h.nome === nome).reduce((a, h) => a + valorBRL(h, rate), 0) })) })),
+  ];
+  const [sel, setSel] = useState('_carteira');
+  const serie = series.find(x => x.key === sel) || series[0];
+  const pontos = serie.pontos;
   const linhas = [...pontos].reverse();
   return (
     <div>
-      <EvolucaoFin pontos={pontos} />
-      <div style={{ marginTop: 16 }}>
-        {linhas.map((p, i) => {
-          const prev = linhas[i + 1];
-          const delta = prev ? p.total - prev.total : null;
-          const pct = prev && prev.total ? (delta / prev.total * 100) : null;
-          const up = delta != null && delta >= 0;
-          return (
-            <div key={p.mes} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
-              <span style={{ fontSize: 13, color: '#444', width: 70, textTransform: 'capitalize' }}>{fmtMes(p.mes)}</span>
-              <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600, flex: 1 }}>{fmtBRL(p.total)}</span>
-              {pct != null && <span style={{ fontSize: 12.5, fontWeight: 700, color: up ? '#1a7a4f' : '#c0392b' }}>{up ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%</span>}
-            </div>
-          );
-        })}
-      </div>
+      {series.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+          {series.map(s => (
+            <button key={s.key} onClick={() => setSel(s.key)} style={{
+              padding: '5px 11px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              border: '1px solid ' + (sel === s.key ? COR_FIN : '#e2e2e2'),
+              background: sel === s.key ? COR_FIN + '1c' : '#fff', color: sel === s.key ? '#1a7a4f' : '#888',
+            }}>{s.label}</button>
+          ))}
+        </div>
+      )}
+      {pontos.length < 2 ? (
+        <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0', lineHeight: 1.6 }}>Adicione pelo menos dois meses pra ver a evolução.</p>
+      ) : (
+        <>
+          <EvolucaoFin pontos={pontos} />
+          <div style={{ marginTop: 16 }}>
+            {linhas.map((p, i) => {
+              const prev = linhas[i + 1];
+              const delta = prev ? p.total - prev.total : null;
+              const pct = prev && prev.total ? (delta / prev.total * 100) : null;
+              const up = delta != null && delta >= 0;
+              return (
+                <div key={p.mes} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
+                  <span style={{ fontSize: 13, color: '#444', width: 70, textTransform: 'capitalize' }}>{fmtMes(p.mes)}</span>
+                  <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600, flex: 1 }}>{fmtBRL(p.total)}</span>
+                  {pct != null && <span style={{ fontSize: 12.5, fontWeight: 700, color: up ? '#1a7a4f' : '#c0392b' }}>{up ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%</span>}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -616,16 +670,16 @@ function FinEvolucao({ snaps }) {
 function FinancasForm({ editing, snaps, onClose }) {
   const life = useLife();
   const hojeMes = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+  const novaRow = () => ({ nome: '', categoria: '', valor: '', moeda: 'BRL', externo: false });
   const [mes, setMes] = useState(editing?.mes || hojeMes());
-  const [rows, setRows] = useState(editing?.holdings?.length ? editing.holdings.map(h => ({ ...h, valor: String(h.valor) })) : [{ nome: '', categoria: '', valor: '' }]);
+  const [rows, setRows] = useState(editing?.holdings?.length ? editing.holdings.map(h => ({ ...h, valor: String(h.valor), moeda: h.moeda || 'BRL', externo: !!h.externo })) : [novaRow()]);
   const cats = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.categoria).filter(Boolean)))];
 
   const setRow = (i, k, v) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
-  const addRow = () => setRows([...rows, { nome: '', categoria: '', valor: '' }]);
+  const addRow = () => setRows([...rows, novaRow()]);
   const delRow = (i) => setRows(rows.filter((_, j) => j !== i));
 
   const limpos = rows.filter(r => r.nome.trim() && (Number(r.valor) || 0) > 0);
-  const totalPrev = limpos.reduce((s, r) => s + (Number(r.valor) || 0), 0);
   const podeSalvar = mes && limpos.length > 0;
 
   const salvar = () => {
@@ -634,7 +688,7 @@ function FinancasForm({ editing, snaps, onClose }) {
     const snap = {
       id: editing?.id || existente?.id,
       mes,
-      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), valor: Number(r.valor) })),
+      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), valor: Number(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
     onClose();
@@ -651,21 +705,31 @@ function FinancasForm({ editing, snaps, onClose }) {
         <label style={labelStyle}>Mês</label>
         <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
 
-        <label style={labelStyle}>Ativos (nome · categoria · valor em R$)</label>
+        <label style={labelStyle}>Ativos</label>
         <datalist id="fin-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>
         {rows.map((r, i) => (
-          <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
-            <input value={r.nome} onChange={e => setRow(i, 'nome', e.target.value)} placeholder="ativo" style={{ ...inputStyle, flex: 2, minWidth: 0 }} />
-            <input list="fin-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.4, minWidth: 0 }} />
-            <input type="number" inputMode="decimal" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="R$" style={{ ...inputStyle, width: 78, flexShrink: 0 }} />
-            <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 20, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
+          <div key={i} style={{ border: '1px solid #eee', borderRadius: 11, padding: 10, marginBottom: 8, background: '#fff' }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+              <input value={r.nome} onChange={e => setRow(i, 'nome', e.target.value)} placeholder="nome do ativo" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+              <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 22, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input list="fin-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.3, minWidth: 0 }} />
+              <select value={r.moeda} onChange={e => setRow(i, 'moeda', e.target.value)} style={{ ...inputStyle, width: 66, flexShrink: 0, padding: '10px 6px' }}>
+                <option value="BRL">R$</option>
+                <option value="USD">US$</option>
+              </select>
+              <input type="number" inputMode="decimal" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, width: 90, flexShrink: 0 }} />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8, fontSize: 12.5, color: '#777', cursor: 'pointer' }}>
+              <input type="checkbox" checked={r.externo} onChange={e => setRow(i, 'externo', e.target.checked)} style={{ width: 15, height: 15, accentColor: COR_FIN }} />
+              fora da carteira (ex.: FGTS — não entra no total/pizza)
+            </label>
           </div>
         ))}
-        <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '8px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ ativo</button>
+        <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '9px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ ativo</button>
 
-        <div style={{ textAlign: 'right', marginTop: 12, fontSize: 13, color: '#777' }}>Total: <b style={{ color: '#1a7a4f' }}>{fmtBRL(totalPrev)}</b></div>
-
-        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { life.deleteFinancasSnapshot(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
@@ -680,13 +744,31 @@ function FinancasSection({ onBack }) {
   const [view, setView] = useState('tabela');
   const [selId, setSelId] = useState(null);
   const [form, setForm] = useState(null);
+  const [rate, setRate] = useState(life.financas.usdRate ? String(life.financas.usdRate) : '');
+  const [buscando, setBuscando] = useState(false);
+
+  const rateNum = Number(rate) || 0;
+  const temUSD = snaps.some(s => (s.holdings || []).some(h => h.moeda === 'USD'));
+
+  const buscarDolar = async () => {
+    setBuscando(true);
+    try {
+      const r = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+      const j = await r.json();
+      const bid = parseFloat(j?.USDBRL?.bid);
+      if (bid) { setRate(bid.toFixed(2)); life.setFinancasUsdRate(bid); }
+    } catch {}
+    setBuscando(false);
+  };
+  const persistRate = () => { const n = Number(rate); if (n > 0) life.setFinancasUsdRate(n); };
+  useEffect(() => { if (!life.financas.usdRate && temUSD) buscarDolar(); }, []); // eslint-disable-line
 
   const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
-  const total = atual ? somaHoldings(atual.holdings) : 0;
+  const total = atual ? totalCarteiraBRL(atual.holdings, rateNum) : 0;
 
   const porCategoria = (() => {
     const m = {};
-    (atual?.holdings || []).forEach(h => { const c = h.categoria || 'Sem categoria'; m[c] = (m[c] || 0) + (Number(h.valor) || 0); });
+    (atual?.holdings || []).filter(h => !h.externo).forEach(h => { const c = h.categoria || 'Sem categoria'; m[c] = (m[c] || 0) + valorBRL(h, rateNum); });
     return Object.entries(m).map(([label, valor]) => ({ label, valor })).sort((a, b) => b.valor - a.valor)
       .map((f, i) => ({ ...f, cor: FIN_PALETTE[i % FIN_PALETTE.length] }));
   })();
@@ -706,7 +788,18 @@ function FinancasSection({ onBack }) {
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Vida Financeira</h2>
         <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>carteira de investimentos · valores em R$</p>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>carteira de investimentos · valores convertidos para R$</p>
+
+      {temUSD && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: '10px 12px', background: COR_FIN + '10', borderRadius: 11, fontSize: 12.5, color: '#555' }}>
+          <span style={{ fontWeight: 700 }}>Dólar:</span>
+          <span>US$ 1 =</span>
+          <span>R$</span>
+          <input type="number" inputMode="decimal" step="0.01" value={rate} onChange={e => setRate(e.target.value)} onBlur={persistRate} placeholder="5,40" style={{ ...inputStyle, width: 78, padding: '6px 8px', flexShrink: 0 }} />
+          <button onClick={buscarDolar} disabled={buscando} style={{ background: '#fff', border: '1px solid ' + COR_FIN + '55', color: '#1a7a4f', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{buscando ? 'buscando…' : '↻ buscar cotação'}</button>
+          {!rateNum && <span style={{ color: '#c0392b', width: '100%', marginTop: 2 }}>defina a cotação para converter os ativos em dólar.</span>}
+        </div>
+      )}
 
       {snaps.length === 0 ? (
         <div style={{ marginTop: 12, padding: 24, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
@@ -731,9 +824,9 @@ function FinancasSection({ onBack }) {
             {tabBtn('evolucao', 'Evolução')}
           </div>
 
-          {view === 'tabela' && <FinTabela holdings={atual.holdings} total={total} />}
+          {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} />}
           {view === 'pizza' && <FinPizza fatias={porCategoria} total={total} />}
-          {view === 'evolucao' && <FinEvolucao snaps={snaps} />}
+          {view === 'evolucao' && <FinEvolucao snaps={snaps} rate={rateNum} />}
 
           <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 22, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
         </>
