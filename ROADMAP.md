@@ -65,8 +65,8 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 ## 8. Visual & atmosfera (capa e senha)
 - 🟡 **Imagens de fundo da tela de senha** mais bonitas e **variadas** — hoje a do
   inverno enjoa; quer mais coisas ligadas ao **frio** (e variedade por estação).
-- 🟡 **Frase de abertura (embaixo de DIAGONAL)** — hoje são **12**, e giram 2x/dia
-  (repetem a cada ~6 dias). Ampliar MUITO o acervo (dezenas/centenas) pra não repetir.
+- 🟢 **Frase de abertura (embaixo de DIAGONAL)** — ampliado de 12 → **48** (ciclo de
+  ~6 dias virou ~24). Dá pra continuar engordando quando quiser.
 
 ## 9. Polimentos & verificações
 - 🟢 **Testar nos aparelhos**: X dos Salvos e sync na nuvem (Salvos/Calendário/Life).
