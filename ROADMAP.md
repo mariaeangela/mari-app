@@ -5,15 +5,15 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 ---
 
 ## 1. Life — seções a criar
-*(o hub existe; "Listas de compras" e "Planos" prontas)*
+*(o hub existe; "Listas de compras", "Planos" e "Calendário cultural" prontas)*
 - 🟡 **Estudos** — aulas, leituras, cursos (conectar com a categoria *estudos* do
   calendário, que foi tirada de lá pra viver aqui).
 - 🟡 **Aprendizados** — o que você aprendeu (lições/descobertas).
 - 🟡 **Vida financeira** — metas, gastos, economia (conversa com o "quanto posso gastar").
 - 🟡 **Viagens** — ver bloco 2.
-- 🟡 **Calendário cultural** — anotar exposições da cidade: o quê, onde e **até quando**.
 - 🟢 (ideia) **Planos → calendário** — dar data a um plano/checklist e ele "pingar" no
   calendário, como as compras do mês.
+- 🟢 (ideia) **Cultural → calendário** — eventos com data máxima pingando no mês.
 
 ## 2. Viagens & Modo Viagem
 - 🟡 **Viagens futuras** (planejamento) + listas de compras por ocasião (parte já existe).
@@ -61,7 +61,6 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 - 🟡 **#4 Diário cultural narrativo** — "em junho: leu X, visitou MASP, descobriu
   Milgram, viajou Y". É mais *enquadrar* a retrospectiva + o Calendário cultural da Life.
 - 🟡 **"Quem você viu"** — somar pessoas marcadas em eventos/rolês (campo já existe).
-- 🟢 **Era/música do mês** — legendinha sob o nome do mês (a decidir).
 
 ## 8. Visual & atmosfera (capa e senha)
 - 🟡 **Imagens de fundo da tela de senha** mais bonitas e **variadas** — hoje a do
@@ -82,6 +81,6 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 
 ## Já feito (marcos)
 Salvos na nuvem (sync) · Calendário completo · aba **Life** + **Listas de compras** (com
-moeda) + **Planos** (informações + checklist; plano "Adoção Gato" pronto) · "Compras do
-mês" no calendário · **capa de Hoje** reformada · **Explorar** clean · **Texto** (vitrine)
+moeda) + **Planos** (informações + checklist; plano "Adoção Gato" pronto) + **Calendário
+cultural** (em cartaz, filtros por cidade/tipo, ordenado por data) · "Compras do mês" no calendário · **capa de Hoje** reformada · **Explorar** clean · **Texto** (vitrine)
 e **Cartas** no formato novo · senha `taylor13` (pede sempre).

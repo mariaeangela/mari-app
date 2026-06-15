@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
-const DEFAULT = { compras: { listas: [], itens: [] } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -104,10 +104,19 @@ export function LifeProvider({ children }) {
   const togglePlanoCheck = (id) => setPlanos({ ...planos, itens: planos.itens.map(x => x.id === id ? { ...x, feito: !x.feito } : x) });
   const deletePlanoCheck = (id) => setPlanos({ ...planos, itens: planos.itens.filter(x => x.id !== id) });
 
+  // ---- Calendário cultural ----
+  const cultural = data.cultural || DEFAULT.cultural;
+  const setCultural = (next) => persist({ ...data, cultural: next });
+  const saveCulturalItem = (it) => setCultural(it.id && cultural.itens.some(x => x.id === it.id)
+    ? { ...cultural, itens: cultural.itens.map(x => x.id === it.id ? it : x) }
+    : { ...cultural, itens: [...cultural.itens, { ...it, id: uid('e') }] });
+  const deleteCulturalItem = (id) => setCultural({ ...cultural, itens: cultural.itens.filter(x => x.id !== id) });
+
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
     planos, addPlano, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, deletePlanoCheck,
+    cultural, saveCulturalItem, deleteCulturalItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

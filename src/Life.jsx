@@ -299,6 +299,126 @@ function PlanosSection({ onBack }) {
   );
 }
 
+const COR_CULTURAL = '#c2548f';
+const CULT_TIPOS = [
+  { id: 'exposicao', label: 'Exposição' }, { id: 'teatro', label: 'Teatro' },
+  { id: 'filme', label: 'Filme' }, { id: 'evento', label: 'Evento' },
+];
+const cultTipoLabel = (id) => CULT_TIPOS.find(t => t.id === id)?.label || 'Evento';
+
+function CulturalForm({ editing, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(editing?.nome || '');
+  const [tipo, setTipo] = useState(editing?.tipo || 'exposicao');
+  const [cidade, setCidade] = useState(editing?.cidade || '');
+  const [local, setLocal] = useState(editing?.local || '');
+  const [dataMax, setDataMax] = useState(editing?.dataMax || '');
+  const [preco, setPreco] = useState(editing?.preco || '');
+  const [funcionamento, setFuncionamento] = useState(editing?.funcionamento || '');
+  const podeSalvar = nome.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveCulturalItem({
+      id: editing?.id, nome: nome.trim(), tipo,
+      cidade: cidade.trim() || undefined, local: local.trim() || undefined,
+      dataMax: dataMax || undefined, preco: preco.trim() || undefined,
+      funcionamento: funcionamento.trim() || undefined,
+    });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo em cartaz'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>O quê</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Tarsila Popular" style={inputStyle} />
+        <label style={labelStyle}>Tipo</label>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          {CULT_TIPOS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <label style={labelStyle}>Cidade</label>
+        <input value={cidade} onChange={e => setCidade(e.target.value)} placeholder="ex.: São Paulo" style={inputStyle} />
+        <label style={labelStyle}>Local (opcional)</label>
+        <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: MASP" style={inputStyle} />
+        <label style={labelStyle}>Em cartaz até (opcional)</label>
+        <input type="date" value={dataMax} onChange={e => setDataMax(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Preço (opcional)</label>
+        <input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: R$ 40 · grátis" style={inputStyle} />
+        <label style={labelStyle}>Funcionamento (opcional)</label>
+        <input value={funcionamento} onChange={e => setFuncionamento(e.target.value)} placeholder="ex.: todo dia · sex a dom · fecha segunda" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteCulturalItem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CulturalSection({ onBack }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const [cidadeSel, setCidadeSel] = useState('todas');
+  const [tipoSel, setTipoSel] = useState('todos');
+  const cidades = [...new Set(life.cultural.itens.map(i => i.cidade).filter(Boolean))].sort();
+  const itens = life.cultural.itens
+    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel))
+    .sort((a, b) => (a.dataMax || '9999-99-99').localeCompare(b.dataMax || '9999-99-99'));
+
+  const chip = (ativo, label, onClick) => (
+    <button key={label} onClick={onClick} style={{
+      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+      border: '1px solid ' + (ativo ? COR_CULTURAL : '#e2e2e2'), background: ativo ? COR_CULTURAL + '1c' : '#fff', color: ativo ? '#6a2350' : '#888',
+    }}>{label}</button>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_CULTURAL, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Calendário cultural</h2>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {/* filtros */}
+      {cidades.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+          {chip(cidadeSel === 'todas', 'Todas as cidades', () => setCidadeSel('todas'))}
+          {cidades.map(c => chip(cidadeSel === c, c, () => setCidadeSel(c)))}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+        {chip(tipoSel === 'todos', 'Todos', () => setTipoSel('todos'))}
+        {CULT_TIPOS.map(t => chip(tipoSel === t.id, t.label, () => setTipoSel(t.id)))}
+      </div>
+
+      {/* lista (ordenada pela data que acaba antes) */}
+      {itens.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada em cartaz por aqui. Toque no + para adicionar.</p>
+      ) : itens.map(it => {
+        const meta = [it.local, it.dataMax ? 'até ' + fmtData(it.dataMax) : null, it.preco, it.funcionamento].filter(Boolean).join(' · ');
+        return (
+          <button key={it.id} onClick={() => setForm({ editing: it })} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{cultTipoLabel(it.tipo)}</span>
+            </div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
+          </button>
+        );
+      })}
+
+      {form && <CulturalForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -318,6 +438,7 @@ export default function LifePage({ isWide }) {
   const [sec, setSec] = useState(null);
   if (sec === 'compras') return <ComprasSection onBack={() => setSec(null)} />;
   if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
+  if (sec === 'cultural') return <CulturalSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
