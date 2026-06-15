@@ -5,8 +5,8 @@ import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsGeral } from './Calendario.jsx';
-import { getOnThisDay } from './calendarConfig.js';
-import { LifeProvider } from './lifeStore.jsx';
+import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
+import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
 import LifePage from './Life.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -105,6 +105,91 @@ const TYPE_DESC = {
   mundo: 'cidades, história, agora',
 };
 
+const hojeMid = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+const capaInput = { width: '100%', padding: '9px 12px', border: '1px solid #e6e6e6', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
+
+// Saudação + data
+function Saudacao() {
+  const d = new Date();
+  const h = d.getHours();
+  const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0, lineHeight: 1.15 }}>{saud}, Mari</h2>
+      <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '0.5px', marginTop: 3 }}>{DIAS_SEM[d.getDay()]}, {d.getDate()} de {MESES[d.getMonth()]}</p>
+    </div>
+  );
+}
+
+// Humor de hoje (1 toque) + diário rápido
+function SeuDia() {
+  const cal = useCalendar();
+  const k = ymd(hojeMid());
+  const mood = cal.data.moods[k];
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>como você está hoje?</p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+        {MOODS.map(m => (
+          <button key={m.id} onClick={() => cal.setMood(k, mood === m.id ? null : m.id)} style={{
+            padding: '5px 11px', borderRadius: 18, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            border: '1.5px solid ' + (mood === m.id ? m.cor : '#e2e2e2'),
+            background: mood === m.id ? m.cor + '22' : '#fff', color: mood === m.id ? '#333' : '#999',
+          }}>{m.label}</button>
+        ))}
+      </div>
+      <input value={cal.data.diary[k] || ''} onChange={e => cal.setDiary(k, e.target.value)} placeholder="como foi o dia? (diário de uma linha)" style={capaInput} />
+    </div>
+  );
+}
+
+// Antecipação: contagem regressiva (viagem), próxima prova (corrida) e compra com prazo.
+function Antecipacao() {
+  const cal = useCalendar();
+  const life = useLife();
+  const today = hojeMid();
+  const tk = ymd(today);
+  const dias = (key) => Math.round((parseYmd(key) - today) / 86400000);
+  const nearest = (arr, getKey) => arr.reduce((best, it) => {
+    const k = getKey(it); if (!k || k <= tk) return best;
+    const dd = dias(k); if (dd <= 0 || dd > 180) return best;
+    return (!best || dd < best.dias) ? { dias: dd, it } : best;
+  }, null);
+
+  const proxEvento = nearest(cal.data.events.filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
+  const proxProva = nearest(cal.data.exercicios.filter(x => x.subtipo === 'corrida_prova'), x => x.data);
+  const proxCompra = nearest((life.compras.itens || []).filter(i => !i.comprado), i => i.dataLimite);
+
+  const linha = (cor, label, dd) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: cor, flexShrink: 0 }} />
+      {label} · <b style={{ color: '#333' }}>{dd === 1 ? '1 dia' : dd + ' dias'}</b>
+    </div>
+  );
+  if (!proxEvento && !proxProva && !proxCompra) return null;
+  return (
+    <div style={{ marginBottom: 22 }}>
+      {proxEvento && linha(CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', proxEvento.it.titulo, proxEvento.dias)}
+      {proxProva && linha(EXERCICIO_BY_ID.corrida_prova.cor, 'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : ''), proxProva.dias)}
+      {proxCompra && linha('#ff8a3d', 'comprar: ' + proxCompra.it.titulo + (proxCompra.it.orcamento ? ' · ' + simboloMoeda(proxCompra.it.moeda) + ' ' + proxCompra.it.orcamento : ''), proxCompra.dias)}
+    </div>
+  );
+}
+
+// Lendo no momento
+function LendoAgora() {
+  const cal = useCalendar();
+  const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
+  if (!lendo.length) return null;
+  return (
+    <p style={{ fontSize: 13, color: '#777', marginBottom: 22 }}>
+      <span style={{ fontWeight: 700, color: '#999' }}>Lendo: </span>
+      <span style={{ fontStyle: 'italic' }}>{lendo.map(c => c.titulo).join(', ')}</span>
+    </p>
+  );
+}
+
 // "Neste dia, em XXXX..." — fato histórico (movido do calendário para a Hoje).
 function NesteDiaFato() {
   const [fato, setFato] = useState(null);
@@ -145,13 +230,18 @@ function HojeAgenda() {
 }
 
 function Feed({ isWide }) {
-  // Hoje: "neste dia" + agenda do dia + dois cards (texto e imagem).
+  // Capa (Hoje): saudação · neste dia · seu dia (humor+diário) · antecipação ·
+  // lendo · agenda do dia · dois cards (texto e imagem).
   const slots = ['texto', 'imagem'];
   const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} />);
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{ padding: '20px 20px 0' }}>
+        <Saudacao />
         <NesteDiaFato />
+        <SeuDia />
+        <Antecipacao />
+        <LendoAgora />
         <HojeAgenda />
       </div>
       {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
