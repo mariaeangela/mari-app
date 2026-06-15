@@ -810,13 +810,14 @@ function FinancasSection({ onBack }) {
 
   const [pizzaGroup, setPizzaGroup] = useState('categoria');
   const temFinalidade = (atual?.holdings || []).some(h => !h.externo && h.finalidade);
-  const pizzaOpcoes = [['nome', 'Por ativo'], ['categoria', 'Por categoria'], ...(temFinalidade ? [['finalidade', 'Por finalidade']] : [])];
+  const pizzaOpcoes = [['nome', 'Por ativo'], ['categoria', 'Por categoria'], ...(temFinalidade ? [['finalidade', 'Por finalidade']] : []), ...(atualTemUSD ? [['moeda', 'Por moeda']] : [])];
   const FALLBACK_LABEL = { nome: 'Sem nome', categoria: 'Sem categoria', finalidade: 'Sem finalidade' };
+  const MOEDA_LABEL = { USD: 'Dólar (US$)', BRL: 'Reais (R$)' };
   const grupoAtivo = pizzaOpcoes.some(([k]) => k === pizzaGroup) ? pizzaGroup : 'categoria';
   const agrupar = (campo) => {
     const m = {};
     (atual?.holdings || []).filter(h => !h.externo).forEach(h => {
-      const c = (h[campo] || '').trim() || FALLBACK_LABEL[campo];
+      const c = campo === 'moeda' ? MOEDA_LABEL[h.moeda === 'USD' ? 'USD' : 'BRL'] : ((h[campo] || '').trim() || FALLBACK_LABEL[campo]);
       m[c] = (m[c] || 0) + valorBRL(h, rateNum);
     });
     return Object.entries(m).map(([label, valor]) => ({ label, valor })).sort((a, b) => b.valor - a.valor)
