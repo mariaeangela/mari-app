@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 
 const SECOES = [
-  { id: 'compras',  label: 'Listas de compras',   desc: 'o que você quer comprar',          cor: '#ff8a3d' },
-  { id: 'planos',   label: 'Planos',              desc: 'projetos com info + checklist',    cor: '#6b7a99' },
-  { id: 'estudos',  label: 'Estudos',             desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
-  { id: 'financas', label: 'Metas financeiras',   desc: 'quanto quer economizar',           cor: '#54c08a' },
-  { id: 'viagens',  label: 'Viagens futuras',     desc: 'pra onde e quando',                cor: '#19b3a6' },
-  { id: 'cultural', label: 'Calendário cultural', desc: 'exposições na cidade, até quando', cor: '#c2548f' },
+  { id: 'compras',      label: 'Listas de compras',   desc: 'o que você quer comprar',          cor: '#ff8a3d' },
+  { id: 'planos',       label: 'Planos',              desc: 'projetos com info + checklist',    cor: '#6b7a99' },
+  { id: 'estudos',      label: 'Estudos',             desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
+  { id: 'aprendizados', label: 'Aprendizados',        desc: 'o que você aprendeu',              cor: '#c78a3a' },
+  { id: 'financas',     label: 'Vida financeira',     desc: 'metas, gastos, economia',          cor: '#54c08a' },
+  { id: 'viagens',      label: 'Viagens futuras',     desc: 'pra onde e quando',                cor: '#19b3a6' },
+  { id: 'cultural',     label: 'Calendário cultural', desc: 'exposições na cidade, até quando', cor: '#c2548f' },
 ];
 
 // estilos

@@ -8,7 +8,8 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 *(o hub existe; "Listas de compras" e "Planos" prontas)*
 - 🟡 **Estudos** — aulas, leituras, cursos (conectar com a categoria *estudos* do
   calendário, que foi tirada de lá pra viver aqui).
-- 🟡 **Metas financeiras** — quanto economizar (conversa com o "quanto posso gastar").
+- 🟡 **Aprendizados** — o que você aprendeu (lições/descobertas).
+- 🟡 **Vida financeira** — metas, gastos, economia (conversa com o "quanto posso gastar").
 - 🟡 **Viagens** — ver bloco 2.
 - 🟡 **Calendário cultural** — anotar exposições da cidade: o quê, onde e **até quando**.
 - 🟢 (ideia) **Planos → calendário** — dar data a um plano/checklist e ele "pingar" no
