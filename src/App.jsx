@@ -96,9 +96,10 @@ function Header({ tab, setTab }) {
 }
 
 // Aba Explorar e Hoje: as 5 categorias consolidadas.
-const EXPLORE_TYPES = ['texto', 'imagem', 'cena', 'mito', 'mundo'];
+const EXPLORE_TYPES = ['texto', 'cartas', 'imagem', 'cena', 'mito', 'mundo'];
 const TYPE_DESC = {
   texto: 'poesia, fragmentos, ensaios',
+  cartas: 'cartas reais, na íntegra',
   imagem: 'arte, artistas, fotografia',
   cena: 'cinema e música',
   mito: 'mitologia, religião, bíblia',

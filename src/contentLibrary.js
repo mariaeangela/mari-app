@@ -135,6 +135,7 @@ export function getDayName() {
 // 5 categorias consolidadas (era 18). Veja CATEGORY_SOURCES para o mapeamento.
 export const CONTENT_TYPES = [
   { id: "texto",  label: "Texto",          emoji: "📖" },
+  { id: "cartas", label: "Cartas",         emoji: "✉️" },
   { id: "imagem", label: "Imagem",         emoji: "🎨" },
   { id: "cena",   label: "Cena",           emoji: "🎬" },
   { id: "mito",   label: "Mito & Sagrado", emoji: "🏺" },
@@ -144,6 +145,7 @@ export const CONTENT_TYPES = [
 export const CARD_PALETTES = {
   // 5 categorias consolidadas
   texto:      { bg: '#f6f3ea', accent: '#7f671a', text: '#4a3d18', sub: '#8d7835', border: '#e6e1d1', tag: '#f6f3ea' },
+  cartas:     { bg: '#f6eef0', accent: '#a8516a', text: '#5b2c3a', sub: '#a86678', border: '#e6d5da', tag: '#f6eef0' },
   imagem:     { bg: '#f1eaf6', accent: '#862acb', text: '#41205b', sub: '#965cc1', border: '#ddd1e6', tag: '#f1eaf6' },
   cena:       { bg: '#eaf2f6', accent: '#1f7398', text: '#20485b', sub: '#3b7d9b', border: '#d1dfe6', tag: '#eaf2f6' },
   mito:       { bg: '#f6efea', accent: '#98592a', text: '#5a3920', sub: '#9d6a43', border: '#e6dad1', tag: '#f6efea' },
@@ -221,6 +223,26 @@ export const CONTENT_LIBRARY = {
       contexto: 'Izumi Shikibu (c. 974–1034) foi uma das maiores poetas da corte Heian, no Japão, célebre por seus poemas de amor sem pudor. Este "waka" é diferente: ela o enviou ao monge Shōkū pedindo orientação espiritual, e o primeiro verso ("da escuridão, para outra escuridão") cita o Sutra de Lótus. Mil anos depois, ainda corta. A tradução inglesa de referência é de Jane Hirshfield e Mariko Aratani.',
       ficha: 'Izumi Shikibu · Shūi Wakashū · séc. XI · japonês (Heian)',
       fonteTexto: { veiculo: 'The Ink Dark Moon (trad. Hirshfield & Aratani)', url: 'https://www.penguinrandomhouse.com/books/80489/the-ink-dark-moon-by-ono-no-komachi-and-izumi-shikibu-translated-with-an-introduction-and-notes-by-jane-hirshfield-and-mariko-aratani/' },
+    },
+  ],
+
+  // === CARTAS (carta completa → contexto → ficha) ===
+  cartas: [
+    {
+      titulo: 'estou reduzida a uma coisa que quer Virginia',
+      traducao: 'Estou reduzida a uma coisa que quer Virginia. Compus uma bela carta para você nas horas insones e de pesadelo da madrugada, e tudo se perdeu: eu apenas sinto a sua falta, de um modo simples, desesperado, humano. Você, com todas as suas cartas que nunca emudecem, jamais escreveria uma frase tão elementar quanto essa; talvez nem chegasse a senti-la. E, no entanto, creio que você notará uma pequena lacuna. Mas a vestiria com uma frase tão primorosa que ela perderia um pouco da sua realidade. Comigo, porém, é tudo muito cru: sinto a sua falta mais do que eu seria capaz de acreditar — e eu já estava preparada para sentir bastante. De modo que esta carta é, na verdade, apenas um ganido de dor. É incrível como você se tornou essencial para mim. Suponho que você esteja acostumada a ouvir as pessoas dizerem essas coisas. Maldita seja, criatura mimada; não vou fazer você me amar mais por me entregar deste jeito — Mas, ah, minha querida, não consigo ser espirituosa e arredia com você: eu te amo demais para isso. Verdadeiramente demais. Você não imagina como sei ser arredia com as pessoas que não amo. Transformei isso numa arte refinada. Mas você derrubou as minhas defesas. E, na verdade, não me ressinto disso.',
+      tradutorRotulo: 'tradução livre · do inglês',
+      contexto: 'Vita Sackville-West — aristocrata, romancista e jardineira inglesa — escreveu esta carta a Virginia Woolf em janeiro de 1926, de Trieste, no começo de um caso que duraria anos e inspiraria "Orlando", o romance que Woolf dedicaria a ela. Aqui a escritora hábil confessa que perdeu o próprio jogo das palavras: o que sobra é só a falta. As cartas estão reunidas em "The Letters of Vita Sackville-West to Virginia Woolf".',
+      ficha: 'Vita Sackville-West para Virginia Woolf · Trieste, 21 de janeiro de 1926 · inglês',
+      fonteTexto: { veiculo: 'The Paris Review', url: 'https://www.theparisreview.org/blog/2016/03/09/a-thing-that-wants-virginia/' },
+    },
+    {
+      titulo: 'estaremos juntos para sempre',
+      traducao: 'Diego, meu amor — lembre-se de que, assim que você terminar o afresco, estaremos juntos para sempre, de uma vez por todas, sem brigas nem nada, só para nos querermos muito.',
+      tradutorRotulo: 'tradução livre · do espanhol',
+      contexto: 'Frida Kahlo deixou este bilhete para Diego Rivera em 1940, em San Francisco, no estúdio da Treasure Island, onde ele pintava um mural — ela estava de partida para Nova York. Os dois haviam se divorciado no ano anterior e voltariam a se casar em dezembro daquele mesmo ano. Em poucas linhas, a promessa de uma reconciliação que ela queria definitiva.',
+      ficha: 'Frida Kahlo para Diego Rivera · San Francisco, 1940 · espanhol',
+      fonteTexto: { veiculo: 'Google Arts & Culture', url: 'https://artsandculture.google.com/asset/frida-kahlo-letter-to-diego-rivera-frida-kahlo/RgF4A94KA1h-Ng' },
     },
   ],
   artwork: [
@@ -1601,6 +1623,7 @@ export const CATEGORY_SOURCES = {
   // Texto = só o array novo (vitrine no padrão novo). Os antigos (letter,
   // philosophy, concept, connection) ficam guardados p/ reformatar em lote.
   texto:  ['texto'],
+  cartas: ['cartas'],
   imagem: ['artwork', 'artist', 'photography', 'movement'],
   cena:   ['film', 'music'],
   mito:   ['mythology', 'religion', 'bible'],
