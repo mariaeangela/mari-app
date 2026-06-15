@@ -5,6 +5,7 @@ import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 
 const SECOES = [
   { id: 'compras',  label: 'Listas de compras',   desc: 'o que você quer comprar',          cor: '#ff8a3d' },
+  { id: 'planos',   label: 'Planos',              desc: 'projetos com info + checklist',    cor: '#6b7a99' },
   { id: 'estudos',  label: 'Estudos',             desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
   { id: 'financas', label: 'Metas financeiras',   desc: 'quanto quer economizar',           cor: '#54c08a' },
   { id: 'viagens',  label: 'Viagens futuras',     desc: 'pra onde e quando',                cor: '#19b3a6' },
@@ -157,6 +158,140 @@ function ComprasSection({ onBack }) {
   );
 }
 
+const COR_PLANOS = '#6b7a99';
+
+function InfoForm({ planoId, editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [texto, setTexto] = useState(editing?.texto || '');
+  const podeSalvar = titulo.trim() || texto.trim();
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova informação'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Título</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Segurança em primeiro lugar" style={inputStyle} />
+        <label style={labelStyle}>Texto</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={6} style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+          {editing && <button onClick={() => { life.deletePlanoInfo(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={() => { if (podeSalvar) { life.savePlanoInfo({ id: editing?.id, planoId, titulo: titulo.trim(), texto: texto.trim() }); onClose(); } }} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlanoView({ plano, onBack }) {
+  const life = useLife();
+  const [aba, setAba] = useState('info');
+  const [infoForm, setInfoForm] = useState(null);
+  const [infoAberta, setInfoAberta] = useState(null);
+  const [novoCheck, setNovoCheck] = useState('');
+  const infos = life.planos.infos.filter(i => i.planoId === plano.id);
+  const checks = life.planos.itens.filter(i => i.planoId === plano.id);
+  const feitos = checks.filter(c => c.feito).length;
+  const addCheck = () => { if (novoCheck.trim()) { life.addPlanoCheck(plano.id, novoCheck.trim()); setNovoCheck(''); } };
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Planos</button>
+      <div style={{ width: 36, height: 4, background: COR_PLANOS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 16px' }}>{plano.nome}</h2>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {[['info', 'Informações'], ['check', `Check list${checks.length ? ` (${feitos}/${checks.length})` : ''}`]].map(([id, label]) => (
+          <button key={id} onClick={() => setAba(id)} style={{
+            padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            border: '1px solid ' + (aba === id ? COR_PLANOS : '#e2e2e2'), background: aba === id ? COR_PLANOS + '1c' : '#fff', color: aba === id ? '#3e4a5e' : '#888',
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {aba === 'info' && (
+        <>
+          {infos.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>Sem informações ainda.</p>}
+          {infos.map(info => {
+            const aberta = infoAberta === info.id;
+            return (
+              <div key={info.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
+                <div onClick={() => setInfoAberta(aberta ? null : info.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', cursor: 'pointer' }}>
+                  <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{info.titulo}</span>
+                  <span style={{ color: '#bbb', fontSize: 13 }}>{aberta ? '▾' : '▸'}</span>
+                </div>
+                {aberta && (
+                  <div style={{ padding: '0 14px 14px' }}>
+                    <p style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.7, color: '#333', whiteSpace: 'pre-line', margin: 0 }}>{info.texto}</p>
+                    <button onClick={() => setInfoForm({ editing: info })} style={{ background: 'none', border: 'none', color: COR_PLANOS, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: '8px 0 0' }}>editar</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <button onClick={() => setInfoForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ informação</button>
+        </>
+      )}
+
+      {aba === 'check' && (
+        <>
+          {checks.map(c => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+              <span onClick={() => life.togglePlanoCheck(c.id)} style={{ fontSize: 19, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{c.feito ? '☑' : '☐'}</span>
+              <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
+              <span onClick={() => life.deletePlanoCheck(c.id)} style={{ color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            <input value={novoCheck} onChange={e => setNovoCheck(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCheck()} placeholder="novo item do checklist" style={inputStyle} />
+            <button onClick={addCheck} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+          </div>
+        </>
+      )}
+
+      {infoForm && <InfoForm planoId={plano.id} editing={infoForm.editing} onClose={() => setInfoForm(null)} />}
+    </div>
+  );
+}
+
+function PlanosSection({ onBack }) {
+  const life = useLife();
+  const [planoSel, setPlanoSel] = useState(null);
+  const [criando, setCriando] = useState(false);
+  const [nome, setNome] = useState('');
+
+  if (planoSel) {
+    const p = life.planos.lista.find(x => x.id === planoSel);
+    if (p) return <PlanoView plano={p} onBack={() => setPlanoSel(null)} />;
+  }
+  const criar = () => { if (!nome.trim()) { setCriando(false); return; } const id = life.addPlano(nome.trim()); setNome(''); setCriando(false); setPlanoSel(id); };
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_PLANOS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 16px' }}>Planos</h2>
+      {life.planos.lista.map(p => {
+        const total = life.planos.itens.filter(i => i.planoId === p.id).length;
+        const feitos = life.planos.itens.filter(i => i.planoId === p.id && i.feito).length;
+        return (
+          <button key={p.id} onClick={() => setPlanoSel(p.id)} style={{ display: 'block', width: '100%', textAlign: 'left', background: COR_PLANOS + '12', border: '1px solid ' + COR_PLANOS + '33', borderRadius: 14, padding: '16px 16px', marginBottom: 8, cursor: 'pointer' }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{p.nome}</div>
+            {total > 0 && <div style={{ fontSize: 12, color: '#888', marginTop: 3 }}>{feitos}/{total} no checklist</div>}
+          </button>
+        );
+      })}
+      {criando ? (
+        <input autoFocus value={nome} onChange={e => setNome(e.target.value)} onBlur={criar} onKeyDown={e => e.key === 'Enter' && criar()} placeholder="nome do plano" style={inputStyle} />
+      ) : (
+        <button onClick={() => setCriando(true)} style={{ width: '100%', marginTop: 4, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo plano</button>
+      )}
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -175,6 +310,7 @@ function SubPlaceholder({ secao, onBack }) {
 export default function LifePage({ isWide }) {
   const [sec, setSec] = useState(null);
   if (sec === 'compras') return <ComprasSection onBack={() => setSec(null)} />;
+  if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
