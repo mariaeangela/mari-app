@@ -637,26 +637,42 @@ function FinPizza({ fatias, total }) {
 }
 
 function FinEvolucao({ snaps }) {
-  const externosNomes = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => h.externo).map(h => h.nome)))];
-  const series = [
-    { key: '_carteira', label: 'Carteira', pontos: snaps.map(s => ({ mes: s.mes, total: totalCarteiraBRL(s.holdings, rateOf(s)) })) },
-    ...externosNomes.map(nome => ({ key: nome, label: nome, pontos: snaps.map(s => ({ mes: s.mes, total: (s.holdings || []).filter(h => h.externo && h.nome === nome).reduce((a, h) => a + valorBRL(h, rateOf(s)), 0) })) })),
+  const ativos = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.nome).filter(Boolean)))];
+  const categorias = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && h.categoria).map(h => h.categoria)))];
+  const finalidades = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && h.finalidade).map(h => h.finalidade)))];
+  const DIMS = [
+    ['carteira', 'Carteira'],
+    ...(ativos.length ? [['ativo', 'Por ativo']] : []),
+    ...(categorias.length ? [['categoria', 'Por categoria']] : []),
+    ...(finalidades.length ? [['finalidade', 'Por finalidade']] : []),
   ];
-  const [sel, setSel] = useState('_carteira');
-  const serie = series.find(x => x.key === sel) || series[0];
-  const pontos = serie.pontos;
+  const [dim, setDim] = useState('carteira');
+  const [item, setItem] = useState('');
+  const itens = dim === 'ativo' ? ativos : dim === 'categoria' ? categorias : dim === 'finalidade' ? finalidades : [];
+  const itemAtivo = dim === 'carteira' ? null : (itens.includes(item) ? item : itens[0]);
+
+  const pontos = snaps.map(s => {
+    const r = rateOf(s);
+    let total;
+    if (dim === 'carteira') total = totalCarteiraBRL(s.holdings, r);
+    else if (dim === 'ativo') total = (s.holdings || []).filter(h => h.nome === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
+    else if (dim === 'categoria') total = (s.holdings || []).filter(h => !h.externo && h.categoria === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
+    else total = (s.holdings || []).filter(h => !h.externo && h.finalidade === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
+    return { mes: s.mes, total };
+  });
   const linhas = [...pontos].reverse();
+  const chip = (on) => ({ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, border: '1px solid ' + (on ? COR_FIN : '#e2e2e2'), background: on ? COR_FIN + '1c' : '#fff', color: on ? '#1a7a4f' : '#888' });
+
   return (
     <div>
-      {series.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-          {series.map(s => (
-            <button key={s.key} onClick={() => setSel(s.key)} style={{
-              padding: '5px 11px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-              border: '1px solid ' + (sel === s.key ? COR_FIN : '#e2e2e2'),
-              background: sel === s.key ? COR_FIN + '1c' : '#fff', color: sel === s.key ? '#1a7a4f' : '#888',
-            }}>{s.label}</button>
-          ))}
+      {DIMS.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+          {DIMS.map(([k, txt]) => <button key={k} onClick={() => setDim(k)} style={chip(dim === k)}>{txt}</button>)}
+        </div>
+      )}
+      {dim !== 'carteira' && itens.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 14, paddingBottom: 4 }}>
+          {itens.map(it => <button key={it} onClick={() => setItem(it)} style={chip(itemAtivo === it)}>{it}</button>)}
         </div>
       )}
       {pontos.length < 2 ? (
@@ -848,11 +864,17 @@ function FinancasSection({ onBack }) {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <select value={atual.id} onChange={e => setSelId(e.target.value)} style={{ ...inputStyle, width: 'auto', flex: 'none', padding: '8px 12px', fontWeight: 700 }}>
-              {[...snaps].reverse().map(s => <option key={s.id} value={s.id}>{fmtMesLongo(s.mes)}</option>)}
-            </select>
-            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
+              {[...snaps].reverse().map(s => (
+                <button key={s.id} onClick={() => setSelId(s.id)} style={{
+                  whiteSpace: 'nowrap', padding: '7px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                  border: '1px solid ' + (atual.id === s.id ? COR_FIN : '#e2e2e2'),
+                  background: atual.id === s.id ? COR_FIN + '1c' : '#fff', color: atual.id === s.id ? '#1a7a4f' : '#888',
+                }}>{fmtMes(s.mes)}</button>
+              ))}
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>total</div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a7a4f' }}>{fmtBRL(total)}</div>
             </div>
