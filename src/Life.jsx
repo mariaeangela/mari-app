@@ -810,10 +810,13 @@ function FinancasSection({ onBack }) {
 
   const [pizzaGroup, setPizzaGroup] = useState('categoria');
   const temFinalidade = (atual?.holdings || []).some(h => !h.externo && h.finalidade);
+  const pizzaOpcoes = [['nome', 'Por ativo'], ['categoria', 'Por categoria'], ...(temFinalidade ? [['finalidade', 'Por finalidade']] : [])];
+  const FALLBACK_LABEL = { nome: 'Sem nome', categoria: 'Sem categoria', finalidade: 'Sem finalidade' };
+  const grupoAtivo = pizzaOpcoes.some(([k]) => k === pizzaGroup) ? pizzaGroup : 'categoria';
   const agrupar = (campo) => {
     const m = {};
     (atual?.holdings || []).filter(h => !h.externo).forEach(h => {
-      const c = (h[campo] || '').trim() || (campo === 'finalidade' ? 'Sem finalidade' : 'Sem categoria');
+      const c = (h[campo] || '').trim() || FALLBACK_LABEL[campo];
       m[c] = (m[c] || 0) + valorBRL(h, rateNum);
     });
     return Object.entries(m).map(([label, valor]) => ({ label, valor })).sort((a, b) => b.valor - a.valor)
@@ -875,14 +878,14 @@ function FinancasSection({ onBack }) {
           {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} />}
           {view === 'pizza' && (
             <>
-              {temFinalidade && (
-                <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-                  {[['categoria', 'Por categoria'], ['finalidade', 'Por finalidade']].map(([g, txt]) => (
-                    <button key={g} onClick={() => setPizzaGroup(g)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (pizzaGroup === g ? COR_FIN : '#e2e2e2'), background: pizzaGroup === g ? COR_FIN + '1c' : '#fff', color: pizzaGroup === g ? '#1a7a4f' : '#888' }}>{txt}</button>
+              {pizzaOpcoes.length > 1 && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                  {pizzaOpcoes.map(([g, txt]) => (
+                    <button key={g} onClick={() => setPizzaGroup(g)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (grupoAtivo === g ? COR_FIN : '#e2e2e2'), background: grupoAtivo === g ? COR_FIN + '1c' : '#fff', color: grupoAtivo === g ? '#1a7a4f' : '#888' }}>{txt}</button>
                   ))}
                 </div>
               )}
-              <FinPizza fatias={agrupar(temFinalidade ? pizzaGroup : 'categoria')} total={total} />
+              <FinPizza fatias={agrupar(grupoAtivo)} total={total} />
             </>
           )}
           {view === 'evolucao' && <FinEvolucao snaps={snaps} />}
