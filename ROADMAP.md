@@ -5,12 +5,14 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 ---
 
 ## 1. Life — seções a criar
-*(o hub existe; só "Listas de compras" está pronta)*
+*(o hub existe; "Listas de compras" e "Planos" prontas)*
 - 🟡 **Estudos** — aulas, leituras, cursos (conectar com a categoria *estudos* do
   calendário, que foi tirada de lá pra viver aqui).
 - 🟡 **Metas financeiras** — quanto economizar (conversa com o "quanto posso gastar").
 - 🟡 **Viagens** — ver bloco 2.
 - 🟡 **Calendário cultural** — anotar exposições da cidade: o quê, onde e **até quando**.
+- 🟢 (ideia) **Planos → calendário** — dar data a um plano/checklist e ele "pingar" no
+  calendário, como as compras do mês.
 
 ## 2. Viagens & Modo Viagem
 - 🟡 **Viagens futuras** (planejamento) + listas de compras por ocasião (parte já existe).
@@ -73,5 +75,6 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 
 ## Já feito (marcos)
 Salvos na nuvem (sync) · Calendário completo · aba **Life** + **Listas de compras** (com
-moeda) · "Compras do mês" no calendário · **capa de Hoje** reformada · **Explorar** clean ·
-**Texto** (vitrine) e **Cartas** no formato novo · senha `taylor13` (pede sempre).
+moeda) + **Planos** (informações + checklist; plano "Adoção Gato" pronto) · "Compras do
+mês" no calendário · **capa de Hoje** reformada · **Explorar** clean · **Texto** (vitrine)
+e **Cartas** no formato novo · senha `taylor13` (pede sempre).
