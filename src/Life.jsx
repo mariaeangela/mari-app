@@ -35,6 +35,15 @@ const fmtMesLongo = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[
 const fmtUSD = (n) => 'US$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 // Valor de um ativo em R$ (converte de USD pela cotação `rate` quando moeda === 'USD').
 const valorBRL = (h, rate) => (h.moeda === 'USD' ? (Number(h.valor) || 0) * (Number(rate) || 0) : (Number(h.valor) || 0));
+// Avalia o campo de valor: aceita conta simples (ex.: "1000+2500,50"). Vírgula vira
+// ponto decimal; só permite dígitos e + - * / ( ) por segurança.
+function evalValor(s) {
+  const str = String(s == null ? '' : s).trim().replace(/,/g, '.');
+  if (!str) return 0;
+  if (!/^[0-9.+\-*/() ]+$/.test(str)) return NaN;
+  try { const v = Function('"use strict";return(' + str + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
+  catch { return NaN; }
+}
 // Total da CARTEIRA (exclui itens marcados como `externo`, ex.: FGTS).
 const totalCarteiraBRL = (holdings, rate) => (holdings || []).filter(h => !h.externo).reduce((s, h) => s + valorBRL(h, rate), 0);
 // Cotação travada de cada mês (cada snapshot guarda a sua em `usdRate`).
@@ -534,17 +543,15 @@ function EvolucaoFin({ pontos }) {
   const x = (i) => n === 1 ? W / 2 : padX + i * (W - 2 * padX) / (n - 1);
   const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
   const linha = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.total).toFixed(1)}`).join(' ');
-  const area = `${linha} L ${x(n - 1).toFixed(1)} ${H - padBot} L ${x(0).toFixed(1)} ${H - padBot} Z`;
   const pulado = n > 6;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
-      <path d={area} fill={COR_FIN + '22'} />
-      <path d={linha} fill="none" stroke={COR_FIN} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={linha} fill="none" stroke="#111" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
       {pontos.map((p, i) => (
         <g key={i}>
-          <circle cx={x(i)} cy={y(p.total)} r="3.2" fill={COR_FIN} />
+          <circle cx={x(i)} cy={y(p.total)} r="2.4" fill="#111" stroke="#fafafa" strokeWidth="1" />
           {(!pulado || i % 2 === 0 || i === n - 1) &&
-            <text x={x(i)} y={H - 9} textAnchor="middle" fontSize="9" fill="#999">{fmtMes(p.mes)}</text>}
+            <text x={x(i)} y={H - 9} textAnchor="middle" fontSize="9" fill="#bbb">{fmtMes(p.mes)}</text>}
         </g>
       ))}
     </svg>
@@ -718,7 +725,7 @@ function FinancasForm({ editing, snaps, onClose }) {
   const addRow = () => setRows([...rows, novaRow()]);
   const delRow = (i) => setRows(rows.filter((_, j) => j !== i));
 
-  const limpos = rows.filter(r => r.nome.trim() && (Number(r.valor) || 0) > 0);
+  const limpos = rows.filter(r => r.nome.trim() && evalValor(r.valor) > 0);
   const podeSalvar = mes && limpos.length > 0;
 
   const salvar = () => {
@@ -728,7 +735,7 @@ function FinancasForm({ editing, snaps, onClose }) {
       id: editing?.id || existente?.id,
       mes,
       usdRate: Number(usdRate) || undefined,
-      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), finalidade: (r.finalidade || '').trim() || undefined, valor: Number(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
+      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), finalidade: (r.finalidade || '').trim() || undefined, valor: evalValor(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
     onClose();
@@ -763,8 +770,12 @@ function FinancasForm({ editing, snaps, onClose }) {
                 <option value="BRL">R$</option>
                 <option value="USD">US$</option>
               </select>
-              <input type="number" inputMode="decimal" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+              <input type="text" inputMode="text" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor (ex.: 1000+2500)" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
             </div>
+            {/[+\-*/]/.test(r.valor) && (() => {
+              const v = evalValor(r.valor);
+              return <div style={{ fontSize: 11.5, color: isFinite(v) ? '#1a7a4f' : '#c0392b', textAlign: 'right', marginTop: 4 }}>{isFinite(v) ? '= ' + (r.moeda === 'USD' ? fmtUSD(v) : fmtBRL(v)) : 'conta inválida'}</div>;
+            })()}
             <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8, fontSize: 12.5, color: '#777', cursor: 'pointer' }}>
               <input type="checkbox" checked={r.externo} onChange={e => setRow(i, 'externo', e.target.checked)} style={{ width: 15, height: 15, accentColor: COR_FIN }} />
               fora da carteira (ex.: FGTS — não entra no total/pizza)
