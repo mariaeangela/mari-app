@@ -11,8 +11,16 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
-  ANTIGO, ainda usados), CARD_PALETTES, OPENING_QUOTES (frase do header), getEditionPeriod.
+  ANTIGO, ainda usados), CARD_PALETTES, OPENING_QUOTES (frase do header, ~76), getEditionPeriod.
   Obs.: a aba "Frases" (humores + MOOD_QUOTES) foi REMOVIDA por completo.
+  - **Dois bancos de fato por dia (chave = "mês-dia", ambos com 366 dias, inclui "2-29"):**
+    `HISTORICAL_FACTS` alimenta o **"Neste dia…"** (capa de Hoje, via `getOnThisDay`
+    em calendarConfig.js — usa o fato curado e só cai na Wikipédia se faltar); e
+    `DAILY_FACTS` alimenta o **"Sabia que…"** (tela de senha, via `getTodayFact`).
+    SÃO LISTAS SEPARADAS DE PROPÓSITO: "Neste dia" é fato datado ("em <ano>, …"),
+    "Sabia que" é curiosidade atemporal — antes `getTodayFact` lia o HISTORICAL e as
+    duas coincidiam. Curiosidades são únicas no ano todo (sem repetir entre meses).
+    `getTodayDefaultFact` é só fallback se faltar chave em DAILY_FACTS.
 
 ## Conteúdo dos cards — REFORMA em curso (qualidade > quantidade)
 A pedido da usuária: textos menos mainstream, mais escrita HUMANA real (e menos
