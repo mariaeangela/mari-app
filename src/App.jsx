@@ -97,14 +97,6 @@ function Header({ tab, setTab }) {
 
 // Aba Explorar e Hoje: as 5 categorias consolidadas.
 const EXPLORE_TYPES = ['texto', 'cartas', 'imagem', 'cena', 'mito', 'mundo'];
-const TYPE_DESC = {
-  texto: 'poesia, fragmentos, ensaios',
-  cartas: 'cartas reais, na íntegra',
-  imagem: 'arte, artistas, fotografia',
-  cena: 'cinema e música',
-  mito: 'mitologia, religião, bíblia',
-  mundo: 'cidades, história, agora',
-};
 
 const hojeMid = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -264,8 +256,7 @@ function ExplorePage({ isWide }) {
               return (
                 <button key={type} onClick={() => setSelectedType(type)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
                   <div style={{ width: 24, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2, marginBottom: 4 }}>{info?.label}</div>
-                  <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.4 }}>{TYPE_DESC[type]}</div>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{info?.label}</div>
                 </button>
               );
             })}

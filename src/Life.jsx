@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 
 const SECOES = [
-  { id: 'compras',      label: 'Listas de compras',   desc: 'o que você quer comprar',          cor: '#ff8a3d' },
-  { id: 'planos',       label: 'Planos',              desc: 'projetos com info + checklist',    cor: '#6b7a99' },
-  { id: 'estudos',      label: 'Estudos',             desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
-  { id: 'aprendizados', label: 'Aprendizados',        desc: 'o que você aprendeu',              cor: '#c78a3a' },
-  { id: 'financas',     label: 'Vida financeira',     desc: 'metas, gastos, economia',          cor: '#54c08a' },
-  { id: 'viagens',      label: 'Viagens futuras',     desc: 'pra onde e quando',                cor: '#19b3a6' },
-  { id: 'cultural',     label: 'Calendário cultural', desc: 'exposições na cidade, até quando', cor: '#c2548f' },
+  { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
+  { id: 'planos',         label: 'Planos',         desc: 'projetos com info + checklist',    cor: '#6b7a99' },
+  { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
+  { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
+  { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
+  { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
+  { id: 'cultural',       label: 'Cultura',        desc: 'exposições na cidade, até quando', cor: '#c2548f' },
+  { id: 'retrospectivas', label: 'Retrospectivas', desc: 'seus números e marcos por mês e ano', cor: '#8d6e63' },
 ];
 
 // estilos
@@ -145,7 +146,7 @@ function ComprasSection({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque no + acima.</p>
       ) : itens.map(it => {
-        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
+        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
         return (
           <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
             <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
@@ -500,8 +501,7 @@ export default function LifePage({ isWide }) {
             padding: '20px 16px', cursor: 'pointer', textAlign: 'left',
           }}>
             <div style={{ width: 24, height: 4, background: s.cor, borderRadius: 4, marginBottom: 12 }} />
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2, marginBottom: 4 }}>{s.label}</div>
-            <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.4 }}>{s.desc}</div>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{s.label}</div>
           </button>
         ))}
       </div>
