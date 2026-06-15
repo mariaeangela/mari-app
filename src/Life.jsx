@@ -593,8 +593,15 @@ function gruposPorFinalidade(holdings, rate) {
     return { fin, total: hs.reduce((s, h) => s + valorBRL(h, rate), 0), rows };
   }).sort((a, b) => (finRank(a.fin) - finRank(b.fin)) || (b.total - a.total));
 }
+// Soma os ativos por categoria, virando linhas-resumo (valor já em R$).
+const agregarCat = (rows, rate) => Object.values(rows.reduce((acc, h) => {
+  const c = (h.categoria || '').trim() || 'Sem categoria';
+  (acc[c] = acc[c] || { id: 'agg-' + c, nome: c, categoria: '', moeda: 'BRL', valor: 0 }).valor += valorBRL(h, rate);
+  return acc;
+}, {})).sort((a, b) => b.valor - a.valor);
 
 function FinTabela({ holdings, rate }) {
+  const [modo, setModo] = useState('ativo');
   const carteira = holdings.filter(h => !h.externo);
   const externos = [...holdings].filter(h => h.externo).sort((a, b) => (finRank(a.finalidade) - finRank(b.finalidade)) || (valorBRL(b, rate) - valorBRL(a, rate)));
   const total = carteira.reduce((s, h) => s + valorBRL(h, rate), 0);
@@ -604,6 +611,13 @@ function FinTabela({ holdings, rate }) {
   return (
     <>
       {carteira.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          {[['ativo', 'Por ativo'], ['categoria', 'Por categoria']].map(([k, txt]) => (
+            <button key={k} onClick={() => setModo(k)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (modo === k ? COR_FIN : '#e2e2e2'), background: modo === k ? COR_FIN + '1c' : '#fff', color: modo === k ? '#1a7a4f' : '#888' }}>{txt}</button>
+          ))}
+        </div>
+      )}
+      {carteira.length > 0 && (
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
           <thead>
             <tr style={{ borderBottom: '1.5px solid #eee' }}>
@@ -612,15 +626,18 @@ function FinTabela({ holdings, rate }) {
               <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px', width: 52 }}>%</th>
             </tr>
           </thead>
-          {grupos.map(g => (
-            <tbody key={g.fin}>
-              <tr style={{ background: '#fafafa' }}>
-                <td colSpan={2} style={{ padding: '9px 6px 5px', fontSize: 11.5, fontWeight: 700, color: '#888', textTransform: 'capitalize', letterSpacing: '0.3px' }}>{g.fin}</td>
-                <td style={{ padding: '9px 6px 5px', textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: '#888' }}>{total ? (g.total / total * 100).toFixed(0) : 0}%</td>
-              </tr>
-              {g.rows.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} hideFin />)}
-            </tbody>
-          ))}
+          {grupos.map(g => {
+            const linhas = modo === 'categoria' ? agregarCat(g.rows, rate) : g.rows;
+            return (
+              <tbody key={g.fin}>
+                <tr style={{ background: '#fafafa' }}>
+                  <td colSpan={2} style={{ padding: '9px 6px 5px', fontSize: 11.5, fontWeight: 700, color: '#888', textTransform: 'capitalize', letterSpacing: '0.3px' }}>{g.fin}</td>
+                  <td style={{ padding: '9px 6px 5px', textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: '#888' }}>{total ? (g.total / total * 100).toFixed(0) : 0}%</td>
+                </tr>
+                {linhas.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} hideFin />)}
+              </tbody>
+            );
+          })}
           <tfoot>
             <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
               <td style={{ padding: '10px 6px', color: '#111' }}>Total da carteira</td>
