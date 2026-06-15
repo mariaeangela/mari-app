@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [] } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -69,7 +69,7 @@ export function LifeProvider({ children }) {
         if (local.compras.itens.length || local.compras.listas.length) pushLife(local);
         return;
       }
-      const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) } };
+      const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
       writeLocal(merged); setData(merged);
     })();
     return () => { alive = false; };
@@ -113,11 +113,21 @@ export function LifeProvider({ children }) {
     : { ...cultural, itens: [...cultural.itens, { ...it, id: uid('e') }] });
   const deleteCulturalItem = (id) => setCultural({ ...cultural, itens: cultural.itens.filter(x => x.id !== id) });
 
+  // ---- Vida financeira (carteira de investimentos: 1 snapshot por mês) ----
+  // snapshot = { id, mes: 'YYYY-MM', holdings: [{ id, nome, categoria, valor }] } (valores em R$)
+  const financas = data.financas || DEFAULT.financas;
+  const setFinancas = (next) => persist({ ...data, financas: next });
+  const saveFinancasSnapshot = (snap) => setFinancas(snap.id && financas.snapshots.some(s => s.id === snap.id)
+    ? { ...financas, snapshots: financas.snapshots.map(s => s.id === snap.id ? snap : s) }
+    : { ...financas, snapshots: [...financas.snapshots, { ...snap, id: uid('f') }] });
+  const deleteFinancasSnapshot = (id) => setFinancas({ ...financas, snapshots: financas.snapshots.filter(s => s.id !== id) });
+
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
+    financas, saveFinancasSnapshot, deleteFinancasSnapshot,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
