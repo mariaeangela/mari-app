@@ -554,7 +554,7 @@ function EvolucaoFin({ pontos }) {
 function LinhaAtivo({ h, denom, rate, pctLabel }) {
   const v = valorBRL(h, rate);
   const pct = denom ? (v / denom * 100) : 0;
-  const sub = [h.categoria, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
+  const sub = [h.categoria, h.finalidade, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
   return (
     <tr style={{ borderBottom: '1px solid #f3f3f3' }}>
       <td style={{ padding: '10px 6px' }}>
@@ -688,12 +688,13 @@ function FinEvolucao({ snaps }) {
 function FinancasForm({ editing, snaps, onClose }) {
   const life = useLife();
   const hojeMes = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
-  const novaRow = () => ({ nome: '', categoria: '', valor: '', moeda: 'BRL', externo: false });
+  const novaRow = () => ({ nome: '', categoria: '', finalidade: '', valor: '', moeda: 'BRL', externo: false });
   const [mes, setMes] = useState(editing?.mes || hojeMes());
-  const [rows, setRows] = useState(editing?.holdings?.length ? editing.holdings.map(h => ({ ...h, valor: String(h.valor), moeda: h.moeda || 'BRL', externo: !!h.externo })) : [novaRow()]);
+  const [rows, setRows] = useState(editing?.holdings?.length ? editing.holdings.map(h => ({ ...h, finalidade: h.finalidade || '', valor: String(h.valor), moeda: h.moeda || 'BRL', externo: !!h.externo })) : [novaRow()]);
   const [usdRate, setUsdRate] = useState(editing?.usdRate ? String(editing.usdRate) : '');
   const [buscandoR, setBuscandoR] = useState(false);
   const cats = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.categoria).filter(Boolean)))];
+  const fins = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.finalidade).filter(Boolean)))];
   const temUSDrow = rows.some(r => r.moeda === 'USD');
   const buscarR = async () => { setBuscandoR(true); const b = await fetchUsdRate(mes); if (b) setUsdRate(b.toFixed(4)); setBuscandoR(false); };
 
@@ -711,7 +712,7 @@ function FinancasForm({ editing, snaps, onClose }) {
       id: editing?.id || existente?.id,
       mes,
       usdRate: Number(usdRate) || undefined,
-      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), valor: Number(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
+      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), finalidade: (r.finalidade || '').trim() || undefined, valor: Number(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
     onClose();
@@ -730,19 +731,23 @@ function FinancasForm({ editing, snaps, onClose }) {
 
         <label style={labelStyle}>Ativos</label>
         <datalist id="fin-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>
+        <datalist id="fin-fins">{fins.map(c => <option key={c} value={c} />)}</datalist>
         {rows.map((r, i) => (
           <div key={i} style={{ border: '1px solid #eee', borderRadius: 11, padding: 10, marginBottom: 8, background: '#fff' }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
               <input value={r.nome} onChange={e => setRow(i, 'nome', e.target.value)} placeholder="nome do ativo" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
               <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 22, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
             </div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+              <input list="fin-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria (ex.: Ações)" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+              <input list="fin-fins" value={r.finalidade} onChange={e => setRow(i, 'finalidade', e.target.value)} placeholder="finalidade (ex.: Aposentadoria)" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+            </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <input list="fin-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.3, minWidth: 0 }} />
               <select value={r.moeda} onChange={e => setRow(i, 'moeda', e.target.value)} style={{ ...inputStyle, width: 66, flexShrink: 0, padding: '10px 6px' }}>
                 <option value="BRL">R$</option>
                 <option value="USD">US$</option>
               </select>
-              <input type="number" inputMode="decimal" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, width: 90, flexShrink: 0 }} />
+              <input type="number" inputMode="decimal" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
             </div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8, fontSize: 12.5, color: '#777', cursor: 'pointer' }}>
               <input type="checkbox" checked={r.externo} onChange={e => setRow(i, 'externo', e.target.checked)} style={{ width: 15, height: 15, accentColor: COR_FIN }} />
@@ -803,12 +808,17 @@ function FinancasSection({ onBack }) {
 
   const total = atual ? totalCarteiraBRL(atual.holdings, rateNum) : 0;
 
-  const porCategoria = (() => {
+  const [pizzaGroup, setPizzaGroup] = useState('categoria');
+  const temFinalidade = (atual?.holdings || []).some(h => !h.externo && h.finalidade);
+  const agrupar = (campo) => {
     const m = {};
-    (atual?.holdings || []).filter(h => !h.externo).forEach(h => { const c = h.categoria || 'Sem categoria'; m[c] = (m[c] || 0) + valorBRL(h, rateNum); });
+    (atual?.holdings || []).filter(h => !h.externo).forEach(h => {
+      const c = (h[campo] || '').trim() || (campo === 'finalidade' ? 'Sem finalidade' : 'Sem categoria');
+      m[c] = (m[c] || 0) + valorBRL(h, rateNum);
+    });
     return Object.entries(m).map(([label, valor]) => ({ label, valor })).sort((a, b) => b.valor - a.valor)
       .map((f, i) => ({ ...f, cor: FIN_PALETTE[i % FIN_PALETTE.length] }));
-  })();
+  };
 
   const tabBtn = (id, txt) => (
     <button onClick={() => setView(id)} style={{
@@ -863,7 +873,18 @@ function FinancasSection({ onBack }) {
           </div>
 
           {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} />}
-          {view === 'pizza' && <FinPizza fatias={porCategoria} total={total} />}
+          {view === 'pizza' && (
+            <>
+              {temFinalidade && (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                  {[['categoria', 'Por categoria'], ['finalidade', 'Por finalidade']].map(([g, txt]) => (
+                    <button key={g} onClick={() => setPizzaGroup(g)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (pizzaGroup === g ? COR_FIN : '#e2e2e2'), background: pizzaGroup === g ? COR_FIN + '1c' : '#fff', color: pizzaGroup === g ? '#1a7a4f' : '#888' }}>{txt}</button>
+                  ))}
+                </div>
+              )}
+              <FinPizza fatias={agrupar(temFinalidade ? pizzaGroup : 'categoria')} total={total} />
+            </>
+          )}
           {view === 'evolucao' && <FinEvolucao snaps={snaps} />}
 
           <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 22, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
