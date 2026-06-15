@@ -877,6 +877,7 @@ function FinancasSection({ onBack }) {
   const [form, setForm] = useState(null);
   const [rate, setRate] = useState('');
   const [buscando, setBuscando] = useState(false);
+  const [sub, setSub] = useState('carteira');
 
   const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
   const atualTemUSD = (atual?.holdings || []).some(h => h.moeda === 'USD');
@@ -899,6 +900,8 @@ function FinancasSection({ onBack }) {
   };
 
   const total = atual ? totalCarteiraBRL(atual.holdings, rateNum) : 0;
+  const ultimoSnap = snaps[snaps.length - 1];
+  const plAtual = ultimoSnap ? totalCarteiraBRL(ultimoSnap.holdings, rateOf(ultimoSnap)) : 0;
 
   const [pizzaGroup, setPizzaGroup] = useState('categoria');
   const temFinalidade = (atual?.holdings || []).some(h => !h.externo && h.finalidade);
@@ -927,11 +930,20 @@ function FinancasSection({ onBack }) {
     <div style={{ padding: '24px 20px 90px', maxWidth: 640, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Vida Financeira</h2>
-        <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 12px' }}>Vida Financeira</h2>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {[['carteira', 'Carteira de investimentos'], ['salarios', 'Salários vida']].map(([k, txt]) => (
+          <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
+        ))}
       </div>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>carteira de investimentos · valores convertidos para R$</p>
+
+      {sub === 'salarios' && <SalariosVida plAtual={plAtual} />}
+
+      {sub === 'carteira' && (<>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>carteira de investimentos · valores convertidos para R$</p>
+        <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 40, height: 40, borderRadius: 11, border: 'none', background: '#111', color: '#fff', fontSize: 22, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
 
       {snaps.length === 0 ? (
         <div style={{ marginTop: 12, padding: 24, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
@@ -994,6 +1006,142 @@ function FinancasSection({ onBack }) {
       )}
 
       {form && <FinancasForm editing={form.editing} snaps={snaps} onClose={() => setForm(null)} />}
+      </>)}
+    </div>
+  );
+}
+
+// ---- Salários vida (histórico de renda anual) ----
+const SAL_MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const SALARIOS_VIDA = [
+  { ano: 2017, idade: 18, cargo: 'Estágio — Alumni', meses: [0, 0, 0, 0, 0, 0, 1025, 1025, 1025, 1025, 1025, 1025], extra: 0, bonus: 0, yoy: null },
+  { ano: 2018, idade: 19, cargo: 'Estágio — J USP / IFMoney', meses: [1025, 1025, 1025, 1025, 1025, 1025, 1025, 1025, 1800, 1800, 1800, 1800], extra: 0, bonus: 0, yoy: 150 },
+  { ano: 2019, idade: 20, cargo: 'Estágio — IFMoney / Folha', meses: [1800, 1800, 1800, 1800, 2300, 2300, 2300, 2300, 2300, 2300, 2300, 2300], extra: 0, bonus: 0, yoy: 66 },
+  { ano: 2020, idade: 21, cargo: 'Estágio — CNN', meses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000], extra: 0, bonus: 0, yoy: null },
+  { ano: 2021, idade: 22, cargo: 'Estágio CNN / Rep. Forbes', meses: [1000, 1000, 1000, 1000, 1000, 4500, 4500, 4500, 4500, 4500, 4500, 4500], extra: 0, bonus: 0, yoy: 43 },
+  { ano: 2022, idade: 23, cargo: 'Trainee — Itaú', meses: [3845, 5682, 6097, 5758, 5655, 5754, 6283, 5452, 5347, 5918, 6358, 5738], extra: 6190, bonus: 12085, yoy: 136 },
+  { ano: 2023, idade: 24, cargo: 'Trainee Itaú / Anl. Research', meses: [5969, 5867, 5809, 9926, 9926, 13991, 9977, 11952, 10144, 10403, 10950, 4744], extra: 26000, bonus: 33276, yoy: 96 },
+  { ano: 2024, idade: 25, cargo: 'Analista — Research', meses: [7882, 10507, 11200, 11957, 11579, 9830, 8258, 9969.11, 11731.27, 12512.76, 12134.35, 12242.76], extra: 44992.80, bonus: 78945, yoy: 50, pl: 80325 },
+  { ano: 2025, idade: 26, cargo: 'Analista — Research', meses: [11606.31, 12731.16, 12162.16, 10387.07, 13944.99, 14251.76, 11420.15, 14050.01, 14303.19, 14414.89, 14739.14, 7685.16], extra: 39508.75, bonus: 116357.66, yoy: 21, pl: 216318.27 },
+  { ano: 2026, idade: 27, cargo: 'Analista Research / Ad Research', meses: [14633.71, 14515.28, 15814.91, 11497.07, 15913.44, 0, 0, 0, 0, 0, 0, 0], extra: 18257.71, bonus: 161198.34, yoy: -18, pl: 366965.04 },
+];
+
+function BarrasSalario({ anos }) {
+  const [hi, setHi] = useState(null);
+  const W = 320, H = 110, padTop = 12, padBot = 18, gap = 5;
+  const n = anos.length;
+  const max = Math.max(...anos.map(a => a.total), 1);
+  const bw = (W - (n - 1) * gap) / n;
+  const tip = hi != null ? anos[hi] : null;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+      {anos.map((a, i) => {
+        const bh = Math.max(1, (a.total / max) * (H - padTop - padBot));
+        const x = i * (bw + gap), y = H - padBot - bh;
+        return (
+          <g key={a.ano}>
+            <rect x={x} y={y} width={bw} height={bh} rx="2" fill="#111" opacity={hi == null || hi === i ? 1 : 0.4}
+              style={{ cursor: 'pointer' }} onMouseEnter={() => setHi(i)} onMouseLeave={() => setHi(null)} onClick={() => setHi(hi === i ? null : i)} />
+            <text x={x + bw / 2} y={H - 6} textAnchor="middle" fontSize="7.5" fill="#bbb">{"'" + String(a.ano).slice(2)}</text>
+          </g>
+        );
+      })}
+      {tip && (() => {
+        const bh = Math.max(1, (tip.total / max) * (H - padTop - padBot));
+        const cxp = hi * (bw + gap) + bw / 2, y = H - padBot - bh;
+        const rw = 80, rh = 26, tx = Math.max(rw / 2 + 2, Math.min(W - rw / 2 - 2, cxp)), ry = Math.max(0, y - rh - 4);
+        return (
+          <g pointerEvents="none">
+            <rect x={tx - rw / 2} y={ry} width={rw} height={rh} rx="5" fill="#111" opacity="0.92" />
+            <text x={tx} y={ry + 11} textAnchor="middle" fontSize="8" fill="#bbb">{tip.ano}</text>
+            <text x={tx} y={ry + 21} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtBRL(tip.total)}</text>
+          </g>
+        );
+      })()}
+    </svg>
+  );
+}
+
+function SalariosVida({ plAtual }) {
+  const [aberto, setAberto] = useState(null);
+  let acc = 0;
+  const anos = SALARIOS_VIDA.map(a => {
+    const total = a.meses.reduce((s, v) => s + v, 0) + a.extra + a.bonus;
+    acc += total;
+    return { ...a, total, media: total / 12, vida: acc };
+  });
+  const vidaTotal = acc;
+  const pl = plAtual || SALARIOS_VIDA[SALARIOS_VIDA.length - 1].pl || 0;
+  const pctVida = vidaTotal ? pl / vidaTotal * 100 : 0;
+  const maxTotal = Math.max(...anos.map(a => a.total));
+  const plPrev = (ano) => { const idx = SALARIOS_VIDA.findIndex(a => a.ano === ano); for (let j = idx - 1; j >= 0; j--) if (SALARIOS_VIDA[j].pl != null) return SALARIOS_VIDA[j].pl; return 0; };
+  const stat = (rotulo, grande, exato, extra) => (
+    <div style={{ flex: 1, background: '#fafafa', borderRadius: 14, padding: '13px 14px' }}>
+      <div style={{ fontSize: 10, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{rotulo}</div>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111', lineHeight: 1.1, marginTop: 3 }}>{grande}</div>
+      <div style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{exato}</div>
+      {extra}
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+        {stat('ganho na vida', fmtBRLcurto(vidaTotal), fmtBRL(vidaTotal), <div style={{ fontSize: 11, color: '#999', marginTop: 1 }}>{anos[0].ano}–{anos[anos.length - 1].ano} · {anos.length} anos</div>)}
+        {pl > 0 && stat('patrimônio hoje', fmtBRLcurto(pl), fmtBRL(pl), <div style={{ fontSize: 11, color: '#1a7a4f', fontWeight: 700, marginTop: 1 }}>{pctVida.toFixed(1)}% do que ganhou</div>)}
+      </div>
+
+      <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 6px', fontWeight: 600 }}>ganhos por ano</p>
+      <BarrasSalario anos={anos} />
+
+      <div style={{ marginTop: 16 }}>
+        {[...anos].reverse().map(a => {
+          const exp = aberto === a.ano;
+          const sav = a.pl != null ? (a.pl - plPrev(a.ano)) / a.total * 100 : null;
+          return (
+            <div key={a.ano} style={{ border: '1px solid #eee', borderRadius: 12, marginBottom: 8, overflow: 'hidden', background: '#fff' }}>
+              <div onClick={() => setAberto(exp ? null : a.ano)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}>
+                <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 40 }}>
+                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#111', lineHeight: 1 }}>{a.ano}</div>
+                  <div style={{ fontSize: 9.5, color: '#aaa', marginTop: 2 }}>{a.idade} anos</div>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{a.cargo}</div>
+                  <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>média {fmtBRLcurto(a.media)}/mês{sav != null ? ` · poupou ${sav.toFixed(0)}%` : ''}</div>
+                  <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 6, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: (a.total / maxTotal * 100) + '%', background: '#111', borderRadius: 4 }} />
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}>{fmtBRLcurto(a.total)}</div>
+                  {a.yoy != null && <div style={{ fontSize: 11.5, fontWeight: 700, color: a.yoy >= 0 ? '#1a7a4f' : '#c0392b' }}>{a.yoy >= 0 ? '▲' : '▼'} {Math.abs(a.yoy)}%</div>}
+                </div>
+              </div>
+              {exp && (
+                <div style={{ padding: '0 14px 12px', borderTop: '1px solid #f3f3f3' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0 14px', marginTop: 10 }}>
+                    {a.meses.map((v, mi) => (
+                      <div key={mi} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, padding: '3px 0', color: v ? '#444' : '#ccc' }}>
+                        <span style={{ textTransform: 'capitalize' }}>{SAL_MESES[mi]}</span>
+                        <span>{v ? fmtBRLcurto(v) : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {(a.extra > 0 || a.bonus > 0) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 8, fontSize: 12, color: '#555' }}>
+                      {a.extra > 0 && <span>extra <b>{fmtBRLcurto(a.extra)}</b></span>}
+                      {a.bonus > 0 && <span>bônus <b>{fmtBRLcurto(a.bonus)}</b></span>}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1px solid #f3f3f3', fontSize: 13, fontWeight: 700, color: '#111' }}>
+                    <span>Total do ano</span><span>{fmtBRL(a.total)}</span>
+                  </div>
+                  {a.pl != null && <div style={{ fontSize: 11.5, color: '#999', marginTop: 6 }}>patrimônio no fim do ano: {fmtBRL(a.pl)} · {a.vida ? (a.pl / a.vida * 100).toFixed(1) : 0}% de tudo que ganhou até aqui</div>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
