@@ -512,7 +512,7 @@ function CulturalSection({ onBack }) {
 
 // ---- Vida financeira ----
 // Gráfico de pizza (SVG) por categoria.
-function PizzaFin({ fatias }) {
+function PizzaFin({ fatias, hover, setHover }) {
   const total = fatias.reduce((s, f) => s + f.valor, 0);
   const cx = 90, cy = 90, r = 82;
   if (total <= 0) return null;
@@ -523,13 +523,14 @@ function PizzaFin({ fatias }) {
     const big = end - start > Math.PI ? 1 : 0;
     return `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${big} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
   };
+  const on = (i) => ({ style: { cursor: 'pointer' }, onMouseEnter: () => setHover(i), onMouseLeave: () => setHover(null), onClick: () => setHover(hover === i ? null : i) });
   return (
     <svg viewBox="0 0 180 180" style={{ width: 180, height: 180, flexShrink: 0 }}>
       {fatias.length === 1
-        ? <circle cx={cx} cy={cy} r={r} fill={fatias[0].cor} />
+        ? <circle cx={cx} cy={cy} r={r} fill={fatias[0].cor} {...on(0)} />
         : fatias.map((f, i) => {
           const start = acc, end = acc + (f.valor / total) * 2 * Math.PI; acc = end;
-          return <path key={i} d={arco(start, end)} fill={f.cor} stroke="#fafafa" strokeWidth="1.5" />;
+          return <path key={i} d={arco(start, end)} fill={f.cor} stroke={hover === i ? '#111' : '#fafafa'} strokeWidth={hover === i ? 2 : 1.5} opacity={hover == null || hover === i ? 1 : 0.5} {...on(i)} />;
         })}
     </svg>
   );
@@ -544,16 +545,33 @@ function EvolucaoFin({ pontos }) {
   const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
   const linha = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.total).toFixed(1)}`).join(' ');
   const pulado = n > 6;
+  const [hi, setHi] = useState(null);
+  const rw = 90, rh = 28;
+  const tip = hi != null && pontos[hi] ? (() => {
+    const px = x(hi), py = y(pontos[hi].total);
+    const tx = Math.max(rw / 2 + 2, Math.min(W - rw / 2 - 2, px));
+    const above = py - rh - 8 >= 0;
+    return { tx, ry: above ? py - 8 - rh : py + 8, p: pontos[hi] };
+  })() : null;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
       <path d={linha} fill="none" stroke="#111" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
       {pontos.map((p, i) => (
         <g key={i}>
-          <circle cx={x(i)} cy={y(p.total)} r="2.4" fill="#111" stroke="#fafafa" strokeWidth="1" />
           {(!pulado || i % 2 === 0 || i === n - 1) &&
             <text x={x(i)} y={H - 9} textAnchor="middle" fontSize="9" fill="#bbb">{fmtMes(p.mes)}</text>}
+          <circle cx={x(i)} cy={y(p.total)} r={hi === i ? 4 : 2.4} fill="#111" stroke="#fafafa" strokeWidth="1" />
+          <circle cx={x(i)} cy={y(p.total)} r="11" fill="transparent" style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHi(i)} onMouseLeave={() => setHi(null)} onClick={() => setHi(hi === i ? null : i)} />
         </g>
       ))}
+      {tip && (
+        <g pointerEvents="none">
+          <rect x={tip.tx - rw / 2} y={tip.ry} width={rw} height={rh} rx="5" fill="#111" opacity="0.92" />
+          <text x={tip.tx} y={tip.ry + 11} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(tip.p.mes)}</text>
+          <text x={tip.tx} y={tip.ry + 22} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtBRL(tip.p.total)}</text>
+        </g>
+      )}
     </svg>
   );
 }
@@ -669,15 +687,18 @@ function FinTabela({ holdings, rate }) {
 }
 
 function FinPizza({ fatias, total }) {
+  const [hover, setHover] = useState(null);
   if (!fatias.length || total <= 0) return <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Sem dados pra exibir.</p>;
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'center', justifyContent: 'center' }}>
-      <PizzaFin fatias={fatias} />
+      <PizzaFin fatias={fatias} hover={hover} setHover={setHover} />
       <div style={{ flex: 1, minWidth: 190 }}>
         {fatias.map((f, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0' }}>
+          <div key={i}
+            onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={() => setHover(hover === i ? null : i)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 6px', borderRadius: 7, cursor: 'pointer', background: hover === i ? COR_FIN + '14' : 'transparent' }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, background: f.cor, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: '#333', flex: 1 }}>{f.label}</span>
+            <span style={{ fontSize: 13, color: '#333', flex: 1, fontWeight: hover === i ? 700 : 400 }}>{f.label}</span>
             <span style={{ fontSize: 12.5, color: '#999', width: 46, textAlign: 'right' }}>{(f.valor / total * 100).toFixed(1)}%</span>
             <span style={{ fontSize: 12.5, color: '#555', width: 92, textAlign: 'right' }}>{fmtBRLcurto(f.valor)}</span>
           </div>
