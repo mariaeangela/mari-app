@@ -95,6 +95,7 @@ export function LifeProvider({ children }) {
   const planos = data.planos || DEFAULT_PLANOS;
   const setPlanos = (next) => persist({ ...data, planos: next });
   const addPlano = (nome) => { const id = uid('p'); setPlanos({ ...planos, lista: [...planos.lista, { id, nome }] }); return id; };
+  const setPlanoPrazo = (id, prazo) => setPlanos({ ...planos, lista: planos.lista.map(p => p.id === id ? { ...p, prazo: prazo || undefined } : p) });
   const deletePlano = (id) => setPlanos({ lista: planos.lista.filter(p => p.id !== id), infos: planos.infos.filter(i => i.planoId !== id), itens: planos.itens.filter(c => c.planoId !== id) });
   const savePlanoInfo = (info) => setPlanos(info.id && planos.infos.some(x => x.id === info.id)
     ? { ...planos, infos: planos.infos.map(x => x.id === info.id ? info : x) }
@@ -115,7 +116,7 @@ export function LifeProvider({ children }) {
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
-    planos, addPlano, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, deletePlanoCheck,
+    planos, addPlano, setPlanoPrazo, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

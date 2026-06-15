@@ -672,6 +672,11 @@ export default function Calendario({ isWide }) {
   const mesKey = `${refDate.getFullYear()}-${pad2(refDate.getMonth() + 1)}`;
   const comprasDoMes = (life.compras.itens || []).filter(i => i.dataLimite && i.dataLimite.slice(0, 7) === mesKey)
     .sort((a, b) => a.dataLimite.localeCompare(b.dataLimite));
+  const culturalDoMes = (life.cultural?.itens || []).filter(i => i.dataMax && i.dataMax.slice(0, 7) === mesKey)
+    .sort((a, b) => a.dataMax.localeCompare(b.dataMax));
+  const planosDoMes = (life.planos?.lista || []).filter(p => p.prazo && p.prazo.slice(0, 7) === mesKey)
+    .sort((a, b) => a.prazo.localeCompare(b.prazo));
+  const dm = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
@@ -751,6 +756,29 @@ export default function Calendario({ isWide }) {
               </div>
             );
           })}
+        </div>
+      )}
+      {view === 'mes' && culturalDoMes.length > 0 && (
+        <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+          <div style={{ fontSize: 11, color: '#c2548f', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Cultural do mês</div>
+          {culturalDoMes.map(it => (
+            <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+              <span style={{ fontSize: 12, color: '#c2548f', fontWeight: 700, minWidth: 40 }}>{dm(it.dataMax)}</span>
+              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.nome}</span>
+              {(it.cidade || it.local) && <span style={{ fontSize: 11.5, color: '#999' }}>{[it.cidade, it.local].filter(Boolean).join(' · ')}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {view === 'mes' && planosDoMes.length > 0 && (
+        <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+          <div style={{ fontSize: 11, color: '#6b7a99', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Planos do mês</div>
+          {planosDoMes.map(p => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+              <span style={{ fontSize: 12, color: '#6b7a99', fontWeight: 700, minWidth: 40 }}>{dm(p.prazo)}</span>
+              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{p.nome}</span>
+            </div>
+          ))}
         </div>
       )}
       {(view === 'mes' || view === 'agenda') && tarefasSemData.length > 0 && (

@@ -207,7 +207,12 @@ function PlanoView({ plano, onBack }) {
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Planos</button>
       <div style={{ width: 36, height: 4, background: COR_PLANOS, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 16px' }}>{plano.nome}</h2>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 10px' }}>{plano.nome}</h2>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 12.5, color: '#888' }}>
+        <span>Prazo (opcional):</span>
+        <input type="date" value={plano.prazo || ''} onChange={e => life.setPlanoPrazo(plano.id, e.target.value)} style={{ ...inputStyle, width: 'auto', padding: '5px 10px', fontSize: 13 }} />
+      </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {[['info', 'Informações'], ['check', `Check list${checks.length ? ` (${feitos}/${checks.length})` : ''}`]].map(([id, label]) => (

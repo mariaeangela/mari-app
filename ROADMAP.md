@@ -11,9 +11,8 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 - 🟡 **Aprendizados** — o que você aprendeu (lições/descobertas).
 - 🟡 **Vida financeira** — metas, gastos, economia (conversa com o "quanto posso gastar").
 - 🟡 **Viagens** — ver bloco 2.
-- 🟢 (ideia) **Planos → calendário** — dar data a um plano/checklist e ele "pingar" no
-  calendário, como as compras do mês.
-- 🟢 (ideia) **Cultural → calendário** — eventos com data máxima pingando no mês.
+- ✅ **Planos → calendário** e **Cultural → calendário** — planos com prazo e eventos
+  culturais com data máxima já "pingam" no calendário do mês (como as compras).
 
 ## 2. Viagens & Modo Viagem
 - 🟡 **Viagens futuras** (planejamento) + listas de compras por ocasião (parte já existe).
