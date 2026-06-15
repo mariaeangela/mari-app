@@ -37,6 +37,24 @@ const fmtUSD = (n) => 'US$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimu
 const valorBRL = (h, rate) => (h.moeda === 'USD' ? (Number(h.valor) || 0) * (Number(rate) || 0) : (Number(h.valor) || 0));
 // Total da CARTEIRA (exclui itens marcados como `externo`, ex.: FGTS).
 const totalCarteiraBRL = (holdings, rate) => (holdings || []).filter(h => !h.externo).reduce((s, h) => s + valorBRL(h, rate), 0);
+// Cotação travada de cada mês (cada snapshot guarda a sua em `usdRate`).
+const rateOf = (snap) => Number(snap?.usdRate) || 0;
+// Busca a cotação USD→BRL: mês atual (ou futuro) usa a cotação ao vivo; mês passado
+// usa o fechamento do último dia útil daquele mês (histórico da AwesomeAPI).
+async function fetchUsdRate(mes) {
+  try {
+    const agora = new Date();
+    const mesAtual = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
+    if (!mes || mes >= mesAtual) {
+      const j = await (await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')).json();
+      return parseFloat(j?.USDBRL?.bid) || null;
+    }
+    const [y, m] = mes.split('-');
+    const ultimo = new Date(+y, +m, 0).getDate();
+    const arr = await (await fetch(`https://economia.awesomeapi.com.br/json/daily/USD-BRL/?start_date=${y}${m}01&end_date=${y}${m}${String(ultimo).padStart(2, '0')}`)).json();
+    return parseFloat(arr?.[0]?.bid) || null; // [0] = dia mais recente do intervalo
+  } catch { return null; }
+}
 
 function ComprasForm({ editing, listaAtual, listas, onClose }) {
   const life = useLife();
@@ -618,11 +636,11 @@ function FinPizza({ fatias, total }) {
   );
 }
 
-function FinEvolucao({ snaps, rate }) {
+function FinEvolucao({ snaps }) {
   const externosNomes = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => h.externo).map(h => h.nome)))];
   const series = [
-    { key: '_carteira', label: 'Carteira', pontos: snaps.map(s => ({ mes: s.mes, total: totalCarteiraBRL(s.holdings, rate) })) },
-    ...externosNomes.map(nome => ({ key: nome, label: nome, pontos: snaps.map(s => ({ mes: s.mes, total: (s.holdings || []).filter(h => h.externo && h.nome === nome).reduce((a, h) => a + valorBRL(h, rate), 0) })) })),
+    { key: '_carteira', label: 'Carteira', pontos: snaps.map(s => ({ mes: s.mes, total: totalCarteiraBRL(s.holdings, rateOf(s)) })) },
+    ...externosNomes.map(nome => ({ key: nome, label: nome, pontos: snaps.map(s => ({ mes: s.mes, total: (s.holdings || []).filter(h => h.externo && h.nome === nome).reduce((a, h) => a + valorBRL(h, rateOf(s)), 0) })) })),
   ];
   const [sel, setSel] = useState('_carteira');
   const serie = series.find(x => x.key === sel) || series[0];
@@ -673,7 +691,11 @@ function FinancasForm({ editing, snaps, onClose }) {
   const novaRow = () => ({ nome: '', categoria: '', valor: '', moeda: 'BRL', externo: false });
   const [mes, setMes] = useState(editing?.mes || hojeMes());
   const [rows, setRows] = useState(editing?.holdings?.length ? editing.holdings.map(h => ({ ...h, valor: String(h.valor), moeda: h.moeda || 'BRL', externo: !!h.externo })) : [novaRow()]);
+  const [usdRate, setUsdRate] = useState(editing?.usdRate ? String(editing.usdRate) : '');
+  const [buscandoR, setBuscandoR] = useState(false);
   const cats = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.categoria).filter(Boolean)))];
+  const temUSDrow = rows.some(r => r.moeda === 'USD');
+  const buscarR = async () => { setBuscandoR(true); const b = await fetchUsdRate(mes); if (b) setUsdRate(b.toFixed(4)); setBuscandoR(false); };
 
   const setRow = (i, k, v) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
   const addRow = () => setRows([...rows, novaRow()]);
@@ -688,6 +710,7 @@ function FinancasForm({ editing, snaps, onClose }) {
     const snap = {
       id: editing?.id || existente?.id,
       mes,
+      usdRate: Number(usdRate) || undefined,
       holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), valor: Number(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
@@ -729,6 +752,17 @@ function FinancasForm({ editing, snaps, onClose }) {
         ))}
         <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '9px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ ativo</button>
 
+        {temUSDrow && (
+          <>
+            <label style={labelStyle}>Cotação do dólar neste mês (US$ 1 = R$)</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input type="number" inputMode="decimal" step="0.0001" value={usdRate} onChange={e => setUsdRate(e.target.value)} placeholder="ex.: 5,40" style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={buscarR} disabled={buscandoR} style={{ background: '#fff', border: '1px solid ' + COR_FIN + '55', color: '#1a7a4f', borderRadius: 9, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>{buscandoR ? 'buscando…' : '↻ buscar'}</button>
+            </div>
+            <p style={{ fontSize: 11, color: '#aaa', margin: '4px 2px 0', lineHeight: 1.5 }}>buscar usa a cotação atual no mês corrente; nos meses passados, o fechamento do último dia do mês.</p>
+          </>
+        )}
+
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { life.deleteFinancasSnapshot(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
@@ -744,26 +778,29 @@ function FinancasSection({ onBack }) {
   const [view, setView] = useState('tabela');
   const [selId, setSelId] = useState(null);
   const [form, setForm] = useState(null);
-  const [rate, setRate] = useState(life.financas.usdRate ? String(life.financas.usdRate) : '');
+  const [rate, setRate] = useState('');
   const [buscando, setBuscando] = useState(false);
 
-  const rateNum = Number(rate) || 0;
-  const temUSD = snaps.some(s => (s.holdings || []).some(h => h.moeda === 'USD'));
+  const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
+  const atualTemUSD = (atual?.holdings || []).some(h => h.moeda === 'USD');
+  const agora = new Date();
+  const mesAtualStr = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
+  const ehMesCorrente = atual && atual.mes >= mesAtualStr;
 
+  // Campo de cotação reflete o mês selecionado (cada mês trava a sua).
+  useEffect(() => { setRate(atual?.usdRate ? String(atual.usdRate) : ''); }, [atual?.id]); // eslint-disable-line
+  const rateNum = Number(rate) || 0;
+
+  const salvarRate = (n) => { if (atual && n > 0) life.saveFinancasSnapshot({ ...atual, usdRate: n }); };
+  const persistRate = () => salvarRate(Number(rate));
   const buscarDolar = async () => {
+    if (!atual) return;
     setBuscando(true);
-    try {
-      const r = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
-      const j = await r.json();
-      const bid = parseFloat(j?.USDBRL?.bid);
-      if (bid) { setRate(bid.toFixed(2)); life.setFinancasUsdRate(bid); }
-    } catch {}
+    const b = await fetchUsdRate(atual.mes);
+    if (b) { setRate(b.toFixed(4)); salvarRate(b); }
     setBuscando(false);
   };
-  const persistRate = () => { const n = Number(rate); if (n > 0) life.setFinancasUsdRate(n); };
-  useEffect(() => { if (!life.financas.usdRate && temUSD) buscarDolar(); }, []); // eslint-disable-line
 
-  const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
   const total = atual ? totalCarteiraBRL(atual.holdings, rateNum) : 0;
 
   const porCategoria = (() => {
@@ -790,17 +827,6 @@ function FinancasSection({ onBack }) {
       </div>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>carteira de investimentos · valores convertidos para R$</p>
 
-      {temUSD && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: '10px 12px', background: COR_FIN + '10', borderRadius: 11, fontSize: 12.5, color: '#555' }}>
-          <span style={{ fontWeight: 700 }}>Dólar:</span>
-          <span>US$ 1 =</span>
-          <span>R$</span>
-          <input type="number" inputMode="decimal" step="0.01" value={rate} onChange={e => setRate(e.target.value)} onBlur={persistRate} placeholder="5,40" style={{ ...inputStyle, width: 78, padding: '6px 8px', flexShrink: 0 }} />
-          <button onClick={buscarDolar} disabled={buscando} style={{ background: '#fff', border: '1px solid ' + COR_FIN + '55', color: '#1a7a4f', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{buscando ? 'buscando…' : '↻ buscar cotação'}</button>
-          {!rateNum && <span style={{ color: '#c0392b', width: '100%', marginTop: 2 }}>defina a cotação para converter os ativos em dólar.</span>}
-        </div>
-      )}
-
       {snaps.length === 0 ? (
         <div style={{ marginTop: 12, padding: 24, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>Nenhum mês ainda.</p>
@@ -818,6 +844,18 @@ function FinancasSection({ onBack }) {
             </div>
           </div>
 
+          {atualTemUSD && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16, padding: '10px 12px', background: COR_FIN + '10', borderRadius: 11, fontSize: 12.5, color: '#555' }}>
+              <span style={{ fontWeight: 700 }}>Dólar em {fmtMes(atual.mes)}:</span>
+              <span>US$ 1 = R$</span>
+              <input type="number" inputMode="decimal" step="0.0001" value={rate} onChange={e => setRate(e.target.value)} onBlur={persistRate} placeholder="5,40" style={{ ...inputStyle, width: 84, padding: '6px 8px', flexShrink: 0 }} />
+              <button onClick={buscarDolar} disabled={buscando} style={{ background: '#fff', border: '1px solid ' + COR_FIN + '55', color: '#1a7a4f', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{buscando ? 'buscando…' : '↻ buscar'}</button>
+              <span style={{ width: '100%', marginTop: 2, color: rateNum ? '#aaa' : '#c0392b' }}>
+                {rateNum ? (ehMesCorrente ? 'cotação atual (atualizável)' : 'travada no fechamento do mês') : 'defina a cotação para converter os ativos em dólar.'}
+              </span>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
             {tabBtn('tabela', 'Tabela')}
             {tabBtn('pizza', 'Pizza')}
@@ -826,7 +864,7 @@ function FinancasSection({ onBack }) {
 
           {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} />}
           {view === 'pizza' && <FinPizza fatias={porCategoria} total={total} />}
-          {view === 'evolucao' && <FinEvolucao snaps={snaps} rate={rateNum} />}
+          {view === 'evolucao' && <FinEvolucao snaps={snaps} />}
 
           <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 22, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
         </>
