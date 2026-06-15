@@ -116,7 +116,8 @@ function ComprasSection({ onBack }) {
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 16px' }}>Listas de compras</h2>
 
       {/* seletor de listas */}
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
         {listas.map(l => (
           <button key={l.id} onClick={() => setListaSel(l.id)} style={{
             whiteSpace: 'nowrap', padding: '7px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
@@ -130,11 +131,13 @@ function ComprasSection({ onBack }) {
         ) : (
           <button onClick={() => setCriandoLista(true)} style={{ whiteSpace: 'nowrap', padding: '7px 12px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px dashed #ccc', background: '#fff', color: '#999' }}>+ lista</button>
         )}
+        </div>
+        <button onClick={() => setForm({})} title="adicionar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
       {/* itens */}
       {itens.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque em "+ adicionar".</p>
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque no + acima.</p>
       ) : itens.map(it => {
         const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
         return (
@@ -150,8 +153,6 @@ function ComprasSection({ onBack }) {
           </div>
         );
       })}
-
-      <button onClick={() => setForm({})} style={{ width: '100%', marginTop: 16, padding: '12px 0', borderRadius: 11, border: 'none', background: '#111', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>+ adicionar</button>
 
       {form && <ComprasForm editing={form.editing} listaAtual={listaSel} listas={listas} onClose={() => setForm(null)} />}
     </div>
