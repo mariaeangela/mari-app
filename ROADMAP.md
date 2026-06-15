@@ -62,7 +62,13 @@ Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curado
 - 🟡 **"Quem você viu"** — somar pessoas marcadas em eventos/rolês (campo já existe).
 - 🟢 **Era/música do mês** — legendinha sob o nome do mês (a decidir).
 
-## 8. Polimentos & verificações
+## 8. Visual & atmosfera (capa e senha)
+- 🟡 **Imagens de fundo da tela de senha** mais bonitas e **variadas** — hoje a do
+  inverno enjoa; quer mais coisas ligadas ao **frio** (e variedade por estação).
+- 🟡 **Frase de abertura (embaixo de DIAGONAL)** — hoje são **12**, e giram 2x/dia
+  (repetem a cada ~6 dias). Ampliar MUITO o acervo (dezenas/centenas) pra não repetir.
+
+## 9. Polimentos & verificações
 - 🟢 **Testar nos aparelhos**: X dos Salvos e sync na nuvem (Salvos/Calendário/Life).
 - 🟢 Tirar o **"até"** do enunciado do campo de compra, se quiser.
 - 🟡 (técnico) unificar as 3 buscas na nuvem (saved/calendário/life) numa só.
