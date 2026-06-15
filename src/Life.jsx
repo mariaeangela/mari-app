@@ -558,10 +558,10 @@ function EvolucaoFin({ pontos }) {
   );
 }
 
-function LinhaAtivo({ h, denom, rate, pctLabel }) {
+function LinhaAtivo({ h, denom, rate, pctLabel, hideFin }) {
   const v = valorBRL(h, rate);
   const pct = denom ? (v / denom * 100) : 0;
-  const sub = [h.categoria, h.finalidade, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
+  const sub = [h.categoria, hideFin ? null : h.finalidade, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
   return (
     <tr style={{ borderBottom: '1px solid #f3f3f3' }}>
       <td style={{ padding: '10px 6px' }}>
@@ -574,11 +574,32 @@ function LinhaAtivo({ h, denom, rate, pctLabel }) {
   );
 }
 
+// Ordem das finalidades na tabela: Reserva → Investimento → Aposta → (demais por valor).
+const FIN_ORDEM = ['reserva', 'investimento', 'aposta'];
+const finRank = (f) => { const low = (f || '').toLowerCase().trim(); for (let i = 0; i < FIN_ORDEM.length; i++) if (low.startsWith(FIN_ORDEM[i])) return i; return FIN_ORDEM.length; };
+// Agrupa por finalidade (na ordem acima); dentro de cada uma, mantém as classes
+// (categoria) juntas — classes maiores primeiro, e por valor desc.
+function gruposPorFinalidade(holdings, rate) {
+  const map = {};
+  holdings.forEach(h => { const f = (h.finalidade || '').trim() || 'Sem finalidade'; (map[f] = map[f] || []).push(h); });
+  return Object.entries(map).map(([fin, hs]) => {
+    const catTotal = {};
+    hs.forEach(h => { const c = (h.categoria || '').trim(); catTotal[c] = (catTotal[c] || 0) + valorBRL(h, rate); });
+    const rows = [...hs].sort((a, b) => {
+      const ca = (a.categoria || '').trim(), cb = (b.categoria || '').trim();
+      if (ca !== cb) return (catTotal[cb] - catTotal[ca]) || ca.localeCompare(cb);
+      return valorBRL(b, rate) - valorBRL(a, rate);
+    });
+    return { fin, total: hs.reduce((s, h) => s + valorBRL(h, rate), 0), rows };
+  }).sort((a, b) => (finRank(a.fin) - finRank(b.fin)) || (b.total - a.total));
+}
+
 function FinTabela({ holdings, rate }) {
-  const carteira = [...holdings].filter(h => !h.externo).sort((a, b) => valorBRL(b, rate) - valorBRL(a, rate));
-  const externos = [...holdings].filter(h => h.externo).sort((a, b) => valorBRL(b, rate) - valorBRL(a, rate));
+  const carteira = holdings.filter(h => !h.externo);
+  const externos = [...holdings].filter(h => h.externo).sort((a, b) => (finRank(a.finalidade) - finRank(b.finalidade)) || (valorBRL(b, rate) - valorBRL(a, rate)));
   const total = carteira.reduce((s, h) => s + valorBRL(h, rate), 0);
   if (!carteira.length && !externos.length) return <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>Sem ativos neste mês.</p>;
+  const grupos = gruposPorFinalidade(carteira, rate);
   const thStyle = { color: '#aaa', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 };
   return (
     <>
@@ -591,9 +612,15 @@ function FinTabela({ holdings, rate }) {
               <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px', width: 52 }}>%</th>
             </tr>
           </thead>
-          <tbody>
-            {carteira.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} />)}
-          </tbody>
+          {grupos.map(g => (
+            <tbody key={g.fin}>
+              <tr style={{ background: '#fafafa' }}>
+                <td colSpan={2} style={{ padding: '9px 6px 5px', fontSize: 11.5, fontWeight: 700, color: '#888', textTransform: 'capitalize', letterSpacing: '0.3px' }}>{g.fin}</td>
+                <td style={{ padding: '9px 6px 5px', textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: '#888' }}>{total ? (g.total / total * 100).toFixed(0) : 0}%</td>
+              </tr>
+              {g.rows.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} hideFin />)}
+            </tbody>
+          ))}
           <tfoot>
             <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
               <td style={{ padding: '10px 6px', color: '#111' }}>Total da carteira</td>
