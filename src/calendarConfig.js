@@ -20,6 +20,7 @@ export const EXERCICIO_SUBTIPOS = [
   { id: 'costas',         label: 'Costas',         grupo: 'treino',  cor: '#5b8def' },
   { id: 'peitoral',       label: 'Peitoral',       grupo: 'treino',  cor: '#c77dff' },
   { id: 'perna',          label: 'Perna',          grupo: 'treino',  cor: '#2bb673' },
+  { id: 'alongamento',    label: 'Alongamento',    grupo: 'treino',  cor: '#26c6da' },
   { id: 'corrida_treino', label: 'Corrida treino', grupo: 'corrida', cor: '#f0a35e' },
   { id: 'corrida_prova',  label: 'Corrida prova',  grupo: 'corrida', cor: '#ef6c4d', aguardado: true },
   { id: 'outros',         label: 'Outros',         grupo: 'outros',  cor: COR_OUTROS },
@@ -31,6 +32,7 @@ EXERCICIO_BY_ID.corrida = EXERCICIO_BY_ID.corrida_prova;
 // Legenda da visão Exercício.
 export const EXERCICIO_LEGENDA = [
   { label: 'Costas', cor: '#5b8def' }, { label: 'Peitoral', cor: '#c77dff' }, { label: 'Perna', cor: '#2bb673' },
+  { label: 'Alongamento', cor: '#26c6da' },
   { label: 'Corrida treino', cor: '#f0a35e' }, { label: 'Corrida prova', cor: '#ef6c4d' }, { label: 'Outros', cor: COR_OUTROS },
 ];
 
