@@ -19,7 +19,7 @@ const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,
 const sheet = { background: '#fafafa', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto', borderRadius: '20px 20px 0 0', padding: '20px 20px 28px' };
 
 const COR = '#ff8a3d';
-const LISTAS_FIXAS = [{ id: 'geral', nome: 'Geral' }, { id: 'algumdia', nome: 'Algum dia' }];
+const LISTAS_FIXAS = [{ id: 'geral', nome: 'Geral' }, { id: 'algumdia', nome: 'Algum dia' }, { id: 'internacional', nome: 'Internacional' }];
 const fmtData = (s) => { const [y, m, d] = s.split('-'); return `${d}/${m}`; };
 
 function ComprasForm({ editing, listaAtual, listas, onClose }) {
@@ -28,6 +28,7 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
   const [listaId, setListaId] = useState(editing?.listaId || listaAtual);
   const [orcamento, setOrcamento] = useState(editing?.orcamento || '');
   const [moeda, setMoeda] = useState(editing?.moeda || 'BRL');
+  const [pais, setPais] = useState(editing?.pais || '');
   const [dataLimite, setDataLimite] = useState(editing?.dataLimite || '');
   const [links, setLinks] = useState(editing?.links?.length ? editing.links : ['']);
 
@@ -39,6 +40,7 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
       titulo: titulo.trim(), listaId,
       orcamento: orcamento || undefined,
       moeda,
+      pais: pais.trim() || undefined,
       dataLimite: dataLimite || undefined,
       links: links.map(l => l.trim()).filter(Boolean),
     };
@@ -70,6 +72,9 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
           </select>
           <input type="number" inputMode="decimal" value={orcamento} onChange={e => setOrcamento(e.target.value)} placeholder="ex.: 500" style={inputStyle} />
         </div>
+
+        <label style={labelStyle}>Em qual país comprar (opcional)</label>
+        <input value={pais} onChange={e => setPais(e.target.value)} placeholder="ex.: Estados Unidos, Japão…" style={inputStyle} />
 
         <label style={labelStyle}>Data limite (opcional — deixe vazio se não tem)</label>
         <input type="date" value={dataLimite} onChange={e => setDataLimite(e.target.value)} style={inputStyle} />
@@ -139,7 +144,7 @@ function ComprasSection({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque no + acima.</p>
       ) : itens.map(it => {
-        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
+        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? 'até ' + fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
         return (
           <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
             <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
