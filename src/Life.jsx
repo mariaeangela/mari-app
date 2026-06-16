@@ -1376,6 +1376,10 @@ function GastosVida() {
   const totalDe = (m) => (m?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
   const atual = meses.find(m => m.mes === selMes) || meses[meses.length - 1] || null;
   const total = totalDe(atual);
+  // 2ª linha de total: gasto recorrente do mês (sem Viagem, Fixos e Mercado) + % do total.
+  const EXCLUI_2A = ['Viagem', 'Fixos', 'Mercado'];
+  const totalCorrente = (atual?.itens || []).filter(i => !EXCLUI_2A.includes(i.categoria)).reduce((s, i) => s + (Number(i.valor) || 0), 0);
+  const pctCorrente = total ? Math.round(totalCorrente / total * 100) : 0;
   const barras = meses.map(m => ({ label: fmtMes(m.mes), full: fmtMesLongo(m.mes), valor: totalDe(m) }));
   const cats = atual ? [...atual.itens].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0)) : [];
   const maxCat = Math.max(...cats.map(c => Number(c.valor) || 0), 1);
@@ -1414,6 +1418,7 @@ function GastosVida() {
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</div>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>sem viagem, fixos e mercado: <b style={{ color: '#555' }}>{fmtBRL(totalCorrente)}</b> · {pctCorrente}%</div>
             </div>
           </div>
 
@@ -1437,6 +1442,9 @@ function GastosVida() {
             })}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
               <span>Total do mês</span><span>{fmtBRL(total)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12.5, color: '#888' }}>
+              <span>Sem viagem, fixos e mercado</span><span>{fmtBRL(totalCorrente)} · {pctCorrente}%</span>
             </div>
           </div>
 

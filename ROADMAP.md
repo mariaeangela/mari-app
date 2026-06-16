@@ -12,26 +12,37 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
 - ✅ **Calendário cultural** (em cartaz, com link) — vive na aba **Explorar** (`CulturalSection`).
 - ✅ **Vida Financeira** — pronta, com 3 sub-abas (Carteira / Salários / Gastos). Ver bloco A.
 - ✅ **Saúde** — pronta. Ver bloco B.
-- 🟡 **Estudos** — aulas, leituras, cursos (placeholder "em construção").
-- ✅ **Aprendizados** — hub de **tópicos** (assuntos), cada um com **notas** (título + itens,
-  accordion). Seed: tópico **Café** (7 notas). Adicionar tópico/nota pela UI.
+- 🟡 **Estudos** — aulas, leituras, cursos (placeholder "em construção"). Único placeholder que sobra na Life.
+- ✅ **Aprendizados** — hub de **tópicos**; cada tópico tem **notas** (accordion) que **aninham 1 nível**
+  (categoria → itens). Notas especiais: **vinho** (form país/região/nome/uva/info/data) e **compras**
+  (espelho ao vivo de uma lista de Compras). Tópicos prontos: **Café, Tecidos, Fotografia analógica,
+  Vinhos, Vida, Maquiagem** (a seção "Para comprar" espelha a lista de Compras "Maquiagem"). Cria
+  tópico/nota/sub-nota/vinho pela própria UI. Ver bloco C.
 - 🟡 **Viagens** — placeholder; ver bloco 2.
 - 🟡 **Retrospectivas** — card existe (placeholder). Vira o hub de agregações por mês/ano
   (livros lidos, filmes, nº museu/academia, corridas…). Parte já existe espalhada
   (exercícios na Saúde; gastos/patrimônio na Vida Financeira) — falta juntar.
 
 ### A. Vida Financeira — pendências/ideias
-- ❓ **2ª linha de total dos Gastos** (no print da Mari; ex.: jun 5.388,34) — descobrir o que é
-  e, se fizer sentido, mostrar (essenciais vs total? sobra do mês?).
+- ✅ **2ª linha de total dos Gastos** — gasto recorrente do mês **sem Viagem, Fixos e Mercado** +
+  **% do total** (bate com o print: jun = R$ 5.388,34). Aparece na vista Mês (cabeçalho + linha de total).
 - 🟡 **Bloco "Investimentos"** que vinha embaixo dos Gastos no print — organizar se ela quiser.
 - 🟡 Travar cotação do dólar por mês já existe; ideia futura: aporte vs rendimento (separar
   "quanto aportei" de "quanto rendeu").
+- 🟢 (opcional) Mostrar a 2ª linha também na vista **Tabela** (uma por mês).
 
 ### B. Saúde — ideias futuras
 - 🟡 **Lembrete** de quando um remédio acaba (a partir de início + duração).
 - 🟡 **Previsão da próxima menstruação** (média dos ciclos).
 - 🟡 Período do peso é manhã/tarde/noite; treino é pré/pós. OK por enquanto. (Pesagens antigas
   seedadas como `dia` seguem aparecendo, sem filtro — editar se quiser reclassificar.)
+
+### C. Aprendizados — ideias futuras
+- 🟢 Preencher os materiais/itens deixados **vazios** (Tecidos: Sisal/Ráfia/Rami/Juta/Modal/Cupro;
+  Fotografia: filmes sem nota; Vinhos: Espumante). Tudo editável pela UI.
+- 🟡 Permitir **criar grupo de vinho** (categoria nova tipo "Rosé") e novos métodos via UI (hoje as
+  categorias `grupoVinho` vêm do seed).
+- 🟡 Outras listas de Aprendizados poderiam espelhar Compras também (padrão `tipo:'compras'` já existe).
 
 ## 2. Viagens & Modo Viagem
 - 🟡 **Viagens futuras** (planejamento) + listas de compras por ocasião (parte já existe).
@@ -105,7 +116,17 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
 - Hoje sem trocar de card (só 1/dia); o ↻ ficou só no Explorar.
 
 **Explorar / Life (hub):** cards enxutos sem subtítulo. Cards da Life com rótulos curtos
-(Compras, Cultura, Vida Financeira, Saúde…). Compras: tirado o "até" do valor.
+(Compras, Vida Financeira, Saúde, Aprendizados…). Compras: tirado o "até" do valor.
+**Calendário cultural** saiu da Life e virou **tile da aba Explorar**.
+
+**Navegação:** reclicar a **aba ativa** volta pra **capa** dela (sai de qualquer sub-página);
+clicar em **"diagonal"** no topo vai pra **Hoje**.
+
+**Aprendizados (Life):** seção de tópicos com notas em accordion que aninham 1 nível. Tópicos:
+**Café** (Hario V60 com as receitas dentro), **Tecidos** (tipos + fibras naturais/artificiais/
+sintéticas, cada material aninhado), **Fotografia analógica** (câmera→filmes), **Vinhos** (form
+próprio país/região/nome/uva/info/data), **Vida** (dinheiro/saúde/sentimentos/viagem) e
+**Maquiagem** (conhecimento + "Para comprar" **espelhando ao vivo** a lista de Compras "Maquiagem").
 
 **Calendário:**
 - Tarefa vencida não-recorrente e incompleta **rola pra hoje** ao carregar.
@@ -126,13 +147,17 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
   **meta de PL** com barra); barras Ganhos×Patrimônio por ano; cards por ano com detalhe
   mensal; patrimônio puxa a carteira em 2026.
 - **Gastos** — por categoria/mês (2026 jan–jun); visões **Mês / Tabela (matriz, mês recente
-  primeiro) / Linhas (1 por categoria, eixo Y + valores ao focar)**.
+  primeiro) / Linhas (1 por categoria, eixo Y + valores ao focar)**. Na vista Mês, **2ª linha de
+  total** = sem Viagem, Fixos e Mercado + **% do total**.
+
+**Planos:** abas **Check list** (padrão) e **Informações**; a caixa de novo item do checklist fica
+no **topo** da lista.
 
 **Saúde:**
 - **Consultas e exames** — puxa eventos com categoria *Saúde* do Calendário.
 - **Exercícios** — retrospectiva do calendário: barras de treinos/mês, contagem por tipo,
   **musculação × corrida**, km e **total no ano**.
-- **Peso** — registro (valor, pré/pós treino, período dia/noite, local: Smart Fit
+- **Peso** — registro (valor, pré/pós treino, período **manhã/tarde/noite**, local: Smart Fit
   Pinheiros/Teodoro/Itaim/Outro); gráfico com filtros (local/treino/período); histórico
   jan–jun/2026 já carregado.
 - **Remédios** (nome, dose, por quanto tempo, ativo) · **Vacinas** (nome+data) ·
