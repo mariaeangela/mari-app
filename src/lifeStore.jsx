@@ -9,7 +9,33 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: [], remedios: [], vacinas: [], menstruacao: [] } };
+const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
+const DEFAULT_PESOS = [
+  P('p1', '2026-01-28', 84.55, 'Smart Fit Pinheiros', 'pos'),
+  P('p2', '2026-02-10', 86.75, 'Smart Fit Pinheiros', 'pos'),
+  P('p3', '2026-02-11', 86.25, 'Smart Fit Pinheiros', 'pos'),
+  P('p4', '2026-02-12', 84.10, 'Smart Fit Pinheiros', 'pre'),
+  P('p5', '2026-02-19', 84.20, 'Smart Fit Pinheiros', 'pos'),
+  P('p6', '2026-02-24', 86.20, 'Smart Fit Teodoro', 'pos'),
+  P('p7', '2026-03-03', 84.85, 'Smart Fit Teodoro', 'pre'),
+  P('p8', '2026-03-16', 85.35, 'Smart Fit Teodoro', 'pre'),
+  P('p9', '2026-03-23', 85.75, 'Smart Fit Teodoro', 'pos'),
+  P('p10', '2026-03-23', 84.90, 'Smart Fit Teodoro', 'pos'),
+  P('p11', '2026-04-14', 84.75, 'Smart Fit Teodoro', 'pos'),
+  P('p12', '2026-04-16', 85.40, 'Smart Fit Teodoro', 'pos'),
+  P('p13', '2026-05-07', 86.30, 'Smart Fit Teodoro', 'pos'),
+  P('p14', '2026-05-15', 84.80, 'Smart Fit Teodoro', 'pos'),
+  P('p15', '2026-05-18', 85.95, 'Smart Fit Teodoro', 'pos'),
+  P('p16', '2026-05-19', 84.80, 'Smart Fit Teodoro', 'pos'),
+  P('p17', '2026-05-20', 85.10, 'Smart Fit Teodoro', 'pos'),
+  P('p18', '2026-05-27', 87.00, 'Smart Fit Teodoro', 'pos', 'noite'),
+  P('p19', '2026-05-31', 85.95, 'Smart Fit Teodoro', 'pos'),
+  P('p20', '2026-06-02', 87.45, 'Smart Fit Teodoro', 'pos'),
+  P('p21', '2026-06-05', 86.85, 'Smart Fit Teodoro', 'pos'),
+  P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos'),
+  P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos'),
+];
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [

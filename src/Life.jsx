@@ -1504,6 +1504,8 @@ const COR_SAUDE = '#d96459';
 const SAUDE_LOCAIS = ['Smart Fit Pinheiros', 'Smart Fit Teodoro', 'Smart Fit Itaim'];
 const PERIODOS = [['manha', 'manhã'], ['tarde', 'tarde'], ['noite', 'noite']];
 const PERIODO_LABEL = { manha: 'manhã', tarde: 'tarde', noite: 'noite' };
+const TREINOS = [['pre', 'pré treino'], ['pos', 'pós treino']];
+const TREINO_LABEL = { pre: 'pré treino', pos: 'pós treino' };
 const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
 function PesoLinha({ pontos }) {
@@ -1582,7 +1584,7 @@ function SaudeSection({ onBack }) {
         {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : pesosDesc.map(p => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
           <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{p.valor.toLocaleString('pt-BR')} kg</span>
-          <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[PERIODO_LABEL[p.periodo], p.local].filter(Boolean).join(' · ')}</span>
+          <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[TREINO_LABEL[p.treino], PERIODO_LABEL[p.periodo], p.local].filter(Boolean).join(' · ')}</span>
           <button onClick={() => setForm({ tipo: 'peso', editing: p })} style={editLink}>editar</button>
         </>, p.id))}
       </>)}
@@ -1625,7 +1627,8 @@ function SaudeForm({ tipo, editing, onClose }) {
   const life = useLife();
   const [data, setData] = useState(editing?.data || hojeKey());
   const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
-  const [periodo, setPeriodo] = useState(editing?.periodo || 'manha');
+  const [treino, setTreino] = useState(editing?.treino || 'pos');
+  const [periodo, setPeriodo] = useState(editing?.periodo || '');
   const outroLocal = editing?.local && !SAUDE_LOCAIS.includes(editing.local);
   const [localSel, setLocalSel] = useState(outroLocal ? 'Outro' : (editing?.local || SAUDE_LOCAIS[0]));
   const [localOutro, setLocalOutro] = useState(outroLocal ? editing.local : '');
@@ -1645,7 +1648,7 @@ function SaudeForm({ tipo, editing, onClose }) {
   const salvar = () => {
     if (!podeSalvar) return;
     const base = { id: editing?.id };
-    if (tipo === 'peso') life.saveSaudeItem('pesos', { ...base, data, valor: Number(valor.replace(',', '.')), periodo, local: localSel === 'Outro' ? (localOutro.trim() || undefined) : localSel });
+    if (tipo === 'peso') life.saveSaudeItem('pesos', { ...base, data, valor: Number(valor.replace(',', '.')), treino: treino || undefined, periodo: periodo || undefined, local: localSel === 'Outro' ? (localOutro.trim() || undefined) : localSel });
     else if (tipo === 'remedio') life.saveSaudeItem('remedios', { ...base, nome: nome.trim(), dose: dose.trim() || undefined, duracao: duracao.trim() || undefined, inicio: inicio || undefined, ativo: !!ativo });
     else if (tipo === 'vacina') life.saveSaudeItem('vacinas', { ...base, nome: nome.trim(), data });
     else life.saveSaudeItem('menstruacao', { ...base, data });
@@ -1666,8 +1669,14 @@ function SaudeForm({ tipo, editing, onClose }) {
           <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
           <label style={labelStyle}>Peso (kg)</label>
           <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 62,5" style={inputStyle} />
-          <label style={labelStyle}>Quando me pesei</label>
+          <label style={labelStyle}>Pré / pós treino</label>
+          <select value={treino} onChange={e => setTreino(e.target.value)} style={inputStyle}>
+            {TREINOS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            <option value="">—</option>
+          </select>
+          <label style={labelStyle}>Período (opcional)</label>
           <select value={periodo} onChange={e => setPeriodo(e.target.value)} style={inputStyle}>
+            <option value="">—</option>
             {PERIODOS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
           <label style={labelStyle}>Onde</label>
