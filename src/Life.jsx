@@ -241,7 +241,7 @@ function PlanoView({ plano, onBack }) {
   const [infoAberta, setInfoAberta] = useState(null);
   const [novoCheck, setNovoCheck] = useState('');
   const infos = life.planos.infos.filter(i => i.planoId === plano.id);
-  const checks = life.planos.itens.filter(i => i.planoId === plano.id);
+  const checks = life.planos.itens.filter(i => i.planoId === plano.id).sort((a, b) => (a.feito ? 1 : 0) - (b.feito ? 1 : 0));
   const feitos = checks.filter(c => c.feito).length;
   const addCheck = () => { if (novoCheck.trim()) { life.addPlanoCheck(plano.id, novoCheck.trim()); setNovoCheck(''); } };
 

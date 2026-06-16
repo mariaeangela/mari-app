@@ -22,6 +22,9 @@ const dayOrder = (a, b) => {
   if (ra !== rb) return ra - rb;
   return ra === 1 ? a.horaInicio.localeCompare(b.horaInicio) : 0;
 };
+// Mesma ordem, mas tarefas concluídas vão para o fim da lista.
+const tarefaFeita = (it) => (it._tipo === 'tarefa' && it.feita ? 1 : 0);
+const dayOrderDoneLast = (a, b) => (tarefaFeita(a) - tarefaFeita(b)) || dayOrder(a, b);
 
 // Ocorrência de algo que começa em startKey e repete (usado por evento e tarefa).
 function recurOccursOn(startKey, repetir, date) {
@@ -70,7 +73,7 @@ function itemsForDay(data, date) {
   // (e volta para o calendário como 'lido' quando concluído).
   const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo')
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
-  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(dayOrder);
+  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(dayOrderDoneLast);
   return { events, exercicios, tasks, roles, cultura, all };
 }
 
@@ -408,7 +411,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
         {[['Eventos', events], ['Exercício', exercicios], ['Tarefas', tasks], ['Rolês', roles], ['Cultura', cultura]].map(([t, lista]) => lista.length > 0 && (
           <div key={t}>
             <label style={labelStyle}>{t}</label>
-            {lista.slice().sort(dayOrder).map(it => linha(it,
+            {lista.slice().sort(dayOrderDoneLast).map(it => linha(it,
               it._tipo === 'tarefa'
                 ? <span onClick={(e) => { e.stopPropagation(); cal.toggleTask(it.id, it._doneKey); }} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc' }}>{it.feita ? '☑' : '☐'}</span>
                 : it.horaInicio ? <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span> : null
