@@ -1092,11 +1092,12 @@ function SalariosVida() {
 
   const chip = (k, txt) => <button onClick={() => setModo(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: modo === k ? COR_FIN : '#eee', color: modo === k ? '#fff' : '#888' }}>{txt}</button>;
   const rowMes = { display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '5px 0', borderBottom: '1px solid #f5f5f5' };
-  const destaque = (rotulo, valor, sub, subCor) => (
+  const destaque = (rotulo, valor, sub, subCor, prog) => (
     <div style={{ flex: 1, background: '#fafafa', borderRadius: 12, padding: '11px 12px', minWidth: 0 }}>
       <div style={{ fontSize: 9.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: 1.25 }}>{rotulo}</div>
       <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#111', marginTop: 4, lineHeight: 1 }}>{valor}</div>
       {sub && <div style={{ fontSize: 10.5, color: subCor || '#999', marginTop: 3, fontWeight: subCor ? 700 : 400 }}>{sub}</div>}
+      {prog != null && <div style={{ height: 4, background: '#e8e8e8', borderRadius: 4, marginTop: 6, overflow: 'hidden' }}><div style={{ height: '100%', width: Math.min(100, Math.max(0, prog)) + '%', background: '#1a7a4f', borderRadius: 4 }} /></div>}
     </div>
   );
 
@@ -1112,7 +1113,7 @@ function SalariosVida() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {destaque('ganhei em ' + (cy.ano || ''), fmtBRLcurto(cy.total || 0))}
             {destaque('poupei em ' + (cy.ano || ''), poupouAno.toFixed(0) + '%')}
-            {metaPL > 0 && destaque('meta de PL', fmtBRLcurto(metaPL), metaProg.toFixed(0) + '% atingido', '#1a7a4f')}
+            {metaPL > 0 && destaque('meta de PL', fmtBRLcurto(metaPL), metaProg.toFixed(0) + '% atingido', '#1a7a4f', metaProg)}
           </div>
           <BarrasSalario barras={barrasGanhos} />
           <p style={{ fontSize: 12, color: '#999', textAlign: 'center', margin: '8px 0 0' }}>ganho na vida <b style={{ color: '#555' }}>{fmtBRL(vidaTotal)}</b> · {anos.length} anos</p>

@@ -108,7 +108,8 @@ export function CalendarProvider({ children }) {
         set.has(dateKey) ? set.delete(dateKey) : set.add(dateKey);
         return { ...x, feitas: [...set] };
       }
-      return { ...x, feita: !x.feita };
+      const nova = !x.feita;
+      return { ...x, feita: nova, feitaEm: nova ? hojeKey() : undefined };
     }),
   });
   const deleteTask = (id) => patch({ tasks: data.tasks.filter(x => x.id !== id) });

@@ -441,7 +441,7 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <button onClick={() => setRefDate(new Date(y, m - 1, 1))} style={navBtn}>‹</button>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#222', textTransform: 'capitalize' }}>{MESES[m]} {y}</span>
+        <span onClick={() => { const t = hoje(); setRefDate(new Date(t.getFullYear(), t.getMonth(), 1)); }} title="voltar ao mês atual" style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#222', textTransform: 'capitalize', cursor: 'pointer' }}>{MESES[m]} {y}</span>
         <button onClick={() => setRefDate(new Date(y, m + 1, 1))} style={navBtn}>›</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
@@ -454,11 +454,13 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
           const isToday = key === todayKey;
           return (
             <button key={i} onClick={() => onDayClick(date)} style={{
-              aspectRatio: '1', border: isToday ? '1.5px solid #111' : '1px solid #eee', borderRadius: 10,
+              aspectRatio: '1', border: '1px solid #eee', borderRadius: 10,
               background: moodMode && mood ? MOOD_BY_ID[mood]?.cor + '2e' : '#fff', cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '4px 2px',
             }}>
-              <span style={{ fontSize: 12.5, color: isToday ? '#111' : '#555', fontWeight: isToday ? 700 : 500 }}>{date.getDate()}</span>
+              <span style={isToday
+                ? { fontSize: 12, fontWeight: 700, color: '#fff', background: '#111', borderRadius: '50%', width: 19, height: 19, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+                : { fontSize: 12.5, color: '#555', fontWeight: 500 }}>{date.getDate()}</span>
               {!moodMode && dots.length > 0 && (
                 <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', marginTop: 3 }}>
                   {dots.slice(0, 4).map((it, j) => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: it._cor }} />)}
@@ -561,7 +563,7 @@ function DiarioList({ refDate, setRefDate, data, onDayClick }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <button onClick={() => setRefDate(new Date(y, m - 1, 1))} style={navBtn}>‹</button>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222', textTransform: 'capitalize' }}>{MESES[m]} {y}</span>
+        <span onClick={() => { const t = hoje(); setRefDate(new Date(t.getFullYear(), t.getMonth(), 1)); }} title="voltar ao mês atual" style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222', textTransform: 'capitalize', cursor: 'pointer' }}>{MESES[m]} {y}</span>
         <button onClick={() => setRefDate(new Date(y, m + 1, 1))} style={navBtn}>›</button>
       </div>
       {!entries.length ? <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada escrito neste mês ainda.</p>
@@ -666,12 +668,15 @@ export default function Calendario({ isWide }) {
   const [addSheet, setAddSheet] = useState(null);
   const [bilheteAberto, setBilheteAberto] = useState(false);
   const [compraAberta, setCompraAberta] = useState(null);
+  const [verFeitas, setVerFeitas] = useState(false);
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
   const bilheteHoje = cal.data.bilhetes[ymd(today)];
-  // Tarefas sem data: concluídas vão para o fim da lista.
-  const tarefasSemData = cal.data.tasks.filter(t => !t.data).sort((a, b) => (a.feita ? 1 : 0) - (b.feita ? 1 : 0));
+  // Tarefas sem data: pendentes (visíveis) e concluídas (escondidas atrás de um botão).
+  const tarefasPendentes = cal.data.tasks.filter(t => !t.data && !t.feita);
+  const tarefasConcluidas = cal.data.tasks.filter(t => !t.data && t.feita).sort((a, b) => (b.feitaEm || '').localeCompare(a.feitaEm || ''));
+  const temSemData = cal.data.tasks.some(t => !t.data);
   // Compras com data limite no mês exibido (refDate).
   const mesKey = `${refDate.getFullYear()}-${pad2(refDate.getMonth() + 1)}`;
   const comprasDoMes = (life.compras.itens || []).filter(i => i.dataLimite && i.dataLimite.slice(0, 7) === mesKey)
@@ -785,15 +790,30 @@ export default function Calendario({ isWide }) {
           ))}
         </div>
       )}
-      {(view === 'mes' || view === 'agenda') && tarefasSemData.length > 0 && (
+      {(view === 'mes' || view === 'agenda') && temSemData && (
         <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Tarefas sem data</div>
-          {tarefasSemData.map(t => (
+          {tarefasPendentes.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 4px' }}>Tudo concluído por aqui. ✨</p>}
+          {tarefasPendentes.map(t => (
             <div key={t.id} style={rowBtn}>
-              <span onClick={() => cal.toggleTask(t.id)} style={{ fontSize: 18, color: t.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{t.feita ? '☑' : '☐'}</span>
-              <span onClick={() => setAddSheet({ editing: { ...t, _tipo: 'tarefa' } })} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer', textDecoration: t.feita ? 'line-through' : 'none', opacity: t.feita ? 0.5 : 1 }}>{t.titulo}</span>
+              <span onClick={() => cal.toggleTask(t.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
+              <span onClick={() => setAddSheet({ editing: { ...t, _tipo: 'tarefa' } })} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{t.titulo}</span>
             </div>
           ))}
+          {tarefasConcluidas.length > 0 && (
+            <>
+              <button onClick={() => setVerFeitas(v => !v)} style={{ background: 'none', border: 'none', padding: '8px 0 0', color: '#999', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+                {verFeitas ? '▾' : '▸'} Tarefas concluídas ({tarefasConcluidas.length})
+              </button>
+              {verFeitas && tarefasConcluidas.map(t => (
+                <div key={t.id} style={rowBtn}>
+                  <span onClick={() => cal.toggleTask(t.id)} style={{ fontSize: 18, color: '#54c08a', cursor: 'pointer' }}>☑</span>
+                  <span onClick={() => setAddSheet({ editing: { ...t, _tipo: 'tarefa' } })} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer', textDecoration: 'line-through', opacity: 0.5 }}>{t.titulo}</span>
+                  {t.feitaEm && <span style={{ fontSize: 11, color: '#bbb', flexShrink: 0 }}>{t.feitaEm.split('-')[2]}/{t.feitaEm.split('-')[1]}</span>}
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 
