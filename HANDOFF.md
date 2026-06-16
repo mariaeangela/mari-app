@@ -153,10 +153,14 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
   `NotaForm` edita os itens por textarea (1 linha = 1 item). **Vinhos** têm form próprio (`WineForm`,
   campos país/região/nome/uva/info/data → nota `tipo:'vinho'`): notas-mãe com `grupoVinho:true`
   (Branco/Tinto/Espumante) mostram "+ adicionar vinho" e os filhos `tipo:'vinho'` renderizam em layout
-  de vinho (badge país + meta + info) em vez de bullets. Seed `DEFAULT_APRENDIZADOS`: **Café**
-  (V60 com as receitas dentro), **Tecidos** (Tipos de tecido + Fibras naturais/artificiais/sintéticas),
-  **Fotografia analógica** (câmera→filmes) e **Vinhos** (Classificação + Branco/Tinto/Espumante com
-  vinhos dentro). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
+  de vinho (badge país + meta + info) em vez de bullets. Notas `tipo:'compras'` (com `listaId`) renderizam
+  um **espelho ao vivo** de uma lista de Compras (`ComprasMirror` — mesmos itens da aba Compras, com
+  checkbox; marcar/adicionar/apagar reflete nos dois lados, é o mesmo dado). Seed `DEFAULT_APRENDIZADOS`:
+  **Café** (V60 com as receitas dentro), **Tecidos** (Tipos de tecido + Fibras nat./art./sint.),
+  **Fotografia analógica** (câmera→filmes), **Vinhos** (Classificação + Branco/Tinto/Espumante), **Vida**
+  (dinheiro/saúde/sentimentos/viagem) e **Maquiagem** (conhecimento + "Para comprar" espelhando a lista de
+  Compras **Maquiagem**, semeada idempotente por `ensureMaquiagem`/flag `maquiagemSeeded` por causa do
+  merge raso; "Para provar" só referência). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
 - Pendências Life: Estudos, Viagens, Retrospectivas (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
 
 ## Fontes — convenção do bloco "Da fonte"

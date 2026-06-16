@@ -1878,12 +1878,40 @@ function WineForm({ topicoId, paiId, editing, onClose }) {
 
 const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 };
 
+// Espelho ao vivo de uma lista de Compras dentro de uma nota (tipo 'compras').
+// É o MESMO dado da aba Compras: marcar/adicionar/apagar aqui reflete lá.
+function ComprasMirror({ listaId }) {
+  const life = useLife();
+  const [novo, setNovo] = useState('');
+  const itens = (life.compras.itens || []).filter(i => i.listaId === listaId)
+    .sort((a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1));
+  const add = () => { const t = novo.trim(); if (!t) return; life.addComprasItem({ titulo: t, listaId }); setNovo(''); };
+  return (
+    <div>
+      {itens.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 8px' }}>Lista vazia.</p>}
+      {itens.map(it => (
+        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: '1px solid #f4f4f4' }}>
+          <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 18, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1 }}>{it.titulo}</span>
+          <span onClick={() => life.deleteComprasItem(it.id)} style={{ color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</span>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+        <input value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="adicionar item" style={inputStyle} />
+        <button onClick={add} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+      </div>
+      <p style={{ fontSize: 11, color: '#bbb', marginTop: 8 }}>↔ sincroniza com a lista <b style={{ color: COR_APREND }}>Maquiagem</b> em Compras</p>
+    </div>
+  );
+}
+
 // Card de nota; renderiza recursivamente as sub-notas (1 nível = grupo → itens).
 // Notas tipo 'vinho' têm layout próprio (país/região/uva/data + informações).
 function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
   const open = !!aberta[nota.id];
   const subs = filhos(nota.id);
   const isVinho = nota.tipo === 'vinho';
+  const isCompras = nota.tipo === 'compras';
   const meta = isVinho ? [nota.regiao, nota.uva, nota.data].filter(Boolean).join('  ·  ') : '';
   return (
     <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
@@ -1895,7 +1923,9 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
       </div>
       {open && (
         <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
-          {isVinho ? (
+          {isCompras ? (
+            <ComprasMirror listaId={nota.listaId} />
+          ) : isVinho ? (
             <>
               {meta && <div style={{ fontSize: 12, color: '#999', marginBottom: nota.info ? 6 : 0 }}>{meta}</div>}
               {nota.info && <p style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', margin: 0 }}>{nota.info}</p>}
@@ -1914,10 +1944,12 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
               )}
             </>
           )}
-          <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
-            <button onClick={() => onEdit(nota)} style={apLink}>editar</button>
-            {nivel === 0 && <button onClick={() => onAddSub(nota)} style={apLink}>{nota.grupoVinho ? '+ adicionar vinho' : '+ adicionar dentro'}</button>}
-          </div>
+          {!isCompras && (
+            <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+              <button onClick={() => onEdit(nota)} style={apLink}>editar</button>
+              {nivel === 0 && <button onClick={() => onAddSub(nota)} style={apLink}>{nota.grupoVinho ? '+ adicionar vinho' : '+ adicionar dentro'}</button>}
+            </div>
+          )}
         </div>
       )}
     </div>

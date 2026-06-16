@@ -99,7 +99,7 @@ export const DEFAULT_GASTOS = [
 // Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
 // sincroniza após a 1ª edição). nota = { id, topicoId, titulo, itens: [string] }.
 export const DEFAULT_APRENDIZADOS = {
-  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }, { id: 'fotografia', nome: 'Fotografia analógica' }, { id: 'vinhos', nome: 'Vinhos' }, { id: 'vida', nome: 'Vida' }],
+  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }, { id: 'fotografia', nome: 'Fotografia analógica' }, { id: 'vinhos', nome: 'Vinhos' }, { id: 'vida', nome: 'Vida' }, { id: 'maquiagem', nome: 'Maquiagem' }],
   notas: [
     { id: 'cafe-grao', topicoId: 'cafe', titulo: 'Entendendo o grão', itens: [
       'Café é uma fruta azedinha; colhido maduro, ganha doçura.',
@@ -360,8 +360,77 @@ export const DEFAULT_APRENDIZADOS = {
     { id: 'vida-viagem', topicoId: 'vida', titulo: 'Viagem', itens: [
       'Ano novo ser em praia.',
     ] },
+
+    // ---- Maquiagem (conhecimento + "Para comprar" espelha a lista de Compras) ----
+    { id: 'maq-silicone', topicoId: 'maquiagem', titulo: 'Silicone (evitar)', itens: [
+      'Reconhece pelos finais do nome do ingrediente:',
+      'Termina em -cone',
+      'Termina em -methicone',
+      'Termina em -siloxane',
+    ] },
+    { id: 'maq-naofuncionou', topicoId: 'maquiagem', titulo: 'Não funcionou', itens: [
+      'Fenty Eaze Drop (tom 9): muito escuro e alaranjado — mas dá pra usar com maquiagem forte.',
+      'Born This Way corretivo (Natural Beige): muito escuro e alaranjado.',
+      'Rare Beauty blush líquido (Love): muito escuro e fechado.',
+      'Benefit Shellie blush: muito rosa claro.',
+      'NARS Custard: fundo muito claro e frio (cold) — precisa ser mais quente (warm).',
+    ] },
+    { id: 'maq-recompra', topicoId: 'maquiagem', titulo: 'Comprarei novamente', itens: [
+      'Dupla perfeita de corretivo: Lancôme Serum Glow 220 + Lancôme All Over.',
+      'Contorno perfeito: Rare Beauty.',
+      'Blindagem da Pop.',
+    ] },
+    { id: 'maq-paracomprar', topicoId: 'maquiagem', tipo: 'compras', listaId: 'maquiagem', titulo: 'Para comprar', itens: [] },
+    { id: 'maq-provar', topicoId: 'maquiagem', titulo: 'Para provar', itens: [] },
+    { id: 'maq-provar-br', topicoId: 'maquiagem', paiId: 'maq-provar', titulo: 'Tem no Brasil (experimentar)', itens: [
+      'Bases e corretivos: NARS (corretivo Honey), Lancôme, Chanel, Rose Inc base 60.',
+      'MAC Shine Control prime.',
+      'Blush MAC Sunbasque.',
+      'MAC Fix+.',
+      'Stick Make B. multifuncional.',
+    ] },
+    { id: 'maq-provar-fora', topicoId: 'maquiagem', paiId: 'maq-provar', titulo: 'Comprar fora (experimentar)', itens: [
+      'Glassy blush (Expresso).',
+      'Refy (blush e contorno em creme, pincel, lip gloss).',
+      'Patrick Ta (base, blush, contorno).',
+      'Makeup by Mario (skin enhancer, contorno, blush).',
+      'Rhode (lips, blush).',
+      'Westman Atelier (blush).',
+      'Beautycounter: Cheeky Clean cream blush.',
+      'Hourglass (pincel, paleta, batom).',
+      'Summer Fridays (lip oil, skin tint).',
+      'Saie Glowy Super Gel.',
+      'Blush Nudestix.',
+      'Iluminador Merit.',
+      'Sisley Paris lip tint.',
+      'Kosas (corretivo).',
+      'Pixi corretor de olheira (Peach).',
+      'Tarte corretivo (caixinha).',
+      'The Ordinary Lash Curl.',
+    ] },
   ],
 };
+
+// Lista de compras "Maquiagem": espelhada pela seção "Para comprar" do tópico
+// Maquiagem (Aprendizados). Semeada uma vez (flag maquiagemSeeded) para conviver
+// com Compras que a usuária já tenha na nuvem (merge raso não juntaria sozinho).
+const MAQUIAGEM_ITENS = [
+  'Base Vizzela Fix (05 ou 06)',
+  'Corretor salmão Sephora',
+  'Rare Beauty Stay Vulnerable melting blush (Apricot ou Mauvy)',
+  'Boa paleta de sombras',
+  'Iluminador Dior (que imita o Charlotte Tilbury)',
+  'Corretivo Hourglass (suede)',
+  'Rímel marrom para o dia a dia',
+  'Curvex (curvador de cílios)',
+];
+function ensureMaquiagem(d) {
+  if (d.maquiagemSeeded) return d;
+  const compras = d.compras || { listas: [], itens: [] };
+  if (compras.listas.some(l => l.id === 'maquiagem')) return { ...d, maquiagemSeeded: true };
+  const itens = MAQUIAGEM_ITENS.map((titulo, i) => ({ id: 'mq' + i, titulo, listaId: 'maquiagem', comprado: false }));
+  return { ...d, maquiagemSeeded: true, compras: { ...compras, listas: [...compras.listas, { id: 'maquiagem', nome: 'Maquiagem' }], itens: [...compras.itens, ...itens] } };
+}
 
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -373,7 +442,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(readLocal);
+  const [data, setData] = useState(() => ensureMaquiagem(readLocal()));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -383,11 +452,15 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        if (local.compras.itens.length || local.compras.listas.length) pushLife(local);
+        const next = ensureMaquiagem(local);
+        writeLocal(next); setData(next);
+        if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      writeLocal(merged); setData(merged);
+      const next = ensureMaquiagem(merged);
+      writeLocal(next); setData(next);
+      if (next !== merged) pushLife(next);
     })();
     return () => { alive = false; };
   }, []);
