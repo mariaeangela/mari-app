@@ -619,7 +619,7 @@ const agregarCat = (rows, rate) => Object.values(rows.reduce((acc, h) => {
 }, {})).sort((a, b) => b.valor - a.valor);
 
 function FinTabela({ holdings, rate }) {
-  const [modo, setModo] = useState('ativo');
+  const [modo, setModo] = useState('categoria');
   const carteira = holdings.filter(h => !h.externo);
   const externos = [...holdings].filter(h => h.externo).sort((a, b) => (finRank(a.finalidade) - finRank(b.finalidade)) || (valorBRL(b, rate) - valorBRL(a, rate)));
   const total = carteira.reduce((s, h) => s + valorBRL(h, rate), 0);
@@ -630,7 +630,7 @@ function FinTabela({ holdings, rate }) {
     <>
       {carteira.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-          {[['ativo', 'Por ativo'], ['categoria', 'Por categoria']].map(([k, txt]) => (
+          {[['categoria', 'Por categoria'], ['ativo', 'Por ativo']].map(([k, txt]) => (
             <button key={k} onClick={() => setModo(k)} style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (modo === k ? COR_FIN : '#e2e2e2'), background: modo === k ? COR_FIN + '1c' : '#fff', color: modo === k ? '#1a7a4f' : '#888' }}>{txt}</button>
           ))}
         </div>
