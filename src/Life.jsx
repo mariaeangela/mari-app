@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
+import { EXERCICIO_BY_ID } from './calendarConfig.js';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -1537,6 +1538,7 @@ function SaudeSection({ onBack }) {
   const life = useLife();
   const cal = useCalendar();
   const [form, setForm] = useState(null);
+  const [exMes, setExMes] = useState(null);
   const s = life.saude || {};
   const pesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const pesosDesc = [...pesos].reverse();
@@ -1549,6 +1551,19 @@ function SaudeSection({ onBack }) {
     ...eventos.filter(e => (e.fim || e.inicio) >= hk).sort((a, b) => (a.inicio || '').localeCompare(b.inicio || '')),
     ...eventos.filter(e => (e.fim || e.inicio) < hk).sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')),
   ];
+
+  // Retrospectiva de exercícios (do calendário), por mês.
+  const exercicios = cal.data.exercicios || [];
+  const exMeses = [...new Set(exercicios.map(x => (x.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const exAtualMes = (exMes && exMeses.includes(exMes)) ? exMes : exMeses[0];
+  const exDoMes = exercicios.filter(x => (x.data || '').slice(0, 7) === exAtualMes);
+  const porTipo = {};
+  exDoMes.forEach(x => { porTipo[x.subtipo] = (porTipo[x.subtipo] || 0) + 1; });
+  const tiposOrd = Object.entries(porTipo)
+    .map(([id, n]) => ({ id, n, label: EXERCICIO_BY_ID[id]?.label || id, cor: EXERCICIO_BY_ID[id]?.cor || '#999' }))
+    .sort((a, b) => b.n - a.n);
+  const kmMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((acc, x) => acc + (Number(x.distancia) || 0), 0);
+  const maxN = Math.max(...tiposOrd.map(t => t.n), 1);
 
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
   const bloco = (titulo, addTipo, conteudo) => (
@@ -1578,6 +1593,31 @@ function SaudeSection({ onBack }) {
             <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{e.titulo}</span>
             {e.horaInicio && <span style={{ fontSize: 12, color: '#aaa' }}>{e.horaInicio}</span>}
           </>, e.id)))}
+
+      {bloco('Exercícios', null,
+        exMeses.length === 0 ? vazio('Registre exercícios no Calendário que a retrospectiva do mês aparece aqui.') : <>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+            {exMeses.map(mm => (
+              <button key={mm} onClick={() => setExMes(mm)} style={{ whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (exAtualMes === mm ? COR_SAUDE : '#e2e2e2'), background: exAtualMes === mm ? COR_SAUDE + '18' : '#fff', color: exAtualMes === mm ? COR_SAUDE : '#888' }}>{fmtMes(mm)}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 20, marginBottom: 10 }}>
+            <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{exDoMes.length}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
+            {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{kmMes.toLocaleString('pt-BR')} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
+          </div>
+          {tiposOrd.map(t => (
+            <div key={t.id} style={{ padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: t.cor, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>{t.label}</span>
+                <span style={{ fontSize: 13.5, color: '#333', fontWeight: 600 }}>{t.n}×</span>
+              </div>
+              <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: (t.n / maxN * 100) + '%', background: t.cor, borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
+        </>)}
 
       {bloco('Peso', 'peso', <>
         {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
