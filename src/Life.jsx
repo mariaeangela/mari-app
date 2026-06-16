@@ -1020,7 +1020,8 @@ function FinancasSection({ onBack }) {
 
 // ---- Salários vida (histórico de renda anual) ----
 const SAL_MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-function BarrasSalario({ barras }) {
+function BarrasSalario({ barras, fmt }) {
+  const fmtV = fmt || fmtBRL;
   const [hi, setHi] = useState(null);
   const W = 320, H = 110, padTop = 12, padBot = 18;
   const n = barras.length;
@@ -1049,7 +1050,7 @@ function BarrasSalario({ barras }) {
           <g pointerEvents="none">
             <rect x={tx - rw / 2} y={ry} width={rw} height={rh} rx="5" fill="#111" opacity="0.92" />
             <text x={tx} y={ry + 11} textAnchor="middle" fontSize="8" fill="#bbb">{tip.full}</text>
-            <text x={tx} y={ry + 21} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtBRL(tip.valor)}</text>
+            <text x={tx} y={ry + 21} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtV(tip.valor)}</text>
           </g>
         );
       })()}
@@ -1503,8 +1504,8 @@ function GastoForm({ editing, meses, onClose }) {
 // ---- Saúde ----
 const COR_SAUDE = '#d96459';
 const SAUDE_LOCAIS = ['Smart Fit Pinheiros', 'Smart Fit Teodoro', 'Smart Fit Itaim'];
-const PERIODOS = [['manha', 'manhã'], ['tarde', 'tarde'], ['noite', 'noite']];
-const PERIODO_LABEL = { manha: 'manhã', tarde: 'tarde', noite: 'noite' };
+const PERIODOS = [['dia', 'dia'], ['noite', 'noite']];
+const PERIODO_LABEL = { dia: 'dia', noite: 'noite' };
 const TREINOS = [['pre', 'pré treino'], ['pos', 'pós treino']];
 const TREINO_LABEL = { pre: 'pré treino', pos: 'pós treino' };
 const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -1514,9 +1515,11 @@ function PesoLinha({ pontos }) {
   const W = 320, H = 120, padTop = 14, padBot = 20, padLeft = 36, padRight = 10;
   const n = pontos.length;
   const vs = pontos.map(p => p.valor);
-  const min = Math.min(...vs), max = Math.max(...vs), span = (max - min) || 1;
+  const min = Math.min(...vs), max = Math.max(...vs);
+  const pad = Math.max(2, (max - min) * 0.8); // folga p/ a linha não exagerar a variação
+  const lo = min - pad, hi = max + pad, span = (hi - lo) || 1;
   const x = (i) => n === 1 ? W / 2 : padLeft + i * (W - padLeft - padRight) / (n - 1);
-  const y = (v) => (H - padBot) - ((v - min) / span) * (H - padTop - padBot);
+  const y = (v) => (H - padBot) - ((v - lo) / span) * (H - padTop - padBot);
   const path = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.valor).toFixed(1)}`).join(' ');
   const pulado = n > 8;
   return (
@@ -1539,9 +1542,15 @@ function SaudeSection({ onBack }) {
   const cal = useCalendar();
   const [form, setForm] = useState(null);
   const [exMes, setExMes] = useState(null);
+  const [fLocal, setFLocal] = useState(null);
+  const [fTreino, setFTreino] = useState(null);
+  const [fPeriodo, setFPeriodo] = useState(null);
   const s = life.saude || {};
-  const pesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  const todosPesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  const locaisUsados = [...new Set(todosPesos.map(p => p.local).filter(Boolean))];
+  const pesos = todosPesos.filter(p => (!fLocal || p.local === fLocal) && (!fTreino || p.treino === fTreino) && (!fPeriodo || p.periodo === fPeriodo));
   const pesosDesc = [...pesos].reverse();
+  const chipF = (active, label, onClick) => <button onClick={onClick} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (active ? COR_SAUDE : '#e2e2e2'), background: active ? COR_SAUDE + '18' : '#fff', color: active ? COR_SAUDE : '#999' }}>{label}</button>;
   const remedios = [...(s.remedios || [])].sort((a, b) => (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.inicio || '').localeCompare(a.inicio || ''));
   const vacinas = [...(s.vacinas || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const menstr = [...(s.menstruacao || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
@@ -1564,6 +1573,12 @@ function SaudeSection({ onBack }) {
     .sort((a, b) => b.n - a.n);
   const kmMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((acc, x) => acc + (Number(x.distancia) || 0), 0);
   const maxN = Math.max(...tiposOrd.map(t => t.n), 1);
+  const muscMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length;
+  const corrMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').length;
+  const anoEx = (exAtualMes || '').slice(0, 4);
+  const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx));
+  const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
+  const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm).length }));
 
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
   const bloco = (titulo, addTipo, conteudo) => (
@@ -1601,10 +1616,12 @@ function SaudeSection({ onBack }) {
               <button key={mm} onClick={() => setExMes(mm)} style={{ whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (exAtualMes === mm ? COR_SAUDE : '#e2e2e2'), background: exAtualMes === mm ? COR_SAUDE + '18' : '#fff', color: exAtualMes === mm ? COR_SAUDE : '#888' }}>{fmtMes(mm)}</button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 20, marginBottom: 10 }}>
+          {exMeses.length > 1 && <BarrasSalario barras={barrasEx} fmt={(v) => v + (v === 1 ? ' treino' : ' treinos')} />}
+          <div style={{ display: 'flex', gap: 20, margin: '10px 0 6px' }}>
             <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{exDoMes.length}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
             {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{kmMes.toLocaleString('pt-BR')} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
           </div>
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>musculação <b style={{ color: '#555' }}>{muscMes}×</b> · corrida <b style={{ color: '#555' }}>{corrMes}×</b></div>
           {tiposOrd.map(t => (
             <div key={t.id} style={{ padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1617,9 +1634,21 @@ function SaudeSection({ onBack }) {
               </div>
             </div>
           ))}
+          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{exAno.length}</b> treinos{kmAno > 0 ? ' · ' + kmAno.toLocaleString('pt-BR') + ' km corridos' : ''}</p>
         </>)}
 
       {bloco('Peso', 'peso', <>
+        {todosPesos.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
+            {locaisUsados.map(l => chipF(fLocal === l, l.replace('Smart Fit ', ''), () => setFLocal(fLocal === l ? null : l)))}
+            <span style={{ color: '#e2e2e2' }}>·</span>
+            {chipF(fTreino === 'pre', 'pré', () => setFTreino(fTreino === 'pre' ? null : 'pre'))}
+            {chipF(fTreino === 'pos', 'pós', () => setFTreino(fTreino === 'pos' ? null : 'pos'))}
+            <span style={{ color: '#e2e2e2' }}>·</span>
+            {chipF(fPeriodo === 'dia', 'dia', () => setFPeriodo(fPeriodo === 'dia' ? null : 'dia'))}
+            {chipF(fPeriodo === 'noite', 'noite', () => setFPeriodo(fPeriodo === 'noite' ? null : 'noite'))}
+          </div>
+        )}
         {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
         {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : pesosDesc.map(p => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
