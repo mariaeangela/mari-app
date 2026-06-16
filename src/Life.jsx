@@ -1282,9 +1282,71 @@ function SalarioForm({ editing, onClose }) {
   );
 }
 
+function TabelaGastos({ meses, cats, totalDe, valor }) {
+  const cell = { padding: '6px 8px', fontSize: 11.5, whiteSpace: 'nowrap', textAlign: 'right' };
+  const stick = { position: 'sticky', left: 0, background: '#fff', textAlign: 'left' };
+  return (
+    <div style={{ overflowX: 'auto', marginTop: 4, border: '1px solid #f0f0f0', borderRadius: 10 }}>
+      <table style={{ borderCollapse: 'collapse', fontSize: 11.5, minWidth: '100%' }}>
+        <thead>
+          <tr style={{ borderBottom: '1.5px solid #eee' }}>
+            <th style={{ ...cell, ...stick, color: '#aaa', fontWeight: 600 }}>Categoria</th>
+            {meses.map(m => <th key={m.mes} style={{ ...cell, color: '#aaa', fontWeight: 600, textTransform: 'capitalize' }}>{fmtMes(m.mes)}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {cats.map(c => (
+            <tr key={c} style={{ borderTop: '1px solid #f5f5f5' }}>
+              <td style={{ ...cell, ...stick, color: '#333', fontWeight: 600 }}>{c}</td>
+              {meses.map(m => { const v = valor(m, c); return <td key={m.mes} style={{ ...cell, color: v ? '#444' : '#ddd' }}>{v ? fmtBRLcurto(v) : '—'}</td>; })}
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
+            <td style={{ ...cell, ...stick, color: '#111' }}>Total</td>
+            {meses.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}>{fmtBRLcurto(totalDe(m))}</td>)}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+function LinhasGastos({ meses, cats, valor }) {
+  const [sel, setSel] = useState(null);
+  const W = 320, H = 150, padX = 12, padTop = 12, padBot = 20;
+  const n = meses.length;
+  const vals = (c) => meses.map(m => valor(m, c));
+  const max = Math.max(...(sel ? vals(sel) : cats.flatMap(c => vals(c))), 1);
+  const x = (i) => n === 1 ? W / 2 : padX + i * (W - 2 * padX) / (n - 1);
+  const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
+  const pathFor = (c) => meses.map((m, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(valor(m, c)).toFixed(1)}`).join(' ');
+  const corDe = (c) => FIN_PALETTE[cats.indexOf(c) % FIN_PALETTE.length];
+  const lista = sel ? [sel] : cats;
+  return (
+    <div style={{ marginTop: 4 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+        {meses.map((m, i) => <text key={m.mes} x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(m.mes)}</text>)}
+        {lista.map(c => <path key={c} d={pathFor(c)} fill="none" stroke={corDe(c)} strokeWidth={sel ? 2.5 : 1.4} strokeLinejoin="round" strokeLinecap="round" opacity={sel ? 1 : 0.75} />)}
+        {sel && meses.map((m, i) => <circle key={m.mes} cx={x(i)} cy={y(valor(m, sel))} r="2.6" fill={corDe(sel)} />)}
+      </svg>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+        {cats.map(c => (
+          <button key={c} onClick={() => setSel(sel === c ? null : c)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (sel === c ? '#111' : '#e2e2e2'), background: sel === c ? '#1111110d' : '#fff', color: sel === c ? '#111' : '#888' }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: corDe(c), flexShrink: 0 }} />{c}
+          </button>
+        ))}
+      </div>
+      <p style={{ fontSize: 11, color: '#aaa', marginTop: 8 }}>toque numa categoria pra focar a linha dela.</p>
+    </div>
+  );
+}
+
 function GastosVida() {
   const life = useLife();
   const [selMes, setSelMes] = useState(null);
+  const [vista, setVista] = useState('mes');
   const [form, setForm] = useState(null);
   const meses = [...life.gastos].sort((a, b) => a.mes.localeCompare(b.mes));
   const totalDe = (m) => (m?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
@@ -1293,15 +1355,31 @@ function GastosVida() {
   const barras = meses.map(m => ({ label: fmtMes(m.mes), full: fmtMesLongo(m.mes), valor: totalDe(m) }));
   const cats = atual ? [...atual.itens].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0)) : [];
   const maxCat = Math.max(...cats.map(c => Number(c.valor) || 0), 1);
+  const totalGeral = {};
+  meses.forEach(m => (m.itens || []).forEach(i => { totalGeral[i.categoria] = (totalGeral[i.categoria] || 0) + (Number(i.valor) || 0); }));
+  const todasCats = Object.keys(totalGeral).sort((a, b) => totalGeral[b] - totalGeral[a]);
+  const valorMesCat = (m, c) => { const it = (m.itens || []).find(x => x.categoria === c); return it ? (Number(it.valor) || 0) : 0; };
+  const addBtn = { display: 'block', background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '11px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: meses.length ? 12 : 16 };
+  const vchip = (k, txt) => <button onClick={() => setVista(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vista === k ? COR_FIN : '#eee', color: vista === k ? '#fff' : '#888' }}>{txt}</button>;
 
-  return (
-    <div>
-      {meses.length === 0 ? (
+  if (meses.length === 0) {
+    return (
+      <div>
         <div style={{ marginTop: 12, padding: 24, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>Nenhum mês ainda.</p>
-          <p style={{ fontSize: 13, color: '#999', marginTop: 8 }}>Toque em “+ adicionar mês”.</p>
         </div>
-      ) : (
+        <button onClick={() => setForm({ novo: true })} style={addBtn}>+ adicionar mês</button>
+        {form && <GastoForm editing={form.editing} meses={meses} onClose={() => setForm(null)} />}
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {vchip('mes', 'Mês')}{vchip('tabela', 'Tabela')}{vchip('linhas', 'Linhas')}
+      </div>
+
+      {vista === 'mes' && (
         <>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
@@ -1341,8 +1419,11 @@ function GastosVida() {
           <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 16, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
         </>
       )}
-      <button onClick={() => setForm({ novo: true })} style={{ display: 'block', background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '11px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: meses.length ? 10 : 16 }}>+ adicionar mês</button>
 
+      {vista === 'tabela' && <TabelaGastos meses={meses} cats={todasCats} totalDe={totalDe} valor={valorMesCat} />}
+      {vista === 'linhas' && <LinhasGastos meses={meses} cats={todasCats} valor={valorMesCat} />}
+
+      <button onClick={() => setForm({ novo: true })} style={addBtn}>+ adicionar mês</button>
       {form && <GastoForm editing={form.editing} meses={meses} onClose={() => setForm(null)} />}
     </div>
   );
