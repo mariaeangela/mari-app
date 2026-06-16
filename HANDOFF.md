@@ -104,9 +104,43 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   dia FUTURO; no dia marcado aparece um aviso no topo do calendário (toque p/ ler).
 - IDEIA pendente (não feita): "era/música do mês" — legenda pequena sob o nome do
   mês, guardada por mês (como humor/diário). Aguardando decisão da usuária.
-- FALTA (Leva 2): aba Projetos lendo/agrupando cultura+exercício por mês/ano
-  (retrospectiva: nº museu/academia, livros lidos...), "quem você viu" somado,
-  e a aba Estudos (estudos saiu do calendário; vai viver só em Projetos).
+- Leva 2 (parcial): a **retrospectiva de exercícios** (treinos/tipo, km, total no ano) já
+  existe na **Saúde** (puxa `cal.data.exercicios`). FALTA o card **Retrospectivas** juntar o
+  resto (livros lidos, filmes, nº museu por mês/ano), o **"quem você viu"** somado (campo
+  `comQuem`), e a aba **Estudos**.
+
+## Aba Life — seções (`src/Life.jsx` + `src/lifeStore.jsx`)
+Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cache local
+`diagonal_life` + sync nuvem via `cloud.js`/`/api/data`, merge raso). Slices em `data`:
+`compras`, `cultural`, `planos` (DEFAULT_PLANOS), `financas`, `salarios` (DEFAULT_SALARIOS),
+`gastos` (DEFAULT_GASTOS), `saude`. Seeds históricos (salários/gastos/pesos) **persistem ao
+1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
+
+- **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
+  **Salários** / **Gastos**.
+  - Carteira: `financas.snapshots = [{ id, mes, usdRate, holdings:[{nome,categoria,
+    finalidade,valor,moeda:'BRL'|'USD',externo}] }]`. `valorBRL(h,rate)` converte USD pela
+    `usdRate` do mês (travada; `rateOf(snap)`; `fetchUsdRate(mes)` = AwesomeAPI, atual no mês
+    corrente / fechamento nos passados). Helpers: `totalCarteiraBRL`, `gruposPorFinalidade`,
+    `agregarCat`. Views: `FinTabela` (Por categoria/ativo, ordem Reserva→Investimento→Aposta
+    via `FIN_ORDEM`/`finRank`), `FinPizza`/`PizzaFin` (ativo/categoria/finalidade/moeda,
+    hover), `FinEvolucao`/`EvolucaoFin` (linha preta + tooltip; séries carteira/ativo/cat/fin).
+  - Salários: `SalariosVida`/`SalarioForm`, `salarios=[{ano,idade,cargo,meses[12],extra,
+    bonus,yoy?,pl?,metaPL?}]`. Destaques do ano (ganhei / % poupei = ΔPL/renda / meta PL com
+    barra). `BarrasSalario({barras,fmt})` (genérico). Patrimônio 2026 = snapshots da carteira.
+  - Gastos: `GastosVida`/`GastoForm`/`TabelaGastos`/`LinhasGastos`, `gastos=[{mes,itens:
+    [{categoria,valor}]}]`. Views Mês / Tabela (mês recente 1º) / Linhas (1 por categoria,
+    eixo Y, valores ao focar). Campo de valor aceita conta via `evalValor()`.
+- **Saúde** (`SaudeSection`/`SaudeForm`/`PesoLinha`) — usa `useLife()` e `useCalendar()`.
+  `saude = { pesos:[{data,valor,treino:'pre'|'pos',periodo:'dia'|'noite'?,local}],
+  remedios:[{nome,dose?,duracao?,inicio?,ativo}], vacinas:[{nome,data}], menstruacao:[{data}] }`.
+  CRUD genérico `saveSaudeItem(tipo,item)`/`deleteSaudeItem`. Blocos: Consultas (events com
+  `categoria==='saude'` do calendário), Exercícios (retrospectiva de `cal.data.exercicios`:
+  barras/mês, por tipo, musc×corrida, km, total no ano — usa `EXERCICIO_BY_ID`), Peso (gráfico
+  `PesoLinha` com folga no eixo + filtros local/treino/período), Remédios, Vacinas, Menstruação.
+  Pesos jan–jun/2026 seedados em `DEFAULT_PESOS`.
+- Pendências Life: Estudos, Aprendizados, Viagens, Retrospectivas (placeholders via
+  `SubPlaceholder`). Ver `ROADMAP.md`.
 
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:
