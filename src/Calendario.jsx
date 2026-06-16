@@ -667,7 +667,8 @@ export default function Calendario({ isWide }) {
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
   const bilheteHoje = cal.data.bilhetes[ymd(today)];
-  const tarefasSemData = cal.data.tasks.filter(t => !t.data);
+  // Tarefas sem data: concluídas vão para o fim da lista.
+  const tarefasSemData = cal.data.tasks.filter(t => !t.data).sort((a, b) => (a.feita ? 1 : 0) - (b.feita ? 1 : 0));
   // Compras com data limite no mês exibido (refDate).
   const mesKey = `${refDate.getFullYear()}-${pad2(refDate.getMonth() + 1)}`;
   const comprasDoMes = (life.compras.itens || []).filter(i => i.dataLimite && i.dataLimite.slice(0, 7) === mesKey)

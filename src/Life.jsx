@@ -383,6 +383,7 @@ function CulturalForm({ editing, onClose }) {
   const [local, setLocal] = useState(editing?.local || '');
   const [dataMax, setDataMax] = useState(editing?.dataMax || '');
   const [preco, setPreco] = useState(editing?.preco || '');
+  const [link, setLink] = useState(editing?.link || '');
   const f0 = (editing && typeof editing.funcionamento === 'object') ? editing.funcionamento : {};
   const [dias, setDias] = useState(f0.dias || []);
   const [abre, setAbre] = useState(f0.abre || '');
@@ -396,6 +397,7 @@ function CulturalForm({ editing, onClose }) {
       id: editing?.id, nome: nome.trim(), tipo,
       cidade: cidade.trim() || undefined, local: local.trim() || undefined,
       dataMax: dataMax || undefined, preco: preco.trim() || undefined,
+      link: link.trim() || undefined,
       funcionamento: func,
     });
     onClose();
@@ -421,6 +423,8 @@ function CulturalForm({ editing, onClose }) {
         <input type="date" value={dataMax} onChange={e => setDataMax(e.target.value)} style={inputStyle} />
         <label style={labelStyle}>Preço (opcional)</label>
         <input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: R$ 40 · grátis" style={inputStyle} />
+        <label style={labelStyle}>Link (opcional)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
         <label style={labelStyle}>Dias de funcionamento (opcional)</label>
         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
           {DIAS_SEM.map((d, i) => {
@@ -495,13 +499,14 @@ function CulturalSection({ onBack }) {
       ) : itens.map(it => {
         const meta = [it.local, it.dataMax ? 'até ' + fmtData(it.dataMax) : null, it.preco, fmtFuncionamento(it.funcionamento) || null].filter(Boolean).join(' · ');
         return (
-          <button key={it.id} onClick={() => setForm({ editing: it })} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
+          <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
+              {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
               <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{cultTipoLabel(it.tipo)}</span>
             </div>
             <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
-          </button>
+          </div>
         );
       })}
 
