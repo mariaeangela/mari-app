@@ -1283,6 +1283,7 @@ function SalarioForm({ editing, onClose }) {
 }
 
 function TabelaGastos({ meses, cats, totalDe, valor }) {
+  const cols = [...meses].reverse(); // mês mais recente primeiro
   const cell = { padding: '6px 8px', fontSize: 11.5, whiteSpace: 'nowrap', textAlign: 'right' };
   const stick = { position: 'sticky', left: 0, background: '#fff', textAlign: 'left' };
   return (
@@ -1291,21 +1292,21 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
         <thead>
           <tr style={{ borderBottom: '1.5px solid #eee' }}>
             <th style={{ ...cell, ...stick, color: '#aaa', fontWeight: 600 }}>Categoria</th>
-            {meses.map(m => <th key={m.mes} style={{ ...cell, color: '#aaa', fontWeight: 600, textTransform: 'capitalize' }}>{fmtMes(m.mes)}</th>)}
+            {cols.map(m => <th key={m.mes} style={{ ...cell, color: '#aaa', fontWeight: 600, textTransform: 'capitalize' }}>{fmtMes(m.mes)}</th>)}
           </tr>
         </thead>
         <tbody>
           {cats.map(c => (
             <tr key={c} style={{ borderTop: '1px solid #f5f5f5' }}>
               <td style={{ ...cell, ...stick, color: '#333', fontWeight: 600 }}>{c}</td>
-              {meses.map(m => { const v = valor(m, c); return <td key={m.mes} style={{ ...cell, color: v ? '#444' : '#ddd' }}>{v ? fmtBRLcurto(v) : '—'}</td>; })}
+              {cols.map(m => { const v = valor(m, c); return <td key={m.mes} style={{ ...cell, color: v ? '#444' : '#ddd' }}>{v ? fmtBRLcurto(v) : '—'}</td>; })}
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
             <td style={{ ...cell, ...stick, color: '#111' }}>Total</td>
-            {meses.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}>{fmtBRLcurto(totalDe(m))}</td>)}
+            {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}>{fmtBRLcurto(totalDe(m))}</td>)}
           </tr>
         </tfoot>
       </table>
@@ -1315,21 +1316,41 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
 
 function LinhasGastos({ meses, cats, valor }) {
   const [sel, setSel] = useState(null);
-  const W = 320, H = 150, padX = 12, padTop = 12, padBot = 20;
+  const W = 320, H = 162, padTop = 12, padBot = 20, padLeft = 40, padRight = 10;
   const n = meses.length;
   const vals = (c) => meses.map(m => valor(m, c));
   const max = Math.max(...(sel ? vals(sel) : cats.flatMap(c => vals(c))), 1);
-  const x = (i) => n === 1 ? W / 2 : padX + i * (W - 2 * padX) / (n - 1);
+  const x = (i) => n === 1 ? (padLeft + (W - padLeft - padRight) / 2) : padLeft + i * (W - padLeft - padRight) / (n - 1);
   const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
   const pathFor = (c) => meses.map((m, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(valor(m, c)).toFixed(1)}`).join(' ');
   const corDe = (c) => FIN_PALETTE[cats.indexOf(c) % FIN_PALETTE.length];
   const lista = sel ? [sel] : cats;
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => f * max);
   return (
     <div style={{ marginTop: 4 }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
-        {meses.map((m, i) => <text key={m.mes} x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(m.mes)}</text>)}
+        {ticks.map((t, i) => (
+          <g key={'t' + i}>
+            <line x1={padLeft} y1={y(t)} x2={W - padRight} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
+            <text x={padLeft - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{fmtBRLcurto(t)}</text>
+          </g>
+        ))}
+        {meses.map((m, i) => (
+          <g key={m.mes}>
+            <line x1={x(i)} y1={padTop} x2={x(i)} y2={H - padBot} stroke="#f6f6f6" strokeWidth="1" />
+            <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(m.mes)}</text>
+          </g>
+        ))}
         {lista.map(c => <path key={c} d={pathFor(c)} fill="none" stroke={corDe(c)} strokeWidth={sel ? 2.5 : 1.4} strokeLinejoin="round" strokeLinecap="round" opacity={sel ? 1 : 0.75} />)}
-        {sel && meses.map((m, i) => <circle key={m.mes} cx={x(i)} cy={y(valor(m, sel))} r="2.6" fill={corDe(sel)} />)}
+        {sel && meses.map((m, i) => {
+          const v = valor(m, sel);
+          return (
+            <g key={m.mes}>
+              <circle cx={x(i)} cy={y(v)} r="2.8" fill={corDe(sel)} />
+              <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111">{fmtBRLcurto(v)}</text>
+            </g>
+          );
+        })}
       </svg>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
         {cats.map(c => (
