@@ -85,7 +85,7 @@ export function itemsGeral(data, date) {
 
 // ---------------- "Neste dia" (data + suas lembranças). O fato histórico
 // "Neste dia, em XXXX..." foi para a aba Hoje. ----------------
-function NesteDia({ data, today }) {
+function NesteDia({ data, today, onHoje }) {
   const lembrancas = useMemo(() => {
     const mmdd = `${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
     const y = today.getFullYear();
@@ -101,7 +101,7 @@ function NesteDia({ data, today }) {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, fontWeight: 700, color: '#111', lineHeight: 1.1 }}>
+      <div onClick={onHoje} title="voltar ao mês atual" style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, fontWeight: 700, color: '#111', lineHeight: 1.1, cursor: onHoje ? 'pointer' : 'default', display: 'inline-block' }}>
         {today.getDate()} de {MESES[today.getMonth()]}
       </div>
       <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>
@@ -684,7 +684,7 @@ export default function Calendario({ isWide }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <NesteDia data={cal.data} today={today} />
+      <NesteDia data={cal.data} today={today} onHoje={() => setRefDate(new Date(today.getFullYear(), today.getMonth(), 1))} />
       <Countdown data={cal.data} today={today} />
 
       {bilheteHoje && (
