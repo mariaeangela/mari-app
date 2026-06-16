@@ -99,7 +99,7 @@ export const DEFAULT_GASTOS = [
 // Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
 // sincroniza após a 1ª edição). nota = { id, topicoId, titulo, itens: [string] }.
 export const DEFAULT_APRENDIZADOS = {
-  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }, { id: 'fotografia', nome: 'Fotografia analógica' }, { id: 'vinhos', nome: 'Vinhos' }],
+  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }, { id: 'fotografia', nome: 'Fotografia analógica' }, { id: 'vinhos', nome: 'Vinhos' }, { id: 'vida', nome: 'Vida' }],
   notas: [
     { id: 'cafe-grao', topicoId: 'cafe', titulo: 'Entendendo o grão', itens: [
       'Café é uma fruta azedinha; colhido maduro, ganha doçura.',
@@ -316,6 +316,50 @@ export const DEFAULT_APRENDIZADOS = {
     { id: 'vinho-noblealianza', topicoId: 'vinhos', paiId: 'vinho-tinto', tipo: 'vinho', titulo: 'Noble Alianza', nome: 'Noble Alianza', pais: 'Uruguai', uva: 'Cabernet Franc, Tannat, Marselan', info: 'Encorpado, ácido, não tânico, retrogosto intenso e muito curto, untuoso. Vinho bem barato, recompraria.', data: 'jan/25', itens: [] },
 
     { id: 'vinho-espumante', topicoId: 'vinhos', grupoVinho: true, titulo: 'Espumante', itens: [] },
+
+    // ---- Vida (seção = nota de topo; subcategorias dentro) ----
+    { id: 'vida-dinheiro', topicoId: 'vida', titulo: 'Valorização de dinheiro', itens: [] },
+    { id: 'vida-dinheiro-compras', topicoId: 'vida', paiId: 'vida-dinheiro', titulo: 'Compras', itens: [
+      'Colocar na lista, não fazer por impulso.',
+      'Não comprar por dó ou por vergonha.',
+      '"Se dinheiro não fosse um problema, eu ainda compraria?"',
+      'Roupas e bolsas: (i) não comprar online; (ii) não comprar se não ficar perfeito.',
+      'Sapatos: comprar um de cada vez, só se ficar muito confortável.',
+      'Maquiagem: testar tons antes de comprar.',
+    ] },
+    { id: 'vida-dinheiro-cameras', topicoId: 'vida', paiId: 'vida-dinheiro', titulo: 'Câmeras', itens: [
+      'Rebobinar no banheiro.',
+      'Andar com elas em bolsinha para não dispararem sozinhas.',
+    ] },
+    { id: 'vida-dinheiro-aulas', topicoId: 'vida', paiId: 'vida-dinheiro', titulo: 'Aulas', itens: [
+      'Não marcar se não for dar tempo de focar 100% nelas — ser sincera sobre a rotina.',
+    ] },
+    { id: 'vida-dinheiro-comida', topicoId: 'vida', paiId: 'vida-dinheiro', titulo: 'Comida', itens: [
+      'Não gastar muito em churrascaria (não gosto de carne).',
+      'Não matar a fome com alimentos de prazer.',
+    ] },
+
+    { id: 'vida-saude', topicoId: 'vida', titulo: 'Valorização de saúde', itens: [] },
+    { id: 'vida-saude-exercicio', topicoId: 'vida', paiId: 'vida-saude', titulo: 'Exercício', itens: [
+      'Ir de manhã ou no almoço; não deixar para fazer à noite.',
+    ] },
+    { id: 'vida-saude-comida', topicoId: 'vida', paiId: 'vida-saude', titulo: 'Comida', itens: [
+      'Dar um tempo para a comida assentar.',
+      'Não fazer compras sem lista.',
+      'Não matar a fome com alimentos de prazer.',
+      'Se for sair para um lugar que gosto de comer, não comer antes para tentar comer menos.',
+      'Não me proibir de comer se sentir fome — mas procurar alimentos que não sejam besteira.',
+      'Me perguntar sempre: estou com fome, com tédio, com ansiedade ou com vontade de comer?',
+      'Não comer pratos com muito azeite, especialmente massa — não me cai bem.',
+    ] },
+
+    { id: 'vida-sentimentos', topicoId: 'vida', titulo: 'Sentimentos', itens: [
+      'Não tomar atitudes nem falar nada muito estressada: tomar banho, ir tomar um ar e, se possível, esperar 24 horas.',
+    ] },
+
+    { id: 'vida-viagem', topicoId: 'vida', titulo: 'Viagem', itens: [
+      'Ano novo ser em praia.',
+    ] },
   ],
 };
 
