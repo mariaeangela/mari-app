@@ -57,7 +57,7 @@ function Header({ tab, setTab }) {
   return (
     <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
       <div style={{ padding: '48px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(24px, 7vw, 34px)', fontWeight: 700, color: '#111', letterSpacing: '1px', lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>diagonal</div>
+        <div onClick={() => setTab('feed')} title="ir para Hoje" style={{ fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(24px, 7vw, 34px)', fontWeight: 700, color: '#111', letterSpacing: '1px', lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>diagonal</div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 10, color: '#999', letterSpacing: '1.5px', textTransform: 'uppercase' }}>{days[now.getDay()]}, {now.getDate()} {months[now.getMonth()]}</div>
           <div style={{ fontSize: 10, color: '#ccc', marginTop: 2 }}>edicao diaria</div>
@@ -315,6 +315,10 @@ export default function App() {
   // Não memoriza o login: a senha é pedida sempre que o app abre/recarrega.
   const [loggedIn, setLoggedIn] = useState(false);
   const [tab, setTab] = useState('feed');
+  // Clicar numa aba (ou no "diagonal") volta pro topo dela: se já está na aba,
+  // o homeNonce muda e remonta a página, voltando à capa (sai de sub-páginas).
+  const [homeNonce, setHomeNonce] = useState(0);
+  const goTab = (id) => { if (id === tab) setHomeNonce(n => n + 1); setTab(id); };
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
@@ -326,14 +330,14 @@ export default function App() {
         <LifeProvider>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
-              <Header tab={tab} setTab={setTab} />
+              <Header tab={tab} setTab={goTab} />
             </div>
-            {/* key = edição: o feed só remonta (e troca os cards) às 6h e às 14h */}
-            {tab === 'feed' && <Feed key={getEditionPeriod()} isWide={isWide} />}
-            {tab === 'explore' && <ExplorePage isWide={isWide} />}
-            {tab === 'saved' && <SavedPage isWide={isWide} />}
-            {tab === 'calendar' && <Calendario isWide={isWide} />}
-            {tab === 'life' && <LifePage isWide={isWide} />}
+            {/* key = edição (+homeNonce): o feed remonta às 6h/14h e ao reclicar "Hoje" */}
+            {tab === 'feed' && <Feed key={getEditionPeriod() + '-' + homeNonce} isWide={isWide} />}
+            {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
+            {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
+            {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
+            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} />}
           </div>
         </LifeProvider>
       </CalendarProvider>

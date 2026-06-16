@@ -8,6 +8,9 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 - `src/App.jsx` — tabs (Hoje/Explorar/Salvos), Header, responsivo
   (grade de 3 colunas no desktop via `useIsWide`, coluna única no mobile),
   relógio vivo (`useMinuteTick`) → edição muda às 6h/14h, datas à meia-noite.
+  Navegação: `goTab(id)` reclica a aba ativa → bump em `homeNonce` (key de cada
+  página) → remonta e volta à capa (sai de sub-páginas internas). Clicar em
+  "diagonal" no Header também vai pra Hoje.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
