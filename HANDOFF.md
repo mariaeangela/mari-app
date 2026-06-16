@@ -150,9 +150,13 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
   `NotaCard` é recursivo; "+ adicionar dentro" só aparece em notas de topo (nível 0). Hub conta só
   as notas de topo. `aprendizados = { topicos:[{id,nome}], notas:[{id,topicoId,paiId?,titulo,itens[]}] }`
   no `lifeStore` (CRUDs `addAprendTopico`/`deleteAprendTopico`/`saveAprendNota`/`deleteAprendNota`).
-  `NotaForm` edita os itens por textarea (1 linha = 1 item). Seed `DEFAULT_APRENDIZADOS`: **Café**
-  (V60 com as receitas dentro) e **Tecidos** (Tipos de tecido + Fibras naturais/artificiais/sintéticas,
-  cada material como nota-filha). Adicionar tópico/nota/sub-nota pela própria UI.
+  `NotaForm` edita os itens por textarea (1 linha = 1 item). **Vinhos** têm form próprio (`WineForm`,
+  campos país/região/nome/uva/info/data → nota `tipo:'vinho'`): notas-mãe com `grupoVinho:true`
+  (Branco/Tinto/Espumante) mostram "+ adicionar vinho" e os filhos `tipo:'vinho'` renderizam em layout
+  de vinho (badge país + meta + info) em vez de bullets. Seed `DEFAULT_APRENDIZADOS`: **Café**
+  (V60 com as receitas dentro), **Tecidos** (Tipos de tecido + Fibras naturais/artificiais/sintéticas),
+  **Fotografia analógica** (câmera→filmes) e **Vinhos** (Classificação + Branco/Tinto/Espumante com
+  vinhos dentro). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
 - Pendências Life: Estudos, Viagens, Retrospectivas (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
 
 ## Fontes — convenção do bloco "Da fonte"

@@ -1826,34 +1826,97 @@ function NotaForm({ topicoId, paiId, editing, onClose }) {
   );
 }
 
+// Formulário de vinho (notas com tipo 'vinho' dentro de grupos grupoVinho).
+function WineForm({ topicoId, paiId, editing, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(editing?.nome || editing?.titulo || '');
+  const [pais, setPais] = useState(editing?.pais || '');
+  const [regiao, setRegiao] = useState(editing?.regiao || '');
+  const [uva, setUva] = useState(editing?.uva || '');
+  const [info, setInfo] = useState(editing?.info || '');
+  const [data, setData] = useState(editing?.data || '');
+  const pai = editing ? editing.paiId : paiId;
+  const podeSalvar = nome.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveAprendNota({
+      id: editing?.id, topicoId, paiId: pai || undefined, tipo: 'vinho',
+      titulo: nome.trim(), nome: nome.trim(),
+      pais: pais.trim() || undefined, regiao: regiao.trim() || undefined,
+      uva: uva.trim() || undefined, info: info.trim() || undefined, data: data.trim() || undefined,
+      itens: [],
+    });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} vinho</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Nome</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: El Enemigo" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>País</label><input value={pais} onChange={e => setPais(e.target.value)} placeholder="ex.: Argentina" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Região (opcional)</label><input value={regiao} onChange={e => setRegiao(e.target.value)} placeholder="ex.: Mendoza" style={inputStyle} /></div>
+        </div>
+        <label style={labelStyle}>Uva</label>
+        <input value={uva} onChange={e => setUva(e.target.value)} placeholder="ex.: Chardonnay" style={inputStyle} />
+        <label style={labelStyle}>Informações</label>
+        <textarea value={info} onChange={e => setInfo(e.target.value)} rows={4} placeholder="como é o vinho, com o que combina, se recompraria…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <label style={labelStyle}>Quando provou (opcional)</label>
+        <input value={data} onChange={e => setData(e.target.value)} placeholder="ex.: dez/24" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteAprendNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 };
 
-// Card de nota; renderiza recursivamente as sub-notas (1 nível = método → receitas).
+// Card de nota; renderiza recursivamente as sub-notas (1 nível = grupo → itens).
+// Notas tipo 'vinho' têm layout próprio (país/região/uva/data + informações).
 function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
   const open = !!aberta[nota.id];
   const subs = filhos(nota.id);
+  const isVinho = nota.tipo === 'vinho';
+  const meta = isVinho ? [nota.regiao, nota.uva, nota.data].filter(Boolean).join('  ·  ') : '';
   return (
     <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
       <div onClick={() => toggle(nota.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: nivel ? '10px 12px' : '12px 14px', cursor: 'pointer' }}>
         <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}</span>
-        {subs.length > 0 && <span style={{ fontSize: 11, color: COR_APREND, fontWeight: 700, background: COR_APREND + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
+        {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: COR_APREND, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
+        {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: COR_APREND, fontWeight: 700, background: COR_APREND + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
         <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
         <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
-          {nota.itens.length > 0 && (
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {nota.itens.map((it, i) => <li key={i} style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', marginBottom: 4 }}>{it}</li>)}
-            </ul>
-          )}
-          {subs.length > 0 && (
-            <div style={{ marginTop: nota.itens.length ? 12 : 0 }}>
-              {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} />)}
-            </div>
+          {isVinho ? (
+            <>
+              {meta && <div style={{ fontSize: 12, color: '#999', marginBottom: nota.info ? 6 : 0 }}>{meta}</div>}
+              {nota.info && <p style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', margin: 0 }}>{nota.info}</p>}
+            </>
+          ) : (
+            <>
+              {nota.itens.length > 0 && (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {nota.itens.map((it, i) => <li key={i} style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', marginBottom: 4 }}>{it}</li>)}
+                </ul>
+              )}
+              {subs.length > 0 && (
+                <div style={{ marginTop: nota.itens.length ? 12 : 0 }}>
+                  {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} />)}
+                </div>
+              )}
+            </>
           )}
           <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
             <button onClick={() => onEdit(nota)} style={apLink}>editar</button>
-            {nivel === 0 && <button onClick={() => onAddSub(nota.id)} style={apLink}>+ adicionar dentro</button>}
+            {nivel === 0 && <button onClick={() => onAddSub(nota)} style={apLink}>{nota.grupoVinho ? '+ adicionar vinho' : '+ adicionar dentro'}</button>}
           </div>
         </div>
       )}
@@ -1864,6 +1927,7 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
 function TopicoView({ topico, onBack }) {
   const life = useLife();
   const [notaForm, setNotaForm] = useState(null);
+  const [wineForm, setWineForm] = useState(null);
   const [aberta, setAberta] = useState({});
   const todas = life.aprendizados.notas.filter(n => n.topicoId === topico.id);
   const topo = todas.filter(n => !n.paiId);
@@ -1878,13 +1942,15 @@ function TopicoView({ topico, onBack }) {
       {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>Sem notas ainda.</p>}
       {topo.map(nota => (
         <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle}
-          onEdit={(nt) => setNotaForm({ editing: nt })} onAddSub={(paiId) => setNotaForm({ paiId })} nivel={0} />
+          onEdit={(nt) => nt.tipo === 'vinho' ? setWineForm({ editing: nt }) : setNotaForm({ editing: nt })}
+          onAddSub={(parent) => parent.grupoVinho ? setWineForm({ paiId: parent.id }) : setNotaForm({ paiId: parent.id })} nivel={0} />
       ))}
       <button onClick={() => setNotaForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ nota</button>
 
       <button onClick={() => { if (window.confirm(`Apagar o tópico "${topico.nome}" e todas as suas notas?`)) { life.deleteAprendTopico(topico.id); onBack(); } }} style={{ display: 'block', margin: '20px auto 0', background: 'none', border: 'none', color: '#ccc', fontSize: 12, cursor: 'pointer' }}>apagar tópico</button>
 
       {notaForm && <NotaForm topicoId={topico.id} paiId={notaForm.paiId} editing={notaForm.editing} onClose={() => setNotaForm(null)} />}
+      {wineForm && <WineForm topicoId={topico.id} paiId={wineForm.paiId} editing={wineForm.editing} onClose={() => setWineForm(null)} />}
     </div>
   );
 }
