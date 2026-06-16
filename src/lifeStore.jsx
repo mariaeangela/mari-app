@@ -96,6 +96,195 @@ export const DEFAULT_GASTOS = [
   { mes: '2026-06', itens: [G('Fixos', 6114.06), G('Mercado', 1565.27), G('Uber', 600.09), G('Trabalho', 194.33), G('Mãe', 293.50), G('Saúde', 2446.01), G('Viagem', 894.50), G('Coisas', 150.79), G('Skin care', 105.00), G('Bobeira', 68.88), G('Rolês', 996.04), G('Presentes', 533.70)] },
 ];
 
+// Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
+// sincroniza após a 1ª edição). nota = { id, topicoId, titulo, itens: [string] }.
+export const DEFAULT_APRENDIZADOS = {
+  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }],
+  notas: [
+    { id: 'cafe-grao', topicoId: 'cafe', titulo: 'Entendendo o grão', itens: [
+      'Café é uma fruta azedinha; colhido maduro, ganha doçura.',
+      'A torra pode preservar as características do café.',
+      'Torra escura esconde as características — você sente só o amargor (esconde defeitos; costuma ser grão de pior qualidade).',
+      'Muito torrado, o amargor vem do gosto de queimado.',
+      'O amargor também vem da cafeína — todo café é um pouco amargo.',
+      'Quanto mais transparente, menos corpo o café tem.',
+      'Na extração vem primeiro a acidez, depois a doçura, depois o amargor.',
+      '1ª dose: mais encorpada e ácida · 2ª: corpo médio e doce · 3ª: pouco encorpada e amarga.',
+    ] },
+    { id: 'cafe-v60', topicoId: 'cafe', titulo: 'Hario V60', itens: [
+      'Pensado para a água passar mais rápido pelo café → café frutado e mais ácido.',
+      'O furo do cone é maior: a água fica menos tempo em contato com o pó do que na Melitta → menos amargor.',
+      'Cone de 60°.',
+      'Filtro pode ser natural ou lavado (branqueado).',
+    ] },
+    { id: 'cafe-preparo', topicoId: 'cafe', paiId: 'cafe-v60', titulo: 'Como fazer', itens: [
+      'Dobre a lateral do papel.',
+      'Sempre escalde o filtro de papel e todo o suporte.',
+      'Deixe o café nivelado (reto) no filtro.',
+      'Interrompa a extração quando começar o "pinga-pinga" — para cortar o amargor.',
+    ] },
+    { id: 'cafe-classica', topicoId: 'cafe', paiId: 'cafe-v60', titulo: 'Receita clássica', itens: [
+      'Proporção 1:10 (30 g de café moído para 300 ml de água).',
+      'Pré-infusão (bloom): pouca água, sempre em movimento circular, só para molhar o café (é a 1ª dose).',
+      'Depois acrescente de pouco em pouco — cerca de 4 doses de 60 ml.',
+    ] },
+    { id: 'cafe-winton', topicoId: 'cafe', paiId: 'cafe-v60', titulo: 'Receita Matt Winton', itens: [
+      '20 g de café · proporção 1:15 (300 ml de água).',
+      'Água a 93 °C (termômetro).',
+      'Moagem não pode ficar muito fina.',
+      'Comece despejando no meio e depois gire.',
+      '5 doses de 60 ml.',
+      '1ª dose de 60 ml e espere 30 segundos.',
+      'Da 2ª em diante, despeje quando a água parar de jorrar do coador.',
+      'Não reaqueça a chaleira.',
+    ] },
+    { id: 'cafe-tetsu', topicoId: 'cafe', paiId: 'cafe-v60', titulo: 'Receita Tetsu Kasuya (4:6)', itens: [
+      '20 g de café, 300 ml de água.',
+      '5 pours de 3× o peso do café (5 × 3 × 20 g = 5 doses de 60 ml).',
+      '45 segundos entre cada dose.',
+      '2 primeiras doses ajustam doçura e acidez: iguais = equilibrado · 1ª menor = mais doce · 2ª menor = mais ácido.',
+      '3 últimas doses ajustam a força: 3 iguais = equilibrado · 2 doses = mais fraco · 4 doses = mais forte.',
+    ] },
+    { id: 'cafe-marcas', topicoId: 'cafe', titulo: 'Cafés & marcas', itens: [
+      'Dengo',
+      'Urbe',
+      'Dutra',
+    ] },
+
+    // ---- Tecidos ----
+    { id: 'tec-geral', topicoId: 'tecidos', titulo: 'Informações gerais', itens: [
+      'Tecidos são tipos de tecido; fibras são a composição — a matéria com que o tecido é fabricado.',
+      'Desconfie do que não amassa: tecido de qualidade se adapta ao corpo e vai amassar.',
+      'Misturar peça de fibra natural com fibra artificial no mesmo look fica horroroso — destaca a diferença entre elas.',
+      'Lavagem: a peça pode ser feita com fio já tingido ou ser tingida depois de pronta. Tingida depois solta mais tinta na lavagem — observe a costura dos fios para tentar descobrir.',
+    ] },
+
+    { id: 'tec-tipos', topicoId: 'tecidos', titulo: 'Tipos de tecido', itens: [] },
+    { id: 'tec-crepe', topicoId: 'tecidos', paiId: 'tec-tipos', titulo: 'Crepe', itens: [
+      'Necessariamente um lado fosco e outro brilhoso.',
+      'Fuja de crepe duna ou crepe amassado: baixa qualidade, feito de poliéster.',
+      'Pode ser vendido como tecido chique, mas a composição pode ser terrível.',
+    ] },
+    { id: 'tec-sarja', topicoId: 'tecidos', paiId: 'tec-tipos', titulo: 'Sarja', itens: [
+      'Material sarjado, tipo espinha de peixe.',
+      'Geralmente algodão com um pouco de elastano para conforto — nessa composição, é 10/10.',
+    ] },
+    { id: 'tec-alfaiataria', topicoId: 'tecidos', paiId: 'tec-tipos', titulo: 'Alfaiataria', itens: [
+      'Tecido mais estruturado, geralmente com pregas.',
+      'O de maior qualidade vem forrado.',
+    ] },
+    { id: 'tec-tricot', topicoId: 'tecidos', paiId: 'tec-tipos', titulo: 'Tricot', itens: [] },
+    { id: 'tec-malha', topicoId: 'tecidos', paiId: 'tec-tipos', titulo: 'Malha', itens: [] },
+
+    { id: 'tec-nat', topicoId: 'tecidos', titulo: 'Fibras naturais', itens: [
+      'Perfeitas: vêm totalmente da natureza, confortáveis e usadas como são naturalmente.',
+    ] },
+    { id: 'tec-algodao', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Algodão', itens: [
+      'Vegetal (vem da semente).',
+      'Supremacia! Fresco, confortável, natural — 10/10.',
+      'Existem algodões de baixa qualidade: dá pra ver em peças brancas — em geral, quanto mais transparente, pior.',
+      'Algodão egípcio: altíssima qualidade e caríssimo.',
+      'Algodão pima: peruano de alta qualidade, o melhor algodão do mundo.',
+      'Algodão peruano: não tão bom quanto o pima, mas ainda um dos melhores do mercado.',
+    ] },
+    { id: 'tec-seda', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Seda', itens: [
+      'Animal (vem da lagarta).',
+      'Chiquérrima.',
+      'Não gosta de água nem suor (lavar a seco; ruim para eventos em dia de muito calor). Mancha com bebida. Usar com muito cuidado.',
+    ] },
+    { id: 'tec-couro', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Couro', itens: [
+      'Animal (ruim para veganos).',
+      'Excelente tecido: pega o formato do corpo; precisa ser hidratado.',
+      'Quanto mais jovem o animal, mais macio o couro.',
+      'Para roupas, couro de pelica é o melhor.',
+    ] },
+    { id: 'tec-la', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Lã', itens: [
+      'Animal: pode ser de carneiro, coelho, alpaca, lhama ou cabra (a cabra faz o cashmere).',
+      '100000% o melhor tecido do mundo.',
+      'Boa para o frio e para o calor (lã fria).',
+      'Difícil de achar hoje porque o fast fashion convenceu todo mundo de que é tecido de gente velha.',
+    ] },
+    { id: 'tec-linho', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Linho', itens: [
+      'Vegetal (vem do caule).',
+      'Chique, lindíssimo e traz bastante estrutura.',
+      'Amassa bastante (principalmente cores claras): 100% linho não é a melhor escolha para ocasião formal — amassa só de sentar à mesa.',
+      'Pode dar bolinha se ficar em fricção com outras roupas.',
+      'Guardar só com linho ou em saquinho para proteger.',
+      'Linho pré-lavado pinica menos.',
+    ] },
+    { id: 'tec-sisal', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Sisal', itens: [] },
+    { id: 'tec-rafia', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Ráfia', itens: [] },
+    { id: 'tec-rami', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Rami', itens: [] },
+    { id: 'tec-juta', topicoId: 'tecidos', paiId: 'tec-nat', titulo: 'Juta', itens: [] },
+
+    { id: 'tec-art', topicoId: 'tecidos', titulo: 'Fibras artificiais', itens: [
+      'Muito boas: produzidas a partir de fontes naturais (como a celulose), mas que passam por processos químicos (feitas em laboratório) para virar fibra. Costumam ter bom sensorial.',
+    ] },
+    { id: 'tec-viscose', topicoId: 'tecidos', paiId: 'tec-art', titulo: 'Viscose', itens: [
+      'Derivada da celulose; tecido fresco e leve.',
+      'De cor clara pode ser transparente — precisa de forro de algodão.',
+      'Para boa estrutura (calça, blazer), precisa de uns 40% de linho ou algodão.',
+    ] },
+    { id: 'tec-acetato', topicoId: 'tecidos', paiId: 'tec-art', titulo: 'Acetato', itens: [
+      'Bom para misturar com viscose e fazer crepe.',
+    ] },
+    { id: 'tec-modal', topicoId: 'tecidos', paiId: 'tec-art', titulo: 'Modal', itens: [] },
+    { id: 'tec-tencel', topicoId: 'tecidos', paiId: 'tec-art', titulo: 'Tencel / Liocel', itens: [] },
+    { id: 'tec-cupro', topicoId: 'tecidos', paiId: 'tec-art', titulo: 'Cupro', itens: [] },
+
+    { id: 'tec-sint', topicoId: 'tecidos', titulo: 'Fibras sintéticas', itens: [
+      'Totalmente feitas em laboratório. Terríveis — fuja.',
+    ] },
+    { id: 'tec-poliamida', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Poliamida', itens: [
+      'Vem do plástico/petróleo.',
+      'Único sintético que não é necessariamente tão ruim.',
+      'Perfeita para exercício: permite a pele respirar e não pega cheiro.',
+      'Cuidado com a composição: para academia, ok; para roupa formal, 50% poliamida + 50% viscose é má qualidade.',
+    ] },
+    { id: 'tec-acrilico', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Acrílico', itens: [
+      'FUJA.',
+      'Pior material do mercado.',
+      'Usado em roupas que querem imitar lã.',
+      'Dá bolinha com muita facilidade.',
+      'Pinica e causa alergia na pele.',
+    ] },
+    { id: 'tec-pu', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Poliuretano (PU)', itens: [
+      'Imitação de couro, terrível.',
+      'Não é "se", é "quando" vai esfarelar.',
+    ] },
+    { id: 'tec-poliester', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Poliéster', itens: [
+      'Daria pra ficar 2 horas num palanque falando mal.',
+      'Vem de plástico/petróleo.',
+      'Não deixa a pele respirar; pega cheiro com muita facilidade.',
+      'Sensível à temperatura: derrete se passar ou pegar muito sol e fica com aspecto brilhoso na roupa.',
+      'É literalmente esfregar plástico no corpo — fugir principalmente em roupa de cama ou pijama (prejudica a qualidade do sono).',
+      'Usado para dar estrutura: menos de 10% não chega a ser problema se a peça não for muito cara (pode estar num detalhe/desenho ou na própria estrutura).',
+    ] },
+    { id: 'tec-helanca', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Helanca', itens: [
+      'Poliéster com poliamida. Péssimo.',
+    ] },
+    { id: 'tec-bengaline', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Bengaline', itens: [
+      'Poliéster com elastano. Terrível.',
+    ] },
+    { id: 'tec-elastano', topicoId: 'tecidos', paiId: 'tec-sint', titulo: 'Elastano', itens: [
+      'Tecido elástico. Bom até 10% misturado com naturais; ruim acima de 10% ou misturado com sintéticos.',
+      'Geralmente usado em malhas.',
+    ] },
+
+    { id: 'tec-roupas', topicoId: 'tecidos', titulo: 'Tipos de roupa e melhores composições', itens: [
+      'Praia e exercício físico: poliamida com elastano.',
+      'Quentinhas: lã · alguns algodões · cashmere.',
+    ] },
+
+    { id: 'tec-cores', topicoId: 'tecidos', titulo: 'Cores', itens: [
+      'Cor gosta de cor.',
+      'Cores claras com cores claras; cores escuras com cores escuras (preto com tons escuros).',
+      'Preto é usado para destacar cores.',
+      'Branco vai com quase tudo.',
+    ] },
+  ],
+};
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -198,6 +387,16 @@ export function LifeProvider({ children }) {
   };
   const deleteSaudeItem = (tipo, id) => persist({ ...data, saude: { ...DEFAULT.saude, ...saude, [tipo]: (saude[tipo] || []).filter(x => x.id !== id) } });
 
+  // ---- Aprendizados (tópicos + notas) ----
+  const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
+  const setAprendizados = (next) => persist({ ...data, aprendizados: next });
+  const addAprendTopico = (nome) => { const id = uid('t'); setAprendizados({ ...aprendizados, topicos: [...aprendizados.topicos, { id, nome }] }); return id; };
+  const deleteAprendTopico = (id) => setAprendizados({ topicos: aprendizados.topicos.filter(t => t.id !== id), notas: aprendizados.notas.filter(n => n.topicoId !== id) });
+  const saveAprendNota = (nota) => setAprendizados(nota.id && aprendizados.notas.some(n => n.id === nota.id)
+    ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? nota : n) }
+    : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n') }] });
+  const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
+
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
@@ -207,6 +406,7 @@ export function LifeProvider({ children }) {
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
+    aprendizados, addAprendTopico, deleteAprendTopico, saveAprendNota, deleteAprendNota,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

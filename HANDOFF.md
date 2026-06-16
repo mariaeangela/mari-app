@@ -140,9 +140,17 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
   `categoria==='saude'` do calendário), Exercícios (retrospectiva de `cal.data.exercicios`:
   barras/mês, por tipo, musc×corrida, km, total no ano — usa `EXERCICIO_BY_ID`), Peso (gráfico
   `PesoLinha` com folga no eixo + filtros local/treino/período), Remédios, Vacinas, Menstruação.
-  Pesos jan–jun/2026 seedados em `DEFAULT_PESOS`.
-- Pendências Life: Estudos, Aprendizados, Viagens, Retrospectivas (placeholders via
-  `SubPlaceholder`). Ver `ROADMAP.md`.
+  Pesos jan–jun/2026 seedados em `DEFAULT_PESOS`. `normPeriodo()` mapeia 'dia' (legado) → manhã.
+- **Aprendizados** (`AprendizadosSection`/`TopicoView`/`NotaCard`/`NotaForm`) — hub de **tópicos**
+  (assuntos); cada tópico tem **notas** (título + `itens:[string]`, accordion tipo infos dos Planos).
+  Notas **aninham 1 nível** via `paiId` (nota-mãe = "método/categoria"; filhas = receitas/materiais).
+  `NotaCard` é recursivo; "+ adicionar dentro" só aparece em notas de topo (nível 0). Hub conta só
+  as notas de topo. `aprendizados = { topicos:[{id,nome}], notas:[{id,topicoId,paiId?,titulo,itens[]}] }`
+  no `lifeStore` (CRUDs `addAprendTopico`/`deleteAprendTopico`/`saveAprendNota`/`deleteAprendNota`).
+  `NotaForm` edita os itens por textarea (1 linha = 1 item). Seed `DEFAULT_APRENDIZADOS`: **Café**
+  (V60 com as receitas dentro) e **Tecidos** (Tipos de tecido + Fibras naturais/artificiais/sintéticas,
+  cada material como nota-filha). Adicionar tópico/nota/sub-nota pela própria UI.
+- Pendências Life: Estudos, Viagens, Retrospectivas (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
 
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:

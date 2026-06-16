@@ -13,7 +13,8 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
 - ✅ **Vida Financeira** — pronta, com 3 sub-abas (Carteira / Salários / Gastos). Ver bloco A.
 - ✅ **Saúde** — pronta. Ver bloco B.
 - 🟡 **Estudos** — aulas, leituras, cursos (placeholder "em construção").
-- 🟡 **Aprendizados** — o que você aprendeu (lições/descobertas) (placeholder).
+- ✅ **Aprendizados** — hub de **tópicos** (assuntos), cada um com **notas** (título + itens,
+  accordion). Seed: tópico **Café** (7 notas). Adicionar tópico/nota pela UI.
 - 🟡 **Viagens** — placeholder; ver bloco 2.
 - 🟡 **Retrospectivas** — card existe (placeholder). Vira o hub de agregações por mês/ano
   (livros lidos, filmes, nº museu/academia, corridas…). Parte já existe espalhada

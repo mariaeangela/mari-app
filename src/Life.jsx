@@ -1791,6 +1791,145 @@ function SaudeForm({ tipo, editing, onClose }) {
   );
 }
 
+// ---- Aprendizados (tópicos + notas) ----
+const COR_APREND = '#c78a3a';
+
+function NotaForm({ topicoId, paiId, editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [texto, setTexto] = useState((editing?.itens || []).join('\n'));
+  const pai = editing ? editing.paiId : paiId;
+  const podeSalvar = titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const itens = texto.split('\n').map(l => l.trim()).filter(Boolean);
+    life.saveAprendNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova'} nota</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Título</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Receita clássica" style={inputStyle} />
+        <label style={labelStyle}>Itens (um por linha)</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder="um aprendizado por linha" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteAprendNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 };
+
+// Card de nota; renderiza recursivamente as sub-notas (1 nível = método → receitas).
+function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
+  const open = !!aberta[nota.id];
+  const subs = filhos(nota.id);
+  return (
+    <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
+      <div onClick={() => toggle(nota.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: nivel ? '10px 12px' : '12px 14px', cursor: 'pointer' }}>
+        <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}</span>
+        {subs.length > 0 && <span style={{ fontSize: 11, color: COR_APREND, fontWeight: 700, background: COR_APREND + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
+        <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>
+      </div>
+      {open && (
+        <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
+          {nota.itens.length > 0 && (
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {nota.itens.map((it, i) => <li key={i} style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', marginBottom: 4 }}>{it}</li>)}
+            </ul>
+          )}
+          {subs.length > 0 && (
+            <div style={{ marginTop: nota.itens.length ? 12 : 0 }}>
+              {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} />)}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+            <button onClick={() => onEdit(nota)} style={apLink}>editar</button>
+            {nivel === 0 && <button onClick={() => onAddSub(nota.id)} style={apLink}>+ adicionar dentro</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopicoView({ topico, onBack }) {
+  const life = useLife();
+  const [notaForm, setNotaForm] = useState(null);
+  const [aberta, setAberta] = useState({});
+  const todas = life.aprendizados.notas.filter(n => n.topicoId === topico.id);
+  const topo = todas.filter(n => !n.paiId);
+  const filhos = (id) => todas.filter(n => n.paiId === id);
+  const toggle = (id) => setAberta(a => ({ ...a, [id]: !a[id] }));
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Aprendizados</button>
+      <div style={{ width: 36, height: 4, background: COR_APREND, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 14px' }}>{topico.nome}</h2>
+
+      {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>Sem notas ainda.</p>}
+      {topo.map(nota => (
+        <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle}
+          onEdit={(nt) => setNotaForm({ editing: nt })} onAddSub={(paiId) => setNotaForm({ paiId })} nivel={0} />
+      ))}
+      <button onClick={() => setNotaForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ nota</button>
+
+      <button onClick={() => { if (window.confirm(`Apagar o tópico "${topico.nome}" e todas as suas notas?`)) { life.deleteAprendTopico(topico.id); onBack(); } }} style={{ display: 'block', margin: '20px auto 0', background: 'none', border: 'none', color: '#ccc', fontSize: 12, cursor: 'pointer' }}>apagar tópico</button>
+
+      {notaForm && <NotaForm topicoId={topico.id} paiId={notaForm.paiId} editing={notaForm.editing} onClose={() => setNotaForm(null)} />}
+    </div>
+  );
+}
+
+function AprendizadosSection({ onBack }) {
+  const life = useLife();
+  const [topicoSel, setTopicoSel] = useState(null);
+  const [novo, setNovo] = useState('');
+  const [adicionando, setAdicionando] = useState(false);
+  const topico = life.aprendizados.topicos.find(t => t.id === topicoSel);
+  if (topico) return <TopicoView topico={topico} onBack={() => setTopicoSel(null)} />;
+  const addTopico = () => { const nome = novo.trim(); if (!nome) return; const id = life.addAprendTopico(nome); setNovo(''); setAdicionando(false); setTopicoSel(id); };
+  const countNotas = (id) => life.aprendizados.notas.filter(n => n.topicoId === id && !n.paiId).length;
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_APREND, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Aprendizados</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>o que você aprendeu, por assunto</p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {life.aprendizados.topicos.map(t => {
+          const n = countNotas(t.id);
+          return (
+            <button key={t.id} onClick={() => setTopicoSel(t.id)} style={{ background: COR_APREND + '12', border: '1px solid ' + COR_APREND + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: COR_APREND, borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{t.nome}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{n} {n === 1 ? 'nota' : 'notas'}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {adicionando ? (
+        <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+          <input value={novo} autoFocus onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTopico()} placeholder="novo tópico (ex.: Vinho)" style={inputStyle} />
+          <button onClick={addTopico} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+        </div>
+      ) : (
+        <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      )}
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -1812,6 +1951,7 @@ export default function LifePage({ isWide }) {
   if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
   if (sec === 'financas') return <FinancasSection onBack={() => setSec(null)} />;
   if (sec === 'saude') return <SaudeSection onBack={() => setSec(null)} />;
+  if (sec === 'aprendizados') return <AprendizadosSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
