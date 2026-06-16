@@ -293,6 +293,10 @@ function PlanoView({ plano, onBack }) {
 
       {aba === 'check' && (
         <>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            <input value={novoCheck} onChange={e => setNovoCheck(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCheck()} placeholder="novo item do checklist" style={inputStyle} />
+            <button onClick={addCheck} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+          </div>
           {checks.map(c => (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
               <span onClick={() => life.togglePlanoCheck(c.id)} style={{ fontSize: 19, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{c.feito ? '☑' : '☐'}</span>
@@ -300,10 +304,6 @@ function PlanoView({ plano, onBack }) {
               <span onClick={() => life.deletePlanoCheck(c.id)} style={{ color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</span>
             </div>
           ))}
-          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-            <input value={novoCheck} onChange={e => setNovoCheck(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCheck()} placeholder="novo item do checklist" style={inputStyle} />
-            <button onClick={addCheck} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
-          </div>
         </>
       )}
 
