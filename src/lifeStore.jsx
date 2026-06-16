@@ -99,7 +99,7 @@ export const DEFAULT_GASTOS = [
 // Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
 // sincroniza após a 1ª edição). nota = { id, topicoId, titulo, itens: [string] }.
 export const DEFAULT_APRENDIZADOS = {
-  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }],
+  topicos: [{ id: 'cafe', nome: 'Café' }, { id: 'tecidos', nome: 'Tecidos' }, { id: 'fotografia', nome: 'Fotografia analógica' }],
   notas: [
     { id: 'cafe-grao', topicoId: 'cafe', titulo: 'Entendendo o grão', itens: [
       'Café é uma fruta azedinha; colhido maduro, ganha doçura.',
@@ -282,6 +282,20 @@ export const DEFAULT_APRENDIZADOS = {
       'Preto é usado para destacar cores.',
       'Branco vai com quase tudo.',
     ] },
+
+    // ---- Fotografia analógica (câmera = nota de topo; filmes dentro) ----
+    { id: 'foto-amarelinha', topicoId: 'fotografia', titulo: 'Amarelinha', itens: [] },
+    { id: 'foto-amarelinha-fuji400', topicoId: 'fotografia', paiId: 'foto-amarelinha', titulo: 'Fujifilm Fuji Color ISO 400', itens: [
+      'Funciona muito bem na luz do dia e em locais abertos.',
+      'Em locais fechados não funciona: a foto fica muito escura.',
+    ] },
+    { id: 'foto-amarelinha-kodak200', topicoId: 'fotografia', paiId: 'foto-amarelinha', titulo: 'Kodak Gold ISO 200', itens: [] },
+
+    { id: 'foto-rico', topicoId: 'fotografia', titulo: 'Ricó', itens: [] },
+    { id: 'foto-rico-pentax200', topicoId: 'fotografia', paiId: 'foto-rico', titulo: 'Pentax colorido ISO 200', itens: [] },
+
+    { id: 'foto-fuji', topicoId: 'fotografia', titulo: 'Fuji', itens: [] },
+    { id: 'foto-fuji-pentaxpb400', topicoId: 'fotografia', paiId: 'foto-fuji', titulo: 'Pentax preto e branco ISO 400', itens: [] },
   ],
 };
 
