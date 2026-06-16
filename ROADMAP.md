@@ -7,8 +7,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 
 ## 1. Life — seções
 *(hub pronto. Cards atuais: Compras · Planos · Estudos · Aprendizados · Vida Financeira ·
-Saúde · Viagens · Cultura · Retrospectivas)*
-- ✅ **Compras** (listas + moeda) · **Planos** (info + checklist) · **Cultura** (em cartaz, com link).
+Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → agora é tile da aba Explorar.)*
+- ✅ **Compras** (listas + moeda) · **Planos** (checklist + info; checklist é a aba padrão).
+- ✅ **Calendário cultural** (em cartaz, com link) — vive na aba **Explorar** (`CulturalSection`).
 - ✅ **Vida Financeira** — pronta, com 3 sub-abas (Carteira / Salários / Gastos). Ver bloco A.
 - ✅ **Saúde** — pronta. Ver bloco B.
 - 🟡 **Estudos** — aulas, leituras, cursos (placeholder "em construção").
@@ -28,7 +29,8 @@ Saúde · Viagens · Cultura · Retrospectivas)*
 ### B. Saúde — ideias futuras
 - 🟡 **Lembrete** de quando um remédio acaba (a partir de início + duração).
 - 🟡 **Previsão da próxima menstruação** (média dos ciclos).
-- 🟡 Período do peso hoje é dia/noite; treino é pré/pós. OK por enquanto.
+- 🟡 Período do peso é manhã/tarde/noite; treino é pré/pós. OK por enquanto. (Pesagens antigas
+  seedadas como `dia` seguem aparecendo, sem filtro — editar se quiser reclassificar.)
 
 ## 2. Viagens & Modo Viagem
 - 🟡 **Viagens futuras** (planejamento) + listas de compras por ocasião (parte já existe).

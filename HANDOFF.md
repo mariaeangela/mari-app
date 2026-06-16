@@ -115,6 +115,8 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
 `compras`, `cultural`, `planos` (DEFAULT_PLANOS), `financas`, `salarios` (DEFAULT_SALARIOS),
 `gastos` (DEFAULT_GASTOS), `saude`. Seeds históricos (salários/gastos/pesos) **persistem ao
 1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
+O slice `cultural` segue no `lifeStore`, mas sua UI — `CulturalSection` ("Calendário cultural",
+exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile próprio), não na Life.
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
   **Salários** / **Gastos**.
@@ -132,7 +134,7 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
     [{categoria,valor}]}]`. Views Mês / Tabela (mês recente 1º) / Linhas (1 por categoria,
     eixo Y, valores ao focar). Campo de valor aceita conta via `evalValor()`.
 - **Saúde** (`SaudeSection`/`SaudeForm`/`PesoLinha`) — usa `useLife()` e `useCalendar()`.
-  `saude = { pesos:[{data,valor,treino:'pre'|'pos',periodo:'dia'|'noite'?,local}],
+  `saude = { pesos:[{data,valor,treino:'pre'|'pos',periodo:'manha'|'tarde'|'noite'?,local}],
   remedios:[{nome,dose?,duracao?,inicio?,ativo}], vacinas:[{nome,data}], menstruacao:[{data}] }`.
   CRUD genérico `saveSaudeItem(tipo,item)`/`deleteSaudeItem`. Blocos: Consultas (events com
   `categoria==='saude'` do calendário), Exercícios (retrospectiva de `cal.data.exercicios`:

@@ -13,7 +13,6 @@ const SECOES = [
   { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
   { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
-  { id: 'cultural',       label: 'Cultura',        desc: 'exposições na cidade, até quando', cor: '#c2548f' },
   { id: 'retrospectivas', label: 'Retrospectivas', desc: 'seus números e marcos por mês e ano', cor: '#8d6e63' },
 ];
 
@@ -239,7 +238,7 @@ function InfoForm({ planoId, editing, onClose }) {
 
 function PlanoView({ plano, onBack }) {
   const life = useLife();
-  const [aba, setAba] = useState('info');
+  const [aba, setAba] = useState('check');
   const [infoForm, setInfoForm] = useState(null);
   const [infoAberta, setInfoAberta] = useState(null);
   const [novoCheck, setNovoCheck] = useState('');
@@ -260,7 +259,7 @@ function PlanoView({ plano, onBack }) {
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {[['info', 'Informações'], ['check', `Check list${checks.length ? ` (${feitos}/${checks.length})` : ''}`]].map(([id, label]) => (
+        {[['check', `Check list${checks.length ? ` (${feitos}/${checks.length})` : ''}`], ['info', 'Informações']].map(([id, label]) => (
           <button key={id} onClick={() => setAba(id)} style={{
             padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             border: '1px solid ' + (aba === id ? COR_PLANOS : '#e2e2e2'), background: aba === id ? COR_PLANOS + '1c' : '#fff', color: aba === id ? '#3e4a5e' : '#888',
@@ -456,7 +455,7 @@ function CulturalForm({ editing, onClose }) {
   );
 }
 
-function CulturalSection({ onBack }) {
+export function CulturalSection({ onBack, backLabel = 'Life' }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const [cidadeSel, setCidadeSel] = useState('todas');
@@ -475,7 +474,7 @@ function CulturalSection({ onBack }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: COR_CULTURAL, borderRadius: 4, marginBottom: 10 }} />
@@ -1504,8 +1503,9 @@ function GastoForm({ editing, meses, onClose }) {
 // ---- Saúde ----
 const COR_SAUDE = '#d96459';
 const SAUDE_LOCAIS = ['Smart Fit Pinheiros', 'Smart Fit Teodoro', 'Smart Fit Itaim'];
-const PERIODOS = [['dia', 'dia'], ['noite', 'noite']];
-const PERIODO_LABEL = { dia: 'dia', noite: 'noite' };
+const PERIODOS = [['manha', 'manhã'], ['tarde', 'tarde'], ['noite', 'noite']];
+const PERIODO_LABEL = { manha: 'manhã', tarde: 'tarde', noite: 'noite' };
+const normPeriodo = (p) => (p === 'dia' ? 'manha' : p); // pesagens antigas salvas como 'dia' viram manhã
 const TREINOS = [['pre', 'pré treino'], ['pos', 'pós treino']];
 const TREINO_LABEL = { pre: 'pré treino', pos: 'pós treino' };
 const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -1548,9 +1548,9 @@ function SaudeSection({ onBack }) {
   const s = life.saude || {};
   const todosPesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const locaisUsados = [...new Set(todosPesos.map(p => p.local).filter(Boolean))];
-  const pesos = todosPesos.filter(p => (!fLocal || p.local === fLocal) && (!fTreino || p.treino === fTreino) && (!fPeriodo || p.periodo === fPeriodo));
+  const pesos = todosPesos.filter(p => (!fLocal || p.local === fLocal) && (!fTreino || p.treino === fTreino) && (!fPeriodo || normPeriodo(p.periodo) === fPeriodo));
   const pesosDesc = [...pesos].reverse();
-  const chipF = (active, label, onClick) => <button onClick={onClick} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (active ? COR_SAUDE : '#e2e2e2'), background: active ? COR_SAUDE + '18' : '#fff', color: active ? COR_SAUDE : '#999' }}>{label}</button>;
+  const chipF = (active, label, onClick) => <button key={label} onClick={onClick} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (active ? COR_SAUDE : '#e2e2e2'), background: active ? COR_SAUDE + '18' : '#fff', color: active ? COR_SAUDE : '#999' }}>{label}</button>;
   const remedios = [...(s.remedios || [])].sort((a, b) => (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.inicio || '').localeCompare(a.inicio || ''));
   const vacinas = [...(s.vacinas || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const menstr = [...(s.menstruacao || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
@@ -1645,15 +1645,14 @@ function SaudeSection({ onBack }) {
             {chipF(fTreino === 'pre', 'pré', () => setFTreino(fTreino === 'pre' ? null : 'pre'))}
             {chipF(fTreino === 'pos', 'pós', () => setFTreino(fTreino === 'pos' ? null : 'pos'))}
             <span style={{ color: '#e2e2e2' }}>·</span>
-            {chipF(fPeriodo === 'dia', 'dia', () => setFPeriodo(fPeriodo === 'dia' ? null : 'dia'))}
-            {chipF(fPeriodo === 'noite', 'noite', () => setFPeriodo(fPeriodo === 'noite' ? null : 'noite'))}
+            {PERIODOS.map(([k, l]) => chipF(fPeriodo === k, l, () => setFPeriodo(fPeriodo === k ? null : k)))}
           </div>
         )}
         {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
         {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : pesosDesc.map(p => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
           <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{p.valor.toLocaleString('pt-BR')} kg</span>
-          <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[TREINO_LABEL[p.treino], PERIODO_LABEL[p.periodo], p.local].filter(Boolean).join(' · ')}</span>
+          <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[TREINO_LABEL[p.treino], PERIODO_LABEL[normPeriodo(p.periodo)], p.local].filter(Boolean).join(' · ')}</span>
           <button onClick={() => setForm({ tipo: 'peso', editing: p })} style={editLink}>editar</button>
         </>, p.id))}
       </>)}
@@ -1811,7 +1810,6 @@ export default function LifePage({ isWide }) {
   const [sec, setSec] = useState(null);
   if (sec === 'compras') return <ComprasSection onBack={() => setSec(null)} />;
   if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
-  if (sec === 'cultural') return <CulturalSection onBack={() => setSec(null)} />;
   if (sec === 'financas') return <FinancasSection onBack={() => setSec(null)} />;
   if (sec === 'saude') return <SaudeSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;

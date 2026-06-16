@@ -7,7 +7,7 @@ import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsGeral } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
-import LifePage from './Life.jsx';
+import LifePage, { CulturalSection } from './Life.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -244,6 +244,11 @@ function Feed({ isWide }) {
 
 function ExplorePage({ isWide }) {
   const [selectedType, setSelectedType] = useState(null);
+  if (selectedType === 'cultural') return (
+    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <CulturalSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
+    </div>
+  );
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
@@ -260,6 +265,10 @@ function ExplorePage({ isWide }) {
                 </button>
               );
             })}
+            <button key="cultural" onClick={() => setSelectedType('cultural')} style={{ background: '#c2548f12', border: '1px solid #c2548f33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: '#c2548f', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Calendário cultural</div>
+            </button>
           </div>
         </>
       ) : (

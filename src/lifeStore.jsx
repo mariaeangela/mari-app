@@ -28,11 +28,11 @@ const DEFAULT_PESOS = [
   P('p16', '2026-05-19', 84.80, 'Smart Fit Teodoro', 'pos'),
   P('p17', '2026-05-20', 85.10, 'Smart Fit Teodoro', 'pos'),
   P('p18', '2026-05-27', 87.00, 'Smart Fit Teodoro', 'pos', 'noite'),
-  P('p19', '2026-05-31', 85.95, 'Smart Fit Teodoro', 'pos', 'dia'),
-  P('p20', '2026-06-02', 87.45, 'Smart Fit Teodoro', 'pos', 'dia'),
-  P('p21', '2026-06-05', 86.85, 'Smart Fit Teodoro', 'pos', 'dia'),
-  P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'dia'),
-  P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'dia'),
+  P('p19', '2026-05-31', 85.95, 'Smart Fit Teodoro', 'pos', 'manha'),
+  P('p20', '2026-06-02', 87.45, 'Smart Fit Teodoro', 'pos', 'manha'),
+  P('p21', '2026-06-05', 86.85, 'Smart Fit Teodoro', 'pos', 'manha'),
+  P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
+  P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
 const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] } };
 
