@@ -9,6 +9,7 @@ const SECOES = [
   { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
   { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
   { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
+  { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
   { id: 'cultural',       label: 'Cultura',        desc: 'exposições na cidade, até quando', cor: '#c2548f' },
   { id: 'retrospectivas', label: 'Retrospectivas', desc: 'seus números e marcos por mês e ano', cor: '#8d6e63' },
