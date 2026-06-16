@@ -935,12 +935,13 @@ function FinancasSection({ onBack }) {
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 12px' }}>Vida Financeira</h2>
       <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {[['carteira', 'Carteira de investimentos'], ['salarios', 'Salários vida']].map(([k, txt]) => (
-          <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
+        {[['carteira', 'Carteira'], ['salarios', 'Salários'], ['gastos', 'Gastos']].map(([k, txt]) => (
+          <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
         ))}
       </div>
 
       {sub === 'salarios' && <SalariosVida />}
+      {sub === 'gastos' && <GastosVida />}
 
       {sub === 'carteira' && (<>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -1274,6 +1275,119 @@ function SalarioForm({ editing, onClose }) {
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { life.deleteSalarioAno(editing.ano); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GastosVida() {
+  const life = useLife();
+  const [selMes, setSelMes] = useState(null);
+  const [form, setForm] = useState(null);
+  const meses = [...life.gastos].sort((a, b) => a.mes.localeCompare(b.mes));
+  const totalDe = (m) => (m?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
+  const atual = meses.find(m => m.mes === selMes) || meses[meses.length - 1] || null;
+  const total = totalDe(atual);
+  const barras = meses.map(m => ({ label: fmtMes(m.mes), full: fmtMesLongo(m.mes), valor: totalDe(m) }));
+  const cats = atual ? [...atual.itens].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0)) : [];
+  const maxCat = Math.max(...cats.map(c => Number(c.valor) || 0), 1);
+
+  return (
+    <div>
+      {meses.length === 0 ? (
+        <div style={{ marginTop: 12, padding: 24, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>Nenhum mês ainda.</p>
+          <p style={{ fontSize: 13, color: '#999', marginTop: 8 }}>Toque em “+ adicionar mês”.</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
+              {[...meses].reverse().map(m => (
+                <button key={m.mes} onClick={() => setSelMes(m.mes)} style={{ whiteSpace: 'nowrap', padding: '7px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (atual.mes === m.mes ? COR_FIN : '#e2e2e2'), background: atual.mes === m.mes ? COR_FIN + '1c' : '#fff', color: atual.mes === m.mes ? '#1a7a4f' : '#888' }}>{fmtMes(m.mes)}</button>
+              ))}
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 6px', fontWeight: 600 }}>gastos por mês</p>
+          <BarrasSalario barras={barras} />
+
+          <div style={{ marginTop: 18 }}>
+            {cats.map((c, i) => {
+              const v = Number(c.valor) || 0;
+              return (
+                <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}</span>
+                    <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)} <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
+                  </div>
+                  <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: (v / maxCat * 100) + '%', background: '#111', borderRadius: 4 }} />
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
+              <span>Total do mês</span><span>{fmtBRL(total)}</span>
+            </div>
+          </div>
+
+          <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 16, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
+        </>
+      )}
+      <button onClick={() => setForm({ novo: true })} style={{ display: 'block', background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '11px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: meses.length ? 10 : 16 }}>+ adicionar mês</button>
+
+      {form && <GastoForm editing={form.editing} meses={meses} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function GastoForm({ editing, meses, onClose }) {
+  const life = useLife();
+  const hojeMes = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+  const novaRow = () => ({ categoria: '', valor: '' });
+  const [mes, setMes] = useState(editing?.mes || hojeMes());
+  const [rows, setRows] = useState(editing?.itens?.length ? editing.itens.map(i => ({ categoria: i.categoria, valor: String(i.valor) })) : [novaRow()]);
+  const catsUsadas = [...new Set((meses || []).flatMap(m => (m.itens || []).map(i => i.categoria)))];
+  const setRow = (i, k, v) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
+  const addRow = () => setRows([...rows, novaRow()]);
+  const delRow = (i) => setRows(rows.filter((_, j) => j !== i));
+  const limpos = rows.filter(r => r.categoria.trim() && evalValor(r.valor) > 0);
+  const totalPrev = limpos.reduce((s, r) => s + (evalValor(r.valor) || 0), 0);
+  const podeSalvar = mes && limpos.length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveGastoMes({ mes, itens: limpos.map(r => ({ categoria: r.categoria.trim(), valor: evalValor(r.valor) })) });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar mês' : 'Novo mês'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Mês</label>
+        <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Gastos por categoria (R$ · aceita conta)</label>
+        <datalist id="gasto-cats">{catsUsadas.map(c => <option key={c} value={c} />)}</datalist>
+        {rows.map((r, i) => (
+          <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+            <input list="gasto-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.4, minWidth: 0 }} />
+            <input type="text" inputMode="text" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, width: 96, flexShrink: 0 }} />
+            <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 20, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
+          </div>
+        ))}
+        <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '8px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ categoria</button>
+        <div style={{ textAlign: 'right', marginTop: 12, fontSize: 13, color: '#777' }}>Total: <b style={{ color: '#111' }}>{fmtBRL(totalPrev)}</b></div>
+        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+          {editing && <button onClick={() => { life.deleteGastoMes(editing.mes); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>

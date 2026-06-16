@@ -60,6 +60,17 @@ export const DEFAULT_SALARIOS = [
   { ano: 2026, idade: 27, cargo: 'Analista Research / Ad Research', meses: [14633.71, 14515.28, 15814.91, 11497.07, 15913.44, 0, 0, 0, 0, 0, 0, 0], extra: 18257.71, bonus: 161198.34, yoy: -18, pl: 366965.04, metaPL: 400000 },
 ];
 
+// Gastos por mês (seed; vira editável e sincroniza após a 1ª edição). itens = [{ categoria, valor }].
+const G = (categoria, valor) => ({ categoria, valor });
+export const DEFAULT_GASTOS = [
+  { mes: '2026-01', itens: [G('Fixos', 5737.75), G('Mercado', 1246.58), G('Uber', 582.23), G('Trabalho', 247.31), G('Mãe', 221.98), G('Saúde', 768.25), G('Viagem', 3194.94), G('Coisas', 207.30), G('Roupa', 569.90), G('Skin care', 1378.50), G('Bobeira', 558.16), G('Rolês', 1580.01), G('Presentes', 1014.57)] },
+  { mes: '2026-02', itens: [G('Fixos', 6196.58), G('Mercado', 422.76), G('Uber', 707.07), G('Trabalho', 165.56), G('Mãe', 328.26), G('Saúde', 776.70), G('Viagem', 8939.44), G('Coisas', 6671.41), G('Roupa', 837.60), G('Bobeira', 36.85), G('Rolês', 1173.78), G('Presentes', 40.00)] },
+  { mes: '2026-03', itens: [G('Fixos', 5651.88), G('Mercado', 1458.74), G('Uber', 845.11), G('Trabalho', 938.30), G('Mãe', 457.65), G('Saúde', 265.91), G('Viagem', 2727.06), G('Coisas', 1663.82), G('Roupa', 4333.68), G('Skin care', 300.61), G('Bobeira', 69.80), G('Rolês', 1654.81), G('Presentes', 278.00)] },
+  { mes: '2026-04', itens: [G('Fixos', 5577.80), G('Mercado', 1390.67), G('Uber', 519.88), G('Trabalho', 248.78), G('Mãe', 629.58), G('Saúde', 2763.86), G('Viagem', 13249.03), G('Coisas', 1180.34), G('Roupa', 80.00), G('Skin care', 199.90), G('Bobeira', 140.88), G('Rolês', 584.54)] },
+  { mes: '2026-05', itens: [G('Fixos', 5564.89), G('Mercado', 178.84), G('Uber', 494.56), G('Trabalho', 90.81), G('Mãe', 137.41), G('Saúde', 2700.00), G('Viagem', 8753.61), G('Coisas', 171.10), G('Skin care', 132.19), G('Bobeira', 140.61), G('Rolês', 507.75)] },
+  { mes: '2026-06', itens: [G('Fixos', 6114.06), G('Mercado', 1565.27), G('Uber', 600.09), G('Trabalho', 194.33), G('Mãe', 293.50), G('Saúde', 2446.01), G('Viagem', 894.50), G('Coisas', 150.79), G('Skin care', 105.00), G('Bobeira', 68.88), G('Rolês', 996.04), G('Presentes', 533.70)] },
+];
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -144,6 +155,13 @@ export function LifeProvider({ children }) {
     : [...salarios, a]).sort((x, y) => x.ano - y.ano) });
   const deleteSalarioAno = (ano) => persist({ ...data, salarios: salarios.filter(s => s.ano !== ano) });
 
+  // ---- Gastos por mês ----
+  const gastos = data.gastos || DEFAULT_GASTOS;
+  const saveGastoMes = (g) => persist({ ...data, gastos: (gastos.some(x => x.mes === g.mes)
+    ? gastos.map(x => x.mes === g.mes ? g : x)
+    : [...gastos, g]).sort((a, b) => a.mes.localeCompare(b.mes)) });
+  const deleteGastoMes = (mes) => persist({ ...data, gastos: gastos.filter(x => x.mes !== mes) });
+
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
@@ -151,6 +169,7 @@ export function LifeProvider({ children }) {
     cultural, saveCulturalItem, deleteCulturalItem,
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
     salarios, saveSalarioAno, deleteSalarioAno,
+    gastos, saveGastoMes, deleteGastoMes,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
