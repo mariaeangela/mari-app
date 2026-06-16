@@ -2,6 +2,7 @@
 // ainda em placeholder (vamos desenhar uma a uma).
 import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
+import { useCalendar } from './calendarStore.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -1498,6 +1499,221 @@ function GastoForm({ editing, meses, onClose }) {
   );
 }
 
+// ---- Saúde ----
+const COR_SAUDE = '#d96459';
+const SAUDE_LOCAIS = ['Smart Fit Pinheiros', 'Smart Fit Teodoro', 'Smart Fit Itaim'];
+const PERIODOS = [['manha', 'manhã'], ['tarde', 'tarde'], ['noite', 'noite']];
+const PERIODO_LABEL = { manha: 'manhã', tarde: 'tarde', noite: 'noite' };
+const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+function PesoLinha({ pontos }) {
+  if (pontos.length < 2) return null;
+  const W = 320, H = 120, padTop = 14, padBot = 20, padLeft = 36, padRight = 10;
+  const n = pontos.length;
+  const vs = pontos.map(p => p.valor);
+  const min = Math.min(...vs), max = Math.max(...vs), span = (max - min) || 1;
+  const x = (i) => n === 1 ? W / 2 : padLeft + i * (W - padLeft - padRight) / (n - 1);
+  const y = (v) => (H - padBot) - ((v - min) / span) * (H - padTop - padBot);
+  const path = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.valor).toFixed(1)}`).join(' ');
+  const pulado = n > 8;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', marginBottom: 6 }}>
+      <text x={padLeft - 4} y={y(max) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{max.toLocaleString('pt-BR')}</text>
+      <text x={padLeft - 4} y={y(min) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{min.toLocaleString('pt-BR')}</text>
+      <path d={path} fill="none" stroke="#111" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />
+      {pontos.map((p, i) => (
+        <g key={i}>
+          <circle cx={x(i)} cy={y(p.valor)} r="2.4" fill="#111" stroke="#fafafa" strokeWidth="1" />
+          {(!pulado || i % 2 === 0 || i === n - 1) && <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="7.5" fill="#bbb">{fmtData(p.data)}</text>}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function SaudeSection({ onBack }) {
+  const life = useLife();
+  const cal = useCalendar();
+  const [form, setForm] = useState(null);
+  const s = life.saude || {};
+  const pesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  const pesosDesc = [...pesos].reverse();
+  const remedios = [...(s.remedios || [])].sort((a, b) => (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.inicio || '').localeCompare(a.inicio || ''));
+  const vacinas = [...(s.vacinas || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const menstr = [...(s.menstruacao || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const hk = hojeKey();
+  const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
+  const eventosOrd = [
+    ...eventos.filter(e => (e.fim || e.inicio) >= hk).sort((a, b) => (a.inicio || '').localeCompare(b.inicio || '')),
+    ...eventos.filter(e => (e.fim || e.inicio) < hk).sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')),
+  ];
+
+  const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
+  const bloco = (titulo, addTipo, conteudo) => (
+    <div style={{ marginTop: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: 0 }}>{titulo}</h3>
+        {addTipo && <button onClick={() => setForm({ tipo: addTipo })} style={{ background: COR_SAUDE + '18', color: COR_SAUDE, border: 'none', borderRadius: 9, width: 30, height: 30, fontSize: 20, lineHeight: 1, cursor: 'pointer' }}>+</button>}
+      </div>
+      {conteudo}
+    </div>
+  );
+  const linha = (children, key) => <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>{children}</div>;
+  const vazio = (t) => <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '4px 0', lineHeight: 1.5 }}>{t}</p>;
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_SAUDE, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Saúde</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>consultas, peso, remédios, vacinas, menstruação</p>
+
+      {bloco('Consultas e exames', null,
+        eventosOrd.length === 0
+          ? vazio('Marque um evento com categoria Saúde no Calendário que ele aparece aqui.')
+          : eventosOrd.map(e => linha(<>
+            <span style={{ fontSize: 12.5, color: (e.fim || e.inicio) >= hk ? COR_SAUDE : '#bbb', fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtData(e.inicio)}</span>
+            <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{e.titulo}</span>
+            {e.horaInicio && <span style={{ fontSize: 12, color: '#aaa' }}>{e.horaInicio}</span>}
+          </>, e.id)))}
+
+      {bloco('Peso', 'peso', <>
+        {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
+        {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : pesosDesc.map(p => linha(<>
+          <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
+          <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{p.valor.toLocaleString('pt-BR')} kg</span>
+          <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[PERIODO_LABEL[p.periodo], p.local].filter(Boolean).join(' · ')}</span>
+          <button onClick={() => setForm({ tipo: 'peso', editing: p })} style={editLink}>editar</button>
+        </>, p.id))}
+      </>)}
+
+      {bloco('Remédios', 'remedio',
+        remedios.length === 0 ? vazio('Nenhum remédio cadastrado.') : remedios.map(r => linha(<>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.ativo ? '#54c08a' : '#ddd', flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 600, textDecoration: r.ativo ? 'none' : 'line-through', opacity: r.ativo ? 1 : 0.55 }}>{r.nome}</div>
+            <div style={{ fontSize: 11.5, color: '#aaa' }}>{[r.dose, r.duracao && ('por ' + r.duracao), r.inicio && ('desde ' + fmtData(r.inicio))].filter(Boolean).join(' · ')}</div>
+          </div>
+          <button onClick={() => setForm({ tipo: 'remedio', editing: r })} style={editLink}>editar</button>
+        </>, r.id)))}
+
+      {bloco('Vacinas', 'vacina',
+        vacinas.length === 0 ? vazio('Nenhuma vacina registrada.') : vacinas.map(v => linha(<>
+          <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(v.data)}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{v.nome}</span>
+          <button onClick={() => setForm({ tipo: 'vacina', editing: v })} style={editLink}>editar</button>
+        </>, v.id)))}
+
+      {bloco('Menstruação', 'menstruacao',
+        menstr.length === 0 ? vazio('Nenhum registro ainda.') : menstr.map((m, i) => {
+          const prev = menstr[i + 1];
+          const ciclo = prev ? Math.round((new Date(m.data) - new Date(prev.data)) / 86400000) : null;
+          return linha(<>
+            <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(m.data)}</span>
+            <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>início</span>
+            {ciclo != null && <span style={{ fontSize: 11.5, color: '#aaa' }}>ciclo de {ciclo} dias</span>}
+            <button onClick={() => setForm({ tipo: 'menstruacao', editing: m })} style={editLink}>editar</button>
+          </>, m.id);
+        }))}
+
+      {form && <SaudeForm tipo={form.tipo} editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function SaudeForm({ tipo, editing, onClose }) {
+  const life = useLife();
+  const [data, setData] = useState(editing?.data || hojeKey());
+  const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
+  const [periodo, setPeriodo] = useState(editing?.periodo || 'manha');
+  const outroLocal = editing?.local && !SAUDE_LOCAIS.includes(editing.local);
+  const [localSel, setLocalSel] = useState(outroLocal ? 'Outro' : (editing?.local || SAUDE_LOCAIS[0]));
+  const [localOutro, setLocalOutro] = useState(outroLocal ? editing.local : '');
+  const [nome, setNome] = useState(editing?.nome || '');
+  const [dose, setDose] = useState(editing?.dose || '');
+  const [duracao, setDuracao] = useState(editing?.duracao || '');
+  const [inicio, setInicio] = useState(editing?.inicio || '');
+  const [ativo, setAtivo] = useState(editing?.ativo != null ? editing.ativo : true);
+  const titulos = { peso: 'pesagem', remedio: 'remédio', vacina: 'vacina', menstruacao: 'registro' };
+
+  let podeSalvar = false;
+  if (tipo === 'peso') podeSalvar = !!data && Number(valor.replace(',', '.')) > 0;
+  else if (tipo === 'remedio') podeSalvar = nome.trim().length > 0;
+  else if (tipo === 'vacina') podeSalvar = nome.trim().length > 0 && !!data;
+  else podeSalvar = !!data;
+
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const base = { id: editing?.id };
+    if (tipo === 'peso') life.saveSaudeItem('pesos', { ...base, data, valor: Number(valor.replace(',', '.')), periodo, local: localSel === 'Outro' ? (localOutro.trim() || undefined) : localSel });
+    else if (tipo === 'remedio') life.saveSaudeItem('remedios', { ...base, nome: nome.trim(), dose: dose.trim() || undefined, duracao: duracao.trim() || undefined, inicio: inicio || undefined, ativo: !!ativo });
+    else if (tipo === 'vacina') life.saveSaudeItem('vacinas', { ...base, nome: nome.trim(), data });
+    else life.saveSaudeItem('menstruacao', { ...base, data });
+    onClose();
+  };
+  const apagar = () => { const map = { peso: 'pesos', remedio: 'remedios', vacina: 'vacinas', menstruacao: 'menstruacao' }; life.deleteSaudeItem(map[tipo], editing.id); onClose(); };
+
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova'} {titulos[tipo]}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+
+        {tipo === 'peso' && <>
+          <label style={labelStyle}>Data</label>
+          <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+          <label style={labelStyle}>Peso (kg)</label>
+          <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 62,5" style={inputStyle} />
+          <label style={labelStyle}>Quando me pesei</label>
+          <select value={periodo} onChange={e => setPeriodo(e.target.value)} style={inputStyle}>
+            {PERIODOS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+          <label style={labelStyle}>Onde</label>
+          <select value={localSel} onChange={e => setLocalSel(e.target.value)} style={inputStyle}>
+            {SAUDE_LOCAIS.map(l => <option key={l} value={l}>{l}</option>)}
+            <option value="Outro">Outro</option>
+          </select>
+          {localSel === 'Outro' && <input value={localOutro} onChange={e => setLocalOutro(e.target.value)} placeholder="onde?" style={{ ...inputStyle, marginTop: 6 }} />}
+        </>}
+
+        {tipo === 'remedio' && <>
+          <label style={labelStyle}>Remédio</label>
+          <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Vitamina D" style={inputStyle} />
+          <label style={labelStyle}>Dose (opcional)</label>
+          <input value={dose} onChange={e => setDose(e.target.value)} placeholder="ex.: 1 comprimido" style={inputStyle} />
+          <label style={labelStyle}>Por quanto tempo</label>
+          <input value={duracao} onChange={e => setDuracao(e.target.value)} placeholder="ex.: 7 dias · uso contínuo" style={inputStyle} />
+          <label style={labelStyle}>Início (opcional)</label>
+          <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, fontSize: 13, color: '#555', cursor: 'pointer' }}>
+            <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} style={{ width: 15, height: 15, accentColor: COR_SAUDE }} />
+            tomando atualmente
+          </label>
+        </>}
+
+        {tipo === 'vacina' && <>
+          <label style={labelStyle}>Vacina</label>
+          <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Gripe · HPV · Febre amarela" style={inputStyle} />
+          <label style={labelStyle}>Data</label>
+          <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+        </>}
+
+        {tipo === 'menstruacao' && <>
+          <label style={labelStyle}>Data de início</label>
+          <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+        </>}
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          {editing && <button onClick={apagar} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -1519,6 +1735,7 @@ export default function LifePage({ isWide }) {
   if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
   if (sec === 'cultural') return <CulturalSection onBack={() => setSec(null)} />;
   if (sec === 'financas') return <FinancasSection onBack={() => setSec(null)} />;
+  if (sec === 'saude') return <SaudeSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>

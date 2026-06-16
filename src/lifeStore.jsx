@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
 
 const KEY = 'diagonal_life';
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: [], remedios: [], vacinas: [], menstruacao: [] } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -162,6 +162,17 @@ export function LifeProvider({ children }) {
     : [...gastos, g]).sort((a, b) => a.mes.localeCompare(b.mes)) });
   const deleteGastoMes = (mes) => persist({ ...data, gastos: gastos.filter(x => x.mes !== mes) });
 
+  // ---- Saúde (peso, remédios, vacinas, menstruação) ----
+  const saude = data.saude || DEFAULT.saude;
+  const saveSaudeItem = (tipo, item) => {
+    const lista = saude[tipo] || [];
+    const next = item.id && lista.some(x => x.id === item.id)
+      ? lista.map(x => x.id === item.id ? item : x)
+      : [...lista, { ...item, id: item.id || uid('s') }];
+    persist({ ...data, saude: { ...DEFAULT.saude, ...saude, [tipo]: next } });
+  };
+  const deleteSaudeItem = (tipo, id) => persist({ ...data, saude: { ...DEFAULT.saude, ...saude, [tipo]: (saude[tipo] || []).filter(x => x.id !== id) } });
+
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
@@ -170,6 +181,7 @@ export function LifeProvider({ children }) {
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,
+    saude, saveSaudeItem, deleteSaudeItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
