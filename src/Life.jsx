@@ -1051,6 +1051,7 @@ function BarrasSalario({ barras }) {
 function SalariosVida() {
   const life = useLife();
   const [aberto, setAberto] = useState(null);
+  const [abertoP, setAbertoP] = useState(null);
   const [modo, setModo] = useState('ganhos');
   const [form, setForm] = useState(null);
 
@@ -1067,16 +1068,32 @@ function SalariosVida() {
   const plPrev = (ano) => { const idx = anos.findIndex(a => a.ano === ano); for (let j = idx - 1; j >= 0; j--) if (anos[j].pl != null) return anos[j].pl; return 0; };
 
   const snaps2026 = [...life.financas.snapshots].filter(s => s.mes.startsWith('2026')).sort((x, y) => x.mes.localeCompare(y.mes));
-  const patrimonio = [
-    ...anos.filter(a => a.ano < 2026 && a.pl != null).map(a => ({ label: "'" + String(a.ano).slice(2), full: String(a.ano), valor: a.pl })),
-    ...snaps2026.map(s => ({ label: SAL_MESES[Number(s.mes.split('-')[1]) - 1], full: fmtMes(s.mes), valor: totalCarteiraBRL(s.holdings, rateOf(s)) })),
-  ];
-  const barras = modo === 'ganhos'
-    ? anos.map(a => ({ label: "'" + String(a.ano).slice(2), full: String(a.ano), valor: a.total }))
-    : patrimonio;
+  const mesesPL = snaps2026.map(s => ({ mes: s.mes, valor: totalCarteiraBRL(s.holdings, rateOf(s)) }));
+  // Patrimônio por ano: anos fechados (pl) + 2026 (último ponto); 2026 guarda os meses.
+  const patrimonioAnos = anos.filter(a => a.ano < 2026 && a.pl != null).map(a => ({ ano: a.ano, valor: a.pl, meses: null }));
+  if (mesesPL.length) patrimonioAnos.push({ ano: 2026, valor: mesesPL[mesesPL.length - 1].valor, meses: mesesPL });
+  else { const a26 = anos.find(a => a.ano === 2026); if (a26 && a26.pl != null) patrimonioAnos.push({ ano: 2026, valor: a26.pl, meses: null }); }
+
+  // Destaques do ano corrente (último ano da lista)
+  const cy = anos[anos.length - 1] || {};
+  const plAtual = mesesPL.length ? mesesPL[mesesPL.length - 1].valor : (cy.pl != null ? cy.pl : 0);
+  const plAnoAnt = (() => { for (let j = anos.length - 2; j >= 0; j--) if (anos[j].pl != null) return anos[j].pl; return 0; })();
+  const poupouAno = cy.total ? (plAtual - plAnoAnt) / cy.total * 100 : 0;
+  const metaPL = Number(cy.metaPL) || 0;
+  const metaProg = metaPL ? plAtual / metaPL * 100 : 0;
+
+  const barrasGanhos = anos.map(a => ({ label: "'" + String(a.ano).slice(2), full: String(a.ano), valor: a.total }));
+  const barrasPatr = patrimonioAnos.map(p => ({ label: "'" + String(p.ano).slice(2), full: String(p.ano), valor: p.valor }));
 
   const chip = (k, txt) => <button onClick={() => setModo(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: modo === k ? COR_FIN : '#eee', color: modo === k ? '#fff' : '#888' }}>{txt}</button>;
   const rowMes = { display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '5px 0', borderBottom: '1px solid #f5f5f5' };
+  const destaque = (rotulo, valor, sub, subCor) => (
+    <div style={{ flex: 1, background: '#fafafa', borderRadius: 12, padding: '11px 12px', minWidth: 0 }}>
+      <div style={{ fontSize: 9.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: 1.25 }}>{rotulo}</div>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#111', marginTop: 4, lineHeight: 1 }}>{valor}</div>
+      {sub && <div style={{ fontSize: 10.5, color: subCor || '#999', marginTop: 3, fontWeight: subCor ? 700 : 400 }}>{sub}</div>}
+    </div>
+  );
 
   return (
     <div>
@@ -1084,10 +1101,15 @@ function SalariosVida() {
         {chip('ganhos', 'Ganhos por ano')}
         {chip('patrimonio', 'Patrimônio por ano')}
       </div>
-      <BarrasSalario barras={barras} />
 
       {modo === 'ganhos' ? (
         <>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            {destaque('ganhei em ' + (cy.ano || ''), fmtBRLcurto(cy.total || 0))}
+            {destaque('poupei em ' + (cy.ano || ''), poupouAno.toFixed(0) + '%')}
+            {metaPL > 0 && destaque('meta de PL', fmtBRLcurto(metaPL), metaProg.toFixed(0) + '% atingido', '#1a7a4f')}
+          </div>
+          <BarrasSalario barras={barrasGanhos} />
           <p style={{ fontSize: 12, color: '#999', textAlign: 'center', margin: '8px 0 0' }}>ganho na vida <b style={{ color: '#555' }}>{fmtBRL(vidaTotal)}</b> · {anos.length} anos</p>
           <div style={{ marginTop: 18 }}>
             {[...anos].reverse().map(a => {
@@ -1138,21 +1160,52 @@ function SalariosVida() {
         </>
       ) : (
         <>
-          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '12px 0 6px', fontWeight: 600 }}>patrimônio</p>
-          {patrimonio.length === 0 ? (
-            <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>Sem patrimônio registrado ainda.</p>
-          ) : [...patrimonio].reverse().map((p, i, arr) => {
-            const prev = arr[i + 1];
-            const pct = prev && prev.valor ? (p.valor - prev.valor) / prev.valor * 100 : null;
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 2px', borderBottom: '1px solid #f3f3f3' }}>
-                <span style={{ fontSize: 13, color: '#444', width: 64, textTransform: 'capitalize' }}>{p.full}</span>
-                <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600, flex: 1 }}>{fmtBRL(p.valor)}</span>
-                {pct != null && <span style={{ fontSize: 12, fontWeight: 700, color: pct >= 0 ? '#1a7a4f' : '#c0392b' }}>{pct >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%</span>}
-              </div>
-            );
-          })}
-          <p style={{ fontSize: 11, color: '#aaa', marginTop: 8, lineHeight: 1.5 }}>anos fechados pelo patrimônio do fim do ano; 2026 pelos meses salvos na carteira de investimentos.</p>
+          <BarrasSalario barras={barrasPatr} />
+          <div style={{ marginTop: 16 }}>
+            {patrimonioAnos.length === 0 ? (
+              <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>Sem patrimônio registrado ainda.</p>
+            ) : [...patrimonioAnos].reverse().map((p, i, arr) => {
+              const prev = arr[i + 1];
+              const pct = prev && prev.valor ? (p.valor - prev.valor) / prev.valor * 100 : null;
+              const temMeses = p.meses && p.meses.length > 0;
+              const exp = abertoP === p.ano;
+              return (
+                <div key={p.ano} style={{ border: '1px solid #eee', borderRadius: 12, marginBottom: 8, overflow: 'hidden', background: '#fff' }}>
+                  <div onClick={temMeses ? () => setAbertoP(exp ? null : p.ano) : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: temMeses ? 'pointer' : 'default' }}>
+                    <div style={{ flexShrink: 0, minWidth: 40 }}>
+                      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#111', lineHeight: 1 }}>{p.ano}</div>
+                      <div style={{ fontSize: 9.5, color: '#aaa', marginTop: 2 }}>{temMeses ? 'mês a mês' : 'fim do ano'}</div>
+                    </div>
+                    <div style={{ flex: 1 }} />
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}>{fmtBRL(p.valor)}</div>
+                      {pct != null && <div style={{ fontSize: 11.5, fontWeight: 700, color: pct >= 0 ? '#1a7a4f' : '#c0392b' }}>{pct >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(0)}%</div>}
+                    </div>
+                  </div>
+                  {exp && temMeses && (
+                    <div style={{ padding: '0 14px 12px', borderTop: '1px solid #f3f3f3' }}>
+                      <div style={{ marginTop: 8 }}>
+                        {[...p.meses].reverse().map((m, mi, ma) => {
+                          const pm = ma[mi + 1];
+                          const dpct = pm && pm.valor ? (m.valor - pm.valor) / pm.valor * 100 : null;
+                          return (
+                            <div key={m.mes} style={{ ...rowMes, color: '#444', alignItems: 'center' }}>
+                              <span style={{ textTransform: 'capitalize' }}>{fmtMes(m.mes)}</span>
+                              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                {dpct != null && <span style={{ fontSize: 11, fontWeight: 700, color: dpct >= 0 ? '#1a7a4f' : '#c0392b' }}>{dpct >= 0 ? '▲' : '▼'} {Math.abs(dpct).toFixed(1)}%</span>}
+                                <b>{fmtBRL(m.valor)}</b>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: 11, color: '#aaa', marginTop: 8, lineHeight: 1.5 }}>anos fechados pelo patrimônio do fim do ano; 2026 pelos meses salvos na carteira (toque pra abrir).</p>
         </>
       )}
 
@@ -1170,6 +1223,7 @@ function SalarioForm({ editing, onClose }) {
   const [extra, setExtra] = useState(editing?.extra ? String(editing.extra) : '');
   const [bonus, setBonus] = useState(editing?.bonus ? String(editing.bonus) : '');
   const [pl, setPl] = useState(editing?.pl != null ? String(editing.pl) : '');
+  const [metaPL, setMetaPL] = useState(editing?.metaPL != null ? String(editing.metaPL) : '');
   const setMes = (i, v) => setMeses(meses.map((x, j) => j === i ? v : x));
   const podeSalvar = Number(ano) >= 2000;
   const salvar = () => {
@@ -1180,6 +1234,7 @@ function SalarioForm({ editing, onClose }) {
       meses: meses.map(v => evalValor(v) || 0),
       extra: evalValor(extra) || 0, bonus: evalValor(bonus) || 0,
       pl: Number(pl) > 0 ? evalValor(pl) : undefined,
+      metaPL: Number(metaPL) > 0 ? evalValor(metaPL) : undefined,
     });
     onClose();
   };
@@ -1207,8 +1262,10 @@ function SalarioForm({ editing, onClose }) {
           <div style={{ flex: 1 }}><label style={labelStyle}>Extra</label><input type="text" value={extra} onChange={e => setExtra(e.target.value)} placeholder="0" style={inputStyle} /></div>
           <div style={{ flex: 1 }}><label style={labelStyle}>Bônus</label><input type="text" value={bonus} onChange={e => setBonus(e.target.value)} placeholder="0" style={inputStyle} /></div>
         </div>
-        <label style={labelStyle}>Patrimônio no fim do ano (opcional)</label>
-        <input type="text" value={pl} onChange={e => setPl(e.target.value)} placeholder="ex.: 80325" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Patrimônio fim do ano</label><input type="text" value={pl} onChange={e => setPl(e.target.value)} placeholder="ex.: 80325" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Meta de patrimônio</label><input type="text" value={metaPL} onChange={e => setMetaPL(e.target.value)} placeholder="ex.: 400000" style={inputStyle} /></div>
+        </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { life.deleteSalarioAno(editing.ano); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>

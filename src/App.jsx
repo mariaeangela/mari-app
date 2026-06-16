@@ -40,12 +40,12 @@ const GRID_3 = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16
 // `type` controla a EXIBIÇÃO (rótulo, emoji, cor e id de salvamento);
 // `contentType` controla de onde vem o CONTEÚDO. Para o slot "Cultura" eles
 // diferem: exibe sempre "Cultura", mas o texto vem de cinema/artista/música/conexões.
-function CardWithContent({ type, offset = 0, tile = false }) {
+function CardWithContent({ type, offset = 0, tile = false, showReload = true }) {
   const info = CONTENT_TYPES.find(t => t.id === type);
   const palette = CARD_PALETTES[type] || CARD_PALETTES.texto;
   const [content, setContent] = useState(() => getCategoryDaily(type, offset));
   const reload = () => setContent(getCategoryRandom(type));
-  return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={reload} tile={tile} />;
+  return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={showReload ? reload : undefined} tile={tile} />;
 }
 
 function Header({ tab, setTab }) {
@@ -226,7 +226,7 @@ function Feed({ isWide }) {
   // Capa (Hoje): saudação · neste dia · seu dia (humor+diário) · antecipação ·
   // lendo · agenda do dia · dois cards (texto e imagem).
   const slots = ['texto', 'imagem'];
-  const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} />);
+  const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} showReload={false} />);
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{ padding: '20px 20px 0' }}>

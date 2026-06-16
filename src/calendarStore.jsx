@@ -21,6 +21,22 @@ const CalContext = createContext(null);
 
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// Tarefas com data, não recorrentes, vencidas e não concluídas: puxa pra hoje
+// (pra não se perder). Retorna { next, changed }.
+function rolarAtrasadas(tasks, hoje) {
+  let changed = false;
+  const next = (tasks || []).map(t => {
+    const repete = t.repetir && t.repetir !== 'nao';
+    if (t.data && !repete && t.data < hoje && !t.feita && !(t.feitas || []).includes(t.data)) {
+      changed = true;
+      return { ...t, data: hoje };
+    }
+    return t;
+  });
+  return { next, changed };
+}
+
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { ...DEFAULT }; }
@@ -43,12 +59,17 @@ export function CalendarProvider({ children }) {
         // nuvem vazia/offline: se já há algo local, empurra pra cima (migração)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
           local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length;
-        if (hasLocal) pushCalendario(local);
+        const { next, changed } = rolarAtrasadas(local.tasks, hojeKey());
+        if (changed) { const f = { ...local, tasks: next }; writeLocal(f); setData(f); pushCalendario(f); }
+        else if (hasLocal) pushCalendario(local);
         return;
       }
       const merged = { ...DEFAULT, ...cloud };
-      writeLocal(merged);
-      setData(merged);
+      const { next, changed } = rolarAtrasadas(merged.tasks, hojeKey());
+      const final = changed ? { ...merged, tasks: next } : merged;
+      writeLocal(final);
+      setData(final);
+      if (changed) pushCalendario(final);
     })();
     return () => { alive = false; };
   }, []);
