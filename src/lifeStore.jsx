@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -594,6 +594,13 @@ export function LifeProvider({ children }) {
   };
   const deleteSaudeItem = (tipo, id) => persist({ ...data, saude: { ...DEFAULT.saude, ...saude, [tipo]: (saude[tipo] || []).filter(x => x.id !== id) } });
 
+  // ---- Compras feitas (histórico só da Retrospectiva; não entra nas listas) ----
+  const comprasFeitas = data.comprasFeitas || [];
+  const saveCompraFeita = (c) => persist({ ...data, comprasFeitas: c.id && comprasFeitas.some(x => x.id === c.id)
+    ? comprasFeitas.map(x => x.id === c.id ? c : x)
+    : [...comprasFeitas, { ...c, id: uid('cf') }] });
+  const deleteCompraFeita = (id) => persist({ ...data, comprasFeitas: comprasFeitas.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -614,6 +621,7 @@ export function LifeProvider({ children }) {
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, saveAprendNota, deleteAprendNota,
+    comprasFeitas, saveCompraFeita, deleteCompraFeita,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

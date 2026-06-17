@@ -2,10 +2,14 @@
 // Página inicial: "o ano em números" (clicável) + cards que abrem sub-retrospectivas.
 import { useState } from 'react';
 import { useCalendar } from './calendarStore.jsx';
-import { useLife, simboloMoeda } from './lifeStore.jsx';
+import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
 import { EXERCICIO_BY_ID } from './calendarConfig.js';
 
 const COR = '#8d6e63';
+const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
+const sheet = { background: '#fafafa', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto', borderRadius: '20px 20px 0 0', padding: '20px 20px 28px' };
+const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
+const labelStyle = { fontSize: 11, color: '#999', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 5, marginTop: 14 };
 const pad2 = (n) => String(n).padStart(2, '0');
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const fmtDM = (s) => { const [, m, d] = s.split('-'); return `${d}/${m}`; };
@@ -138,39 +142,49 @@ function RetroHome({ isWide, onOpen }) {
   );
 }
 
-// ---- Card: Compras (alinhado com o que foi marcado como "comprado") ----
+// ---- Card: Compras — histórico próprio (+ o que foi marcado como comprado nas listas) ----
 function ComprasRetro({ onBack, isWide }) {
   const life = useLife();
+  const [form, setForm] = useState(null); // { editing? }
   const LISTA_FIXA = { geral: 'Geral', algumdia: 'Algum dia', internacional: 'Internacional' };
   const nomeLista = (id) => (life.compras.listas || []).find(l => l.id === id)?.nome || LISTA_FIXA[id] || '';
-  const comprados = (life.compras.itens || []).filter(i => i.comprado);
+  const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR') : '';
 
-  // agrupa por mês de compradoEm (mais recente primeiro); sem data → no fim.
-  const meses = [...new Set(comprados.map(i => (i.compradoEm || '').slice(0, 7)).filter(Boolean))].sort().reverse();
-  const grupos = meses.map(mm => ({ mm, itens: comprados.filter(i => (i.compradoEm || '').slice(0, 7) === mm) }));
-  const semData = comprados.filter(i => !i.compradoEm);
+  // Duas fontes: registro próprio (comprasFeitas) + itens marcados como comprado nas listas.
+  const doLog = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), editavel: true, raw: c }));
+  const dasListas = (life.compras.itens || []).filter(i => i.comprado).map(i => ({ id: i.id, titulo: i.titulo, data: i.compradoEm, sub: nomeLista(i.listaId), vtxt: valorTxt(i.orcamento, i.moeda), editavel: false }));
+  const todas = [...doLog, ...dasListas];
 
-  const valor = (it) => it.orcamento ? simboloMoeda(it.moeda) + ' ' + Number(it.orcamento).toLocaleString('pt-BR') : '';
+  const meses = [...new Set(todas.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const ordDia = (a, b) => (b.data || '').localeCompare(a.data || '');
+  const grupos = meses.map(mm => ({ mm, itens: todas.filter(i => (i.data || '').slice(0, 7) === mm).sort(ordDia) }));
+  const semData = todas.filter(i => !i.data);
+
   const linhaItem = (it) => (
-    <div key={it.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+    <div key={it.id} onClick={it.editavel ? () => setForm({ editing: it.raw }) : undefined} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: it.editavel ? 'pointer' : 'default' }}>
       <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.titulo}</span>
-      <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{[nomeLista(it.listaId), valor(it)].filter(Boolean).join(' · ')}</span>
+      <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{[it.sub, it.vtxt].filter(Boolean).join(' · ')}</span>
     </div>
   );
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
-      <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Compras</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>o que você marcou como comprado nas listas</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Compras</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu histórico de compras feitas</p>
+        </div>
+        <button onClick={() => setForm({})} title="registrar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
 
-      {comprados.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada comprado ainda. Quando você marcar um item como comprado nas Listas de compras, ele aparece aqui — com a data.</p>
+      {todas.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra — ou marque um item como comprado nas Listas de compras.</p>
       ) : <>
         <div style={{ marginBottom: 18 }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{comprados.length}</span>
-          <span style={{ fontSize: 13, color: '#999' }}> {comprados.length === 1 ? 'item comprado' : 'itens comprados'}</span>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{todas.length}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {todas.length === 1 ? 'compra' : 'compras'}</span>
         </div>
         {grupos.map(g => (
           <div key={g.mm} style={{ marginBottom: 16 }}>
@@ -180,11 +194,57 @@ function ComprasRetro({ onBack, isWide }) {
         ))}
         {semData.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>sem data registrada</div>
+            <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>sem data</div>
             {semData.map(linhaItem)}
           </div>
         )}
       </>}
+
+      {form && <CompraFeitaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function CompraFeitaForm({ editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [data, setData] = useState(editing?.data || '');
+  const [moeda, setMoeda] = useState(editing?.moeda || 'BRL');
+  const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
+  const [categoria, setCategoria] = useState(editing?.categoria || '');
+  const cats = [...new Set((life.comprasFeitas || []).map(c => c.categoria).filter(Boolean))];
+  const podeSalvar = titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveCompraFeita({ id: editing?.id, titulo: titulo.trim(), data: data || undefined, moeda, valor: valor ? Number(valor.replace(',', '.')) : undefined, categoria: categoria.trim() || undefined });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Registrar'} compra</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>O quê</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Tênis Asics Novablast" style={inputStyle} />
+        <label style={labelStyle}>Quando (opcional)</label>
+        <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Quanto (opcional)</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select value={moeda} onChange={e => setMoeda(e.target.value)} style={{ ...inputStyle, width: 92, flexShrink: 0 }}>
+            {MOEDAS.map(m => <option key={m.id} value={m.id}>{m.simbolo}</option>)}
+          </select>
+          <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 600" style={inputStyle} />
+        </div>
+        <label style={labelStyle}>Categoria (opcional)</label>
+        <input list="cf-cats" value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="ex.: roupa, casa, maquiagem…" style={inputStyle} />
+        <datalist id="cf-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteCompraFeita(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
     </div>
   );
 }
