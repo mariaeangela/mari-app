@@ -1632,7 +1632,11 @@ function SaudeSection({ onBack }) {
 
   // Retrospectiva de exercícios (do calendário), por mês.
   const exercicios = cal.data.exercicios || [];
-  const exMeses = [...new Set(exercicios.map(x => (x.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const mesAtualKey = hk.slice(0, 7); // só meses atuais e passados (sem futuros)
+  // chips: do mais novo p/ o mais antigo (desc). barras (barrasEx): do mais antigo p/ o novo (reverse).
+  const exMeses = [...new Set(exercicios.map(x => (x.data || '').slice(0, 7)).filter(Boolean))]
+    .filter(mm => mm <= mesAtualKey)
+    .sort().reverse();
   const exAtualMes = (exMes && exMeses.includes(exMes)) ? exMes : exMeses[0];
   const exDoMes = exercicios.filter(x => (x.data || '').slice(0, 7) === exAtualMes);
   const porTipo = {};
@@ -1645,7 +1649,7 @@ function SaudeSection({ onBack }) {
   const muscMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length;
   const corrMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').length;
   const anoEx = (exAtualMes || '').slice(0, 4);
-  const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx));
+  const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx) && (x.data || '').slice(0, 7) <= mesAtualKey);
   const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
   const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm).length }));
 
