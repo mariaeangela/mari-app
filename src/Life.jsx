@@ -1553,6 +1553,7 @@ function SaudeSection({ onBack }) {
   const [fLocal, setFLocal] = useState(null);
   const [fTreino, setFTreino] = useState(null);
   const [fPeriodo, setFPeriodo] = useState(null);
+  const [verPassado, setVerPassado] = useState(false);
   const s = life.saude || {};
   const todosPesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const locaisUsados = [...new Set(todosPesos.map(p => p.local).filter(Boolean))];
@@ -1564,10 +1565,20 @@ function SaudeSection({ onBack }) {
   const menstr = [...(s.menstruacao || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const hk = hojeKey();
   const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
-  const eventosOrd = [
-    ...eventos.filter(e => (e.fim || e.inicio) >= hk).sort((a, b) => (a.inicio || '').localeCompare(b.inicio || '')),
-    ...eventos.filter(e => (e.fim || e.inicio) < hk).sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')),
-  ];
+  // Passou = terminou antes de hoje, ou é hoje e o horário já passou (oculta automaticamente).
+  const agora = new Date();
+  const nowHM = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
+  const ehPassadoConsulta = (e) => {
+    const fimDia = e.fim || e.inicio;
+    if (fimDia < hk) return true;
+    if ((e.inicio || '') > hk) return false;
+    return e.inicio === hk && e.horaInicio ? e.horaInicio < nowHM : false;
+  };
+  const consKey = (e) => (e.inicio || '') + ' ' + (e.horaInicio || '');
+  const consPassadas = eventos.filter(ehPassadoConsulta).sort((a, b) => consKey(b).localeCompare(consKey(a)));
+  const consultas = verPassado
+    ? consPassadas
+    : eventos.filter(e => !ehPassadoConsulta(e)).sort((a, b) => consKey(a).localeCompare(consKey(b)));
 
   // Retrospectiva de exercícios (do calendário), por mês.
   const exercicios = cal.data.exercicios || [];
@@ -1589,11 +1600,11 @@ function SaudeSection({ onBack }) {
   const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm).length }));
 
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
-  const bloco = (titulo, addTipo, conteudo) => (
+  const bloco = (titulo, addTipo, conteudo, acao) => (
     <div style={{ marginTop: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
         <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: 0 }}>{titulo}</h3>
-        {addTipo && <button onClick={() => setForm({ tipo: addTipo })} style={{ background: COR_SAUDE + '18', color: COR_SAUDE, border: 'none', borderRadius: 9, width: 30, height: 30, fontSize: 20, lineHeight: 1, cursor: 'pointer' }}>+</button>}
+        {acao || (addTipo && <button onClick={() => setForm({ tipo: addTipo })} style={{ background: COR_SAUDE + '18', color: COR_SAUDE, border: 'none', borderRadius: 9, width: 30, height: 30, fontSize: 20, lineHeight: 1, cursor: 'pointer' }}>+</button>)}
       </div>
       {conteudo}
     </div>
@@ -1609,13 +1620,18 @@ function SaudeSection({ onBack }) {
       <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>consultas, peso, remédios, vacinas, menstruação</p>
 
       {bloco('Consultas e exames', null,
-        eventosOrd.length === 0
-          ? vazio('Marque um evento com categoria Saúde no Calendário que ele aparece aqui.')
-          : eventosOrd.map(e => linha(<>
-            <span style={{ fontSize: 12.5, color: (e.fim || e.inicio) >= hk ? COR_SAUDE : '#bbb', fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtData(e.inicio)}</span>
+        consultas.length === 0
+          ? vazio(verPassado ? 'Nenhuma consulta passada.' : 'Marque um evento com categoria Saúde no Calendário que ele aparece aqui.')
+          : consultas.map(e => linha(<>
+            <span style={{ fontSize: 12.5, color: verPassado ? '#bbb' : COR_SAUDE, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtData(e.inicio)}</span>
             <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{e.titulo}</span>
             {e.horaInicio && <span style={{ fontSize: 12, color: '#aaa' }}>{e.horaInicio}</span>}
-          </>, e.id)))}
+          </>, e.id)),
+        (verPassado || consPassadas.length > 0) && (
+          <button onClick={() => setVerPassado(v => !v)} style={{ padding: '5px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (verPassado ? COR_SAUDE : '#e2e2e2'), background: verPassado ? COR_SAUDE + '18' : '#fff', color: verPassado ? COR_SAUDE : '#999' }}>
+            {verPassado ? '← Próximas' : `Passado${consPassadas.length ? ` (${consPassadas.length})` : ''}`}
+          </button>
+        ))}
 
       {bloco('Exercícios', null,
         exMeses.length === 0 ? vazio('Registre exercícios no Calendário que a retrospectiva do mês aparece aqui.') : <>
