@@ -73,9 +73,11 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
   const [listaId, setListaId] = useState(editing?.listaId || listaAtual);
   const [orcamento, setOrcamento] = useState(editing?.orcamento || '');
   const [moeda, setMoeda] = useState(editing?.moeda || 'BRL');
+  const [grupo, setGrupo] = useState(editing?.grupo || '');
   const [pais, setPais] = useState(editing?.pais || '');
   const [dataLimite, setDataLimite] = useState(editing?.dataLimite || '');
   const [links, setLinks] = useState(editing?.links?.length ? editing.links : ['']);
+  const gruposExist = [...new Set((life.compras.itens || []).map(i => i.grupo).filter(Boolean))];
 
   const setLink = (i, v) => setLinks(links.map((l, j) => j === i ? v : l));
   const podeSalvar = titulo.trim().length > 0;
@@ -85,6 +87,7 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
       titulo: titulo.trim(), listaId,
       orcamento: orcamento || undefined,
       moeda,
+      grupo: grupo.trim() || undefined,
       pais: pais.trim() || undefined,
       dataLimite: dataLimite || undefined,
       links: links.map(l => l.trim()).filter(Boolean),
@@ -118,6 +121,10 @@ function ComprasForm({ editing, listaAtual, listas, onClose }) {
           <input type="number" inputMode="decimal" value={orcamento} onChange={e => setOrcamento(e.target.value)} placeholder="ex.: 500" style={inputStyle} />
         </div>
 
+        <label style={labelStyle}>Sublista / grupo (opcional)</label>
+        <input list="compras-grupos" value={grupo} onChange={e => setGrupo(e.target.value)} placeholder="ex.: Bolsas, Maquiagem…" style={inputStyle} />
+        <datalist id="compras-grupos">{gruposExist.map(g => <option key={g} value={g} />)}</datalist>
+
         <label style={labelStyle}>Em qual país comprar (opcional)</label>
         <input value={pais} onChange={e => setPais(e.target.value)} placeholder="ex.: Estados Unidos, Japão…" style={inputStyle} />
 
@@ -150,8 +157,27 @@ function ComprasSection({ onBack }) {
   const [novaLista, setNovaLista] = useState('');
   const [criandoLista, setCriandoLista] = useState(false);
 
-  const itens = life.compras.itens.filter(i => i.listaId === listaSel)
-    .sort((a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1));
+  const itensLista = life.compras.itens.filter(i => i.listaId === listaSel);
+  const porComprado = (a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1);
+  const semGrupo = itensLista.filter(i => !i.grupo).sort(porComprado);
+  const gruposOrdem = [];
+  itensLista.forEach(i => { if (i.grupo && !gruposOrdem.includes(i.grupo)) gruposOrdem.push(i.grupo); });
+  const grupos = gruposOrdem.map(g => ({ nome: g, itens: itensLista.filter(i => i.grupo === g).sort(porComprado) }));
+  const itemRow = (it) => {
+    const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
+    return (
+      <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+        <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
+        <div onClick={() => setForm({ editing: it })} style={{ flex: 1, cursor: 'pointer' }}>
+          <div style={{ fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1 }}>{it.titulo}</div>
+          {meta && <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>{meta}</div>}
+        </div>
+        {(it.links || []).map((l, i) => (
+          <a key={i} href={l} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR, fontWeight: 700, textDecoration: 'none', fontSize: 15 }}>↗</a>
+        ))}
+      </div>
+    );
+  };
 
   const criarLista = () => {
     if (!novaLista.trim()) { setCriandoLista(false); return; }
@@ -185,24 +211,20 @@ function ComprasSection({ onBack }) {
         <button onClick={() => setForm({})} title="adicionar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      {/* itens */}
-      {itens.length === 0 ? (
+      {/* itens (agrupados por sublista quando têm `grupo`) */}
+      {itensLista.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque no + acima.</p>
-      ) : itens.map(it => {
-        const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
-        return (
-          <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
-            <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 19, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.comprado ? '☑' : '☐'}</span>
-            <div onClick={() => setForm({ editing: it })} style={{ flex: 1, cursor: 'pointer' }}>
-              <div style={{ fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1 }}>{it.titulo}</div>
-              {meta && <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>{meta}</div>}
+      ) : (
+        <>
+          {semGrupo.map(itemRow)}
+          {grupos.map(g => (
+            <div key={g.nome} style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 11.5, color: '#7a3d12', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 7 }}>{g.nome}</div>
+              {g.itens.map(itemRow)}
             </div>
-            {(it.links || []).map((l, i) => (
-              <a key={i} href={l} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR, fontWeight: 700, textDecoration: 'none', fontSize: 15 }}>↗</a>
-            ))}
-          </div>
-        );
-      })}
+          ))}
+        </>
+      )}
 
       {form && <ComprasForm editing={form.editing} listaAtual={listaSel} listas={listas} onClose={() => setForm(null)} />}
     </div>

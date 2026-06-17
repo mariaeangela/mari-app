@@ -432,6 +432,52 @@ function ensureMaquiagem(d) {
   return { ...d, maquiagemSeeded: true, compras: { ...compras, listas: [...compras.listas, { id: 'maquiagem', nome: 'Maquiagem' }], itens: [...compras.itens, ...itens] } };
 }
 
+// Itens da lista NY26 (viagem) — valores em USD. Sublistas via campo `grupo`; o teto de
+// cada categoria fica no nome do grupo. Semeado uma vez (flag ny26Seeded) na lista que a
+// Mari já criou (busca pelo nome "NY26"); se não existir, cria.
+const G_MAQ = 'Maquiagens diferentes (máx US$ 200)';
+const G_BOLSA = 'Bolsa da marca (máx US$ 400)';
+const G_CLUTCH = 'Clutch preta de couro (máx US$ 100)';
+const G_ROUPA = 'Roupas — outlet (máx US$ 700)';
+const G_FONE = 'Fone (máx US$ 500)';
+const G_LOJAS = 'Lojas';
+const G_ESPEC = 'Coisas específicas';
+const NY26_ITENS = [
+  { grupo: G_MAQ, titulo: 'Merit' }, { grupo: G_MAQ, titulo: 'Patrick Ta' }, { grupo: G_MAQ, titulo: 'Makeup by Mario' },
+  { grupo: G_MAQ, titulo: 'Rhode' }, { grupo: G_MAQ, titulo: 'Hourglass' }, { grupo: G_MAQ, titulo: 'Pixi' },
+  { grupo: G_MAQ, titulo: 'YSL' }, { grupo: G_MAQ, titulo: 'Armani' }, { grupo: G_MAQ, titulo: 'Garnier BB cream (mãe)' },
+  { grupo: G_BOLSA, titulo: 'Freja NYC' }, { grupo: G_BOLSA, titulo: 'Polène' }, { grupo: G_BOLSA, titulo: 'DeMellier' },
+  { grupo: G_BOLSA, titulo: 'Verafied NY' }, { grupo: G_BOLSA, titulo: 'Songmont (Gather)' }, { grupo: G_BOLSA, titulo: 'Bob Oré (Taylor)' },
+  { grupo: G_BOLSA, titulo: 'Wandler (Penélope)' }, { grupo: G_BOLSA, titulo: 'Reh Studios bag' }, { grupo: G_BOLSA, titulo: 'Chelsea (Coach)' },
+  { grupo: G_BOLSA, titulo: 'Kate Spade duo crossbody' }, { grupo: G_BOLSA, titulo: 'Longchamp (bolsa de lado)' },
+  { grupo: G_CLUTCH, titulo: 'Coach' }, { grupo: G_CLUTCH, titulo: 'Kate Spade' }, { grupo: G_CLUTCH, titulo: 'The Pouch' },
+  { grupo: G_ROUPA, titulo: 'Ralph Lauren' }, { grupo: G_ROUPA, titulo: 'Calvin Klein' }, { grupo: G_ROUPA, titulo: 'Roupa de cama mil fios' },
+  { grupo: G_ROUPA, titulo: 'Roupa de academia' }, { grupo: G_ROUPA, titulo: 'Bolsa Michael Kors' },
+  { grupo: G_FONE, titulo: 'Sony' }, { grupo: G_FONE, titulo: 'Sennheiser HD 630' }, { grupo: G_FONE, titulo: 'Apple Max' },
+  { grupo: G_LOJAS, titulo: "Macy's" }, { grupo: G_LOJAS, titulo: 'Outlet' }, { grupo: G_LOJAS, titulo: 'Farmácia' },
+  { grupo: G_ESPEC, titulo: 'Óculos Wayfarer Ray-Ban', orcamento: 130 },
+  { grupo: G_ESPEC, titulo: 'MoMA — relógio do autor', orcamento: 150 },
+  { grupo: G_ESPEC, titulo: 'Boas coisas de papelaria (nada pesado)', orcamento: 50 },
+  { grupo: G_ESPEC, titulo: 'Vinil — Olivia Dean, Taylor Swift, Rosalía, Bad Bunny (US$ 60 cada)', orcamento: 120 },
+  { grupo: G_ESPEC, titulo: "Body splash Victoria's Secret", orcamento: 10 },
+  { grupo: G_ESPEC, titulo: 'Tênis caminhada (Nike Zoom Vomero 5, NB 1906R, On Cloudtilt, Hoka Bondi 8)', orcamento: 150 },
+  { grupo: G_ESPEC, titulo: 'Tênis corrida (Asics Novablast 4, Nike Pegasus 41, Brooks Ghost 16, Olympikus Corre Max, Hoka Clifton 9, On Cloudmonster 2)', orcamento: 150 },
+  { grupo: G_ESPEC, titulo: 'Coisas IKEA', orcamento: 100 },
+  { grupo: G_ESPEC, titulo: 'AirTag', orcamento: 90 },
+  { grupo: G_ESPEC, titulo: 'Fone WH-1000XM6 (Sony)', orcamento: 400 },
+  { grupo: G_ESPEC, titulo: 'Revlon 5 em 1', orcamento: 50 },
+];
+function ensureNY26(d) {
+  if (d.ny26Seeded) return d;
+  const compras = d.compras || { listas: [], itens: [] };
+  const norm = (s) => (s || '').replace(/\s+/g, '').toLowerCase();
+  const existente = compras.listas.find(l => norm(l.nome) === 'ny26');
+  const listaId = existente ? existente.id : 'ny26';
+  const listas = existente ? compras.listas : [...compras.listas, { id: listaId, nome: 'NY26' }];
+  const itens = NY26_ITENS.map((it, i) => ({ id: 'ny' + i, listaId, comprado: false, moeda: 'USD', grupo: it.grupo, titulo: it.titulo, orcamento: it.orcamento }));
+  return { ...d, ny26Seeded: true, compras: { ...compras, listas, itens: [...compras.itens, ...itens] } };
+}
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -442,7 +488,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => ensureMaquiagem(readLocal()));
+  const [data, setData] = useState(() => ensureNY26(ensureMaquiagem(readLocal())));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -452,13 +498,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = ensureMaquiagem(local);
+        const next = ensureNY26(ensureMaquiagem(local));
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = ensureMaquiagem(merged);
+      const next = ensureNY26(ensureMaquiagem(merged));
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();

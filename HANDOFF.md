@@ -121,6 +121,10 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
 `compras`, `cultural`, `planos` (DEFAULT_PLANOS), `financas`, `salarios` (DEFAULT_SALARIOS),
 `gastos` (DEFAULT_GASTOS), `saude`. Seeds históricos (salários/gastos/pesos) **persistem ao
 1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
+**Compras**: itens têm campo opcional **`grupo`** (sublista) — `ComprasSection` renderiza agrupado
+(sem-grupo primeiro, depois cada grupo c/ header); `ComprasForm` tem campo "Sublista / grupo" (datalist).
+Listas semeadas idempotentes (flags): **Maquiagem** (`ensureMaquiagem`) e **NY26** (`ensureNY26` —
+acha a lista pelo nome, USD, ~45 itens em 7 grupos com teto no nome do grupo).
 O slice `cultural` segue no `lifeStore`, mas sua UI — `CulturalSection` ("Calendário cultural",
 exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile próprio), não na Life.
 
