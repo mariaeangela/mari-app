@@ -484,6 +484,7 @@ function ensureNY26(d) {
 
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
@@ -523,7 +524,11 @@ export function LifeProvider({ children }) {
   const addComprasItem = (it) => setCompras({ ...compras, itens: [...compras.itens, { comprado: false, ...it, id: uid('c') }] });
   const updateComprasItem = (it) => setCompras({ ...compras, itens: compras.itens.map(x => x.id === it.id ? it : x) });
   const deleteComprasItem = (id) => setCompras({ ...compras, itens: compras.itens.filter(x => x.id !== id) });
-  const toggleComprado = (id) => setCompras({ ...compras, itens: compras.itens.map(x => x.id === id ? { ...x, comprado: !x.comprado } : x) });
+  const toggleComprado = (id) => setCompras({ ...compras, itens: compras.itens.map(x => {
+    if (x.id !== id) return x;
+    const comprado = !x.comprado;
+    return { ...x, comprado, compradoEm: comprado ? (x.compradoEm || hojeISO()) : undefined };
+  }) });
   const addComprasLista = (nome) => { const id = uid('l'); setCompras({ ...compras, listas: [...compras.listas, { id, nome }] }); return id; };
   const deleteComprasLista = (id) => setCompras({
     ...compras,
