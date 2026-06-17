@@ -1784,9 +1784,10 @@ function SaudeSection({ onBack }) {
         menstr.length === 0 ? vazio('Nenhum registro ainda.') : menstr.map((m, i) => {
           const prev = menstr[i + 1];
           const ciclo = prev ? Math.round((new Date(m.data) - new Date(prev.data)) / 86400000) : null;
+          const dur = m.fim ? Math.round((new Date(m.fim) - new Date(m.data)) / 86400000) + 1 : null;
           return linha(<>
             <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(m.data)}</span>
-            <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>início</span>
+            <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>{m.fim ? `até ${fmtData(m.fim)}` : 'início'}{dur ? ` · ${dur} ${dur === 1 ? 'dia' : 'dias'}` : ''}</span>
             {ciclo != null && <span style={{ fontSize: 11.5, color: '#aaa' }}>ciclo de {ciclo} dias</span>}
             <button onClick={() => setForm({ tipo: 'menstruacao', editing: m })} style={editLink}>editar</button>
           </>, m.id);
@@ -1810,6 +1811,7 @@ function SaudeForm({ tipo, editing, onClose }) {
   const [dose, setDose] = useState(editing?.dose || '');
   const [duracao, setDuracao] = useState(editing?.duracao || '');
   const [inicio, setInicio] = useState(editing?.inicio || '');
+  const [fim, setFim] = useState(editing?.fim || '');
   const [ativo, setAtivo] = useState(editing?.ativo != null ? editing.ativo : true);
   const titulos = { peso: 'pesagem', remedio: 'remédio', vacina: 'vacina', menstruacao: 'registro' };
 
@@ -1825,7 +1827,7 @@ function SaudeForm({ tipo, editing, onClose }) {
     if (tipo === 'peso') life.saveSaudeItem('pesos', { ...base, data, valor: Number(valor.replace(',', '.')), treino: treino || undefined, periodo: periodo || undefined, local: localSel === 'Outro' ? (localOutro.trim() || undefined) : localSel });
     else if (tipo === 'remedio') life.saveSaudeItem('remedios', { ...base, nome: nome.trim(), dose: dose.trim() || undefined, duracao: duracao.trim() || undefined, inicio: inicio || undefined, ativo: !!ativo });
     else if (tipo === 'vacina') life.saveSaudeItem('vacinas', { ...base, nome: nome.trim(), data });
-    else life.saveSaudeItem('menstruacao', { ...base, data });
+    else life.saveSaudeItem('menstruacao', { ...base, data, fim: fim || undefined });
     onClose();
   };
   const apagar = () => { const map = { peso: 'pesos', remedio: 'remedios', vacina: 'vacinas', menstruacao: 'menstruacao' }; life.deleteSaudeItem(map[tipo], editing.id); onClose(); };
@@ -1886,6 +1888,8 @@ function SaudeForm({ tipo, editing, onClose }) {
         {tipo === 'menstruacao' && <>
           <label style={labelStyle}>Data de início</label>
           <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+          <label style={labelStyle}>Data de fim (opcional)</label>
+          <input type="date" value={fim} min={data} onChange={e => setFim(e.target.value)} style={inputStyle} />
         </>}
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
