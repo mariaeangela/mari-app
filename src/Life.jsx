@@ -1581,14 +1581,14 @@ function SaudeSection({ onBack }) {
   const [form, setForm] = useState(null);
   const [exMes, setExMes] = useState(null);
   const [fLocal, setFLocal] = useState(null);
-  const [fTreino, setFTreino] = useState(null);
   const [fPeriodo, setFPeriodo] = useState(null);
+  const [pesosAberto, setPesosAberto] = useState(false); // lista de pesos anteriores expandida?
   const [verPassado, setVerPassado] = useState(false);
   const [metaEdit, setMetaEdit] = useState(null); // { id, valor } — edição de meta de tempo da prova
   const s = life.saude || {};
   const todosPesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const locaisUsados = [...new Set(todosPesos.map(p => p.local).filter(Boolean))];
-  const pesos = todosPesos.filter(p => (!fLocal || p.local === fLocal) && (!fTreino || p.treino === fTreino) && (!fPeriodo || normPeriodo(p.periodo) === fPeriodo));
+  const pesos = todosPesos.filter(p => (!fLocal || p.local === fLocal) && (!fPeriodo || normPeriodo(p.periodo) === fPeriodo));
   const pesosDesc = [...pesos].reverse();
   const chipF = (active, label, onClick) => <button key={label} onClick={onClick} style={{ padding: '4px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (active ? COR_SAUDE : '#e2e2e2'), background: active ? COR_SAUDE + '18' : '#fff', color: active ? COR_SAUDE : '#999' }}>{label}</button>;
   const remedios = [...(s.remedios || [])].sort((a, b) => (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.inicio || '').localeCompare(a.inicio || ''));
@@ -1749,19 +1749,17 @@ function SaudeSection({ onBack }) {
         {todosPesos.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10, alignItems: 'center' }}>
             {locaisUsados.map(l => chipF(fLocal === l, l.replace('Smart Fit ', ''), () => setFLocal(fLocal === l ? null : l)))}
-            <span style={{ color: '#e2e2e2' }}>·</span>
-            {chipF(fTreino === 'pre', 'pré', () => setFTreino(fTreino === 'pre' ? null : 'pre'))}
-            {chipF(fTreino === 'pos', 'pós', () => setFTreino(fTreino === 'pos' ? null : 'pos'))}
-            <span style={{ color: '#e2e2e2' }}>·</span>
+            {locaisUsados.length > 0 && <span style={{ color: '#e2e2e2' }}>·</span>}
             {PERIODOS.map(([k, l]) => chipF(fPeriodo === k, l, () => setFPeriodo(fPeriodo === k ? null : k)))}
           </div>
         )}
         {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
-        {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : pesosDesc.map(p => linha(<>
+        {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : (pesosAberto ? pesosDesc : pesosDesc.slice(0, 1)).map((p, idx) => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
           <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{p.valor.toLocaleString('pt-BR')} kg</span>
           <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[TREINO_LABEL[p.treino], PERIODO_LABEL[normPeriodo(p.periodo)], p.local].filter(Boolean).join(' · ')}</span>
           <button onClick={() => setForm({ tipo: 'peso', editing: p })} style={editLink}>editar</button>
+          {idx === 0 && pesosDesc.length > 1 && <span onClick={() => setPesosAberto(v => !v)} title="pesos anteriores" style={{ cursor: 'pointer', color: '#bbb', fontSize: 12.5, fontWeight: 700, flexShrink: 0, marginLeft: 2 }}>{pesosAberto ? '▾' : `▸ ${pesosDesc.length - 1}`}</span>}
         </>, p.id))}
       </>)}
 
