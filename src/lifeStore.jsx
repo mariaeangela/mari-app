@@ -468,14 +468,18 @@ const NY26_ITENS = [
   { grupo: G_ESPEC, titulo: 'Revlon 5 em 1', orcamento: 50 },
 ];
 function ensureNY26(d) {
-  if (d.ny26Seeded) return d;
+  if (d.ny26SeededV2) return d;
   const compras = d.compras || { listas: [], itens: [] };
   const norm = (s) => (s || '').replace(/\s+/g, '').toLowerCase();
-  const existente = compras.listas.find(l => norm(l.nome) === 'ny26');
+  const existente = compras.listas.find(l => norm(l.nome) === 'ny26'); // casa "NY26", "NY 26", etc.
   const listaId = existente ? existente.id : 'ny26';
   const listas = existente ? compras.listas : [...compras.listas, { id: listaId, nome: 'NY26' }];
-  const itens = NY26_ITENS.map((it, i) => ({ id: 'ny' + i, listaId, comprado: false, moeda: 'USD', grupo: it.grupo, titulo: it.titulo, orcamento: it.orcamento }));
-  return { ...d, ny26Seeded: true, compras: { ...compras, listas, itens: [...compras.itens, ...itens] } };
+  // ids estáveis (ny0..nyN): só adiciona os que ainda não existem (auto-corretivo, sem duplicar).
+  const have = new Set(compras.itens.map(i => i.id));
+  const novos = NY26_ITENS
+    .map((it, i) => ({ id: 'ny' + i, listaId, comprado: false, moeda: 'USD', grupo: it.grupo, titulo: it.titulo, orcamento: it.orcamento }))
+    .filter(it => !have.has(it.id));
+  return { ...d, ny26SeededV2: true, compras: { ...compras, listas, itens: [...compras.itens, ...novos] } };
 }
 
 const LifeContext = createContext(null);
