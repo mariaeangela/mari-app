@@ -1584,6 +1584,7 @@ function SaudeSection({ onBack }) {
   const [fTreino, setFTreino] = useState(null);
   const [fPeriodo, setFPeriodo] = useState(null);
   const [verPassado, setVerPassado] = useState(false);
+  const [metaEdit, setMetaEdit] = useState(null); // { id, valor } — edição de meta de tempo da prova
   const s = life.saude || {};
   const todosPesos = [...(s.pesos || [])].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const locaisUsados = [...new Set(todosPesos.map(p => p.local).filter(Boolean))];
@@ -1653,6 +1654,14 @@ function SaudeSection({ onBack }) {
   const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
   const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm).length }));
 
+  // Próximas metas: provas (corrida prova) futuras, do calendário; meta de tempo editável.
+  const COR_CORRIDA = EXERCICIO_BY_ID.corrida?.cor || '#ef6c4d';
+  const provasFuturas = exercicios
+    .filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida' && x.subtipo !== 'corrida_treino' && (x.data || '') >= hk)
+    .sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+  const labelProva = (x) => [x.distancia ? x.distancia + 'km' : null, x.titulo].filter(Boolean).join(' · ') || 'Corrida';
+  const salvarMeta = (x, valor) => { cal.saveExercicio({ ...x, metaTempo: valor.trim() || undefined }); setMetaEdit(null); };
+
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
   const bloco = (titulo, addTipo, conteudo, acao) => (
     <div style={{ marginTop: 24 }}>
@@ -1687,8 +1696,29 @@ function SaudeSection({ onBack }) {
           </button>
         ))}
 
-      {bloco('Exercícios', null,
-        exMeses.length === 0 ? vazio('Registre exercícios no Calendário que a retrospectiva do mês aparece aqui.') : <>
+      {bloco('Exercícios', null, <>
+        {provasFuturas.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: COR_CORRIDA, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Próximas metas</div>
+            {provasFuturas.map(x => (
+              <div key={x.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '9px 12px', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: COR_CORRIDA, fontWeight: 700, minWidth: 46, flexShrink: 0 }}>{fmtData(x.data)}</span>
+                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{labelProva(x)}</span>
+                {metaEdit?.id === x.id ? (
+                  <input autoFocus value={metaEdit.valor} onChange={e => setMetaEdit({ id: x.id, valor: e.target.value })}
+                    onKeyDown={e => { if (e.key === 'Enter') salvarMeta(x, metaEdit.valor); }}
+                    onBlur={() => salvarMeta(x, metaEdit.valor)} placeholder="ex.: 55min"
+                    style={{ ...inputStyle, width: 96, flexShrink: 0, padding: '5px 8px', fontSize: 13 }} />
+                ) : (
+                  <span onClick={() => setMetaEdit({ id: x.id, valor: x.metaTempo || '' })} style={{ fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, color: x.metaTempo ? COR_CORRIDA : '#ccc' }}>
+                    {x.metaTempo ? '🎯 ' + x.metaTempo : '+ meta de tempo'}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {exMeses.length === 0 ? vazio('Registre exercícios no Calendário que a retrospectiva do mês aparece aqui.') : <>
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
             {exMeses.map(mm => (
               <button key={mm} onClick={() => setExMes(mm)} style={{ whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (exAtualMes === mm ? COR_SAUDE : '#e2e2e2'), background: exAtualMes === mm ? COR_SAUDE + '18' : '#fff', color: exAtualMes === mm ? COR_SAUDE : '#888' }}>{fmtMes(mm)}</button>
@@ -1713,7 +1743,7 @@ function SaudeSection({ onBack }) {
             </div>
           ))}
           <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{exAno.length}</b> treinos{kmAno > 0 ? ' · ' + kmAno.toLocaleString('pt-BR') + ' km corridos' : ''}</p>
-        </>)}
+        </>}</>)}
 
       {bloco('Peso', 'peso', <>
         {todosPesos.length > 0 && (
