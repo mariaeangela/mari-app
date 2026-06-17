@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID } from './calendarConfig.js';
+import { eventOccursOn } from './Calendario.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -1593,21 +1594,41 @@ function SaudeSection({ onBack }) {
   const vacinas = [...(s.vacinas || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const menstr = [...(s.menstruacao || [])].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const hk = hojeKey();
-  const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
-  // Passou = terminou antes de hoje, ou é hoje e o horário já passou (oculta automaticamente).
+  const eventosSaude = (cal.data.events || []).filter(e => e.categoria === 'saude');
+  // Por evento, calcula a PRÓXIMA e a ÚLTIMA ocorrência reais (respeita recorrência e exclusões
+  // de ocorrência via eventOccursOn). Assim, apagar "só esta" some, e recorrente mostra a próxima.
   const agora = new Date();
   const nowHM = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`;
-  const ehPassadoConsulta = (e) => {
-    const fimDia = e.fim || e.inicio;
-    if (fimDia < hk) return true;
-    if ((e.inicio || '') > hk) return false;
-    return e.inicio === hk && e.horaInicio ? e.horaInicio < nowHM : false;
+  const pad2s = (n) => String(n).padStart(2, '0');
+  const ymdOf = (d) => `${d.getFullYear()}-${pad2s(d.getMonth() + 1)}-${pad2s(d.getDate())}`;
+  const hojeMid = new Date(); hojeMid.setHours(0, 0, 0, 0);
+  const jaPassou = (dia, horaInicio) => dia === hk && horaInicio && horaInicio < nowHM;
+  const proxOcorrencia = (e) => {
+    for (let i = 0; i <= 730; i++) {
+      const d = new Date(hojeMid); d.setDate(d.getDate() + i);
+      if (!eventOccursOn(e, d)) continue;
+      const dia = ymdOf(d);
+      if (jaPassou(dia, e.horaInicio)) continue; // hoje, horário já passou → não é "próxima"
+      return dia;
+    }
+    return null;
   };
-  const consKey = (e) => (e.inicio || '') + ' ' + (e.horaInicio || '');
-  const consPassadas = eventos.filter(ehPassadoConsulta).sort((a, b) => consKey(b).localeCompare(consKey(a)));
-  const consultas = verPassado
-    ? consPassadas
-    : eventos.filter(e => !ehPassadoConsulta(e)).sort((a, b) => consKey(a).localeCompare(consKey(b)));
+  const ultimaOcorrencia = (e) => {
+    for (let i = 0; i <= 730; i++) {
+      const d = new Date(hojeMid); d.setDate(d.getDate() - i);
+      if (!eventOccursOn(e, d)) continue;
+      const dia = ymdOf(d);
+      if (dia === hk && !jaPassou(dia, e.horaInicio)) continue; // hoje ainda não passou → não é passado
+      return dia;
+    }
+    return null;
+  };
+  const ocKey = (o) => o.dia + ' ' + (o.ev.horaInicio || '');
+  const consProximas = eventosSaude.map(e => ({ ev: e, dia: proxOcorrencia(e) })).filter(o => o.dia)
+    .sort((a, b) => ocKey(a).localeCompare(ocKey(b)));
+  const consPassadas = eventosSaude.map(e => ({ ev: e, dia: ultimaOcorrencia(e) })).filter(o => o.dia)
+    .sort((a, b) => ocKey(b).localeCompare(ocKey(a)));
+  const consultas = verPassado ? consPassadas : consProximas;
 
   // Retrospectiva de exercícios (do calendário), por mês.
   const exercicios = cal.data.exercicios || [];
@@ -1651,11 +1672,11 @@ function SaudeSection({ onBack }) {
       {bloco('Consultas e exames', null,
         consultas.length === 0
           ? vazio(verPassado ? 'Nenhuma consulta passada.' : 'Marque um evento com categoria Saúde no Calendário que ele aparece aqui.')
-          : consultas.map(e => linha(<>
-            <span style={{ fontSize: 12.5, color: verPassado ? '#bbb' : COR_SAUDE, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtData(e.inicio)}</span>
-            <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{e.titulo}</span>
-            {e.horaInicio && <span style={{ fontSize: 12, color: '#aaa' }}>{e.horaInicio}</span>}
-          </>, e.id)),
+          : consultas.map(o => linha(<>
+            <span style={{ fontSize: 12.5, color: verPassado ? '#bbb' : COR_SAUDE, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtData(o.dia)}</span>
+            <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{o.ev.titulo}</span>
+            {o.ev.horaInicio && <span style={{ fontSize: 12, color: '#aaa' }}>{o.ev.horaInicio}</span>}
+          </>, o.ev.id)),
         (verPassado || consPassadas.length > 0) && (
           <button onClick={() => setVerPassado(v => !v)} style={{ padding: '5px 11px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (verPassado ? COR_SAUDE : '#e2e2e2'), background: verPassado ? COR_SAUDE + '18' : '#fff', color: verPassado ? COR_SAUDE : '#999' }}>
             {verPassado ? '← Próximas' : `Passado${consPassadas.length ? ` (${consPassadas.length})` : ''}`}

@@ -37,7 +37,7 @@ function recurOccursOn(startKey, repetir, date) {
   return false;
 }
 
-function eventOccursOn(ev, date) {
+export function eventOccursOn(ev, date) {
   const dayKey = ymd(date);
   if ((ev.excecoes || []).includes(dayKey)) return false;  // ocorrência apagada
   if (!ev.repetir || ev.repetir === 'nao') {
