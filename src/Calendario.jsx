@@ -683,8 +683,23 @@ export default function Calendario({ isWide }) {
     .sort((a, b) => a.dataLimite.localeCompare(b.dataLimite));
   const culturalDoMes = (life.cultural?.itens || []).filter(i => i.dataMax && i.dataMax.slice(0, 7) === mesKey)
     .sort((a, b) => a.dataMax.localeCompare(b.dataMax));
-  const planosDoMes = (life.planos?.lista || []).filter(p => p.prazo && p.prazo.slice(0, 7) === mesKey)
-    .sort((a, b) => a.prazo.localeCompare(b.prazo));
+  // Planos do mês: prazo do próprio plano e/ou itens do checklist com prazo no mês (pendentes),
+  // agrupados sob o plano a que pertencem.
+  const itensPrazoMes = (life.planos?.itens || []).filter(i => i.prazo && !i.feito && i.prazo.slice(0, 7) === mesKey);
+  const planoIdsMes = [...new Set([
+    ...(life.planos?.lista || []).filter(p => p.prazo && p.prazo.slice(0, 7) === mesKey).map(p => p.id),
+    ...itensPrazoMes.map(i => i.planoId),
+  ])];
+  const planosDoMes = planoIdsMes
+    .map(id => {
+      const p = (life.planos?.lista || []).find(x => x.id === id);
+      if (!p) return null;
+      const itens = itensPrazoMes.filter(i => i.planoId === id).sort((a, b) => a.prazo.localeCompare(b.prazo));
+      const prazoPlano = (p.prazo && p.prazo.slice(0, 7) === mesKey) ? p.prazo : null;
+      return { id, nome: p.nome, prazoPlano, itens };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.prazoPlano || a.itens[0]?.prazo || '9999').localeCompare(b.prazoPlano || b.itens[0]?.prazo || '9999'));
   const dm = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
 
   return (
@@ -782,10 +797,19 @@ export default function Calendario({ isWide }) {
       {view === 'mes' && planosDoMes.length > 0 && (
         <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: '#6b7a99', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Planos do mês</div>
-          {planosDoMes.map(p => (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: '#6b7a99', fontWeight: 700, minWidth: 40 }}>{dm(p.prazo)}</span>
-              <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{p.nome}</span>
+          {planosDoMes.map(g => (
+            <div key={g.id} style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#222' }}>{g.nome}</span>
+                {g.prazoPlano && <span style={{ fontSize: 11.5, color: '#6b7a99', fontWeight: 700 }}>prazo {dm(g.prazoPlano)}</span>}
+              </div>
+              {g.itens.map(i => (
+                <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '9px 12px', marginBottom: 6 }}>
+                  <span onClick={() => life.togglePlanoCheck(i.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
+                  <span style={{ fontSize: 12, color: '#6b7a99', fontWeight: 700, minWidth: 40 }}>{dm(i.prazo)}</span>
+                  <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{i.texto}</span>
+                </div>
+              ))}
             </div>
           ))}
         </div>

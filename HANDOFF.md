@@ -96,7 +96,10 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   do dia em ordem cronológica de horário (helper byTime; itemsGeral exclui
   treino do Mês/Agenda). DayModal: humor + diário + itens do dia. Sempre no fim
   da página: "Lendo no momento" (cultura subtipo lendo) com botão "concluído"
-  que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Eventos:
+  que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Na visão Mês há
+  também "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
+  mês"** — agrupado por plano: prazo do próprio plano + **itens do checklist com
+  `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`). Eventos:
   intervalo, hora, repetir, "com quem". Tarefas têm ✓ (com ou sem data). Rolês:
   opções do dia c/ horário (sem ✓; editar usa updateRole p/ não duplicar).
   Exercício: treino/corrida c/ hora e distância (corrida). Cultura alimentará Projetos.
