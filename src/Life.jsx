@@ -297,13 +297,20 @@ function PlanoView({ plano, onBack }) {
             <input value={novoCheck} onChange={e => setNovoCheck(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCheck()} placeholder="novo item do checklist" style={inputStyle} />
             <button onClick={addCheck} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
           </div>
-          {checks.map(c => (
+          {checks.map(c => {
+            const vencido = c.prazo && !c.feito && c.prazo < hojeKey();
+            return (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
               <span onClick={() => life.togglePlanoCheck(c.id)} style={{ fontSize: 19, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{c.feito ? '☑' : '☐'}</span>
               <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
+              <label title="data máxima (opcional)" style={{ position: 'relative', cursor: 'pointer', fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, opacity: c.feito ? 0.5 : 1, color: c.prazo ? (vencido ? '#d05050' : COR_PLANOS) : '#cfcfcf' }}>
+                {c.prazo ? fmtData(c.prazo) : '+ prazo'}
+                <input type="date" value={c.prazo || ''} onChange={e => life.setPlanoCheckPrazo(c.id, e.target.value)} style={{ position: 'absolute', inset: 0, width: '100%', opacity: 0, cursor: 'pointer' }} />
+              </label>
               <span onClick={() => life.deletePlanoCheck(c.id)} style={{ color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</span>
             </div>
-          ))}
+            );
+          })}
         </>
       )}
 
