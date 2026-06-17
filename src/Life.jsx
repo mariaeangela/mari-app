@@ -14,7 +14,6 @@ const SECOES = [
   { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
   { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
-  { id: 'retrospectivas', label: 'Retrospectivas', desc: 'seus números e marcos por mês e ano', cor: '#8d6e63' },
 ];
 
 // estilos

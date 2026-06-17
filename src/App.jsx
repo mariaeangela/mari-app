@@ -8,6 +8,7 @@ import Calendario, { itemsGeral } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection } from './Life.jsx';
+import RetrospectivaPage from './Retrospectiva.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -80,6 +81,7 @@ function Header({ tab, setTab }) {
           { id: 'saved', label: 'Salvos' },
           { id: 'calendar', label: 'Calendário' },
           { id: 'life', label: 'Life' },
+          { id: 'retrospectiva', label: 'Retrospectiva' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             background: 'none', border: 'none', cursor: 'pointer',
@@ -338,6 +340,7 @@ export default function App() {
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
             {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} />}
+            {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} />}
           </div>
         </LifeProvider>
       </CalendarProvider>
