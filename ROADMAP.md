@@ -90,7 +90,7 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
 ## 8. Visual & atmosfera (capa e senha)
 - 🟡 **Imagens de fundo da tela de senha** mais bonitas/variadas (hoje é por estação, via
   cores; a ideia é fotos ligadas ao frio/estação). *(pendente)*
-- 🟢 **Frase de abertura** — hoje em **100** (era 12). Dá pra continuar engordando.
+- 🟢 **Frase de abertura** — hoje em **145** (era 12). Dá pra continuar engordando.
 
 ## 9. Polimentos & verificações
 - 🟢 **Testar nos aparelhos**: X dos Salvos e sync na nuvem (Salvos/Calendário/Life).
@@ -112,7 +112,7 @@ Saúde · Viagens · Retrospectivas. "Calendário cultural" saiu da Life → ago
 
 **Conteúdo (Hoje/senha):**
 - "Neste dia" (`HISTORICAL_FACTS`) e "Sabia que" (`DAILY_FACTS`) — **366 dias cada**, listas
-  separadas, verificadas. Frase de abertura (`OPENING_QUOTES`) em **100**.
+  separadas, verificadas. Frase de abertura (`OPENING_QUOTES`) em **145**.
 - Hoje sem trocar de card (só 1/dia); o ↻ ficou só no Explorar.
 
 **Explorar / Life (hub):** cards enxutos sem subtítulo. Cards da Life com rótulos curtos
