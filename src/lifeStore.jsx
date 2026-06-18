@@ -482,6 +482,29 @@ function ensureNY26(d) {
   return { ...d, ny26SeededV2: true, compras: { ...compras, listas, itens: [...compras.itens, ...novos] } };
 }
 
+// Histórico de compras feitas (Retrospectiva → Compras). Valores em R$. Semeado uma vez.
+const CF_SEED = [
+  ['2026-01', 'Vinil Cícero', 150], ['2026-01', 'Livro "A Vegetariana"', 52.30],
+  ['2026-02', 'Óculos (grau)', 6182.80], ['2026-02', 'Livro "A Insustentável Leveza do Ser"', 37.90],
+  ['2026-02', 'Potes de creme de cabelo', 17.90], ['2026-02', 'Blindagem', 19], ['2026-02', 'Óculos de sol', 251.10],
+  ['2026-02', 'Creme de cabelo', 57.75], ['2026-02', 'Havaianas', 44.99],
+  ['2026-03', 'Plantas (Ceagesp)', 170.35], ['2026-03', 'Filme analógico', 120], ['2026-03', 'Capa de tablet', 31.60],
+  ['2026-03', 'Caixas (Kalunga)', 68.70], ['2026-03', 'Faixa de cabelo', 20.99], ['2026-03', 'Óculos Zerezes', 340],
+  ['2026-03', 'Câmera analógica', 110], ['2026-03', 'Adaptador SD', 19.89], ['2026-03', 'Livro', 32.29],
+  ['2026-04', 'Sapateiro', 30], ['2026-04', 'Estante', 74.17], ['2026-04', 'Banco de planta', 160],
+  ['2026-04', 'Revelação de fotos', 130], ['2026-04', 'Relógio', 100], ['2026-04', 'Câmera analógica (×3)', 378],
+  ['2026-04', 'Filme analógico (×4)', 149], ['2026-04', 'Revelação de fotos', 17.50],
+  ['2026-05', 'Bolsa', 60], ['2026-05', 'Livro Tâmara I', 41.20], ['2026-05', 'Livro Tâmara II', 69.90],
+  ['2026-06', 'Filme analógico', 92.36], ['2026-06', 'Mosquetão', 58.43],
+];
+function ensureComprasFeitas(d) {
+  if (d.comprasFeitasSeeded) return d;
+  const have = new Set((d.comprasFeitas || []).map(c => c.id));
+  const novos = CF_SEED.map(([mes, titulo, valor], i) => ({ id: 'cf' + i, titulo, data: mes + '-15', valor, moeda: 'BRL' }))
+    .filter(c => !have.has(c.id));
+  return { ...d, comprasFeitasSeeded: true, comprasFeitas: [...(d.comprasFeitas || []), ...novos] };
+}
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
@@ -493,7 +516,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => ensureNY26(ensureMaquiagem(readLocal())));
+  const [data, setData] = useState(() => ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal()))));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -503,13 +526,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = ensureNY26(ensureMaquiagem(local));
+        const next = ensureComprasFeitas(ensureNY26(ensureMaquiagem(local)));
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = ensureNY26(ensureMaquiagem(merged));
+      const next = ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged)));
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();

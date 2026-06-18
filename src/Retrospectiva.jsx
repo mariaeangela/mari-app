@@ -148,7 +148,7 @@ function ComprasRetro({ onBack, isWide }) {
   const [form, setForm] = useState(null); // { editing? }
   const LISTA_FIXA = { geral: 'Geral', algumdia: 'Algum dia', internacional: 'Internacional' };
   const nomeLista = (id) => (life.compras.listas || []).find(l => l.id === id)?.nome || LISTA_FIXA[id] || '';
-  const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR') : '';
+  const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
   // Duas fontes: registro próprio (comprasFeitas) + itens marcados como comprado nas listas.
   const doLog = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), editavel: true, raw: c }));
