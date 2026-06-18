@@ -670,6 +670,14 @@ export function LifeProvider({ children }) {
     ? comprasFeitas.map(x => x.id === c.id ? c : x)
     : [...comprasFeitas, { ...c, id: uid('cf') }] });
   const deleteCompraFeita = (id) => persist({ ...data, comprasFeitas: comprasFeitas.filter(x => x.id !== id) });
+  // Arquiva os itens já comprados de uma lista: saem da lista e viram histórico (comprasFeitas),
+  // pra continuarem contando na Retrospectiva/Vida Financeira.
+  const arquivarComprados = (listaId, listaNome) => {
+    const compradosL = (compras.itens || []).filter(i => i.listaId === listaId && i.comprado);
+    if (!compradosL.length) return;
+    const feitas = compradosL.map(i => ({ id: uid('cf'), titulo: i.titulo, data: i.compradoEm || hojeISO(), valor: i.orcamento ? Number(i.orcamento) : undefined, moeda: i.moeda || 'BRL', categoria: i.grupo || listaNome || undefined }));
+    persist({ ...data, compras: { ...compras, itens: compras.itens.filter(i => !(i.listaId === listaId && i.comprado)) }, comprasFeitas: [...comprasFeitas, ...feitas] });
+  };
 
   // ---- Música (Retrospectiva): 1 registro por mês ----
   const musica = data.musica || [];
@@ -698,7 +706,7 @@ export function LifeProvider({ children }) {
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, saveAprendNota, deleteAprendNota,
-    comprasFeitas, saveCompraFeita, deleteCompraFeita,
+    comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
