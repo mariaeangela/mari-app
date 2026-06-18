@@ -54,6 +54,9 @@ function Header({ tab, setTab }) {
   const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const quote = getTodayQuote();
+  const { isSaved, toggle } = useSaved();
+  const fraseItem = { id: 'frase_' + quote.texto, type: 'frase', texto: quote.texto, autor: quote.autor, obra: quote.obra };
+  const favoritada = isSaved(fraseItem.id);
 
   return (
     <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
@@ -66,11 +69,14 @@ function Header({ tab, setTab }) {
       </div>
 
       {/* Quote of the day */}
-      <div style={{ padding: '14px 24px 0' }}>
-        <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
-          "{quote.texto}"
-        </p>
-        <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
+      <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
+            "{quote.texto}"
+          </p>
+          <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
+        </div>
+        <button onClick={() => toggle(fraseItem)} title={favoritada ? 'remover dos salvos' : 'salvar frase'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: favoritada ? '#e0a83e' : '#ccc', flexShrink: 0, padding: 0 }}>{favoritada ? '★' : '☆'}</button>
       </div>
 
       <div style={{ height: 2, background: '#111', margin: '14px 24px 0' }} />
@@ -286,16 +292,37 @@ function ExplorePage({ isWide }) {
   );
 }
 
+function FrasesCard({ frases, remove }) {
+  return (
+    <div style={{ padding: '20px 22px 0' }}>
+      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 16, padding: '16px 18px' }}>
+        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#111', marginBottom: 8 }}>Frases <span style={{ fontSize: 12, color: '#bbb', fontWeight: 400 }}>({frases.length})</span></div>
+        {frases.map(f => (
+          <div key={f.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid #f4f4f4' }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14, color: '#333', lineHeight: 1.5, margin: '0 0 3px' }}>"{f.texto}"</p>
+              <p style={{ fontSize: 11, color: '#bbb' }}>— {f.autor}{f.obra ? ', ' : ''}<em>{f.obra}</em></p>
+            </div>
+            <span onClick={() => remove(f.id)} style={{ color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SavedPage({ isWide }) {
   const { items: saved, remove } = useSaved();
+  const frases = saved.filter(i => i.type === 'frase');
+  const conteudo = saved.filter(i => i.type !== 'frase');
   if (saved.length === 0) return (
     <div style={{ padding: '60px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 36, marginBottom: 16 }}>☆</div>
       <p style={{ fontFamily: "'Lora', serif", fontSize: 18, color: '#333', fontStyle: 'italic', marginBottom: 8 }}>Nada salvo ainda.</p>
-      <p style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>Toque na estrela em qualquer card para salvar aqui.</p>
+      <p style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>Toque na estrela em qualquer card (ou na frase do dia) para salvar aqui.</p>
     </div>
   );
-  const cards = saved.map(item => {
+  const cards = conteudo.map(item => {
     const pal = CARD_PALETTES[item.type] || CARD_PALETTES.artwork;
     const info = CONTENT_TYPES.find(t => t.id === item.type);
     return (
@@ -305,10 +332,13 @@ function SavedPage({ isWide }) {
   });
   return (
     <div style={{ paddingBottom: 60 }}>
-      <p style={{ padding: '20px 22px 8px', fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase' }}>
-        {saved.length} {saved.length === 1 ? 'item salvo' : 'itens salvos'}
-      </p>
-      {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
+      {frases.length > 0 && <FrasesCard frases={frases} remove={remove} />}
+      {conteudo.length > 0 && <>
+        <p style={{ padding: '20px 22px 8px', fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          {conteudo.length} {conteudo.length === 1 ? 'item salvo' : 'itens salvos'}
+        </p>
+        {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
+      </>}
     </div>
   );
 }
