@@ -5,6 +5,7 @@ import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
+import { useNav } from './nav.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -907,6 +908,7 @@ function FinancasForm({ editing, snaps, onClose }) {
 
 function FinancasSection({ onBack }) {
   const life = useLife();
+  const nav = useNav();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
   const [view, setView] = useState('tabela');
   const [selId, setSelId] = useState(null);
@@ -965,11 +967,12 @@ function FinancasSection({ onBack }) {
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 12px' }}>Vida Financeira</h2>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         {[['carteira', 'Carteira'], ['salarios', 'Salários'], ['gastos', 'Gastos']].map(([k, txt]) => (
           <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
         ))}
       </div>
+      <button onClick={() => nav.goRetroCompras()} style={{ width: '100%', marginBottom: 16, padding: '9px 0', borderRadius: 10, border: '1px solid ' + COR_FIN + '55', background: '#fff', color: COR_FIN, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>🛍️ Ver minhas compras feitas ›</button>
 
       {sub === 'salarios' && <SalariosVida />}
       {sub === 'gastos' && <GastosVida />}
@@ -1398,6 +1401,7 @@ function LinhasGastos({ meses, cats, valor }) {
 
 function GastosVida() {
   const life = useLife();
+  const nav = useNav();
   const [selMes, setSelMes] = useState(null);
   const [vista, setVista] = useState('mes');
   const [form, setForm] = useState(null);
@@ -1460,7 +1464,7 @@ function GastosVida() {
               return (
                 <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}</span>
+                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}{c.categoria === 'Coisas' && <span onClick={() => nav.goRetroCompras()} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver compras ›</span>}</span>
                     <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)} <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
                   </div>
                   <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>

@@ -1,6 +1,6 @@
 // Aba "Retrospectiva": hub que agrega seus números e marcos.
 // Página inicial: "o ano em números" (clicável) + cards que abrem sub-retrospectivas.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
 import { EXERCICIO_BY_ID } from './calendarConfig.js';
@@ -26,8 +26,9 @@ const CARDS = [
   { id: 'amorosa', label: 'Amorosa', desc: 'dates e afins', cor: '#c2548f' },
 ];
 
-export default function RetrospectivaPage({ isWide }) {
-  const [sec, setSec] = useState(null);
+export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) {
+  const [sec, setSec] = useState(secInicial || null);
+  useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
   if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
@@ -151,8 +152,8 @@ function ComprasRetro({ onBack, isWide }) {
   const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
   // Duas fontes: registro próprio (comprasFeitas) + itens marcados como comprado nas listas.
-  const doLog = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), editavel: true, raw: c }));
-  const dasListas = (life.compras.itens || []).filter(i => i.comprado).map(i => ({ id: i.id, titulo: i.titulo, data: i.compradoEm, sub: nomeLista(i.listaId), vtxt: valorTxt(i.orcamento, i.moeda), editavel: false }));
+  const doLog = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
+  const dasListas = (life.compras.itens || []).filter(i => i.comprado).map(i => ({ id: i.id, titulo: i.titulo, data: i.compradoEm, sub: nomeLista(i.listaId), vtxt: valorTxt(i.orcamento, i.moeda), moeda: i.moeda || 'BRL', vnum: Number(i.orcamento) || 0, editavel: false }));
   const todas = [...doLog, ...dasListas];
 
   const meses = [...new Set(todas.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
@@ -186,12 +187,18 @@ function ComprasRetro({ onBack, isWide }) {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{todas.length}</span>
           <span style={{ fontSize: 13, color: '#999' }}> {todas.length === 1 ? 'compra' : 'compras'}</span>
         </div>
-        {grupos.map(g => (
-          <div key={g.mm} style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: '#7a3d12', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>{fmtMesAno(g.mm)}</div>
-            {g.itens.map(linhaItem)}
-          </div>
-        ))}
+        {grupos.map(g => {
+          const totalBRL = g.itens.filter(i => i.moeda === 'BRL').reduce((a, i) => a + i.vnum, 0);
+          return (
+            <div key={g.mm} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: '#7a3d12', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700 }}>{fmtMesAno(g.mm)}</span>
+                {totalBRL > 0 && <span style={{ fontSize: 12, color: '#7a3d12', fontWeight: 700 }}>R$ {totalBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>}
+              </div>
+              {g.itens.map(linhaItem)}
+            </div>
+          );
+        })}
         {semData.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>sem data</div>

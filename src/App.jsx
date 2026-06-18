@@ -9,6 +9,7 @@ import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID }
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
+import { NavContext } from './nav.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -351,6 +352,8 @@ export default function App() {
   // o homeNonce muda e remonta a página, voltando à capa (sai de sub-páginas).
   const [homeNonce, setHomeNonce] = useState(0);
   const goTab = (id) => { if (id === tab) setHomeNonce(n => n + 1); setTab(id); };
+  const [retroSec, setRetroSec] = useState(null);
+  const goRetroCompras = () => { setRetroSec('compras'); goTab('retrospectiva'); };
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
@@ -360,6 +363,7 @@ export default function App() {
     <SavedProvider>
       <CalendarProvider>
         <LifeProvider>
+          <NavContext.Provider value={{ goRetroCompras }}>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
@@ -370,8 +374,9 @@ export default function App() {
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
             {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} />}
-            {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} />}
+            {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
+          </NavContext.Provider>
         </LifeProvider>
       </CalendarProvider>
     </SavedProvider>

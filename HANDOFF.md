@@ -168,7 +168,21 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
   (dinheiro/saúde/sentimentos/viagem) e **Maquiagem** (conhecimento + "Para comprar" espelhando a lista de
   Compras **Maquiagem**, semeada idempotente por `ensureMaquiagem`/flag `maquiagemSeeded` por causa do
   merge raso; "Para provar" só referência). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
-- Pendências Life: Estudos, Viagens, Retrospectivas (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
+- Pendências Life: Estudos, Viagens (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
+
+## Aba Retrospectiva (`src/Retrospectiva.jsx`) — NOVO
+Virou **aba própria** (tab `retrospectiva`, ao lado de Life). Hub: **"ano em números"** (cultura+
+exercícios do calendário, por ano, sem futuros) com cada número **clicável** (drill-down → lista os
+itens) + grade de **cards** que abrem sub-páginas: **Compras** (pronto) e Quem você viu / Viagens /
+Música / Saúde / Corridas / Amorosa (placeholder `EmBreve`).
+- **Compras**: duas fontes — `life.comprasFeitas` (histórico próprio, editável, **não** entra nas
+  listas) + itens marcados como `comprado` nas listas (com `compradoEm`). Agrupado por mês, subtotal
+  em R$ por mês. Form `CompraFeitaForm` (nome/data/valor/categoria). `comprasFeitas` é slice do
+  `lifeStore` (CRUD `saveCompraFeita`/`deleteCompraFeita`); seed histórico jan–jun/2026 via
+  `ensureComprasFeitas` (flag `comprasFeitasSeeded`).
+- **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
+  (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
+  "Ver minhas compras feitas" e pelo link "ver compras" na linha **Coisas** dos Gastos (Vida Financeira).
 
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:
