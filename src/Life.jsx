@@ -164,17 +164,6 @@ function ComprasSection({ onBack }) {
   const gruposOrdem = [];
   itensLista.forEach(i => { if (i.grupo && !gruposOrdem.includes(i.grupo)) gruposOrdem.push(i.grupo); });
   const grupos = gruposOrdem.map(g => ({ nome: g, itens: itensLista.filter(i => i.grupo === g).sort(porComprado) }));
-  // Lista Maquiagem: 3 grupos — "Compras decididas" (itens reais) + "Experimentar BR" e "Comprar fora"
-  // espelhados (read-only) das notas do tópico Maquiagem em Aprendizados (a fonte deles).
-  const ehMaquiagem = listaSel === 'maquiagem';
-  const refItens = (notaId) => ((life.aprendizados?.notas || []).find(n => n.id === notaId)?.itens) || [];
-  const grupoHeaderStyle = { fontSize: 11.5, color: '#7a3d12', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 7 };
-  const grupoRef = (titulo, itens) => itens.length > 0 ? (
-    <div key={titulo} style={{ marginTop: 18 }}>
-      <div style={{ ...grupoHeaderStyle, marginBottom: 4, display: 'flex', alignItems: 'baseline', gap: 8 }}>{titulo} <span style={{ fontSize: 10, color: '#c2548f', fontWeight: 700, textTransform: 'none' }}>↔ Aprendizados</span></div>
-      {itens.map((it, i) => <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, fontSize: 14, color: '#333' }}>{it}</div>)}
-    </div>
-  ) : null;
   const itemRow = (it) => {
     const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
     return (
@@ -223,17 +212,8 @@ function ComprasSection({ onBack }) {
         <button onClick={() => setForm({})} title="adicionar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      {/* itens — Maquiagem tem 3 grupos; demais listas agrupam por `grupo` */}
-      {ehMaquiagem ? (
-        <>
-          <div style={grupoHeaderStyle}>Compras decididas</div>
-          {itensLista.length === 0
-            ? <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '4px 0 8px' }}>Nada decidido ainda. Toque no + acima.</p>
-            : [...itensLista].sort(porComprado).map(itemRow)}
-          {grupoRef('Experimentar BR', refItens('maq-provar-br'))}
-          {grupoRef('Comprar fora', refItens('maq-provar-fora'))}
-        </>
-      ) : itensLista.length === 0 ? (
+      {/* itens (agrupados por sublista quando têm `grupo`) */}
+      {itensLista.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada nesta lista ainda. Toque no + acima.</p>
       ) : (
         <>
@@ -2011,12 +1991,12 @@ const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize
 
 // Espelho ao vivo de uma lista de Compras dentro de uma nota (tipo 'compras').
 // É o MESMO dado da aba Compras: marcar/adicionar/apagar aqui reflete lá.
-function ComprasMirror({ listaId }) {
+function ComprasMirror({ listaId, grupo }) {
   const life = useLife();
   const [novo, setNovo] = useState('');
-  const itens = (life.compras.itens || []).filter(i => i.listaId === listaId)
+  const itens = (life.compras.itens || []).filter(i => i.listaId === listaId && (!grupo || i.grupo === grupo))
     .sort((a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1));
-  const add = () => { const t = novo.trim(); if (!t) return; life.addComprasItem({ titulo: t, listaId }); setNovo(''); };
+  const add = () => { const t = novo.trim(); if (!t) return; life.addComprasItem({ titulo: t, listaId, grupo: grupo || undefined }); setNovo(''); };
   return (
     <div>
       {itens.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 8px' }}>Lista vazia.</p>}
@@ -2055,7 +2035,7 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
       {open && (
         <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
           {isCompras ? (
-            <ComprasMirror listaId={nota.listaId} />
+            <ComprasMirror listaId={nota.listaId} grupo={nota.grupo} />
           ) : isVinho ? (
             <>
               {meta && <div style={{ fontSize: 12, color: '#999', marginBottom: nota.info ? 6 : 0 }}>{meta}</div>}

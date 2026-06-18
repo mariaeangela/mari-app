@@ -380,34 +380,10 @@ export const DEFAULT_APRENDIZADOS = {
       'Contorno perfeito: Rare Beauty.',
       'Blindagem da Pop.',
     ] },
-    { id: 'maq-paracomprar', topicoId: 'maquiagem', tipo: 'compras', listaId: 'maquiagem', titulo: 'Para comprar', itens: [] },
+    { id: 'maq-paracomprar', topicoId: 'maquiagem', tipo: 'compras', listaId: 'maquiagem', grupo: 'Compras decididas', titulo: 'Para comprar', itens: [] },
     { id: 'maq-provar', topicoId: 'maquiagem', titulo: 'Para provar', itens: [] },
-    { id: 'maq-provar-br', topicoId: 'maquiagem', paiId: 'maq-provar', titulo: 'Tem no Brasil (experimentar)', itens: [
-      'Bases e corretivos: NARS (corretivo Honey), Lancôme, Chanel, Rose Inc base 60.',
-      'MAC Shine Control prime.',
-      'Blush MAC Sunbasque.',
-      'MAC Fix+.',
-      'Stick Make B. multifuncional.',
-    ] },
-    { id: 'maq-provar-fora', topicoId: 'maquiagem', paiId: 'maq-provar', titulo: 'Comprar fora (experimentar)', itens: [
-      'Glassy blush (Expresso).',
-      'Refy (blush e contorno em creme, pincel, lip gloss).',
-      'Patrick Ta (base, blush, contorno).',
-      'Makeup by Mario (skin enhancer, contorno, blush).',
-      'Rhode (lips, blush).',
-      'Westman Atelier (blush).',
-      'Beautycounter: Cheeky Clean cream blush.',
-      'Hourglass (pincel, paleta, batom).',
-      'Summer Fridays (lip oil, skin tint).',
-      'Saie Glowy Super Gel.',
-      'Blush Nudestix.',
-      'Iluminador Merit.',
-      'Sisley Paris lip tint.',
-      'Kosas (corretivo).',
-      'Pixi corretor de olheira (Peach).',
-      'Tarte corretivo (caixinha).',
-      'The Ordinary Lash Curl.',
-    ] },
+    { id: 'maq-provar-br', topicoId: 'maquiagem', paiId: 'maq-provar', tipo: 'compras', listaId: 'maquiagem', grupo: 'Experimentar BR', titulo: 'Tem no Brasil (experimentar)', itens: [] },
+    { id: 'maq-provar-fora', topicoId: 'maquiagem', paiId: 'maq-provar', tipo: 'compras', listaId: 'maquiagem', grupo: 'Comprar fora', titulo: 'Comprar fora (experimentar)', itens: [] },
   ],
 };
 
@@ -430,6 +406,41 @@ function ensureMaquiagem(d) {
   if (compras.listas.some(l => l.id === 'maquiagem')) return { ...d, maquiagemSeeded: true };
   const itens = MAQUIAGEM_ITENS.map((titulo, i) => ({ id: 'mq' + i, titulo, listaId: 'maquiagem', comprado: false }));
   return { ...d, maquiagemSeeded: true, compras: { ...compras, listas: [...compras.listas, { id: 'maquiagem', nome: 'Maquiagem' }], itens: [...compras.itens, ...itens] } };
+}
+
+// Divide a lista Maquiagem em 3 grupos (itens reais, checáveis): "Compras decididas" (o que já tinha),
+// "Experimentar BR" e "Comprar fora". As notas do tópico Maquiagem (Aprendizados) viram espelhos por
+// grupo. Semeado uma vez (flag maquiagemGruposSeeded).
+const MAQ_BR = [
+  'Bases e corretivos: NARS (corretivo Honey), Lancôme, Chanel, Rose Inc base 60',
+  'MAC Shine Control prime', 'Blush MAC Sunbasque', 'MAC Fix+', 'Stick Make B. multifuncional',
+];
+const MAQ_FORA = [
+  'Glassy blush (Expresso)', 'Refy (blush e contorno em creme, pincel, lip gloss)', 'Patrick Ta (base, blush, contorno)',
+  'Makeup by Mario (skin enhancer, contorno, blush)', 'Rhode (lips, blush)', 'Westman Atelier (blush)',
+  'Beautycounter: Cheeky Clean cream blush', 'Hourglass (pincel, paleta, batom)', 'Summer Fridays (lip oil, skin tint)',
+  'Saie Glowy Super Gel', 'Blush Nudestix', 'Iluminador Merit', 'Sisley Paris lip tint', 'Kosas (corretivo)',
+  'Pixi corretor de olheira (Peach)', 'Tarte corretivo (caixinha)', 'The Ordinary Lash Curl',
+];
+function ensureMaquiagemGrupos(d) {
+  if (d.maquiagemGruposSeeded) return d;
+  const compras = d.compras || { listas: [], itens: [] };
+  const have = new Set(compras.itens.map(i => i.id));
+  // itens 'maquiagem' sem grupo viram "Compras decididas"
+  let itens = compras.itens.map(i => (i.listaId === 'maquiagem' && !i.grupo) ? { ...i, grupo: 'Compras decididas' } : i);
+  // adiciona BR e Fora como itens reais (ids estáveis, sem duplicar)
+  const novos = [
+    ...MAQ_BR.map((titulo, i) => ({ id: 'mqbr' + i, titulo, listaId: 'maquiagem', grupo: 'Experimentar BR', comprado: false })),
+    ...MAQ_FORA.map((titulo, i) => ({ id: 'mqfora' + i, titulo, listaId: 'maquiagem', grupo: 'Comprar fora', comprado: false })),
+  ].filter(it => !have.has(it.id));
+  itens = [...itens, ...novos];
+  // se aprendizados já está na nuvem, converte as notas da Maquiagem em espelhos por grupo
+  let extra = {};
+  if (d.aprendizados && d.aprendizados.notas) {
+    const map = { 'maq-paracomprar': 'Compras decididas', 'maq-provar-br': 'Experimentar BR', 'maq-provar-fora': 'Comprar fora' };
+    extra.aprendizados = { ...d.aprendizados, notas: d.aprendizados.notas.map(n => map[n.id] ? { ...n, tipo: 'compras', listaId: 'maquiagem', grupo: map[n.id], itens: [] } : n) };
+  }
+  return { ...d, maquiagemGruposSeeded: true, compras: { ...compras, itens }, ...extra };
 }
 
 // Itens da lista NY26 (viagem) — valores em USD. Sublistas via campo `grupo`; o teto de
@@ -544,7 +555,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal()))))));
+  const [data, setData] = useState(() => rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(readLocal())))))));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -554,13 +565,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(local)))));
+        const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(local))))));
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged)))));
+      const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(merged))))));
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();
