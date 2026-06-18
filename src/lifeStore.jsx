@@ -597,6 +597,14 @@ export function LifeProvider({ children }) {
     listas: compras.listas.filter(l => l.id !== id),
     itens: compras.itens.map(x => x.listaId === id ? { ...x, listaId: 'geral' } : x),
   });
+  const moveComprasLista = (id, dir) => {
+    const arr = [...compras.listas];
+    const i = arr.findIndex(l => l.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setCompras({ ...compras, listas: arr });
+  };
 
   // ---- Planos (com Informações + Check list) ----
   const planos = data.planos || DEFAULT_PLANOS;
@@ -682,7 +690,7 @@ export function LifeProvider({ children }) {
 
   const value = {
     data, compras,
-    addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista,
+    addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista, moveComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,

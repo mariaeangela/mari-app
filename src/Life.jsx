@@ -157,6 +157,7 @@ function ComprasSection({ onBack }) {
   const [form, setForm] = useState(null);      // { editing? }
   const [novaLista, setNovaLista] = useState('');
   const [criandoLista, setCriandoLista] = useState(false);
+  const [gerenciar, setGerenciar] = useState(false);
 
   const itensLista = life.compras.itens.filter(i => i.listaId === listaSel);
   const porComprado = (a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1);
@@ -208,6 +209,7 @@ function ComprasSection({ onBack }) {
         ) : (
           <button onClick={() => setCriandoLista(true)} style={{ whiteSpace: 'nowrap', padding: '7px 12px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px dashed #ccc', background: '#fff', color: '#999' }}>+ lista</button>
         )}
+        {life.compras.listas.length > 0 && <button onClick={() => setGerenciar(true)} title="gerenciar listas" style={{ whiteSpace: 'nowrap', padding: '7px 11px', borderRadius: 20, fontSize: 14, cursor: 'pointer', flexShrink: 0, border: '1px solid #e2e2e2', background: '#fff', color: '#999' }}>⚙</button>}
         </div>
         <button onClick={() => setForm({})} title="adicionar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
@@ -228,6 +230,26 @@ function ComprasSection({ onBack }) {
       )}
 
       {form && <ComprasForm editing={form.editing} listaAtual={listaSel} listas={listas} onClose={() => setForm(null)} />}
+
+      {gerenciar && (
+        <div onClick={() => setGerenciar(false)} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar listas</h3>
+              <button onClick={() => setGerenciar(false)} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {life.compras.listas.map((l, idx) => (
+              <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                <span style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600 }}>{l.nome}</span>
+                <button onClick={() => life.moveComprasLista(l.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                <button onClick={() => life.moveComprasLista(l.id, 1)} disabled={idx === life.compras.listas.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === life.compras.listas.length - 1 ? '#ddd' : '#777', cursor: idx === life.compras.listas.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                <button onClick={() => { if (window.confirm(`Apagar a lista "${l.nome}"? Os itens dela vão para a Geral.`)) { if (listaSel === l.id) setListaSel('geral'); life.deleteComprasLista(l.id); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>As listas fixas (Geral, Algum dia, Internacional) não entram aqui. Apagar move os itens da lista para a Geral.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
