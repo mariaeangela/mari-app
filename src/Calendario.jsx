@@ -59,7 +59,7 @@ function taskOccursOn(t, date) {
 const ehRotina = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino' || x.subtipo === 'corrida_treino';
 const ehCorrida = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida';
 
-function itemsForDay(data, date) {
+export function itemsForDay(data, date) {
   const key = ymd(date);
   const events = data.events.filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo, _dia: key }));
@@ -68,7 +68,7 @@ function itemsForDay(data, date) {
   const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
-    .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo }));
+    .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo + (r.local ? ' · ' + r.local : '') }));
   // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
   // (e volta para o calendário como 'lido' quando concluído).
   const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo')
@@ -157,6 +157,7 @@ function AddSheet({ initialDate, editing, onClose }) {
   const [distancia, setDistancia] = useState(editing?.distancia || '');
   const [nota, setNota] = useState(editing?.nota || '');
   const [comQuem, setComQuem] = useState(editing?.comQuem || '');
+  const [local, setLocal] = useState(editing?.local || '');
 
   const TIPOS = [
     { id: 'evento', label: 'Evento' }, { id: 'exercicio', label: 'Exercício' },
@@ -169,7 +170,7 @@ function AddSheet({ initialDate, editing, onClose }) {
     if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
     if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined };
     if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: false };
-    if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined };
+    if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
     return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, nota: nota || undefined, comQuem: comQuem || undefined };
   };
 
@@ -186,7 +187,7 @@ function AddSheet({ initialDate, editing, onClose }) {
     else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined });
     else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
-      const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined };
+      const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
       if (editing?.id) cal.updateRole({ ...r, id: editing.id }); else cal.addRole(r);
     }
     else if (tipo === 'cultura') cal.saveCultura({ ...base, subtipo: subtipoCult, data: inicio, nota: nota || undefined, comQuem: comQuem || undefined });
@@ -314,6 +315,12 @@ function AddSheet({ initialDate, editing, onClose }) {
           <>
             <label style={labelStyle}>Com quem (opcional)</label>
             <input value={comQuem} onChange={e => setComQuem(e.target.value)} placeholder="ex.: Bia, João" style={inputStyle} />
+          </>
+        )}
+        {tipo === 'role' && (
+          <>
+            <label style={labelStyle}>Onde (opcional)</label>
+            <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: Bar do Zé, casa da Bia…" style={inputStyle} />
           </>
         )}
         {tipo !== 'role' && (

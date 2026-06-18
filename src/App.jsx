@@ -4,7 +4,7 @@ import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
-import Calendario, { itemsGeral } from './Calendario.jsx';
+import Calendario, { itemsForDay } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection } from './Life.jsx';
@@ -213,7 +213,7 @@ function NesteDiaFato() {
 function HojeAgenda() {
   const cal = useCalendar();
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-  const items = itemsGeral(cal.data, hoje);
+  const items = itemsForDay(cal.data, hoje).all;
   if (!items.length) return null;
   return (
     <div style={{ marginBottom: 24 }}>

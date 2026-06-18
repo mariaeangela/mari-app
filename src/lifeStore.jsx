@@ -524,6 +524,18 @@ function ensureMusica(d) {
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+// Compras com data limite vencida (e não compradas) puxam pra hoje (pra não se perder).
+function rolarComprasVencidas(d) {
+  const compras = d.compras;
+  if (!compras || !compras.itens) return d;
+  const hk = hojeISO();
+  let changed = false;
+  const itens = compras.itens.map(i => {
+    if (i.dataLimite && !i.comprado && i.dataLimite < hk) { changed = true; return { ...i, dataLimite: hk }; }
+    return i;
+  });
+  return changed ? { ...d, compras: { ...compras, itens } } : d;
+}
 
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
@@ -532,7 +544,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal())))));
+  const [data, setData] = useState(() => rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal()))))));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -542,13 +554,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(local))));
+        const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(local)))));
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged))));
+      const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged)))));
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();
