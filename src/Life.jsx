@@ -908,7 +908,6 @@ function FinancasForm({ editing, snaps, onClose }) {
 
 function FinancasSection({ onBack }) {
   const life = useLife();
-  const nav = useNav();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
   const [view, setView] = useState('tabela');
   const [selId, setSelId] = useState(null);
@@ -967,12 +966,11 @@ function FinancasSection({ onBack }) {
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 12px' }}>Vida Financeira</h2>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
         {[['carteira', 'Carteira'], ['salarios', 'Salários'], ['gastos', 'Gastos']].map(([k, txt]) => (
           <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
         ))}
       </div>
-      <button onClick={() => nav.goRetroCompras()} style={{ width: '100%', marginBottom: 16, padding: '9px 0', borderRadius: 10, border: '1px solid ' + COR_FIN + '55', background: '#fff', color: COR_FIN, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>🛍️ Ver minhas compras feitas ›</button>
 
       {sub === 'salarios' && <SalariosVida />}
       {sub === 'gastos' && <GastosVida />}
