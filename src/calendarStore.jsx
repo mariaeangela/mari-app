@@ -37,6 +37,14 @@ function rolarAtrasadas(tasks, hoje) {
   return { next, changed };
 }
 
+// Lembrete recorrente (todo dia 1): cadastrar o Spotify do mês anterior. Semeado uma vez.
+function ensureLembreteSpotify(d) {
+  if (d.lembreteSpotifySeeded) return d;
+  if ((d.tasks || []).some(t => t.id === 'lembrete-spotify')) return { ...d, lembreteSpotifySeeded: true };
+  const task = { id: 'lembrete-spotify', titulo: 'Cadastrar Spotify do mês passado', data: '2026-01-01', repetir: 'mensal' };
+  return { ...d, lembreteSpotifySeeded: true, tasks: [...(d.tasks || []), task] };
+}
+
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { ...DEFAULT }; }
@@ -46,7 +54,7 @@ function writeLocal(d) {
 }
 
 export function CalendarProvider({ children }) {
-  const [data, setData] = useState(readLocal);
+  const [data, setData] = useState(() => ensureLembreteSpotify(readLocal()));
   const dirty = useRef(false); // não deixa a nuvem tardia sobrescrever ação local
 
   useEffect(() => {
@@ -59,17 +67,21 @@ export function CalendarProvider({ children }) {
         // nuvem vazia/offline: se já há algo local, empurra pra cima (migração)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
           local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length;
-        const { next, changed } = rolarAtrasadas(local.tasks, hojeKey());
-        if (changed) { const f = { ...local, tasks: next }; writeLocal(f); setData(f); pushCalendario(f); }
-        else if (hasLocal) pushCalendario(local);
+        const seeded = ensureLembreteSpotify(local);
+        const { next, changed } = rolarAtrasadas(seeded.tasks, hojeKey());
+        const f = changed ? { ...seeded, tasks: next } : seeded;
+        const mudou = changed || seeded !== local;
+        if (mudou) { writeLocal(f); setData(f); }
+        if (mudou || hasLocal) pushCalendario(f);
         return;
       }
-      const merged = { ...DEFAULT, ...cloud };
+      const merged0 = { ...DEFAULT, ...cloud };
+      const merged = ensureLembreteSpotify(merged0);
       const { next, changed } = rolarAtrasadas(merged.tasks, hojeKey());
       const final = changed ? { ...merged, tasks: next } : merged;
       writeLocal(final);
       setData(final);
-      if (changed) pushCalendario(final);
+      if (changed || merged !== merged0) pushCalendario(final);
     })();
     return () => { alive = false; };
   }, []);

@@ -180,6 +180,12 @@ Música / Saúde / Corridas / Amorosa (placeholder `EmBreve`).
   em R$ por mês. Form `CompraFeitaForm` (nome/data/valor/categoria). `comprasFeitas` é slice do
   `lifeStore` (CRUD `saveCompraFeita`/`deleteCompraFeita`); seed histórico jan–jun/2026 via
   `ensureComprasFeitas` (flag `comprasFeitasSeeded`).
+- **Música** (`MusicaRetro`/`MusicaForm`): 1 registro por mês (`life.musica = [{id,mes,minutos,artista,
+  musica}]`, CRUD `saveMusica`/`deleteMusica`; seed jan–mai/2026 dos prints do Spotify via
+  `ensureMusica`/flag `musicaSeeded`). Mostra total de minutos do ano + cada mês (minutos/horas, top
+  artista, top música). **Lembrete recorrente** no Calendário (`ensureLembreteSpotify` no
+  `calendarStore`, flag `lembreteSpotifySeeded`): tarefa mensal "Cadastrar Spotify do mês passado"
+  (data dia 1, `repetir:'mensal'`) — aparece no Calendário e no **Hoje** (via `HojeAgenda`) todo dia 1.
 - **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
   "Ver minhas compras feitas" e pelo link "ver compras" na linha **Coisas** dos Gastos (Vida Financeira).

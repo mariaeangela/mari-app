@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -505,6 +505,22 @@ function ensureComprasFeitas(d) {
   return { ...d, comprasFeitasSeeded: true, comprasFeitas: [...(d.comprasFeitas || []), ...novos] };
 }
 
+// Retrospectiva → Música (Spotify por mês): [mes, minutos, top artista, top música]. Semeado uma vez.
+const MUSICA_SEED = [
+  ['2026-01', 3370, 'Taylor Swift', 'Reliquia'],
+  ['2026-02', 1958, 'Taylor Swift', 'BAILE INoLVIDABLE'],
+  ['2026-03', 1414, 'Taylor Swift', 'Reliquia'],
+  ['2026-04', 1989, 'Taylor Swift', "Would've, Could've, Should've"],
+  ['2026-05', 1695, 'Taylor Swift', 'Future Nostalgia'],
+];
+function ensureMusica(d) {
+  if (d.musicaSeeded) return d;
+  const have = new Set((d.musica || []).map(m => m.id));
+  const novos = MUSICA_SEED.map(([mes, minutos, artista, musica], i) => ({ id: 'mu' + i, mes, minutos, artista, musica }))
+    .filter(m => !have.has(m.id));
+  return { ...d, musicaSeeded: true, musica: [...(d.musica || []), ...novos] };
+}
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
@@ -516,7 +532,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal()))));
+  const [data, setData] = useState(() => ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(readLocal())))));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -526,13 +542,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = ensureComprasFeitas(ensureNY26(ensureMaquiagem(local)));
+        const next = ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(local))));
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged)));
+      const next = ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagem(merged))));
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();
@@ -624,6 +640,13 @@ export function LifeProvider({ children }) {
     : [...comprasFeitas, { ...c, id: uid('cf') }] });
   const deleteCompraFeita = (id) => persist({ ...data, comprasFeitas: comprasFeitas.filter(x => x.id !== id) });
 
+  // ---- Música (Retrospectiva): 1 registro por mês ----
+  const musica = data.musica || [];
+  const saveMusica = (m) => persist({ ...data, musica: m.id && musica.some(x => x.id === m.id)
+    ? musica.map(x => x.id === m.id ? m : x)
+    : [...musica, { ...m, id: uid('mu') }] });
+  const deleteMusica = (id) => persist({ ...data, musica: musica.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -645,6 +668,7 @@ export function LifeProvider({ children }) {
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, saveAprendNota, deleteAprendNota,
     comprasFeitas, saveCompraFeita, deleteCompraFeita,
+    musica, saveMusica, deleteMusica,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

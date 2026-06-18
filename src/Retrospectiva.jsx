@@ -30,6 +30,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const [sec, setSec] = useState(secInicial || null);
   useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
   if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -249,6 +250,88 @@ function CompraFeitaForm({ editing, onClose }) {
         <datalist id="cf-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteCompraFeita(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Card: Música (Spotify por mês) ----
+const COR_MUSICA = '#1db954';
+function MusicaRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const meses = [...(life.musica || [])].sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
+  const totalMin = meses.reduce((a, m) => a + (Number(m.minutos) || 0), 0);
+  const fmtMin = (n) => Number(n || 0).toLocaleString('pt-BR');
+  const horas = (n) => Math.round((Number(n) || 0) / 60);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_MUSICA, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Música</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>minutos, artistas e músicas do seu ano</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {meses.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + e cadastre o print do Spotify do mês (minutos, top artista e top música).</p>
+      ) : <>
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{fmtMin(totalMin)}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> minutos no total · ~{horas(totalMin)}h</span>
+        </div>
+        {meses.map(m => (
+          <div key={m.id} onClick={() => setForm({ editing: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10, cursor: 'pointer' }}>
+            <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{fmtMesAno(m.mes)}</div>
+            <div style={{ marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#111' }}>{fmtMin(m.minutos)}</span>
+              <span style={{ fontSize: 12.5, color: '#999' }}> min · ~{horas(m.minutos)}h</span>
+            </div>
+            <div style={{ fontSize: 13.5, color: '#333' }}>🎤 {m.artista || '—'}</div>
+            <div style={{ fontSize: 13.5, color: '#333', marginTop: 2 }}>🎵 {m.musica || '—'}</div>
+          </div>
+        ))}
+      </>}
+
+      {form && <MusicaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function MusicaForm({ editing, onClose }) {
+  const life = useLife();
+  const [mes, setMes] = useState(editing?.mes || '');
+  const [minutos, setMinutos] = useState(editing?.minutos != null ? String(editing.minutos) : '');
+  const [artista, setArtista] = useState(editing?.artista || '');
+  const [musica, setMusica] = useState(editing?.musica || '');
+  const podeSalvar = !!mes;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveMusica({ id: editing?.id, mes, minutos: minutos ? Number(minutos.replace(/\D/g, '')) : undefined, artista: artista.trim() || undefined, musica: musica.trim() || undefined });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} mês</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Mês</label>
+        <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Minutos ouvidos</label>
+        <input type="text" inputMode="numeric" value={minutos} onChange={e => setMinutos(e.target.value)} placeholder="ex.: 1958" style={inputStyle} />
+        <label style={labelStyle}>Top artista</label>
+        <input value={artista} onChange={e => setArtista(e.target.value)} placeholder="ex.: Taylor Swift" style={inputStyle} />
+        <label style={labelStyle}>Top música</label>
+        <input value={musica} onChange={e => setMusica(e.target.value)} placeholder="ex.: Reliquia" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteMusica(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>
