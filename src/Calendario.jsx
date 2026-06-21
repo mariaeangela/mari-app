@@ -66,7 +66,7 @@ export function itemsForDay(data, date) {
   const exercicios = data.exercicios.filter(x => x.data === key)
     .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: ehCorrida(x) ? corridaLabel(x) : exTitulo(x) }));
   const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
-    .map(t => ({ ...t, _tipo: 'tarefa', _cor: TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
+    .map(t => ({ ...t, _tipo: 'tarefa', _cor: t.trabalho ? '#4f7cff' : TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo + (r.local ? ' · ' + r.local : '') }));
   // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
@@ -382,6 +382,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
     <button key={it.id} onClick={() => onEdit(it)} style={rowBtn}>
       <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />
       <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+      {it._tipo === 'tarefa' && it.trabalho && <span style={trabTag}>trabalho</span>}
       {extra}
     </button>
   );
@@ -621,6 +622,7 @@ function AgendaView({ onEdit }) {
               <div key={it.id} style={rowBtn}>
                 <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
                 <span onClick={() => onEdit(it)} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+                {it.trabalho && <span style={trabTag}>trabalho</span>}
               </div>
             ) : (
               <button key={it.id} onClick={() => onEdit(it)} style={rowBtn}>
@@ -877,6 +879,7 @@ const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,
 const sheet = { background: '#fafafa', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto', borderRadius: '20px 20px 0 0', padding: '20px 20px 28px' };
 const closeBtn = { background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer', lineHeight: 1 };
 const rowBtn = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer' };
+export const trabTag = { fontSize: 9.5, fontWeight: 700, color: '#4f7cff', background: '#4f7cff18', borderRadius: 6, padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.3px', flexShrink: 0 };
 const dashedBtn = { width: '100%', marginTop: 18, padding: '12px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' };
 const navBtn = { background: 'none', border: '1px solid #e2e2e2', borderRadius: 8, width: 32, height: 32, fontSize: 18, color: '#666', cursor: 'pointer', lineHeight: 1 };
 const delBtn = { padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' };
