@@ -158,6 +158,7 @@ function AddSheet({ initialDate, editing, onClose }) {
   const [nota, setNota] = useState(editing?.nota || '');
   const [comQuem, setComQuem] = useState(editing?.comQuem || '');
   const [local, setLocal] = useState(editing?.local || '');
+  const [trabalho, setTrabalho] = useState(editing?.trabalho || false);
 
   const TIPOS = [
     { id: 'evento', label: 'Evento' }, { id: 'exercicio', label: 'Exercício' },
@@ -169,7 +170,7 @@ function AddSheet({ initialDate, editing, onClose }) {
   const buildObj = () => {
     if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
     if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined };
-    if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: false };
+    if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: false };
     if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
     return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, nota: nota || undefined, comQuem: comQuem || undefined };
   };
@@ -185,7 +186,7 @@ function AddSheet({ initialDate, editing, onClose }) {
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
     else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined });
-    else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
+    else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
       if (editing?.id) cal.updateRole({ ...r, id: editing.id }); else cal.addRole(r);
@@ -261,10 +262,16 @@ function AddSheet({ initialDate, editing, onClose }) {
         )}
 
         {tipo === 'tarefa' && (
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, fontSize: 13, color: '#444', cursor: 'pointer' }}>
-            <input type="checkbox" checked={semDataChk} onChange={e => setSemDataChk(e.target.checked)} />
-            Sem data (vai para a lista "Tarefas sem data")
-          </label>
+          <>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, fontSize: 13, color: '#444', cursor: 'pointer' }}>
+              <input type="checkbox" checked={semDataChk} onChange={e => setSemDataChk(e.target.checked)} />
+              Sem data (vai para a lista "Tarefas sem data")
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13, color: '#444', cursor: 'pointer' }}>
+              <input type="checkbox" checked={trabalho} onChange={e => setTrabalho(e.target.checked)} />
+              Tarefa de trabalho
+            </label>
+          </>
         )}
         {!(tipo === 'tarefa' && semDataChk) && (
           <>
@@ -825,12 +832,23 @@ export default function Calendario({ isWide }) {
         <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: '#888', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Tarefas sem data</div>
           {tarefasPendentes.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 4px' }}>Tudo concluído por aqui. ✨</p>}
-          {tarefasPendentes.map(t => (
+          {tarefasPendentes.filter(t => !t.trabalho).map(t => (
             <div key={t.id} style={rowBtn}>
               <span onClick={() => cal.toggleTask(t.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
               <span onClick={() => setAddSheet({ editing: { ...t, _tipo: 'tarefa' } })} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{t.titulo}</span>
             </div>
           ))}
+          {tarefasPendentes.some(t => t.trabalho) && (
+            <>
+              <div style={{ fontSize: 11, color: '#4f7cff', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, margin: '12px 0 4px' }}>Trabalho</div>
+              {tarefasPendentes.filter(t => t.trabalho).map(t => (
+                <div key={t.id} style={rowBtn}>
+                  <span onClick={() => cal.toggleTask(t.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
+                  <span onClick={() => setAddSheet({ editing: { ...t, _tipo: 'tarefa' } })} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{t.titulo}</span>
+                </div>
+              ))}
+            </>
+          )}
           {tarefasConcluidas.length > 0 && (
             <>
               <button onClick={() => setVerFeitas(v => !v)} style={{ background: 'none', border: 'none', padding: '8px 0 0', color: '#999', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
