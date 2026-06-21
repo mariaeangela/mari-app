@@ -172,7 +172,7 @@ function AddSheet({ initialDate, editing, onClose }) {
     if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, nota: nota || undefined };
     if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: false };
     if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
-    return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, nota: nota || undefined, comQuem: comQuem || undefined };
+    return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, horaInicio: horaInicio || undefined, nota: nota || undefined, comQuem: comQuem || undefined };
   };
 
   const salvar = () => {
@@ -191,7 +191,7 @@ function AddSheet({ initialDate, editing, onClose }) {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
       if (editing?.id) cal.updateRole({ ...r, id: editing.id }); else cal.addRole(r);
     }
-    else if (tipo === 'cultura') cal.saveCultura({ ...base, subtipo: subtipoCult, data: inicio, nota: nota || undefined, comQuem: comQuem || undefined });
+    else if (tipo === 'cultura') cal.saveCultura({ ...base, subtipo: subtipoCult, data: inicio, horaInicio: horaInicio || undefined, nota: nota || undefined, comQuem: comQuem || undefined });
     onClose();
   };
 
@@ -305,7 +305,7 @@ function AddSheet({ initialDate, editing, onClose }) {
           </>
         )}
 
-        {(tipo === 'exercicio' || tipo === 'role') && (
+        {(tipo === 'exercicio' || tipo === 'role' || tipo === 'cultura') && (
           <>
             <label style={labelStyle}>Horário (opcional)</label>
             <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} style={inputStyle} />
