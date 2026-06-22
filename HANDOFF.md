@@ -205,8 +205,9 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   (data dia 1, `repetir:'mensal'`) — aparece no Calendário e no **Hoje** (via `HojeAgenda`) todo dia 1.
 - **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
-  "Ver minhas compras feitas". (O link "ver compras" na linha **Coisas** dos Gastos foi REMOVIDO —
-  Compras não se liga mais à Vida Financeira; `GastosVida` não usa mais `useNav`.)
+  "Ver minhas compras feitas" e pelo link "ver compras ›" na linha **Coisas** dos Gastos (Vida
+  Financeira). Importante: esse link é SÓ navegação — a Retrospectiva de Compras mostra apenas o
+  histórico manual (`comprasFeitas`), NÃO se atualiza ao marcar/adicionar itens na lista de compras.
 
 ## Fontes — convenção do bloco "Da fonte"
 Cada card pode ter:
