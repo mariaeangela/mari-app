@@ -160,8 +160,6 @@ function ComprasSection({ onBack }) {
   const [gerenciar, setGerenciar] = useState(false);
 
   const itensLista = life.compras.itens.filter(i => i.listaId === listaSel);
-  const compradosCount = itensLista.filter(i => i.comprado).length;
-  const listaSelNome = listas.find(l => l.id === listaSel)?.nome;
   const porComprado = (a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1);
   const semGrupo = itensLista.filter(i => !i.grupo).sort(porComprado);
   const gruposOrdem = [];
@@ -216,12 +214,6 @@ function ComprasSection({ onBack }) {
         <button onClick={() => setForm({})} title="adicionar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      {compradosCount > 0 && (
-        <button onClick={() => { if (window.confirm(`Limpar ${compradosCount} ${compradosCount === 1 ? 'item já comprado' : 'itens já comprados'} da lista? Eles continuam no histórico de Compras feitas (Retrospectiva).`)) life.arquivarComprados(listaSel, listaSelNome); }}
-          style={{ width: '100%', marginBottom: 14, padding: '9px 0', borderRadius: 10, border: '1px solid ' + COR + '55', background: '#fff', color: '#7a3d12', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
-          ✓ limpar {compradosCount} {compradosCount === 1 ? 'comprado' : 'comprados'} → histórico
-        </button>
-      )}
 
       {/* itens (agrupados por sublista quando têm `grupo`) */}
       {itensLista.length === 0 ? (

@@ -218,8 +218,10 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   valores mudam e nem tudo está na lista). Agrupado por mês, subtotal em R$ por mês. Form
   `CompraFeitaForm` (nome/data/valor/categoria). `comprasFeitas` é slice do `lifeStore`
   (CRUD `saveCompraFeita`/`deleteCompraFeita`); seed histórico jan–jun/2026 via
-  `ensureComprasFeitas` (flag `comprasFeitasSeeded`). Obs.: o botão "limpar comprados" da página de
-  Compras (Life) segue arquivando em `comprasFeitas` via `arquivarComprados` — só se usado de propósito.
+  `ensureComprasFeitas` (flag `comprasFeitasSeeded`). IMPORTANTE: a lista de Compras (Life) **não**
+  alimenta esta retrospectiva — o antigo botão "limpar comprados → histórico" (`arquivarComprados`) foi
+  REMOVIDO da UI porque vazava itens da lista pra cá; marcar item como comprado só fica na própria lista.
+  `arquivarComprados` segue no store, mas sem nenhum chamador.
 - **Música** (`MusicaRetro`/`MusicaForm`): 1 registro por mês (`life.musica = [{id,mes,minutos,artista,
   musica}]`, CRUD `saveMusica`/`deleteMusica`; seed jan–mai/2026 dos prints do Spotify via
   `ensureMusica`/flag `musicaSeeded`). Mostra total de minutos do ano + cada mês (minutos/horas, top
