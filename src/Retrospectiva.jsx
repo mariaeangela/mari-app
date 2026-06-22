@@ -219,6 +219,46 @@ function KmDrilldown({ corridas, ehProva, onClose }) {
   );
 }
 
+// Gráfico de barras empilhadas: 1 barra por mês, cada faixa = uma compra (valor em R$).
+// Altura da barra = total do mês (evolução); nº embaixo = quantidade de compras no mês.
+const COR_COMPRAS = '#ff8a3d';
+function ComprasChart({ meses }) {
+  const [sel, setSel] = useState(null);
+  if (!meses.length) return null;
+  const max = Math.max(...meses.map(m => m.total), 1);
+  const H = 160, barW = 26, gap = 16, padBot = 24, padTop = 6;
+  const chartH = H - padBot - padTop;
+  const W = Math.max(meses.length * (barW + gap) + gap, 1);
+  const shades = ['#ff8a3d', '#ffb784'];
+  const fmtR = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
+      <div style={{ fontSize: 11, color: '#7a3d12', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>valor por mês <span style={{ color: '#bbb', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· cada faixa = uma compra</span></div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        {meses.map((m, mi) => {
+          const x = gap + mi * (barW + gap);
+          let yAcc = H - padBot;
+          return (
+            <g key={m.mm}>
+              {m.itens.map((it, ii) => {
+                const h = (it.vnum / max) * chartH;
+                yAcc -= h;
+                const ativo = sel && sel.mm === m.mm && sel.ii === ii;
+                return <rect key={ii} x={x} y={yAcc} width={barW} height={Math.max(h, 0.6)} fill={shades[ii % 2]} stroke={ativo ? '#111' : '#fff'} strokeWidth={ativo ? 1.4 : 0.5} style={{ cursor: 'pointer' }} onClick={() => setSel({ mm: m.mm, ii, titulo: it.titulo, vnum: it.vnum, label: m.label })} />;
+              })}
+              <text x={x + barW / 2} y={H - 13} textAnchor="middle" fontSize="8.5" fill="#999">{m.label}</text>
+              <text x={x + barW / 2} y={H - 3} textAnchor="middle" fontSize="8" fill="#c79a7a" fontWeight="700">{m.itens.length}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ fontSize: 12, color: sel ? '#333' : '#bbb', marginTop: 6, minHeight: 18 }}>
+        {sel ? <><b>{sel.titulo}</b> · {fmtR(sel.vnum)} <span style={{ color: '#aaa' }}>({sel.label})</span></> : 'toque numa faixa para ver a compra'}
+      </div>
+    </div>
+  );
+}
+
 // ---- Card: Compras — histórico próprio (+ o que foi marcado como comprado nas listas) ----
 function ComprasRetro({ onBack, isWide }) {
   const life = useLife();
@@ -235,6 +275,11 @@ function ComprasRetro({ onBack, isWide }) {
   const ordDia = (a, b) => (b.data || '').localeCompare(a.data || '');
   const grupos = meses.map(mm => ({ mm, itens: doAno.filter(i => (i.data || '').slice(0, 7) === mm).sort(ordDia) }));
   const semData = todas.filter(i => !i.data); // compras sem data: aparecem em qualquer ano
+  // dados do gráfico: meses em ordem cronológica, só compras em R$ com valor (faixas maiores embaixo).
+  const mesesChart = [...grupos].reverse().map(g => {
+    const itens = g.itens.filter(i => i.moeda === 'BRL' && i.vnum > 0).map(i => ({ titulo: i.titulo, vnum: i.vnum })).sort((a, b) => b.vnum - a.vnum);
+    return { mm: g.mm, label: MESES[+g.mm.slice(5, 7) - 1].slice(0, 3), itens, total: itens.reduce((a, i) => a + i.vnum, 0) };
+  }).filter(m => m.total > 0);
 
   const linhaItem = (it) => (
     <div key={it.id} onClick={it.editavel ? () => setForm({ editing: it.raw }) : undefined} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: it.editavel ? 'pointer' : 'default' }}>
@@ -263,6 +308,7 @@ function ComprasRetro({ onBack, isWide }) {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
           <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'compra' : 'compras'} em {anoSel}</span>
         </div>
+        {mesesChart.length > 0 && <ComprasChart meses={mesesChart} />}
         {grupos.length === 0 && semData.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
         {grupos.map(g => {
           const totalBRL = g.itens.filter(i => i.moeda === 'BRL').reduce((a, i) => a + i.vnum, 0);

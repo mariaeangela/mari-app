@@ -223,6 +223,9 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
 - **Seletor de ano nos sub-cards**: `useAnoSel(datas)` + `<AnoChips>` (em Retrospectiva.jsx) — Compras,
   Música e Corridas filtram pelo ano selecionado (chips só aparecem com 2+ anos; default = ano atual,
   cai no mais recente com dados). Compras sem data aparecem em qualquer ano.
+- **Compras: gráfico** (`ComprasChart`) — barras empilhadas por mês (só compras em R$): altura da barra =
+  total do mês (evolução), cada faixa = uma compra (maior embaixo), nº embaixo = qtd no mês; toque numa
+  faixa mostra a compra + valor. USD fica de fora do gráfico (sem taxa pra converter).
 - **"Ano em números" (RetroHome)**: os números de corrida são **"provas de corrida"** (só
   `corrida_prova`/legado `corrida`; drill-down lista data · km · tempo) e **"km corridos"** (soma de
   TODAS as corridas — prova + treino). "km corridos" é clicável → `KmDrilldown` com toggle **por data**
