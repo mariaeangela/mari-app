@@ -261,7 +261,12 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   cada card com total + % do ano. Clicar num card abre a categoria:
   **Coisas** → reusa `ComprasRetro` (itemizado, `backLabel="Gastos"`); categorias **detalhadas** (têm
   `gastosItens`) → design de Compras (`ComprasChart` + lista por mês com valor de cada item + form);
-  categorias **sem detalhe** → total por mês (fallback). Deep-link: `nav.goRetro('gastos', categoria)`
+  categorias **sem detalhe** → total por mês (fallback). O gráfico do detalhe tem toggle **barras/linhas**
+  (`ComprasChart` × `LinhasGastoChart`); default = **linhas** quando 3+ itens se repetem em vários meses
+  (ex.: Fixos), senão barras. `LinhasGastoChart`: uma linha por item ao longo dos meses; tocar na legenda
+  isola o item (auto-escala) e lista os valores por mês. Seeds itemizados: `ensureGastosPresentes`,
+  `ensureGastosFixos` (Fixos jan–jun, padronizado: Personal/Faxina/Conta de luz unificados). `runLifeSeeds`
+  agora é um `reduce` sobre a lista de seeds (evita inferno de parênteses). Deep-link: `nav.goRetro('gastos', categoria)`
   abre direto o card da categoria (codificado em `secInicial='gastos:Categoria'`, parseado no
   `RetrospectivaPage`). Link "ver ›" em cada categoria da **Vida Financeira → Gastos** usa isso.
   **Quebra itemizada**: slice `gastosItens:[{id,mes,categoria,nome,valor}]` no `lifeStore` (CRUD `saveGastoItem`/

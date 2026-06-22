@@ -932,10 +932,57 @@ const GASTO_CATS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúde', 'V
 const fmtBRLr = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const GASTO_CORES = ['#ff8a3d', '#5b8def', '#2bb673', '#c77dff', '#ef6c4d', '#26c6da', '#f0a35e', '#c2548f', '#6b7a99', '#d4a72c', '#e0729b', '#3fb6a8', '#8a8f98'];
 const catCor = (c, fallback = 0) => { const i = GASTO_CATS.indexOf(c); return GASTO_CORES[(i >= 0 ? i : fallback) % GASTO_CORES.length]; };
+// Gráfico de linha por item (bom p/ Fixos): cada item uma linha ao longo dos meses.
+// Tocar num item na legenda isola a linha (auto-escala) e mostra os valores por mês.
+function LinhasGastoChart({ itens, mesesAsc }) {
+  const [sel, setSel] = useState(null);
+  const byNomeMes = {};
+  itens.forEach(i => { (byNomeMes[i.nome] = byNomeMes[i.nome] || {}); byNomeMes[i.nome][i.mes] = (byNomeMes[i.nome][i.mes] || 0) + (Number(i.valor) || 0); });
+  const totalDe = (n) => Object.values(byNomeMes[n]).reduce((a, b) => a + b, 0);
+  const nomes = Object.keys(byNomeMes).sort((a, b) => totalDe(b) - totalDe(a));
+  const corDe = (n) => GASTO_CORES[nomes.indexOf(n) % GASTO_CORES.length];
+  const shown = sel ? [sel] : nomes;
+  const W = 320, H = 150, padL = 8, padR = 8, padT = 12, padB = 22;
+  const x = (i) => mesesAsc.length <= 1 ? W / 2 : padL + i * (W - padL - padR) / (mesesAsc.length - 1);
+  let max = 0; shown.forEach(n => mesesAsc.forEach(mm => { max = Math.max(max, byNomeMes[n][mm] || 0); }));
+  max = max || 1;
+  const y = (v) => (H - padB) - (v / max) * (H - padT - padB);
+  const pathOf = (n) => mesesAsc.map((mm, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(byNomeMes[n][mm] || 0).toFixed(1)}`).join(' ');
+  const mAbbr = (mm) => MESES[+mm.slice(5, 7) - 1].slice(0, 3);
+  const fmtR = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
+      <div style={{ fontSize: 11, color: '#4a5468', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>evolução por item{sel ? ' · ' + sel : ''} <span style={{ color: '#bbb', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· toque pra isolar</span></div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        {shown.map(n => (
+          <g key={n}>
+            <path d={pathOf(n)} fill="none" stroke={corDe(n)} strokeWidth={sel ? 2.2 : 1.6} strokeLinejoin="round" strokeLinecap="round" />
+            {mesesAsc.map((mm, i) => byNomeMes[n][mm] != null ? <circle key={i} cx={x(i)} cy={y(byNomeMes[n][mm] || 0)} r={sel ? 3 : 2.2} fill={corDe(n)} /> : null)}
+          </g>
+        ))}
+        {mesesAsc.map((mm, i) => <text key={mm} x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{mAbbr(mm)}</text>)}
+      </svg>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+        {nomes.map(n => {
+          const ativo = sel === n;
+          return (
+            <button key={n} onClick={() => setSel(ativo ? null : n)} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 14, fontSize: 11.5, cursor: 'pointer', border: '1px solid ' + (ativo ? corDe(n) : '#eee'), background: ativo ? corDe(n) + '1c' : '#fafafa', color: '#444', fontWeight: ativo ? 700 : 600 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: corDe(n), flexShrink: 0 }} />{n}
+            </button>
+          );
+        })}
+      </div>
+      {sel && <div style={{ marginTop: 8, fontSize: 12, color: '#666', lineHeight: 1.6 }}>{mesesAsc.filter(mm => byNomeMes[sel][mm] != null).map(mm => `${mAbbr(mm)} ${fmtR(byNomeMes[sel][mm])}`).join(' · ')}</div>}
+    </div>
+  );
+}
+
 function GastosRetro({ onBack, isWide, catInicial }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(catInicial || null);
   const [form, setForm] = useState(null); // { editing? } — item de gasto
+  const [tipoChart, setTipoChart] = useState(null); // null = automático; 'barras' | 'linhas'
+  useEffect(() => { setTipoChart(null); }, [catSel]); // reset ao trocar de categoria
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
   const doAno = gastos.filter(g => (g.mes || '').slice(0, 4) === anoSel);
@@ -965,6 +1012,11 @@ function GastosRetro({ onBack, isWide, catInicial }) {
       const arr = itens.filter(i => i.mes === mm).map(i => ({ titulo: i.nome, vnum: Number(i.valor) || 0 })).sort((a, b) => b.vnum - a.vnum);
       return { mm, label: MESES[+mm.slice(5, 7) - 1].slice(0, 3), itens: arr, total: arr.reduce((a, i) => a + i.vnum, 0) };
     }).filter(m => m.total > 0);
+    const mesesAsc = [...mesesItens].reverse();
+    // se 3+ itens se repetem em vários meses (ex.: Fixos) → gráfico de linha por padrão
+    const recCount = {}; itens.forEach(i => { (recCount[i.nome] = recCount[i.nome] || new Set()).add(i.mes); });
+    const recorrentes = Object.values(recCount).filter(s => s.size >= 2).length;
+    const chartTipo = tipoChart || (recorrentes >= 3 ? 'linhas' : 'barras');
     return (
       <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
         <button onClick={() => setCatSel(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Gastos</button>
@@ -978,7 +1030,14 @@ function GastosRetro({ onBack, isWide, catInicial }) {
         </div>
 
         {temItens ? <>
-          {mesesChart.length > 0 && <ComprasChart meses={mesesChart} />}
+          {mesesChart.length > 0 && <>
+            {mesesAsc.length > 1 && <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              {[['barras', 'barras'], ['linhas', 'linhas']].map(([id, lbl]) => (
+                <button key={id} onClick={() => setTipoChart(id)} style={{ padding: '5px 12px', borderRadius: 16, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (chartTipo === id ? cor : '#e2e2e2'), background: chartTipo === id ? cor + '1c' : '#fff', color: chartTipo === id ? '#333' : '#999' }}>{lbl}</button>
+              ))}
+            </div>}
+            {chartTipo === 'linhas' ? <LinhasGastoChart itens={itens} mesesAsc={mesesAsc} /> : <ComprasChart meses={mesesChart} />}
+          </>}
           {mesesItens.map(mm => {
           const doMes = itens.filter(i => i.mes === mm).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
           const sub = doMes.reduce((a, i) => a + (Number(i.valor) || 0), 0);

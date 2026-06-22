@@ -733,9 +733,26 @@ function ensureLimparVazados(d) {
   return { ...d, limparVazados1: true, comprasFeitas: (d.comprasFeitas || []).filter(c => !nomes.has((c.titulo || '').trim())) };
 }
 
-// Aplica todos os seeds idempotentes do Life, na ordem.
+// Quebra itemizada de Fixos (jan–jun/2026), padronizada. Personal/Faxina/Conta de luz unificados.
+const GASTOS_FIXOS_SEED = [
+  ['2026-01', 'Personal', 740], ['2026-01', 'Convênio mãe', 1080], ['2026-01', 'Aluguel', 3155.93], ['2026-01', 'Internet', 137.34], ['2026-01', 'Conta de luz', 49.05], ['2026-01', 'Faxina', 250], ['2026-01', 'Gás', 12.12], ['2026-01', 'Streaming', 313.31],
+  ['2026-02', 'Internet', 133.89], ['2026-02', 'Personal', 740], ['2026-02', 'Aluguel', 3380], ['2026-02', 'Conta de luz', 71.98], ['2026-02', 'Gás', 15.32], ['2026-02', 'Faxina', 270], ['2026-02', 'Convênio mãe', 1105.71], ['2026-02', 'Streaming', 329.69], ['2026-02', 'Wellhub', 149.99],
+  ['2026-03', 'Convênio mãe', 1079.79], ['2026-03', 'Bilhete único', 50], ['2026-03', 'Conta de luz', 61.26], ['2026-03', 'Internet', 133.89], ['2026-03', 'Aluguel', 3319.35], ['2026-03', 'Gás', 12.71], ['2026-03', 'Personal', 400], ['2026-03', 'Faxina', 270], ['2026-03', 'Streaming', 259.88], ['2026-03', 'Velocity', 65],
+  ['2026-04', 'Personal', 400], ['2026-04', 'Internet', 133.90], ['2026-04', 'Bilhete único', 50], ['2026-04', 'Conta de luz', 58.90], ['2026-04', 'Aluguel', 3319], ['2026-04', 'Gás', 12.40], ['2026-04', 'Convênio mãe', 1079.79], ['2026-04', 'Streaming', 383.93], ['2026-04', 'Total pass', 119.90], ['2026-04', 'Bilhete único', 20],
+  ['2026-05', 'Personal', 400], ['2026-05', 'Bilhete único', 150], ['2026-05', 'Aluguel', 3268], ['2026-05', 'Gás', 15.02], ['2026-05', 'Streaming', 306.87], ['2026-05', 'Internet', 133.89], ['2026-05', 'Conta de luz', 68.74], ['2026-05', 'Convênio mãe', 1102.47], ['2026-05', 'Total pass', 119.90],
+  ['2026-06', 'Bilhete único', 150], ['2026-06', 'Personal', 400], ['2026-06', 'Internet', 148.62], ['2026-06', 'Faxina', 270], ['2026-06', 'Conta de luz', 48.31], ['2026-06', 'Aluguel', 3268.08], ['2026-06', 'Gás', 12.40], ['2026-06', 'Convênio mãe', 1079.79], ['2026-06', 'Streaming', 878.06],
+];
+function ensureGastosFixos(d) {
+  if (d.gastosFixosSeeded) return d;
+  const have = new Set((d.gastosItens || []).map(x => x.id));
+  const novos = GASTOS_FIXOS_SEED.map(([mes, nome, valor], i) => ({ id: 'gi-fix-' + i, mes, categoria: 'Fixos', nome, valor })).filter(x => !have.has(x.id));
+  return { ...d, gastosFixosSeeded: true, gastosItens: [...(d.gastosItens || []), ...novos] };
+}
+
+// Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  return ensureLimparVazados(rolarComprasVencidas(ensureGastosPresentes(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))))))));
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureGastosPresentes, ensureGastosFixos, rolarComprasVencidas, ensureLimparVazados];
+  return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
 const LifeContext = createContext(null);
