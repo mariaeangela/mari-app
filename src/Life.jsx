@@ -582,6 +582,10 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
 const COR_ASSISTIR = '#4f7cca';
 const ASSISTIR_TIPOS = [
   { id: 'video', label: 'Vídeo', emoji: '▶' },
+  { id: 'serie', label: 'Série', emoji: '📺' },
+  { id: 'filme', label: 'Filme', emoji: '🎬' },
+  { id: 'album', label: 'Álbum', emoji: '💿' },
+  { id: 'livro', label: 'Livro', emoji: '📖' },
   { id: 'artigo', label: 'Artigo', emoji: '📄' },
   { id: 'outro', label: 'Outro', emoji: '🔗' },
 ];
