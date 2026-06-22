@@ -365,7 +365,8 @@ export default function App() {
   const [homeNonce, setHomeNonce] = useState(0);
   const goTab = (id) => { if (id === tab) setHomeNonce(n => n + 1); setTab(id); };
   const [retroSec, setRetroSec] = useState(null);
-  const goRetroCompras = () => { setRetroSec('compras'); goTab('retrospectiva'); };
+  const goRetro = (sec) => { setRetroSec(sec); goTab('retrospectiva'); };
+  const goRetroCompras = () => goRetro('compras');
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
@@ -375,7 +376,7 @@ export default function App() {
     <SavedProvider>
       <CalendarProvider>
         <LifeProvider>
-          <NavContext.Provider value={{ goRetroCompras }}>
+          <NavContext.Provider value={{ goRetro, goRetroCompras }}>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />

@@ -42,6 +42,7 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'compras', label: 'Compras', desc: 'o que você comprou', cor: '#ff8a3d', pronto: true },
+  { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954' },
@@ -54,6 +55,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const [sec, setSec] = useState(secInicial || null);
   useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
   if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (sec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -305,7 +307,7 @@ function ComprasChart({ meses }) {
 }
 
 // ---- Card: Compras — histórico próprio (+ o que foi marcado como comprado nas listas) ----
-function ComprasRetro({ onBack, isWide }) {
+function ComprasRetro({ onBack, isWide, backLabel = 'Retrospectiva' }) {
   const life = useLife();
   const [form, setForm] = useState(null); // { editing? }
   const [verCaras, setVerCaras] = useState(false);
@@ -337,7 +339,7 @@ function ComprasRetro({ onBack, isWide }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
@@ -920,6 +922,84 @@ function ViagemForm({ editing, onClose }) {
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---- Card: Gastos (por categoria; Coisas reusa a retrospectiva de Compras) ----
+const COR_GASTOS = '#6b7a99';
+const GASTO_CATS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúde', 'Viagem', 'Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Rolês', 'Presentes'];
+const fmtBRLr = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function GastosRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [catSel, setCatSel] = useState(null);
+  const gastos = life.gastos || [];
+  const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
+  const doAno = gastos.filter(g => (g.mes || '').slice(0, 4) === anoSel);
+  const catTotals = {};
+  doAno.forEach(g => (g.itens || []).forEach(it => { catTotals[it.categoria] = (catTotals[it.categoria] || 0) + (Number(it.valor) || 0); }));
+  const cats = [...GASTO_CATS.filter(c => catTotals[c] != null), ...Object.keys(catTotals).filter(c => !GASTO_CATS.includes(c))];
+  const maxCat = Math.max(...cats.map(c => catTotals[c] || 0), 1);
+  const totalAno = cats.reduce((a, c) => a + (catTotals[c] || 0), 0);
+
+  // "Coisas" reaproveita a retrospectiva de compras itemizada (como hoje).
+  if (catSel === 'Coisas') return <ComprasRetro onBack={() => setCatSel(null)} isWide={isWide} backLabel="Gastos" />;
+
+  if (catSel) {
+    const linhas = doAno.map(g => ({ mes: g.mes, valor: Number((g.itens || []).find(i => i.categoria === catSel)?.valor) || 0 }))
+      .filter(l => l.valor > 0).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
+    const totalCat = linhas.reduce((a, l) => a + l.valor, 0);
+    const maxMes = Math.max(...linhas.map(l => l.valor), 1);
+    return (
+      <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+        <button onClick={() => setCatSel(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Gastos</button>
+        <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
+        <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{fmtBRLr(totalCat)} em {anoSel}</p>
+        {linhas.length === 0 ? (
+          <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}.</p>
+        ) : linhas.map(l => (
+          <div key={l.mes} style={{ marginBottom: 9 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+              <span style={{ color: '#555', textTransform: 'capitalize' }}>{fmtMesAno(l.mes)}</span>
+              <span style={{ color: '#222', fontWeight: 600 }}>{fmtBRLr(l.valor)}</span>
+            </div>
+            <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4 }}>
+              <div style={{ width: (l.valor / maxMes * 100) + '%', height: '100%', background: COR_GASTOS, borderRadius: 4 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Gastos</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>pra onde foi o dinheiro, por categoria</p>
+
+      {gastos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Sem gastos registrados ainda (eles vêm da Vida Financeira → Gastos).</p>
+      ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_GASTOS} />
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#111' }}>{fmtBRLr(totalAno)}</span>
+          <span style={{ fontSize: 12.5, color: '#999' }}> em {anoSel}</span>
+        </div>
+        {cats.map(c => (
+          <div key={c} onClick={() => setCatSel(c)} style={{ padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{c}{c === 'Coisas' && <span style={{ fontSize: 10.5, color: COR_GASTOS, fontWeight: 700, marginLeft: 6 }}>compras ›</span>}</span>
+              <span style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRLr(catTotals[c])} <span style={{ color: COR_GASTOS, fontWeight: 700 }}>›</span></span>
+            </div>
+            <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4 }}>
+              <div style={{ width: (catTotals[c] / maxCat * 100) + '%', height: '100%', background: COR_GASTOS, borderRadius: 4 }} />
+            </div>
+          </div>
+        ))}
+      </>}
     </div>
   );
 }

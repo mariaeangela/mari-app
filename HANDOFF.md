@@ -253,7 +253,12 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   (cada corrida com tag prova/treino, km e tempo) e **por mês** (km/mês com barras = evolução).
   "treinos" é clicável → `TreinoDrilldown`: barras horizontais com contagem por tipo (Costas 2x…),
   clicar num tipo expande as datas daquele treino.
-- **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
+- **Gastos** (`GastosRetro`) — card que lê `life.gastos` (Vida Financeira, sem duplicar): hub com total do
+  ano + lista das categorias (barras, `GASTO_CATS`); clicar numa categoria mostra o valor por mês (barras).
+  A categoria **Coisas** reusa `ComprasRetro` (itemizado, com `backLabel="Gastos"`). Year selector via
+  `useAnoSel`. Link na **Vida Financeira → Gastos** ("ver ›" em cada categoria) abre isto via `nav.goRetro('gastos')`.
+- **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetro(sec)` (genérico) e
+  `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
   "Ver minhas compras feitas" e pelo link "ver compras ›" na linha **Coisas** dos Gastos (Vida
   Financeira). Importante: esse link é SÓ navegação — a Retrospectiva de Compras mostra apenas o
