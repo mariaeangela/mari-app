@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -686,6 +686,14 @@ export function LifeProvider({ children }) {
     : [...musica, { ...m, id: uid('mu') }] });
   const deleteMusica = (id) => persist({ ...data, musica: musica.filter(x => x.id !== id) });
 
+  // ---- Conteúdos para assistir/ler depois (aba Explorar) ----
+  const assistir = data.assistir || [];
+  const saveAssistir = (a) => persist({ ...data, assistir: a.id && assistir.some(x => x.id === a.id)
+    ? assistir.map(x => x.id === a.id ? a : x)
+    : [{ ...a, id: uid('as'), criadoEm: hojeISO() }, ...assistir] });
+  const deleteAssistir = (id) => persist({ ...data, assistir: assistir.filter(x => x.id !== id) });
+  const toggleAssistir = (id) => persist({ ...data, assistir: assistir.map(x => x.id === id ? { ...x, feito: !x.feito } : x) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -716,6 +724,7 @@ export function LifeProvider({ children }) {
     aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota,
     comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
+    assistir, saveAssistir, deleteAssistir, toggleAssistir,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

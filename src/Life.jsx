@@ -578,6 +578,114 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
   );
 }
 
+// ---- Conteúdos para assistir/ler depois (renderizado na aba Explorar) ----
+const COR_ASSISTIR = '#4f7cca';
+const ASSISTIR_TIPOS = [
+  { id: 'video', label: 'Vídeo', emoji: '▶' },
+  { id: 'artigo', label: 'Artigo', emoji: '📄' },
+  { id: 'outro', label: 'Outro', emoji: '🔗' },
+];
+const assistirTipo = (id) => ASSISTIR_TIPOS.find(t => t.id === id) || ASSISTIR_TIPOS[2];
+
+export function AssistirSection({ onBack, backLabel = 'Explorar' }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const [tipoSel, setTipoSel] = useState('todos');
+  const lista = life.assistir.filter(i => tipoSel === 'todos' || i.tipo === tipoSel);
+  const pendentes = lista.filter(i => !i.feito);
+  const feitos = lista.filter(i => i.feito);
+
+  const chip = (ativo, label, onClick) => (
+    <button key={label} onClick={onClick} style={{
+      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+      border: '1px solid ' + (ativo ? COR_ASSISTIR : '#e2e2e2'), background: ativo ? COR_ASSISTIR + '1c' : '#fff', color: ativo ? '#2f4f86' : '#888',
+    }}>{label}</button>
+  );
+
+  const row = (it) => {
+    const t = assistirTipo(it.tipo);
+    return (
+      <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+        <span onClick={() => life.toggleAssistir(it.id)} title={it.feito ? 'marcar como não visto' : 'marcar como visto'} style={{ fontSize: 18, color: it.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{it.feito ? '☑' : '☐'}</span>
+        <div onClick={() => setForm({ editing: it })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
+          <div style={{ fontSize: 14, color: '#222', textDecoration: it.feito ? 'line-through' : 'none', opacity: it.feito ? 0.5 : 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.emoji} {it.titulo || it.url}</div>
+          {it.nota && <div style={{ fontSize: 11.5, color: '#999', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.nota}</div>}
+        </div>
+        {it.url && <a href={it.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_ASSISTIR, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_ASSISTIR, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Conteúdos para assistir</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>vídeos e matérias salvos para depois</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+        {chip(tipoSel === 'todos', 'Todos', () => setTipoSel('todos'))}
+        {ASSISTIR_TIPOS.map(t => chip(tipoSel === t.id, t.label, () => setTipoSel(t.id)))}
+      </div>
+
+      {lista.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada salvo ainda. Toque no + e cole o link de um vídeo ou matéria.</p>
+      ) : <>
+        {pendentes.map(row)}
+        {feitos.length > 0 && <>
+          <div style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, margin: '18px 0 8px' }}>já vistos</div>
+          {feitos.map(row)}
+        </>}
+      </>}
+
+      {form && <AssistirForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function AssistirForm({ editing, onClose }) {
+  const life = useLife();
+  const [url, setUrl] = useState(editing?.url || '');
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [tipo, setTipo] = useState(editing?.tipo || 'video');
+  const [nota, setNota] = useState(editing?.nota || '');
+  const podeSalvar = url.trim().length > 0 || titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveAssistir({ id: editing?.id, url: url.trim() || undefined, titulo: titulo.trim() || undefined, tipo, nota: nota.trim() || undefined, feito: editing?.feito || false, criadoEm: editing?.criadoEm });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} conteúdo</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Link</label>
+        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="cole o link do vídeo ou matéria" style={inputStyle} />
+        <label style={labelStyle}>Título (opcional)</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Documentário sobre o Cerrado" style={inputStyle} />
+        <label style={labelStyle}>Tipo</label>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          {ASSISTIR_TIPOS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <label style={labelStyle}>Anotação (opcional)</label>
+        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="por que salvou, do que se trata…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteAssistir(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---- Vida financeira ----
 // Gráfico de pizza (SVG) por categoria.
 function PizzaFin({ fatias, hover, setHover }) {

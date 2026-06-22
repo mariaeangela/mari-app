@@ -144,6 +144,11 @@ itens reais checáveis. As 3 notas `tipo:'compras'` do tópico Maquiagem (Aprend
 **filtrados por grupo** (`ComprasMirror` aceita `grupo`): editar/adicionar de um lado reflete no outro.
 O slice `cultural` segue no `lifeStore`, mas sua UI — `CulturalSection` ("Calendário cultural",
 exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile próprio), não na Life.
+Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
+Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
+'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
+novos itens entram no topo). UI: filtro por tipo, checkbox marca "visto" (vai p/ "já vistos"), ↗ abre o
+link, clicar edita.
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
   **Salários** / **Gastos**.

@@ -7,7 +7,7 @@ import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
-import LifePage, { CulturalSection } from './Life.jsx';
+import LifePage, { CulturalSection, AssistirSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
 
@@ -261,6 +261,11 @@ function ExplorePage({ isWide }) {
       <CulturalSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
     </div>
   );
+  if (selectedType === 'assistir') return (
+    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <AssistirSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
+    </div>
+  );
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
@@ -280,6 +285,10 @@ function ExplorePage({ isWide }) {
             <button key="cultural" onClick={() => setSelectedType('cultural')} style={{ background: '#c2548f12', border: '1px solid #c2548f33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ width: 24, height: 4, background: '#c2548f', borderRadius: 4, marginBottom: 12 }} />
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Calendário cultural</div>
+            </button>
+            <button key="assistir" onClick={() => setSelectedType('assistir')} style={{ background: '#4f7cca12', border: '1px solid #4f7cca33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: '#4f7cca', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Conteúdos para assistir</div>
             </button>
           </div>
         </>
