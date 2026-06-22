@@ -257,6 +257,10 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   ano + lista das categorias (barras, `GASTO_CATS`); clicar numa categoria mostra o valor por mês (barras).
   A categoria **Coisas** reusa `ComprasRetro` (itemizado, com `backLabel="Gastos"`). Year selector via
   `useAnoSel`. Link na **Vida Financeira → Gastos** ("ver ›" em cada categoria) abre isto via `nav.goRetro('gastos')`.
+  **Quebra itemizada**: slice `gastosItens:[{id,mes,categoria,nome,valor}]` no `lifeStore` (CRUD `saveGastoItem`/
+  `deleteGastoItem`; form `GastoItemForm`). Quando uma categoria tem itens, o detalhe lista item a item
+  agrupado por mês (com subtotais); senão cai no total mensal da VF. Seeds por categoria: `ensureGastosPresentes`
+  (flag `gastosPresentesSeeded`) — os itens somam o total da categoria. Próximas categorias = nova `ensure*`/flag.
 - **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetro(sec)` (genérico) e
   `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão

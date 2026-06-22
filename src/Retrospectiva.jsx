@@ -933,6 +933,7 @@ const fmtBRLr = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumF
 function GastosRetro({ onBack, isWide }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(null);
+  const [form, setForm] = useState(null); // { editing? } — item de gasto
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
   const doAno = gastos.filter(g => (g.mes || '').slice(0, 4) === anoSel);
@@ -946,29 +947,64 @@ function GastosRetro({ onBack, isWide }) {
   if (catSel === 'Coisas') return <ComprasRetro onBack={() => setCatSel(null)} isWide={isWide} backLabel="Gastos" />;
 
   if (catSel) {
+    // itens itemizados desta categoria no ano (quebra enviada pela Mari)
+    const itens = (life.gastosItens || []).filter(x => x.categoria === catSel && (x.mes || '').slice(0, 4) === anoSel);
+    const temItens = itens.length > 0;
+    // fallback: total mensal vindo da Vida Financeira (categorias ainda não detalhadas)
     const linhas = doAno.map(g => ({ mes: g.mes, valor: Number((g.itens || []).find(i => i.categoria === catSel)?.valor) || 0 }))
       .filter(l => l.valor > 0).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
-    const totalCat = linhas.reduce((a, l) => a + l.valor, 0);
     const maxMes = Math.max(...linhas.map(l => l.valor), 1);
+    // agrupa itens por mês (mais recente primeiro)
+    const mesesItens = [...new Set(itens.map(i => i.mes))].sort().reverse();
+    const totalItens = itens.reduce((a, i) => a + (Number(i.valor) || 0), 0);
+    const totalCat = temItens ? totalItens : linhas.reduce((a, l) => a + l.valor, 0);
     return (
       <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
         <button onClick={() => setCatSel(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Gastos</button>
-        <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
-        <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{fmtBRLr(totalCat)} em {anoSel}</p>
-        {linhas.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}.</p>
-        ) : linhas.map(l => (
-          <div key={l.mes} style={{ marginBottom: 9 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
-              <span style={{ color: '#555', textTransform: 'capitalize' }}>{fmtMesAno(l.mes)}</span>
-              <span style={{ color: '#222', fontWeight: 600 }}>{fmtBRLr(l.valor)}</span>
-            </div>
-            <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4 }}>
-              <div style={{ width: (l.valor / maxMes * 100) + '%', height: '100%', background: COR_GASTOS, borderRadius: 4 }} />
-            </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
+            <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{fmtBRLr(totalCat)} em {anoSel}</p>
           </div>
-        ))}
+          <button onClick={() => setForm({})} title="adicionar gasto" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+        </div>
+
+        {temItens ? mesesItens.map(mm => {
+          const doMes = itens.filter(i => i.mes === mm).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
+          const sub = doMes.reduce((a, i) => a + (Number(i.valor) || 0), 0);
+          return (
+            <div key={mm} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: '#4a5468', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700 }}>{fmtMesAno(mm)}</span>
+                <span style={{ fontSize: 12, color: '#4a5468', fontWeight: 700 }}>{fmtBRLr(sub)}</span>
+              </div>
+              {doMes.map(it => (
+                <div key={it.id} onClick={() => setForm({ editing: it })} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
+                  <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.nome}</span>
+                  <span style={{ fontSize: 13, color: '#666', flexShrink: 0 }}>{fmtBRLr(it.valor)}</span>
+                </div>
+              ))}
+            </div>
+          );
+        }) : linhas.length === 0 ? (
+          <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}. Toque no + para detalhar.</p>
+        ) : <>
+          <p style={{ fontSize: 11.5, color: '#bbb', margin: '0 0 10px' }}>total por mês (ainda não detalhado — toque no + para listar os itens)</p>
+          {linhas.map(l => (
+            <div key={l.mes} style={{ marginBottom: 9 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+                <span style={{ color: '#555', textTransform: 'capitalize' }}>{fmtMesAno(l.mes)}</span>
+                <span style={{ color: '#222', fontWeight: 600 }}>{fmtBRLr(l.valor)}</span>
+              </div>
+              <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4 }}>
+                <div style={{ width: (l.valor / maxMes * 100) + '%', height: '100%', background: COR_GASTOS, borderRadius: 4 }} />
+              </div>
+            </div>
+          ))}
+        </>}
+
+        {form && <GastoItemForm editing={form.editing} categoria={catSel} onClose={() => setForm(null)} />}
       </div>
     );
   }
@@ -1000,6 +1036,39 @@ function GastosRetro({ onBack, isWide }) {
           </div>
         ))}
       </>}
+    </div>
+  );
+}
+
+function GastoItemForm({ editing, categoria, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(editing?.nome || '');
+  const [mes, setMes] = useState(editing?.mes || '');
+  const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
+  const podeSalvar = nome.trim().length > 0 && mes && valor;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveGastoItem({ id: editing?.id, categoria, mes, nome: nome.trim(), valor: Number(String(valor).replace(',', '.')) || 0 });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} gasto · {categoria}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>O quê</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Presente Lucy e Thales" style={inputStyle} />
+        <label style={labelStyle}>Mês</label>
+        <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Valor (R$)</label>
+        <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 533,70" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteGastoItem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
     </div>
   );
 }

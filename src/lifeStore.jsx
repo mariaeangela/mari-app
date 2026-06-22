@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], gastosItens: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -703,9 +703,31 @@ function ensureViagens(d) {
   return { ...d, viagensSeeded: true, viagens: [...(d.viagens || []), ...novos] };
 }
 
+// Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
+// Os itens somam o total da categoria no mês (que vem da Vida Financeira). Semeado por lote/categoria.
+const GASTOS_PRESENTES_SEED = [
+  ['2026-01', 'Presentes', 'Doação', 10],
+  ['2026-01', 'Presentes', 'Estacionamento mãe', 60],
+  ['2026-01', 'Presentes', 'Assador mãe', 712.47],
+  ['2026-01', 'Presentes', 'Café mãe', 71.60],
+  ['2026-01', 'Presentes', 'Posto praia', 121.80],
+  ['2026-01', 'Presentes', 'Pedágio', 38.70],
+  ['2026-02', 'Presentes', 'Laços', 40],
+  ['2026-03', 'Presentes', 'Laços', 80],
+  ['2026-03', 'Presentes', 'Sorvete Raul', 48],
+  ['2026-03', 'Presentes', 'Vaquinha Milena', 150],
+  ['2026-06', 'Presentes', 'Presente Lucy e Thales (Westwing)', 533.70],
+];
+function ensureGastosPresentes(d) {
+  if (d.gastosPresentesSeeded) return d;
+  const have = new Set((d.gastosItens || []).map(x => x.id));
+  const novos = GASTOS_PRESENTES_SEED.map(([mes, categoria, nome, valor], i) => ({ id: 'gi-pres-' + i, mes, categoria, nome, valor })).filter(x => !have.has(x.id));
+  return { ...d, gastosPresentesSeeded: true, gastosItens: [...(d.gastosItens || []), ...novos] };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))))));
+  return rolarComprasVencidas(ensureGastosPresentes(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))))))));
 }
 
 const LifeContext = createContext(null);
@@ -891,6 +913,13 @@ export function LifeProvider({ children }) {
     : [...viagens, { ...v, id: uid('vg') }] });
   const deleteViagem = (id) => persist({ ...data, viagens: viagens.filter(x => x.id !== id) });
 
+  // ---- Gastos itemizados (Retrospectiva > Gastos) ----
+  const gastosItens = data.gastosItens || [];
+  const saveGastoItem = (it) => persist({ ...data, gastosItens: it.id && gastosItens.some(x => x.id === it.id)
+    ? gastosItens.map(x => x.id === it.id ? it : x)
+    : [...gastosItens, { ...it, id: uid('gi') }] });
+  const deleteGastoItem = (id) => persist({ ...data, gastosItens: gastosItens.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -925,6 +954,7 @@ export function LifeProvider({ children }) {
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
+    gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
