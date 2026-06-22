@@ -246,6 +246,8 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   `corrida_prova`/legado `corrida`; drill-down lista data · km · tempo) e **"km corridos"** (soma de
   TODAS as corridas — prova + treino). "km corridos" é clicável → `KmDrilldown` com toggle **por data**
   (cada corrida com tag prova/treino, km e tempo) e **por mês** (km/mês com barras = evolução).
+  "treinos" é clicável → `TreinoDrilldown`: barras horizontais com contagem por tipo (Costas 2x…),
+  clicar num tipo expande as datas daquele treino.
 - **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
   "Ver minhas compras feitas" e pelo link "ver compras ›" na linha **Coisas** dos Gastos (Vida

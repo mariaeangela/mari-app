@@ -149,8 +149,9 @@ function RetroHome({ isWide, onOpen }) {
       )}
 
       {detalhe === 'km' && <KmDrilldown corridas={corridas} ehProva={ehProva} onClose={() => setDetalhe(null)} />}
+      {detalhe === 'treino' && det && <TreinoDrilldown itens={det.itens} onClose={() => setDetalhe(null)} />}
 
-      {det && detalhe !== 'km' && (
+      {det && detalhe !== 'km' && detalhe !== 'treino' && (
         <div style={{ marginTop: 14, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222', textTransform: 'capitalize' }}>{det.label}</span>
@@ -215,6 +216,46 @@ function KmDrilldown({ corridas, ehProva, onClose }) {
             <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4 }}>
               <div style={{ width: (v / maxMes * 100) + '%', height: '100%', background: COR_CORRIDA, borderRadius: 4 }} />
             </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Drill-down de "treinos": barras horizontais com a contagem por tipo; clicar abre as datas.
+function TreinoDrilldown({ itens, onClose }) {
+  const [aberto, setAberto] = useState(null);
+  const grupos = {};
+  itens.forEach(it => { (grupos[it.titulo] = grupos[it.titulo] || []).push(it); });
+  const linhas = Object.entries(grupos).map(([label, arr]) => ({ label, arr, n: arr.length })).sort((a, b) => b.n - a.n);
+  const max = Math.max(...linhas.map(l => l.n), 1);
+  return (
+    <div style={{ marginTop: 14, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>Treinos</span>
+        <span onClick={onClose} style={{ cursor: 'pointer', color: '#bbb', fontSize: 18 }}>×</span>
+      </div>
+      {linhas.map(l => {
+        const ativo = aberto === l.label;
+        return (
+          <div key={l.label} style={{ marginBottom: 8 }}>
+            <div onClick={() => setAberto(ativo ? null : l.label)} style={{ cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3, fontSize: 13 }}>
+                <span style={{ color: '#333', fontWeight: 600 }}>{l.label}{ativo && <span style={{ color: COR, fontWeight: 700 }}> ▾</span>}</span>
+                <span style={{ color: COR, fontWeight: 700 }}>{l.n}x</span>
+              </div>
+              <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4 }}>
+                <div style={{ width: (l.n / max * 100) + '%', height: '100%', background: COR, borderRadius: 4 }} />
+              </div>
+            </div>
+            {ativo && (
+              <div style={{ marginTop: 6, paddingLeft: 2 }}>
+                {[...l.arr].sort((a, b) => (b.data || '').localeCompare(a.data || '')).map((it, i) => (
+                  <div key={i} style={{ fontSize: 12.5, color: COR, fontWeight: 700, padding: '3px 0' }}>{fmtDM(it.data)}</div>
+                ))}
+              </div>
+            )}
           </div>
         );
       })}
