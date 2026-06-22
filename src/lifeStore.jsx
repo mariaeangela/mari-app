@@ -725,9 +725,17 @@ function ensureGastosPresentes(d) {
   return { ...d, gastosPresentesSeeded: true, gastosItens: [...(d.gastosItens || []), ...novos] };
 }
 
+// Limpeza única: remove de comprasFeitas os itens que vazaram da lista de compras (botão antigo
+// "limpar comprados"), pelos títulos exatos confirmados pela Mari. Roda uma vez (flag).
+function ensureLimparVazados(d) {
+  if (d.limparVazados1) return d;
+  const nomes = new Set(['Escova secadora', 'Protetor térmico', 'Depilação buço', 'Creme depilatório', 'Sabonete academia']);
+  return { ...d, limparVazados1: true, comprasFeitas: (d.comprasFeitas || []).filter(c => !nomes.has((c.titulo || '').trim())) };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureGastosPresentes(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))))))));
+  return ensureLimparVazados(rolarComprasVencidas(ensureGastosPresentes(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))))))));
 }
 
 const LifeContext = createContext(null);
