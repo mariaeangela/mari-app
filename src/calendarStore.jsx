@@ -63,13 +63,21 @@ function ensureLivrosLidos2026(d) {
 // Provas de corrida já feitas, enviadas pela Mari (exercicio corrida_prova). Semeadas uma vez,
 // ids estáveis. tempo em SEGUNDOS, distancia em km. Ela edita/apaga normalmente depois.
 function ensureProvasCorrida(d) {
-  if (d.provasCorridaSeeded) return d;
-  const provas = [
-    { id: 'seed-prova-7kmsp', subtipo: 'corrida_prova', titulo: 'Corrida 7km SP', data: '2026-04-12', distancia: 7, tempo: 3046 },
-  ];
-  const have = new Set((d.exercicios || []).map(x => x.id));
-  const novos = provas.filter(p => !have.has(p.id));
-  return { ...d, provasCorridaSeeded: true, exercicios: [...(d.exercicios || []), ...novos] };
+  let out = d;
+  if (!out.provasCorridaSeeded) {
+    const provas = [
+      { id: 'seed-prova-7kmsp', subtipo: 'corrida_prova', titulo: 'Corrida 7km SP', data: '2026-04-12', distancia: 7, tempo: 3046, metaTempo: 3000 },
+    ];
+    const have = new Set((out.exercicios || []).map(x => x.id));
+    const novos = provas.filter(p => !have.has(p.id));
+    out = { ...out, provasCorridaSeeded: true, exercicios: [...(out.exercicios || []), ...novos] };
+  }
+  // patch único: preenche a meta (50min) da prova 7km SP já semeada, sem mexer se a Mari já editou.
+  if (!out.prova7kmMetaSet) {
+    out = { ...out, prova7kmMetaSet: true, exercicios: (out.exercicios || []).map(x =>
+      x.id === 'seed-prova-7kmsp' && x.metaTempo == null ? { ...x, metaTempo: 3000 } : x) };
+  }
+  return out;
 }
 
 // Aplica todos os seeds idempotentes do calendário, na ordem.

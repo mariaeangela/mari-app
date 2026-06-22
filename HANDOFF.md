@@ -99,8 +99,10 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   da Mari como cultura subtipo 'lido', ids estáveis `seed-livro-*`, flag
   `livrosLidos2026Seeded`) e `ensureProvasCorrida` (provas de corrida feitas, exercicio
   `corrida_prova`, ids `seed-prova-*`, flag `provasCorridaSeeded` — ex.: Corrida 7km SP
-  12/04/2026, 7km, 50:46). Para semear mais conteúdo, criar outra `ensure*` e
-  encadear em `runSeeds`.
+  12/04/2026, 7km, tempo 50:46, meta 50:00). `ensureProvasCorrida` tem também um **patch único**
+  (flag `prova7kmMetaSet`) que preenche `metaTempo` na prova já semeada sem mexer se a Mari editou —
+  padrão útil quando precisa atualizar um seed que já rodou (a flag de seed sozinha faz early-return).
+  Para semear mais conteúdo, criar outra `ensure*` e encadear em `runSeeds`.
   Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
   savedRoles[].
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
