@@ -229,7 +229,7 @@ function ComprasChart({ meses }) {
   const H = 160, barW = 26, gap = 16, padBot = 24, padTop = 6;
   const chartH = H - padBot - padTop;
   const W = Math.max(meses.length * (barW + gap) + gap, 1);
-  const shades = ['#ff8a3d', '#ffb784'];
+  const PALETTE = ['#ff8a3d', '#5b8def', '#2bb673', '#c77dff', '#ef6c4d', '#26c6da', '#f0a35e', '#c2548f', '#6b7a99', '#d4a72c'];
   const fmtR = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (
     <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
@@ -244,7 +244,7 @@ function ComprasChart({ meses }) {
                 const h = (it.vnum / max) * chartH;
                 yAcc -= h;
                 const ativo = sel && sel.mm === m.mm && sel.ii === ii;
-                return <rect key={ii} x={x} y={yAcc} width={barW} height={Math.max(h, 0.6)} fill={shades[ii % 2]} stroke={ativo ? '#111' : '#fff'} strokeWidth={ativo ? 1.4 : 0.5} style={{ cursor: 'pointer' }} onClick={() => setSel({ mm: m.mm, ii, titulo: it.titulo, vnum: it.vnum, label: m.label })} />;
+                return <rect key={ii} x={x} y={yAcc} width={barW} height={Math.max(h, 0.6)} fill={PALETTE[ii % PALETTE.length]} stroke={ativo ? '#111' : '#fff'} strokeWidth={ativo ? 1.4 : 0.5} style={{ cursor: 'pointer' }} onClick={() => setSel({ mm: m.mm, ii, titulo: it.titulo, vnum: it.vnum, label: m.label })} />;
               })}
               <text x={x + barW / 2} y={H - 13} textAnchor="middle" fontSize="8.5" fill="#999">{m.label}</text>
               <text x={x + barW / 2} y={H - 3} textAnchor="middle" fontSize="8" fill="#c79a7a" fontWeight="700">{m.itens.length}</text>
