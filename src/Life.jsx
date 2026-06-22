@@ -5,7 +5,6 @@ import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
-import { useNav } from './nav.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -1430,7 +1429,6 @@ function LinhasGastos({ meses, cats, valor }) {
 
 function GastosVida() {
   const life = useLife();
-  const nav = useNav();
   const [selMes, setSelMes] = useState(null);
   const [vista, setVista] = useState('mes');
   const [form, setForm] = useState(null);
@@ -1493,7 +1491,7 @@ function GastosVida() {
               return (
                 <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}{c.categoria === 'Coisas' && <span onClick={() => nav.goRetroCompras()} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver compras ›</span>}</span>
+                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}</span>
                     <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)} <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
                   </div>
                   <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>

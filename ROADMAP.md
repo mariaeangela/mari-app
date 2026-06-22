@@ -82,9 +82,9 @@ de total) · **Saúde** (consultas ordenadas + "Passado"; exercícios sem meses 
 peso manhã/tarde/noite + lista colapsável; remédios/vacinas/menstruação com **data de fim**) ·
 **Aprendizados** (Café/Tecidos/Fotografia/Vinhos/Vida/Maquiagem). Calendário cultural foi pra Explorar.
 
-**Retrospectiva (aba nova):** "ano em números" clicável · **Compras** (histórico próprio + itens marcados
-como comprado nas listas; histórico jan–jun/2026; subtotal/mês; link da linha Coisas dos Gastos) ·
-**Música** (Spotify por mês, jan–mai/2026, total do ano).
+**Retrospectiva (aba nova):** "ano em números" clicável · **Compras** (histórico próprio, marcado
+manualmente; jan–jun/2026; subtotal/mês — as listas de compras NÃO alimentam mais a Retrospectiva nem
+a Vida Financeira) · **Música** (Spotify por mês, jan–mai/2026, total do ano).
 
 > Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
 > via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.

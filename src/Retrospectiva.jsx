@@ -148,14 +148,11 @@ function RetroHome({ isWide, onOpen }) {
 function ComprasRetro({ onBack, isWide }) {
   const life = useLife();
   const [form, setForm] = useState(null); // { editing? }
-  const LISTA_FIXA = { geral: 'Geral', algumdia: 'Algum dia', internacional: 'Internacional' };
-  const nomeLista = (id) => (life.compras.listas || []).find(l => l.id === id)?.nome || LISTA_FIXA[id] || '';
   const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
-  // Duas fontes: registro próprio (comprasFeitas) + itens marcados como comprado nas listas.
-  const doLog = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
-  const dasListas = (life.compras.itens || []).filter(i => i.comprado).map(i => ({ id: i.id, titulo: i.titulo, data: i.compradoEm, sub: nomeLista(i.listaId), vtxt: valorTxt(i.orcamento, i.moeda), moeda: i.moeda || 'BRL', vnum: Number(i.orcamento) || 0, editavel: false }));
-  const todas = [...doLog, ...dasListas];
+  // Fonte única: registro próprio (comprasFeitas) — marcado manualmente aqui.
+  // (As listas de compras NÃO alimentam mais esta retrospectiva, por decisão da Mari.)
+  const todas = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
 
   const meses = [...new Set(todas.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   const ordDia = (a, b) => (b.data || '').localeCompare(a.data || '');
@@ -182,7 +179,7 @@ function ComprasRetro({ onBack, isWide }) {
       </div>
 
       {todas.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra — ou marque um item como comprado nas Listas de compras.</p>
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra que você fez.</p>
       ) : <>
         <div style={{ marginBottom: 18 }}>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{todas.length}</span>
