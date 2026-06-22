@@ -573,9 +573,41 @@ function ensureMarcos(d) {
   return { ...d, marcosSeeded: true, marcos: [...(d.marcos || []), ...novos] };
 }
 
+// Livros para ler (Conteúdos para assistir, tipo 'livro') enviados pela Mari. Semeados uma vez.
+const ASSISTIR_LIVROS_SEED = [
+  'Tecidos: história, tramas e usos',
+  'Rápido e devagar',
+  'Carta de tarot e explicação',
+  'O dia em que a Selma sonhou com o ocapi',
+  'Knulp: Três histórias da vida de um andarilho',
+  'Os sussurros',
+  'No meu caminho — Malala',
+  'Sobre os ossos dos mortos',
+  'Sándor Márai (No rastro dos deuses · O legado de Esther · A conversa · Ember)',
+  'Jogo da amarelinha',
+  'A casa dos espíritos (trilogia)',
+  'Pórtico — Magda Szabó',
+  'Trem Noturno para Lisboa — Pascal Mercier',
+  'O Fim do Homem Soviético — Svetlana Aleksiévitch',
+  'A Bandeira Vermelha: A História do Comunismo — David Priestland',
+  'Era dos Extremos: O Breve Século XX — Eric Hobsbawm',
+  'The Power of the Powerless — Václav Havel',
+  'Limite de caracteres: como Elon Musk destruiu o Twitter',
+  'Untrue — Wednesday Martin',
+  'A capital da vertigem',
+  'A capital da solidão',
+  'Metrópole — Ben Wilson',
+];
+function ensureAssistirLivros(d) {
+  if (d.assistirLivrosSeeded) return d;
+  const have = new Set((d.assistir || []).map(a => a.id));
+  const novos = ASSISTIR_LIVROS_SEED.map((titulo, i) => ({ id: 'asl' + i, tipo: 'livro', titulo, feito: false })).filter(a => !have.has(a.id));
+  return { ...d, assistirLivrosSeeded: true, assistir: [...(d.assistir || []), ...novos] };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))));
+  return rolarComprasVencidas(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))));
 }
 
 const LifeContext = createContext(null);

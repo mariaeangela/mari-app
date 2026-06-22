@@ -152,7 +152,8 @@ Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Li
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
 novos itens entram no topo). UI: filtro por tipo, checkbox marca "visto" (vai p/ "já vistos"), ↗ abre o
-link, clicar edita.
+link, clicar edita. Tipos: vídeo/série/filme/álbum/livro/artigo/outro. Lista de livros da Mari semeada
+via `ASSISTIR_LIVROS_SEED`/`ensureAssistirLivros` (flag `assistirLivrosSeeded`, em `runLifeSeeds`).
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
   **Salários** / **Gastos**.
