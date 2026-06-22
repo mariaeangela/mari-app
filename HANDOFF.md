@@ -154,6 +154,8 @@ Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,ti
 novos itens entram no topo). UI: filtro por tipo, checkbox marca "visto" (vai p/ "já vistos"), ↗ abre o
 link, clicar edita. Tipos: vídeo/série/filme/álbum/livro/artigo/outro. Lista de livros da Mari semeada
 via `ASSISTIR_LIVROS_SEED`/`ensureAssistirLivros` (flag `assistirLivrosSeeded`, em `runLifeSeeds`).
+`ensureAssistirLivrosV2` (flag `assistirLivrosV2`) é um patch único que quebra o item combinado do
+Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item original estiver intacto.
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
   **Salários** / **Gastos**.

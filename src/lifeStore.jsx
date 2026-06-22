@@ -604,10 +604,30 @@ function ensureAssistirLivros(d) {
   const novos = ASSISTIR_LIVROS_SEED.map((titulo, i) => ({ id: 'asl' + i, tipo: 'livro', titulo, feito: false })).filter(a => !have.has(a.id));
   return { ...d, assistirLivrosSeeded: true, assistir: [...(d.assistir || []), ...novos] };
 }
+// Patch único: quebra o item combinado do Sándor Márai (asl8) em 4 livros individuais, padronizados.
+// Só mexe se o item original ainda existir intacto (respeita edição/remoção da Mari).
+function ensureAssistirLivrosV2(d) {
+  if (d.assistirLivrosV2) return d;
+  let assistir = d.assistir || [];
+  const tinhaCombinado = assistir.some(a => a.id === 'asl8' && (a.titulo || '').startsWith('Sándor Márai'));
+  assistir = assistir.filter(a => !(a.id === 'asl8' && (a.titulo || '').startsWith('Sándor Márai')));
+  if (tinhaCombinado) {
+    const marai = [
+      { id: 'asl8a', titulo: 'No rastro dos deuses — Sándor Márai' },
+      { id: 'asl8b', titulo: 'O legado de Esther — Sándor Márai' },
+      { id: 'asl8c', titulo: 'A conversa — Sándor Márai' },
+      { id: 'asl8d', titulo: 'Ember — Sándor Márai' },
+    ];
+    const have = new Set(assistir.map(a => a.id));
+    const novos = marai.filter(m => !have.has(m.id)).map(m => ({ ...m, tipo: 'livro', feito: false }));
+    assistir = [...assistir, ...novos];
+  }
+  return { ...d, assistirLivrosV2: true, assistir };
+}
 
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))));
+  return rolarComprasVencidas(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))));
 }
 
 const LifeContext = createContext(null);
