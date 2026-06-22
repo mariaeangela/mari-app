@@ -45,6 +45,24 @@ function ensureLembreteSpotify(d) {
   return { ...d, lembreteSpotifySeeded: true, tasks: [...(d.tasks || []), task] };
 }
 
+// Livros lidos em 2026 enviados pela Mari (cultura subtipo 'lido'). Semeados uma vez,
+// ids estáveis pra não duplicar no merge da nuvem. Ela edita/apaga normalmente depois.
+function ensureLivrosLidos2026(d) {
+  if (d.livrosLidos2026Seeded) return d;
+  const livros = [
+    { id: 'seed-livro-travesuras', subtipo: 'lido', titulo: 'Travesuras de la niña mala', data: '2026-05-14' },
+    { id: 'seed-livro-leveza',     subtipo: 'lido', titulo: 'A insustentável leveza do ser', data: '2026-02-25' },
+    { id: 'seed-livro-vegetariana', subtipo: 'lido', titulo: 'A vegetariana', data: '2026-01-22' },
+    { id: 'seed-livro-casamento',  subtipo: 'lido', titulo: 'Como arruinar um casamento', data: '2026-01-16' },
+  ];
+  const have = new Set((d.cultura || []).map(c => c.id));
+  const novos = livros.filter(l => !have.has(l.id));
+  return { ...d, livrosLidos2026Seeded: true, cultura: [...(d.cultura || []), ...novos] };
+}
+
+// Aplica todos os seeds idempotentes do calendário, na ordem.
+function runSeeds(d) { return ensureLivrosLidos2026(ensureLembreteSpotify(d)); }
+
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { ...DEFAULT }; }
@@ -54,7 +72,7 @@ function writeLocal(d) {
 }
 
 export function CalendarProvider({ children }) {
-  const [data, setData] = useState(() => ensureLembreteSpotify(readLocal()));
+  const [data, setData] = useState(() => runSeeds(readLocal()));
   const dirty = useRef(false); // não deixa a nuvem tardia sobrescrever ação local
 
   useEffect(() => {
@@ -67,7 +85,7 @@ export function CalendarProvider({ children }) {
         // nuvem vazia/offline: se já há algo local, empurra pra cima (migração)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
           local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length;
-        const seeded = ensureLembreteSpotify(local);
+        const seeded = runSeeds(local);
         const { next, changed } = rolarAtrasadas(seeded.tasks, hojeKey());
         const f = changed ? { ...seeded, tasks: next } : seeded;
         const mudou = changed || seeded !== local;
@@ -76,7 +94,7 @@ export function CalendarProvider({ children }) {
         return;
       }
       const merged0 = { ...DEFAULT, ...cloud };
-      const merged = ensureLembreteSpotify(merged0);
+      const merged = runSeeds(merged0);
       const { next, changed } = rolarAtrasadas(merged.tasks, hojeKey());
       const final = changed ? { ...merged, tasks: next } : merged;
       writeLocal(final);

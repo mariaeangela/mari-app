@@ -91,6 +91,11 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   Wikipédia pt via api.wikimedia.org, cache em memória por MM-DD).
 - `src/calendarStore.jsx` — CalendarProvider/useCalendar; cache local
   (`diagonal_calendario`) + sync nuvem (cloud.js: fetchCalendario/pushCalendario).
+  Seeds idempotentes via `runSeeds` (aplicado no init e nos dois ramos do fetch):
+  `ensureLembreteSpotify` (tarefa mensal) e `ensureLivrosLidos2026` (4 livros lidos
+  da Mari como cultura subtipo 'lido', ids estáveis `seed-livro-*`, flag
+  `livrosLidos2026Seeded`). Para semear mais conteúdo, criar outra `ensure*` e
+  encadear em `runSeeds`.
   Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
   savedRoles[].
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
