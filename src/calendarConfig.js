@@ -115,6 +115,19 @@ export function fmtPace(secsPerKm) {
   const s = Math.round(secsPerKm);
   return `${Math.floor(s / 60)}:${pad2(s % 60)}/km`;
 }
+// Distância em km para exibição: aceita "5,2"/"5.2"/número, mostra com vírgula e 1 casa (sem zero à toa).
+export function fmtKm(d) {
+  if (d == null || d === '') return '';
+  const n = Number(String(d).replace(',', '.'));
+  if (!isFinite(n)) return String(d);
+  return String(Math.round(n * 10) / 10).replace('.', ',');
+}
+// Distância digitada (com vírgula ou ponto) -> número, ou undefined se vazio/ inválido.
+export function parseKm(str) {
+  if (str == null || String(str).trim() === '') return undefined;
+  const n = Number(String(str).replace(',', '.'));
+  return isFinite(n) && n > 0 ? n : undefined;
+}
 
 // ---------- "Neste dia na história" ----------
 // 1º) fato curado (conferido à mão); 2º) efemérides da Wikipédia (pt).

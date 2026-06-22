@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
-import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace, fmtKm } from './calendarConfig.js';
 
 const COR = '#8d6e63';
 const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
@@ -60,10 +60,10 @@ function RetroHome({ isWide, onOpen }) {
   const exGrupo = (g) => exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === g).sort(byData);
   const corridas = exGrupo('corrida');                                  // todas as corridas (prova + treino)
   const ehProva = (x) => x.subtipo === 'corrida_prova' || x.subtipo === 'corrida';
-  const km = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0));
+  const km = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0) * 10) / 10;
   const provaLabel = (x) => {
     const nome = x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Prova';
-    const extra = [x.distancia ? `${x.distancia}km` : null, x.tempo ? fmtTempo(x.tempo) : null].filter(Boolean);
+    const extra = [x.distancia ? `${fmtKm(x.distancia)}km` : null, x.tempo ? fmtTempo(x.tempo) : null].filter(Boolean);
     return extra.length ? `${nome} · ${extra.join(' · ')}` : nome;
   };
 
@@ -157,7 +157,7 @@ function RetroHome({ isWide, onOpen }) {
 // Drill-down do "km corridos": tudo que correu (prova + treino), por data ou por mês (evolução).
 function KmDrilldown({ corridas, ehProva, onClose }) {
   const [modo, setModo] = useState('data');
-  const total = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0));
+  const total = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0) * 10) / 10;
   const porMes = {};
   corridas.forEach(x => { const mm = (x.data || '').slice(0, 7); if (!mm) return; porMes[mm] = (porMes[mm] || 0) + (Number(x.distancia) || 0); });
   const mesesAsc = Object.keys(porMes).sort();
@@ -168,7 +168,7 @@ function KmDrilldown({ corridas, ehProva, onClose }) {
   return (
     <div style={{ marginTop: 14, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{total} km corridos</span>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{fmtKm(total)} km corridos</span>
         <span onClick={onClose} style={{ cursor: 'pointer', color: '#bbb', fontSize: 18 }}>×</span>
       </div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>{tabBtn('data', 'por data')}{tabBtn('mes', 'por mês')}</div>
@@ -176,16 +176,16 @@ function KmDrilldown({ corridas, ehProva, onClose }) {
       {modo === 'data' ? corridas.map((x, i) => (
         <div key={x.id || i} style={{ display: 'flex', gap: 10, alignItems: 'baseline', padding: '7px 0', borderBottom: '1px solid #f4f4f4' }}>
           <span style={{ fontSize: 12, color: COR_CORRIDA, fontWeight: 700, width: 42, flexShrink: 0 }}>{fmtDM(x.data)}</span>
-          <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{x.distancia ? x.distancia + 'km' : '—'}{x.tempo ? ' · ' + fmtTempo(x.tempo) : ''}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{x.distancia ? fmtKm(x.distancia) + 'km' : '—'}{x.tempo ? ' · ' + fmtTempo(x.tempo) : ''}</span>
           <span style={{ fontSize: 10.5, color: ehProva(x) ? COR_CORRIDA : '#aaa', textTransform: 'uppercase', fontWeight: 700, flexShrink: 0 }}>{ehProva(x) ? 'prova' : 'treino'}</span>
         </div>
       )) : mesesAsc.map(mm => {
-        const v = Math.round(porMes[mm]);
+        const v = Math.round(porMes[mm] * 10) / 10;
         return (
           <div key={mm} style={{ padding: '7px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 4 }}>
               <span style={{ color: '#555', textTransform: 'capitalize' }}>{MESES[+mm.slice(5, 7) - 1]}</span>
-              <span style={{ color: COR_CORRIDA, fontWeight: 700 }}>{v} km</span>
+              <span style={{ color: COR_CORRIDA, fontWeight: 700 }}>{fmtKm(v)} km</span>
             </div>
             <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4 }}>
               <div style={{ width: (v / maxMes * 100) + '%', height: '100%', background: COR_CORRIDA, borderRadius: 4 }} />
@@ -426,7 +426,7 @@ function CorridasRetro({ onBack, isWide }) {
     .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
 
   const comTempo = provas.filter(p => p.tempo);
-  const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0));
+  const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0) * 10) / 10;
   const melhorPace = comTempo.map(p => p.pReal).filter(Boolean).length ? Math.min(...comTempo.map(p => p.pReal).filter(Boolean)) : null;
   const evo = comTempo.filter(p => p.pReal).slice().sort((a, b) => (a.data || '').localeCompare(b.data || '')).map(p => ({ pace: p.pReal }));
 
@@ -442,7 +442,7 @@ function CorridasRetro({ onBack, isWide }) {
       ) : <>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18 }}>
           <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{provas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {provas.length === 1 ? 'prova' : 'provas'}</span></div>
-          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{totalKm}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{fmtKm(totalKm)}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>
           {melhorPace && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: COR_CORRIDA }}>{fmtPace(melhorPace)}</span><span style={{ fontSize: 12.5, color: '#999' }}> melhor pace</span></div>}
         </div>
 
@@ -460,7 +460,7 @@ function CorridasRetro({ onBack, isWide }) {
             <div key={p.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{p.nome}</span>
-                <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{p.data ? fmtDM(p.data) : '—'}{p.km ? ` · ${p.km}km` : ''}</span>
+                <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{p.data ? fmtDM(p.data) : '—'}{p.km ? ` · ${fmtKm(p.km)}km` : ''}</span>
               </div>
               <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 13 }}>
                 {p.tempo && <span style={{ color: '#333' }}>tempo <b>{fmtTempo(p.tempo)}</b>{p.pReal && <span style={{ color: '#999' }}> · {fmtPace(p.pReal)}</span>}</span>}

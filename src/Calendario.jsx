@@ -8,13 +8,13 @@ import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
   MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
-  parseTempo, fmtTempo, paceSecs, fmtPace,
+  parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm,
 } from './calendarConfig.js';
 
 const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
 // Rótulo da corrida: "6km - Centro Histórico" (distância antes do nome).
-const corridaLabel = (x) => (x.distancia ? `${x.distancia}km - ` : '') + exTitulo(x) + (x.tempo ? ` · ${fmtTempo(x.tempo)}` : '');
+const corridaLabel = (x) => (x.distancia ? `${fmtKm(x.distancia)}km - ` : '') + exTitulo(x) + (x.tempo ? ` · ${fmtTempo(x.tempo)}` : '');
 // Ordem do dia (Agenda e detalhe do dia): eventos de trabalho SEM horário no
 // topo, depois itens com horário em ordem cronológica, e por fim os demais sem horário.
 const dayOrder = (a, b) => {
@@ -155,7 +155,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
   const [horaInicio, setHoraInicio] = useState(editing?.horaInicio || '');
   const [horaFim, setHoraFim] = useState(editing?.horaFim || '');
   const [repetir, setRepetir] = useState(editing?.repetir || 'nao');
-  const [distancia, setDistancia] = useState(editing?.distancia || '');
+  const [distancia, setDistancia] = useState(editing?.distancia != null ? fmtKm(editing.distancia) : '');
   const [tempo, setTempo] = useState(editing?.tempo != null ? fmtTempo(editing.tempo) : '');
   const [metaTempo, setMetaTempo] = useState(editing?.metaTempo != null ? fmtTempo(editing.metaTempo) : '');
   const [nota, setNota] = useState(editing?.nota || '');
@@ -172,7 +172,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
   // Monta o objeto do tipo escolhido (sem id) — usado na conversão de tipo.
   const buildObj = () => {
     if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
-    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined };
+    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined };
     if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: false };
     if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
     return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, horaInicio: horaInicio || undefined, nota: nota || undefined, comQuem: comQuem || undefined };
@@ -188,7 +188,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
     }
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
-    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: distancia || undefined, tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined });
+    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined });
     else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
@@ -317,7 +317,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
         {tipo === 'exercicio' && EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' && (
           <>
             <label style={labelStyle}>Distância em km (opcional)</label>
-            <input type="number" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5" style={inputStyle} />
+            <input type="text" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5,2" style={inputStyle} />
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Tempo real (opcional)</label>
@@ -329,7 +329,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
               </div>
             </div>
             {(() => {
-              const d = Number(distancia);
+              const d = parseKm(distancia) || 0;
               const pReal = paceSecs(parseTempo(tempo), d);
               const pMeta = paceSecs(parseTempo(metaTempo), d);
               if (!pReal && !pMeta) return null;

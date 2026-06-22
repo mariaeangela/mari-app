@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
-import { EXERCICIO_BY_ID } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, fmtKm } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
 
@@ -1691,7 +1691,7 @@ function SaudeSection({ onBack }) {
   const provasFuturas = exercicios
     .filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida' && x.subtipo !== 'corrida_treino' && (x.data || '') >= hk)
     .sort((a, b) => (a.data || '').localeCompare(b.data || ''));
-  const labelProva = (x) => [x.distancia ? x.distancia + 'km' : null, x.titulo].filter(Boolean).join(' · ') || 'Corrida';
+  const labelProva = (x) => [x.distancia ? fmtKm(x.distancia) + 'km' : null, x.titulo].filter(Boolean).join(' · ') || 'Corrida';
   const salvarMeta = (x, valor) => { cal.saveExercicio({ ...x, metaTempo: valor.trim() || undefined }); setMetaEdit(null); };
 
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
@@ -1759,7 +1759,7 @@ function SaudeSection({ onBack }) {
           {exMeses.length > 1 && <BarrasSalario barras={barrasEx} fmt={(v) => v + (v === 1 ? ' treino' : ' treinos')} />}
           <div style={{ display: 'flex', gap: 20, margin: '10px 0 6px' }}>
             <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{exDoMes.length}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
-            {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{kmMes.toLocaleString('pt-BR')} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
+            {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{fmtKm(kmMes)} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
           </div>
           <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>musculação <b style={{ color: '#555' }}>{muscMes}×</b> · corrida <b style={{ color: '#555' }}>{corrMes}×</b></div>
           {tiposOrd.map(t => (
@@ -1774,7 +1774,7 @@ function SaudeSection({ onBack }) {
               </div>
             </div>
           ))}
-          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{exAno.length}</b> treinos{kmAno > 0 ? ' · ' + kmAno.toLocaleString('pt-BR') + ' km corridos' : ''}</p>
+          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{exAno.length}</b> treinos{kmAno > 0 ? ' · ' + fmtKm(kmAno) + ' km corridos' : ''}</p>
         </>}</>)}
 
       {bloco('Peso', 'peso', <>
