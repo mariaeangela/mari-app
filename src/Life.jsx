@@ -2132,7 +2132,9 @@ function AprendizadosSection({ onBack }) {
   const [topicoSel, setTopicoSel] = useState(null);
   const [novo, setNovo] = useState('');
   const [adicionando, setAdicionando] = useState(false);
-  const topico = life.aprendizados.topicos.find(t => t.id === topicoSel);
+  const [gerenciar, setGerenciar] = useState(false);
+  const topicos = life.aprendizados.topicos;
+  const topico = topicos.find(t => t.id === topicoSel);
   if (topico) return <TopicoView topico={topico} onBack={() => setTopicoSel(null)} />;
   const addTopico = () => { const nome = novo.trim(); if (!nome) return; const id = life.addAprendTopico(nome); setNovo(''); setAdicionando(false); setTopicoSel(id); };
   const countNotas = (id) => life.aprendizados.notas.filter(n => n.topicoId === id && !n.paiId).length;
@@ -2140,8 +2142,13 @@ function AprendizadosSection({ onBack }) {
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_APREND, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Aprendizados</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>o que você aprendeu, por assunto</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Aprendizados</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>o que você aprendeu, por assunto</p>
+        </div>
+        {topicos.length > 0 && <button onClick={() => setGerenciar(true)} title="reordenar / gerenciar tópicos" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {life.aprendizados.topicos.map(t => {
@@ -2163,6 +2170,26 @@ function AprendizadosSection({ onBack }) {
         </div>
       ) : (
         <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      )}
+
+      {gerenciar && (
+        <div onClick={() => setGerenciar(false)} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar tópicos</h3>
+              <button onClick={() => setGerenciar(false)} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {topicos.map((t, idx) => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                <span style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600 }}>{t.nome}</span>
+                <button onClick={() => life.moveAprendTopico(t.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                <button onClick={() => life.moveAprendTopico(t.id, 1)} disabled={idx === topicos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === topicos.length - 1 ? '#ddd' : '#777', cursor: idx === topicos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                <button onClick={() => { if (window.confirm(`Apagar o tópico "${t.nome}" e todas as suas notas?`)) life.deleteAprendTopico(t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Use ↑ ↓ para reordenar os tópicos. Apagar remove o tópico e todas as suas notas.</p>
+          </div>
+        </div>
       )}
     </div>
   );

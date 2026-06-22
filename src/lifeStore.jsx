@@ -691,6 +691,14 @@ export function LifeProvider({ children }) {
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
   const addAprendTopico = (nome) => { const id = uid('t'); setAprendizados({ ...aprendizados, topicos: [...aprendizados.topicos, { id, nome }] }); return id; };
   const deleteAprendTopico = (id) => setAprendizados({ topicos: aprendizados.topicos.filter(t => t.id !== id), notas: aprendizados.notas.filter(n => n.topicoId !== id) });
+  const moveAprendTopico = (id, dir) => {
+    const arr = [...aprendizados.topicos];
+    const i = arr.findIndex(t => t.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setAprendizados({ ...aprendizados, topicos: arr });
+  };
   const saveAprendNota = (nota) => setAprendizados(nota.id && aprendizados.notas.some(n => n.id === nota.id)
     ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? nota : n) }
     : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n') }] });
@@ -705,7 +713,7 @@ export function LifeProvider({ children }) {
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
-    aprendizados, addAprendTopico, deleteAprendTopico, saveAprendNota, deleteAprendNota,
+    aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota,
     comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
   };

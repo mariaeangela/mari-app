@@ -163,7 +163,9 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
   Notas **aninham 1 nível** via `paiId` (nota-mãe = "método/categoria"; filhas = receitas/materiais).
   `NotaCard` é recursivo; "+ adicionar dentro" só aparece em notas de topo (nível 0). Hub conta só
   as notas de topo. `aprendizados = { topicos:[{id,nome}], notas:[{id,topicoId,paiId?,titulo,itens[]}] }`
-  no `lifeStore` (CRUDs `addAprendTopico`/`deleteAprendTopico`/`saveAprendNota`/`deleteAprendNota`).
+  no `lifeStore` (CRUDs `addAprendTopico`/`deleteAprendTopico`/`moveAprendTopico`/`saveAprendNota`/`deleteAprendNota`).
+  O hub tem botão ⚙ ("Gerenciar tópicos") que abre painel para **reordenar** (↑↓ via `moveAprendTopico`)
+  e apagar tópicos — mesmo padrão do ⚙ das listas de Compras.
   `NotaForm` edita os itens por textarea (1 linha = 1 item). **Vinhos** têm form próprio (`WineForm`,
   campos país/região/nome/uva/info/data → nota `tipo:'vinho'`): notas-mãe com `grupoVinho:true`
   (Branco/Tinto/Espumante) mostram "+ adicionar vinho" e os filhos `tipo:'vinho'` renderizam em layout
