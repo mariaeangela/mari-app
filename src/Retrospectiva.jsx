@@ -58,7 +58,14 @@ function RetroHome({ isWide, onOpen }) {
   const byData = (a, b) => (b.data || '').localeCompare(a.data || '');
   const cultItens = (sub) => cultAno.filter(c => c.subtipo === sub).sort(byData).map(c => ({ titulo: c.titulo || '—', data: c.data }));
   const exGrupo = (g) => exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === g).sort(byData);
-  const km = Math.round(exGrupo('corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0));
+  const corridas = exGrupo('corrida');                                  // todas as corridas (prova + treino)
+  const ehProva = (x) => x.subtipo === 'corrida_prova' || x.subtipo === 'corrida';
+  const km = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0));
+  const provaLabel = (x) => {
+    const nome = x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Prova';
+    const extra = [x.distancia ? `${x.distancia}km` : null, x.tempo ? fmtTempo(x.tempo) : null].filter(Boolean);
+    return extra.length ? `${nome} · ${extra.join(' · ')}` : nome;
+  };
 
   const numeros = [
     { key: 'lido', label: 'livros lidos', itens: cultItens('lido') },
@@ -69,7 +76,7 @@ function RetroHome({ isWide, onOpen }) {
     { key: 'show', label: 'shows', itens: cultItens('show') },
     { key: 'espetaculo', label: 'espetáculos', itens: cultItens('espetaculo') },
     { key: 'treino', label: 'treinos', itens: exGrupo('treino').map(x => ({ titulo: EXERCICIO_BY_ID[x.subtipo]?.label || 'Treino', data: x.data })) },
-    { key: 'corrida', label: 'corridas', itens: exGrupo('corrida').map(x => ({ titulo: [x.distancia ? x.distancia + 'km' : null, x.titulo].filter(Boolean).join(' · ') || 'Corrida', data: x.data })) },
+    { key: 'provas', label: 'provas de corrida', itens: corridas.filter(ehProva).map(x => ({ titulo: provaLabel(x), data: x.data })) },
     { key: 'km', label: 'km corridos', valor: km, itens: null },
   ].map(n => ({ ...n, valor: n.valor != null ? n.valor : n.itens.length })).filter(n => n.valor > 0);
 
@@ -102,7 +109,7 @@ function RetroHome({ isWide, onOpen }) {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(150px, 1fr))' : '1fr 1fr', gap: 12 }}>
           {numeros.map(n => {
-            const clicavel = n.itens && n.itens.length > 0;
+            const clicavel = n.key === 'km' ? corridas.length > 0 : (n.itens && n.itens.length > 0);
             const ativo = detalhe === n.key;
             return (
               <div key={n.key} onClick={clicavel ? () => setDetalhe(ativo ? null : n.key) : undefined} style={{
@@ -116,7 +123,9 @@ function RetroHome({ isWide, onOpen }) {
         </div>
       )}
 
-      {det && (
+      {detalhe === 'km' && <KmDrilldown corridas={corridas} ehProva={ehProva} onClose={() => setDetalhe(null)} />}
+
+      {det && detalhe !== 'km' && (
         <div style={{ marginTop: 14, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222', textTransform: 'capitalize' }}>{det.label}</span>
@@ -141,6 +150,49 @@ function RetroHome({ isWide, onOpen }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Drill-down do "km corridos": tudo que correu (prova + treino), por data ou por mês (evolução).
+function KmDrilldown({ corridas, ehProva, onClose }) {
+  const [modo, setModo] = useState('data');
+  const total = Math.round(corridas.reduce((a, x) => a + (Number(x.distancia) || 0), 0));
+  const porMes = {};
+  corridas.forEach(x => { const mm = (x.data || '').slice(0, 7); if (!mm) return; porMes[mm] = (porMes[mm] || 0) + (Number(x.distancia) || 0); });
+  const mesesAsc = Object.keys(porMes).sort();
+  const maxMes = Math.max(1, ...mesesAsc.map(m => porMes[m]));
+  const tabBtn = (id, txt) => (
+    <button onClick={() => setModo(id)} style={{ padding: '5px 12px', borderRadius: 16, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (modo === id ? '#ef6c4d' : '#e2e2e2'), background: modo === id ? '#ef6c4d18' : '#fff', color: modo === id ? '#b33d20' : '#999' }}>{txt}</button>
+  );
+  return (
+    <div style={{ marginTop: 14, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{total} km corridos</span>
+        <span onClick={onClose} style={{ cursor: 'pointer', color: '#bbb', fontSize: 18 }}>×</span>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>{tabBtn('data', 'por data')}{tabBtn('mes', 'por mês')}</div>
+
+      {modo === 'data' ? corridas.map((x, i) => (
+        <div key={x.id || i} style={{ display: 'flex', gap: 10, alignItems: 'baseline', padding: '7px 0', borderBottom: '1px solid #f4f4f4' }}>
+          <span style={{ fontSize: 12, color: COR_CORRIDA, fontWeight: 700, width: 42, flexShrink: 0 }}>{fmtDM(x.data)}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{x.distancia ? x.distancia + 'km' : '—'}{x.tempo ? ' · ' + fmtTempo(x.tempo) : ''}</span>
+          <span style={{ fontSize: 10.5, color: ehProva(x) ? COR_CORRIDA : '#aaa', textTransform: 'uppercase', fontWeight: 700, flexShrink: 0 }}>{ehProva(x) ? 'prova' : 'treino'}</span>
+        </div>
+      )) : mesesAsc.map(mm => {
+        const v = Math.round(porMes[mm]);
+        return (
+          <div key={mm} style={{ padding: '7px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 4 }}>
+              <span style={{ color: '#555', textTransform: 'capitalize' }}>{MESES[+mm.slice(5, 7) - 1]}</span>
+              <span style={{ color: COR_CORRIDA, fontWeight: 700 }}>{v} km</span>
+            </div>
+            <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4 }}>
+              <div style={{ width: (v / maxMes * 100) + '%', height: '100%', background: COR_CORRIDA, borderRadius: 4 }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

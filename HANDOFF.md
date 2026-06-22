@@ -208,6 +208,10 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   artista, top música). **Lembrete recorrente** no Calendário (`ensureLembreteSpotify` no
   `calendarStore`, flag `lembreteSpotifySeeded`): tarefa mensal "Cadastrar Spotify do mês passado"
   (data dia 1, `repetir:'mensal'`) — aparece no Calendário e no **Hoje** (via `HojeAgenda`) todo dia 1.
+- **"Ano em números" (RetroHome)**: os números de corrida são **"provas de corrida"** (só
+  `corrida_prova`/legado `corrida`; drill-down lista data · km · tempo) e **"km corridos"** (soma de
+  TODAS as corridas — prova + treino). "km corridos" é clicável → `KmDrilldown` com toggle **por data**
+  (cada corrida com tag prova/treino, km e tempo) e **por mês** (km/mês com barras = evolução).
 - **Navegação entre abas**: `src/nav.jsx` (`NavContext`/`useNav`) — App expõe `goRetroCompras()`
   (seta `retroSec` + `goTab('retrospectiva')`; `RetrospectivaPage` lê `secInicial`). Usado pelo botão
   "Ver minhas compras feitas" e pelo link "ver compras ›" na linha **Coisas** dos Gastos (Vida
