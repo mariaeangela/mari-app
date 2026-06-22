@@ -365,8 +365,8 @@ export default function App() {
   const [homeNonce, setHomeNonce] = useState(0);
   const goTab = (id) => { if (id === tab) setHomeNonce(n => n + 1); setTab(id); };
   const [retroSec, setRetroSec] = useState(null);
-  const goRetro = (sec) => { setRetroSec(sec); goTab('retrospectiva'); };
-  const goRetroCompras = () => goRetro('compras');
+  const goRetro = (sec, cat) => { setRetroSec(cat ? sec + ':' + cat : sec); goTab('retrospectiva'); };
+  const goRetroCompras = () => goRetro('gastos', 'Coisas');
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);

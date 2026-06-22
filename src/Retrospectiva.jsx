@@ -41,7 +41,6 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 // Cards do hub. `pronto` = sub-página já construída.
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
-  { id: 'compras', label: 'Compras', desc: 'o que você comprou', cor: '#ff8a3d', pronto: true },
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
@@ -54,13 +53,14 @@ const CARDS = [
 export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) {
   const [sec, setSec] = useState(secInicial || null);
   useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
-  if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
+  const baseSec = (sec || '').split(':')[0];          // 'gastos:Saúde' → 'gastos'
+  const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
+  if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
+  if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
 
@@ -930,9 +930,11 @@ function ViagemForm({ editing, onClose }) {
 const COR_GASTOS = '#6b7a99';
 const GASTO_CATS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúde', 'Viagem', 'Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Rolês', 'Presentes'];
 const fmtBRLr = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-function GastosRetro({ onBack, isWide }) {
+const GASTO_CORES = ['#ff8a3d', '#5b8def', '#2bb673', '#c77dff', '#ef6c4d', '#26c6da', '#f0a35e', '#c2548f', '#6b7a99', '#d4a72c', '#e0729b', '#3fb6a8', '#8a8f98'];
+const catCor = (c, fallback = 0) => { const i = GASTO_CATS.indexOf(c); return GASTO_CORES[(i >= 0 ? i : fallback) % GASTO_CORES.length]; };
+function GastosRetro({ onBack, isWide, catInicial }) {
   const life = useLife();
-  const [catSel, setCatSel] = useState(null);
+  const [catSel, setCatSel] = useState(catInicial || null);
   const [form, setForm] = useState(null); // { editing? } — item de gasto
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
@@ -940,7 +942,6 @@ function GastosRetro({ onBack, isWide }) {
   const catTotals = {};
   doAno.forEach(g => (g.itens || []).forEach(it => { catTotals[it.categoria] = (catTotals[it.categoria] || 0) + (Number(it.valor) || 0); }));
   const cats = [...GASTO_CATS.filter(c => catTotals[c] != null), ...Object.keys(catTotals).filter(c => !GASTO_CATS.includes(c))];
-  const maxCat = Math.max(...cats.map(c => catTotals[c] || 0), 1);
   const totalAno = cats.reduce((a, c) => a + (catTotals[c] || 0), 0);
 
   // "Coisas" reaproveita a retrospectiva de compras itemizada (como hoje).
@@ -954,23 +955,31 @@ function GastosRetro({ onBack, isWide }) {
     const linhas = doAno.map(g => ({ mes: g.mes, valor: Number((g.itens || []).find(i => i.categoria === catSel)?.valor) || 0 }))
       .filter(l => l.valor > 0).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
     const maxMes = Math.max(...linhas.map(l => l.valor), 1);
+    const cor = catCor(catSel);
     // agrupa itens por mês (mais recente primeiro)
     const mesesItens = [...new Set(itens.map(i => i.mes))].sort().reverse();
     const totalItens = itens.reduce((a, i) => a + (Number(i.valor) || 0), 0);
     const totalCat = temItens ? totalItens : linhas.reduce((a, l) => a + l.valor, 0);
+    // dados do gráfico (design de Compras): meses cronológicos, faixas = itens
+    const mesesChart = [...mesesItens].reverse().map(mm => {
+      const arr = itens.filter(i => i.mes === mm).map(i => ({ titulo: i.nome, vnum: Number(i.valor) || 0 })).sort((a, b) => b.vnum - a.vnum);
+      return { mm, label: MESES[+mm.slice(5, 7) - 1].slice(0, 3), itens: arr, total: arr.reduce((a, i) => a + i.vnum, 0) };
+    }).filter(m => m.total > 0);
     return (
       <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
         <button onClick={() => setCatSel(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Gastos</button>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
+            <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
-            <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{fmtBRLr(totalCat)} em {anoSel}</p>
+            <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{fmtBRLr(totalCat)} em {anoSel}{temItens ? ` · ${itens.length} ${itens.length === 1 ? 'compra' : 'compras'}` : ''}</p>
           </div>
           <button onClick={() => setForm({})} title="adicionar gasto" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
         </div>
 
-        {temItens ? mesesItens.map(mm => {
+        {temItens ? <>
+          {mesesChart.length > 0 && <ComprasChart meses={mesesChart} />}
+          {mesesItens.map(mm => {
           const doMes = itens.filter(i => i.mes === mm).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
           const sub = doMes.reduce((a, i) => a + (Number(i.valor) || 0), 0);
           return (
@@ -987,7 +996,7 @@ function GastosRetro({ onBack, isWide }) {
               ))}
             </div>
           );
-        }) : linhas.length === 0 ? (
+        })}</> : linhas.length === 0 ? (
           <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}. Toque no + para detalhar.</p>
         ) : <>
           <p style={{ fontSize: 11.5, color: '#bbb', margin: '0 0 10px' }}>total por mês (ainda não detalhado — toque no + para listar os itens)</p>
@@ -1024,17 +1033,19 @@ function GastosRetro({ onBack, isWide }) {
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#111' }}>{fmtBRLr(totalAno)}</span>
           <span style={{ fontSize: 12.5, color: '#999' }}> em {anoSel}</span>
         </div>
-        {cats.map(c => (
-          <div key={c} onClick={() => setCatSel(c)} style={{ padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-              <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{c}{c === 'Coisas' && <span style={{ fontSize: 10.5, color: COR_GASTOS, fontWeight: 700, marginLeft: 6 }}>compras ›</span>}</span>
-              <span style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRLr(catTotals[c])} <span style={{ color: COR_GASTOS, fontWeight: 700 }}>›</span></span>
-            </div>
-            <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4 }}>
-              <div style={{ width: (catTotals[c] / maxCat * 100) + '%', height: '100%', background: COR_GASTOS, borderRadius: 4 }} />
-            </div>
-          </div>
-        ))}
+        <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(160px, 1fr))' : '1fr 1fr', gap: 12 }}>
+          {cats.map((c, i) => {
+            const cor = catCor(c, i);
+            return (
+              <button key={c} onClick={() => setCatSel(c)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left' }}>
+                <div style={{ width: 22, height: 4, background: cor, borderRadius: 4, marginBottom: 10 }} />
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c}</div>
+                <div style={{ fontSize: 13, color: '#444', marginTop: 5, fontWeight: 700 }}>{fmtBRLr(catTotals[c])}</div>
+                <div style={{ fontSize: 10.5, color: '#aaa', marginTop: 2 }}>{c === 'Coisas' ? 'compras' : (totalAno ? (catTotals[c] / totalAno * 100).toFixed(0) + '% do ano' : '')}</div>
+              </button>
+            );
+          })}
+        </div>
       </>}
     </div>
   );

@@ -253,10 +253,15 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   (cada corrida com tag prova/treino, km e tempo) e **por mês** (km/mês com barras = evolução).
   "treinos" é clicável → `TreinoDrilldown`: barras horizontais com contagem por tipo (Costas 2x…),
   clicar num tipo expande as datas daquele treino.
-- **Gastos** (`GastosRetro`) — card que lê `life.gastos` (Vida Financeira, sem duplicar): hub com total do
-  ano + lista das categorias (barras, `GASTO_CATS`); clicar numa categoria mostra o valor por mês (barras).
-  A categoria **Coisas** reusa `ComprasRetro` (itemizado, com `backLabel="Gastos"`). Year selector via
-  `useAnoSel`. Link na **Vida Financeira → Gastos** ("ver ›" em cada categoria) abre isto via `nav.goRetro('gastos')`.
+- **Gastos** (`GastosRetro`) — ÚNICO card de finanças na Retrospectiva (o antigo card "Compras" foi
+  removido; agora é a categoria **Coisas** dentro de Gastos). Lê `life.gastos` (Vida Financeira, sem
+  duplicar). Hub = **grid de cards**, um por categoria (`GASTO_CATS`, cor por índice via `GASTO_CORES`/`catCor`),
+  cada card com total + % do ano. Clicar num card abre a categoria:
+  **Coisas** → reusa `ComprasRetro` (itemizado, `backLabel="Gastos"`); categorias **detalhadas** (têm
+  `gastosItens`) → design de Compras (`ComprasChart` + lista por mês com valor de cada item + form);
+  categorias **sem detalhe** → total por mês (fallback). Deep-link: `nav.goRetro('gastos', categoria)`
+  abre direto o card da categoria (codificado em `secInicial='gastos:Categoria'`, parseado no
+  `RetrospectivaPage`). Link "ver ›" em cada categoria da **Vida Financeira → Gastos** usa isso.
   **Quebra itemizada**: slice `gastosItens:[{id,mes,categoria,nome,valor}]` no `lifeStore` (CRUD `saveGastoItem`/
   `deleteGastoItem`; form `GastoItemForm`). Quando uma categoria tem itens, o detalhe lista item a item
   agrupado por mês (com subtotais); senão cai no total mensal da VF. Seeds por categoria: `ensureGastosPresentes`
