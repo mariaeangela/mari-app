@@ -10,7 +10,9 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   relógio vivo (`useMinuteTick`) → edição muda às 6h/14h, datas à meia-noite.
   Navegação: `goTab(id)` reclica a aba ativa → bump em `homeNonce` (key de cada
   página) → remonta e volta à capa (sai de sub-páginas internas). Clicar em
-  "diagonal" no Header também vai pra Hoje.
+  "diagonal" no Header também vai pra Hoje. A agenda "hoje" da capa (`HojeAgenda`)
+  reaproveita `itemsForDay`; clicar no título de um item abre o `AddSheet` (exportado
+  de Calendario.jsx) para editar direto na Hoje, sem ir ao Calendário.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema

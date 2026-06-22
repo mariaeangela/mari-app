@@ -141,7 +141,7 @@ function Countdown({ data, today }) {
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
 const labelStyle = { fontSize: 11, color: '#999', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: 5, marginTop: 14 };
 
-function AddSheet({ initialDate, editing, onClose }) {
+export function AddSheet({ initialDate, editing, onClose }) {
   const cal = useCalendar();
   const [tipo, setTipo] = useState(editing?._tipo || 'evento');
   const d0 = initialDate || ymd(hoje());

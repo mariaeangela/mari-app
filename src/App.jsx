@@ -4,7 +4,7 @@ import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
-import Calendario, { itemsForDay, trabTag } from './Calendario.jsx';
+import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection } from './Life.jsx';
@@ -212,6 +212,7 @@ function NesteDiaFato() {
 // Lista do que está marcado para hoje (eventos, tarefas, rolês, cultura…).
 function HojeAgenda() {
   const cal = useCalendar();
+  const [editing, setEditing] = useState(null);
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   const items = itemsForDay(cal.data, hoje).all;
   if (!items.length) return null;
@@ -223,11 +224,12 @@ function HojeAgenda() {
           {it._tipo === 'tarefa'
             ? <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
             : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
-          <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
+          <span onClick={() => setEditing(it)} style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
           {it.trabalho && <span style={trabTag}>trabalho</span>}
           {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
         </div>
       ))}
+      {editing && <AddSheet editing={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
