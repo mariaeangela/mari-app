@@ -43,7 +43,7 @@ const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'compras', label: 'Compras', desc: 'o que você comprou', cor: '#ff8a3d', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
-  { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6' },
+  { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954' },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
@@ -57,6 +57,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (sec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -781,6 +782,141 @@ function DiasForm({ editing, onClose }) {
         <textarea value={titulo} onChange={e => setTitulo(e.target.value)} rows={2} placeholder="ex.: Fiz minha primeira corrida de rua" style={{ ...inputStyle, resize: 'vertical' }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteMarco(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Card: Viagens (timeline por ano + países com bandeiras) ----
+const COR_VIAGENS = '#19b3a6';
+const PAIS_FLAG = { 'Brasil': '🇧🇷', 'Espanha': '🇪🇸', 'França': '🇫🇷', 'Itália': '🇮🇹', 'Argentina': '🇦🇷', 'Bélgica': '🇧🇪', 'Portugal': '🇵🇹', 'Peru': '🇵🇪', 'Inglaterra': '🇬🇧', 'Tailândia': '🇹🇭', 'Catar': '🇶🇦', 'Hungria': '🇭🇺', 'República Checa': '🇨🇿' };
+const flagOf = (p) => PAIS_FLAG[p] || '🌍';
+const vAnoKey = (a) => (String(a) === 'jovem' ? '0000' : String(a));
+const vAnoLabel = (a) => (String(a) === 'jovem' ? 'Jovem' : String(a));
+
+function ViagensRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const viagens = life.viagens || [];
+  const cidades = new Set();
+  viagens.forEach(v => { const places = (v.locais && v.locais.length) ? v.locais : [v.titulo]; places.forEach(p => cidades.add(p)); });
+  const paisesCount = {};
+  viagens.forEach(v => (v.paises || []).forEach(p => { paisesCount[p] = (paisesCount[p] || 0) + 1; }));
+  const paisesList = Object.entries(paisesCount).sort((a, b) => b[1] - a[1]);
+  const porAno = {};
+  viagens.forEach(v => { const k = String(v.ano); porAno[k] = (porAno[k] || 0) + 1; });
+  const anosDesc = Object.keys(porAno).sort((a, b) => vAnoKey(b).localeCompare(vAnoKey(a)));
+  const maxAno = Math.max(...Object.values(porAno), 1);
+
+  const stat = (n, label) => (
+    <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{n}</span><span style={{ fontSize: 12.5, color: '#999' }}> {label}</span></div>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_VIAGENS, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Viagens</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>para onde você foi</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar viagem" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {viagens.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma viagem.</p>
+      ) : <>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 20 }}>
+          {stat(viagens.length, viagens.length === 1 ? 'viagem' : 'viagens')}
+          {stat(cidades.size, 'cidades')}
+          {stat(paisesList.length, paisesList.length === 1 ? 'país' : 'países')}
+        </div>
+
+        <div style={{ fontSize: 11, color: COR_VIAGENS, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>viagens por ano</div>
+        <div style={{ marginBottom: 22 }}>
+          {anosDesc.map(a => (
+            <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
+              <span style={{ fontSize: 11.5, color: '#888', fontWeight: 700, width: 42, flexShrink: 0, textAlign: 'right' }}>{vAnoLabel(a)}</span>
+              <div style={{ flex: 1, height: 14, background: '#f0f0f0', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: (porAno[a] / maxAno * 100) + '%', height: '100%', background: COR_VIAGENS, borderRadius: 4 }} />
+              </div>
+              <span style={{ fontSize: 12, color: COR_VIAGENS, fontWeight: 700, width: 20, flexShrink: 0 }}>{porAno[a]}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontSize: 11, color: COR_VIAGENS, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>países · {paisesList.length}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 24 }}>
+          {paisesList.map(([nome, n]) => (
+            <span key={nome} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, background: COR_VIAGENS + '12', border: '1px solid ' + COR_VIAGENS + '33', fontSize: 12.5, color: '#1a5a54', fontWeight: 600 }}>
+              <span style={{ fontSize: 14 }}>{flagOf(nome)}</span>{nome}<span style={{ color: '#7fb8b2', fontWeight: 700 }}>{n}</span>
+            </span>
+          ))}
+        </div>
+
+        <div style={{ fontSize: 11, color: COR_VIAGENS, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>linha do tempo</div>
+        {anosDesc.map(a => {
+          const lista = viagens.filter(v => String(v.ano) === a);
+          return (
+            <div key={a} style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#222' }}>{vAnoLabel(a)}</span>
+                <span style={{ fontSize: 11.5, color: '#bbb' }}>{lista.length} {lista.length === 1 ? 'viagem' : 'viagens'}</span>
+              </div>
+              <div style={{ borderLeft: '2px solid ' + COR_VIAGENS + '33', marginLeft: 4, paddingLeft: 16 }}>
+                {lista.map(v => (
+                  <div key={v.id} onClick={() => setForm({ editing: v })} style={{ position: 'relative', padding: '7px 0 10px', cursor: 'pointer' }}>
+                    <span style={{ position: 'absolute', left: -23, top: 11, width: 9, height: 9, borderRadius: '50%', background: COR_VIAGENS, border: '2px solid #fafafa' }} />
+                    <div style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{v.titulo} {(v.paises || []).map(flagOf).join('')}</div>
+                    {v.locais && v.locais.length > 0 && <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>{v.locais.join(' · ')}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </>}
+
+      {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function ViagemForm({ editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
+  const [locais, setLocais] = useState((editing?.locais || []).join('\n'));
+  const [paises, setPaises] = useState((editing?.paises || []).join(', '));
+  const podeSalvar = titulo.trim().length > 0 && ano.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveViagem({ id: editing?.id, ano: ano.trim(), titulo: titulo.trim(),
+      locais: locais.split('\n').map(s => s.trim()).filter(Boolean),
+      paises: paises.split(',').map(s => s.trim()).filter(Boolean) });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova'} viagem</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Destino</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Tailândia ou Paraty" style={inputStyle} />
+        <label style={labelStyle}>Ano</label>
+        <input value={ano} onChange={e => setAno(e.target.value)} placeholder="ex.: 2026 (ou jovem)" style={inputStyle} />
+        <label style={labelStyle}>Cidades (opcional, uma por linha)</label>
+        <textarea value={locais} onChange={e => setLocais(e.target.value)} rows={3} placeholder={'Bangkok\nChiang Mai\nKrabi'} style={{ ...inputStyle, resize: 'vertical' }} />
+        <label style={labelStyle}>Países (separados por vírgula)</label>
+        <input list="vg-paises" value={paises} onChange={e => setPaises(e.target.value)} placeholder="ex.: Itália, França" style={inputStyle} />
+        <datalist id="vg-paises">{Object.keys(PAIS_FLAG).map(p => <option key={p} value={p} />)}</datalist>
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteViagem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>

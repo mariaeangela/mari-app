@@ -54,7 +54,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 *(prontos: ✅ ano em números clicável · ✅ Compras (c/ gráfico) · ✅ Música · ✅ Corridas · ✅ Dias importantes)*
 - 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
 - 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
-- ⏳ **Viagens** — você me manda o histórico → eu desenho bonito.
+- ✅ **Viagens** — timeline por ano + países com bandeiras + barras por ano (jovem→2026). Editável.
 - 🆕 **Amorosa** *(privada)* — dates, beijos, etc.
 - 🟡 **Corridas: trajeto** da prova desenhado (print/GPS do Strava) — meta × executado, pace e
   evolução já estão prontos; falta só o desenho do trajeto.

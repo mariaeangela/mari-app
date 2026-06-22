@@ -238,6 +238,11 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   `coisasCarasSeeded` — Kindle 1H17, Computador 1H18, Tablet 2H22, iPhone 1H25). Mostra "comprei no
   {sem.} de {ano}" e duração: "em uso há X" (sem fim) ou "durou X" (com fim). ATENÇÃO Regras de Hooks:
   o early-return `if (verCaras)` fica DEPOIS de todos os hooks (inclui `useAnoSel`).
+- **Viagens** (`ViagensRetro`/`ViagemForm`) — card com stats (viagens/cidades/países), barras de viagens
+  por ano, países com bandeiras (derivados das viagens, `PAIS_FLAG`) e timeline por ano. Slice
+  `viagens:[{id,ano('jovem'|'YYYY'),titulo,locais[],paises[]}]` no `lifeStore` (CRUD `saveViagem`/
+  `deleteViagem`; seed `VIAGENS_SEED`/`ensureViagens`, flag `viagensSeeded`). Países e cidades são
+  derivados (não duplicar); 'jovem' ordena antes de tudo (`vAnoKey`).
 - **Dias importantes** (`DiasRetro`/`DiasForm`) — card de marcos de vida. Slice `marcos:[{id,data,titulo}]`
   no `lifeStore` (CRUD `saveMarco`/`deleteMarco`; seed `MARCOS_SEED`/`ensureMarcos`, flag `marcosSeeded`).
   Timeline cronológica por ano (usa `useAnoSel`/`AnoChips`). Os seeds do Life agora passam por um único

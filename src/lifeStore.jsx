@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -655,9 +655,57 @@ function ensureCarnaval2027(d) {
   return { ...d, carnaval2027Seeded: true, planos: { ...base, lista, infos, itens } };
 }
 
+// Viagens (Retrospectiva) enviadas pela Mari. [ano, titulo, locais[], paises[]]. Semeadas uma vez.
+const VIAGENS_SEED = [
+  ['jovem', 'Cananéia', [], ['Brasil']],
+  ['jovem', 'Maceió', [], ['Brasil']],
+  ['jovem', 'Rio de Janeiro', [], ['Brasil']],
+  ['jovem', 'Porto Seguro', [], ['Brasil']],
+  ['2020', 'Madrid', [], ['Espanha']],
+  ['2020', 'Barcelona', [], ['Espanha']],
+  ['2020', 'Granada', [], ['Espanha']],
+  ['2020', 'Málaga', [], ['Espanha']],
+  ['2020', 'Sevilla', [], ['Espanha']],
+  ['2020', 'Cádiz', [], ['Espanha']],
+  ['2020', 'Valência', [], ['Espanha']],
+  ['2020', 'Paris', [], ['França']],
+  ['2020', 'Roma', [], ['Itália']],
+  ['2020', 'Caserta', [], ['Itália']],
+  ['2020', 'Napoli', [], ['Itália']],
+  ['2020', 'Capri', [], ['Itália']],
+  ['2020', 'Pompéia', [], ['Itália']],
+  ['2021', 'Salvador', [], ['Brasil']],
+  ['2022', 'Porto Alegre', [], ['Brasil']],
+  ['2022', 'Chapada dos Veadeiros', [], ['Brasil']],
+  ['2022', 'Canoa Quebrada', [], ['Brasil']],
+  ['2023', 'Foz do Iguaçu', [], ['Brasil']],
+  ['2023', 'Argentina', ['Salta', 'Buenos Aires', 'Bariloche'], ['Argentina']],
+  ['2023', 'Paraty', [], ['Brasil']],
+  ['2023', 'Europa', ['Roma', 'Verona', 'Veneza', 'Milão', 'Paris', 'Bruxelas', 'Lisboa'], ['Itália', 'França', 'Bélgica', 'Portugal']],
+  ['2024', 'Porto de Galinhas', [], ['Brasil']],
+  ['2024', 'Jalapão', [], ['Brasil']],
+  ['2024', 'Peru', ['Lima', 'Paracas', 'Cusco', 'Machu Picchu'], ['Peru']],
+  ['2024', 'Londres', [], ['Inglaterra']],
+  ['2024', 'Buenos Aires', [], ['Argentina']],
+  ['2025', 'Petar', [], ['Brasil']],
+  ['2025', 'Ilha Grande', [], ['Brasil']],
+  ['2025', 'Roteiro mineiro', ['Belo Horizonte', 'Inhotim', 'Ouro Preto', 'Tiradentes', 'São João del-Rei'], ['Brasil']],
+  ['2025', 'Tailândia', ['Bangkok', 'Chiang Mai', 'Koh Phi Phi', 'Krabi'], ['Tailândia']],
+  ['2025', 'Doha', [], ['Catar']],
+  ['2026', 'Carnaval BH', [], ['Brasil']],
+  ['2026', 'Itatiaia', [], ['Brasil']],
+  ['2026', 'Europa', ['Madrid', 'Budapest', 'Praga'], ['Espanha', 'Hungria', 'República Checa']],
+];
+function ensureViagens(d) {
+  if (d.viagensSeeded) return d;
+  const have = new Set((d.viagens || []).map(v => v.id));
+  const novos = VIAGENS_SEED.map(([ano, titulo, locais, paises], i) => ({ id: 'vg' + i, ano, titulo, locais, paises })).filter(v => !have.has(v.id));
+  return { ...d, viagensSeeded: true, viagens: [...(d.viagens || []), ...novos] };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))))));
+  return rolarComprasVencidas(ensureViagens(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))))));
 }
 
 const LifeContext = createContext(null);
@@ -836,6 +884,13 @@ export function LifeProvider({ children }) {
     : [...coisasCaras, { ...c, id: uid('cc') }] });
   const deleteCoisaCara = (id) => persist({ ...data, coisasCaras: coisasCaras.filter(x => x.id !== id) });
 
+  // ---- Viagens (Retrospectiva) ----
+  const viagens = data.viagens || [];
+  const saveViagem = (v) => persist({ ...data, viagens: v.id && viagens.some(x => x.id === v.id)
+    ? viagens.map(x => x.id === v.id ? v : x)
+    : [...viagens, { ...v, id: uid('vg') }] });
+  const deleteViagem = (id) => persist({ ...data, viagens: viagens.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -869,6 +924,7 @@ export function LifeProvider({ children }) {
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
+    viagens, saveViagem, deleteViagem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
