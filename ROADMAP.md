@@ -33,7 +33,8 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - Quase tudo pronto. Recebe o **Álbum da semana** e o **Modo Viagem** (ver Estruturais).
 
 ## 🧭 Explorar
-- Calendário cultural já vive aqui. A reforma dos cards é estrutural — sem pendência só desta página.
+- Calendário cultural e **Conteúdos para assistir** já vivem aqui. A reforma dos cards é estrutural —
+  sem pendência só desta página.
 
 ## 🗓️ Calendário
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".
@@ -83,10 +84,15 @@ de total) · **Saúde** (consultas ordenadas + "Passado"; exercícios sem meses 
 peso manhã/tarde/noite + lista colapsável; remédios/vacinas/menstruação com **data de fim**) ·
 **Aprendizados** (Café/Tecidos/Fotografia/Vinhos/Vida/Maquiagem). Calendário cultural foi pra Explorar.
 
-**Retrospectiva (aba nova):** "ano em números" clicável · **Compras** (histórico próprio, marcado
+**Retrospectiva (aba nova):** "ano em números" clicável (**provas de corrida** com km/tempo; **km
+corridos** clicável → por data + por mês com evolução) · **Compras** (histórico próprio, marcado
 manualmente; jan–jun/2026; subtotal/mês — as listas de compras NÃO alimentam mais a Retrospectiva nem
 a Vida Financeira) · **Música** (Spotify por mês, jan–mai/2026, total do ano) · **Corridas** (provas
 do Calendário: meta × executado, pace real/meta, "bateu a meta", melhor pace + gráfico de evolução).
+
+**Outros desta rodada:** **Conteúdos para assistir** (Explorar — salvar vídeos/matérias por tipo) ·
+**Aprendizados** reordenáveis (⚙) · clicar item da agenda na **Hoje** abre a edição · campo de **km
+aceita decimais** (5.2) no celular · livros lidos + prova "Corrida 7km SP" semeados.
 
 > Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
 > via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.
