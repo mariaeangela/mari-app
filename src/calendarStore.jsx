@@ -60,8 +60,20 @@ function ensureLivrosLidos2026(d) {
   return { ...d, livrosLidos2026Seeded: true, cultura: [...(d.cultura || []), ...novos] };
 }
 
+// Provas de corrida já feitas, enviadas pela Mari (exercicio corrida_prova). Semeadas uma vez,
+// ids estáveis. tempo em SEGUNDOS, distancia em km. Ela edita/apaga normalmente depois.
+function ensureProvasCorrida(d) {
+  if (d.provasCorridaSeeded) return d;
+  const provas = [
+    { id: 'seed-prova-7kmsp', subtipo: 'corrida_prova', titulo: 'Corrida 7km SP', data: '2026-04-12', distancia: 7, tempo: 3046 },
+  ];
+  const have = new Set((d.exercicios || []).map(x => x.id));
+  const novos = provas.filter(p => !have.has(p.id));
+  return { ...d, provasCorridaSeeded: true, exercicios: [...(d.exercicios || []), ...novos] };
+}
+
 // Aplica todos os seeds idempotentes do calendário, na ordem.
-function runSeeds(d) { return ensureLivrosLidos2026(ensureLembreteSpotify(d)); }
+function runSeeds(d) { return ensureProvasCorrida(ensureLivrosLidos2026(ensureLembreteSpotify(d))); }
 
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }

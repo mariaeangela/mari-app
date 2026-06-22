@@ -97,7 +97,9 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   Seeds idempotentes via `runSeeds` (aplicado no init e nos dois ramos do fetch):
   `ensureLembreteSpotify` (tarefa mensal) e `ensureLivrosLidos2026` (4 livros lidos
   da Mari como cultura subtipo 'lido', ids estáveis `seed-livro-*`, flag
-  `livrosLidos2026Seeded`). Para semear mais conteúdo, criar outra `ensure*` e
+  `livrosLidos2026Seeded`) e `ensureProvasCorrida` (provas de corrida feitas, exercicio
+  `corrida_prova`, ids `seed-prova-*`, flag `provasCorridaSeeded` — ex.: Corrida 7km SP
+  12/04/2026, 7km, 50:46). Para semear mais conteúdo, criar outra `ensure*` e
   encadear em `runSeeds`.
   Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
   savedRoles[].
