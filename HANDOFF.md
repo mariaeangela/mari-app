@@ -78,7 +78,11 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   (costas/peitoral/perna, cor por grupo), corrida* e outros (natação/caminhada/
   trilha/jogo/dança, cor cinza). EXERCICIO_LEGENDA agrupa em Costas/Peitoral/
   Perna/Corrida/Outros. itemsGeral exclui só o grupo 'treino' do Mês/Agenda
-  (corrida e outros aparecem). Corrida exibida como "{dist}km - {nome}". CULTURA_SUBTIPOS
+  (corrida e outros aparecem). Corrida exibida como "{dist}km - {nome}" (+ tempo real
+  quando há). Corrida (form) tem `distancia`, `tempo` (real) e `metaTempo` — os dois
+  tempos em SEGUNDOS. Helpers em calendarConfig.js: `parseTempo` ("h:mm:ss"/"mm:ss"/
+  "32"=min → seg), `fmtTempo`, `paceSecs`(t,km), `fmtPace` (→ "m:ss/km"). O form mostra
+  preview de pace ao vivo (real e meta). CULTURA_SUBTIPOS
   (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
   ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
   `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da
@@ -176,8 +180,12 @@ exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile pró
 ## Aba Retrospectiva (`src/Retrospectiva.jsx`) — NOVO
 Virou **aba própria** (tab `retrospectiva`, ao lado de Life). Hub: **"ano em números"** (cultura+
 exercícios do calendário, por ano, sem futuros) com cada número **clicável** (drill-down → lista os
-itens) + grade de **cards** que abrem sub-páginas: **Compras** (pronto) e Quem você viu / Viagens /
-Música / Saúde / Corridas / Amorosa (placeholder `EmBreve`).
+itens) + grade de **cards** que abrem sub-páginas: **Compras**, **Música** e **Corridas** (prontos) e
+Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
+- **Corridas** (`CorridasRetro`/`PaceChart`): provas (`corrida_prova`, + legado `corrida`) com
+  meta × executado — tempo real, pace real e pace meta (via helpers de calendarConfig), delta
+  "bateu/acima da meta", totais (nº provas, km, melhor pace) e **gráfico de evolução do pace**
+  (SVG, mais alto = mais rápido). Sem CRUD próprio: lê das provas marcadas no Calendário.
 - **Compras**: fonte ÚNICA — `life.comprasFeitas` (histórico próprio, editável, marcado manualmente
   aqui). As **listas de compras NÃO alimentam mais** esta retrospectiva (decisão da Mari, jun/2026:
   valores mudam e nem tudo está na lista). Agrupado por mês, subtotal em R$ por mês. Form

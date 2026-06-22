@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
-import { EXERCICIO_BY_ID } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace } from './calendarConfig.js';
 
 const COR = '#8d6e63';
 const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
@@ -22,7 +22,7 @@ const CARDS = [
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6' },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954' },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
-  { id: 'corridas', label: 'Corridas', desc: 'suas provas e trajetos', cor: '#ef6c4d' },
+  { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates e afins', cor: '#c2548f' },
 ];
 
@@ -31,6 +31,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
   if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (sec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -332,6 +333,96 @@ function MusicaForm({ editing, onClose }) {
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---- Card: Corridas (provas — meta × executado, pace e evolução) ----
+const COR_CORRIDA = '#ef6c4d';
+// Mini-gráfico de evolução do pace (mais rápido = mais alto). pts em ordem cronológica.
+function PaceChart({ pts }) {
+  if (pts.length < 2) return null;
+  const W = 320, H = 110, pad = 16;
+  const paces = pts.map(p => p.pace);
+  const min = Math.min(...paces), max = Math.max(...paces);
+  const range = (max - min) || 1;
+  const x = (i) => pad + (W - 2 * pad) * (i / (pts.length - 1));
+  const y = (p) => pad + (H - 2 * pad) * ((p - min) / range); // pace menor (mais rápido) no topo
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.pace).toFixed(1)}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+      <path d={d} fill="none" stroke={COR_CORRIDA} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {pts.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.pace)} r="3.5" fill={COR_CORRIDA} />)}
+    </svg>
+  );
+}
+
+function CorridasRetro({ onBack, isWide }) {
+  const cal = useCalendar();
+  const hoje = new Date();
+  const hk = `${hoje.getFullYear()}-${pad2(hoje.getMonth() + 1)}-${pad2(hoje.getDate())}`;
+  const provas = (cal.data.exercicios || [])
+    .filter(x => x.subtipo === 'corrida_prova' || x.subtipo === 'corrida')
+    .filter(x => (x.data || '') <= hk)
+    .map(x => {
+      const km = Number(x.distancia) || 0;
+      const pReal = paceSecs(x.tempo, km);
+      const pMeta = paceSecs(x.metaTempo, km);
+      const nome = x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Corrida';
+      return { ...x, km, pReal, pMeta, nome };
+    })
+    .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+  const comTempo = provas.filter(p => p.tempo);
+  const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0));
+  const melhorPace = comTempo.map(p => p.pReal).filter(Boolean).length ? Math.min(...comTempo.map(p => p.pReal).filter(Boolean)) : null;
+  const evo = comTempo.filter(p => p.pReal).slice().sort((a, b) => (a.data || '').localeCompare(b.data || '')).map(p => ({ pace: p.pReal }));
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_CORRIDA, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Corridas</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>suas provas: meta × executado e evolução do pace</p>
+
+      {provas.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhuma prova ainda. Marque uma "Corrida prova" no Calendário com distância, tempo real e meta de tempo.</p>
+      ) : <>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18 }}>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{provas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {provas.length === 1 ? 'prova' : 'provas'}</span></div>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{totalKm}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>
+          {melhorPace && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: COR_CORRIDA }}>{fmtPace(melhorPace)}</span><span style={{ fontSize: 12.5, color: '#999' }}> melhor pace</span></div>}
+        </div>
+
+        {evo.length >= 2 && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 18 }}>
+            <div style={{ fontSize: 11, color: COR_CORRIDA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>evolução do pace (mais alto = mais rápido)</div>
+            <PaceChart pts={evo} />
+          </div>
+        )}
+
+        {provas.map(p => {
+          const delta = (p.tempo && p.metaTempo) ? p.tempo - p.metaTempo : null;
+          const bateu = delta != null && delta <= 0;
+          return (
+            <div key={p.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{p.nome}</span>
+                <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{p.data ? fmtDM(p.data) : '—'}{p.km ? ` · ${p.km}km` : ''}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 13 }}>
+                {p.tempo && <span style={{ color: '#333' }}>tempo <b>{fmtTempo(p.tempo)}</b>{p.pReal && <span style={{ color: '#999' }}> · {fmtPace(p.pReal)}</span>}</span>}
+                {p.metaTempo && <span style={{ color: '#999' }}>meta {fmtTempo(p.metaTempo)}{p.pMeta && ` · ${fmtPace(p.pMeta)}`}</span>}
+              </div>
+              {delta != null && (
+                <div style={{ marginTop: 6, fontSize: 12, fontWeight: 700, color: bateu ? '#2bb673' : '#d05050' }}>
+                  {bateu ? `✓ bateu a meta por ${fmtTempo(-delta)}` : `${fmtTempo(delta)} acima da meta`}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </>}
     </div>
   );
 }

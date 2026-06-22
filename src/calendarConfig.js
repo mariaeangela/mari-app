@@ -82,6 +82,40 @@ export const parseYmd = (s) => { const [y, m, d] = s.split('-').map(Number); ret
 export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 export const DIAS_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
+// ---------- Tempo & pace de corrida (form do Calendário + Retrospectiva) ----------
+// Tempo guardado em SEGUNDOS. parseTempo aceita "h:mm:ss", "mm:ss" ou "32" (= minutos).
+export function parseTempo(str) {
+  if (str == null) return null;
+  const s = String(str).trim();
+  if (!s) return null;
+  const parts = s.split(':').map(p => p.trim());
+  if (parts.some(p => p === '' || isNaN(Number(p)))) return null;
+  const n = parts.map(Number);
+  let secs;
+  if (n.length === 1) secs = n[0] * 60;                 // só minutos
+  else if (n.length === 2) secs = n[0] * 60 + n[1];     // mm:ss
+  else secs = n[0] * 3600 + n[1] * 60 + n[2];           // h:mm:ss
+  return secs > 0 ? Math.round(secs) : null;
+}
+// Segundos -> "h:mm:ss" (com hora só se >= 1h) ou "m:ss".
+export function fmtTempo(secs) {
+  if (secs == null || secs === '') return '';
+  const s = Math.round(Number(secs) || 0);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  return h > 0 ? `${h}:${pad2(m)}:${pad2(ss)}` : `${m}:${pad2(ss)}`;
+}
+// Pace em segundos por km (tempo total / distância).
+export function paceSecs(tempoSecs, km) {
+  const t = Number(tempoSecs), d = Number(km);
+  return t > 0 && d > 0 ? t / d : null;
+}
+// Pace (s/km) -> "m:ss/km".
+export function fmtPace(secsPerKm) {
+  if (!secsPerKm) return '';
+  const s = Math.round(secsPerKm);
+  return `${Math.floor(s / 60)}:${pad2(s % 60)}/km`;
+}
+
 // ---------- "Neste dia na história" ----------
 // 1º) fato curado (conferido à mão); 2º) efemérides da Wikipédia (pt).
 // Retorna { texto, fonte, url? } ou null se nada/ offline.

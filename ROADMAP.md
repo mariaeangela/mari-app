@@ -50,12 +50,13 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   **grupo de vinho** / métodos novos pela UI · 🟡 outras listas espelhando Compras.
 
 ## 📊 Retrospectiva
-*(prontos: ✅ ano em números clicável · ✅ Compras · ✅ Música)*
+*(prontos: ✅ ano em números clicável · ✅ Compras · ✅ Música · ✅ Corridas)*
 - 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
 - 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
 - ⏳ **Viagens** — você me manda o histórico → eu desenho bonito.
 - 🆕 **Amorosa** *(privada)* — dates, beijos, etc.
-- 🟡 **Corridas** — provas + km; **trajeto** da prova desenhado (print/GPS do Strava).
+- 🟡 **Corridas: trajeto** da prova desenhado (print/GPS do Strava) — meta × executado, pace e
+  evolução já estão prontos; falta só o desenho do trajeto.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
 - 🟢 (refino) opção **"por mês"** no ano em números, além do "por ano".
 
@@ -84,7 +85,8 @@ peso manhã/tarde/noite + lista colapsável; remédios/vacinas/menstruação com
 
 **Retrospectiva (aba nova):** "ano em números" clicável · **Compras** (histórico próprio, marcado
 manualmente; jan–jun/2026; subtotal/mês — as listas de compras NÃO alimentam mais a Retrospectiva nem
-a Vida Financeira) · **Música** (Spotify por mês, jan–mai/2026, total do ano).
+a Vida Financeira) · **Música** (Spotify por mês, jan–mai/2026, total do ano) · **Corridas** (provas
+do Calendário: meta × executado, pace real/meta, "bateu a meta", melhor pace + gráfico de evolução).
 
 > Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
 > via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.
