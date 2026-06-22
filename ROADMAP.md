@@ -51,7 +51,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   **grupo de vinho** / métodos novos pela UI · 🟡 outras listas espelhando Compras.
 
 ## 📊 Retrospectiva
-*(prontos: ✅ ano em números clicável · ✅ Compras · ✅ Música · ✅ Corridas)*
+*(prontos: ✅ ano em números clicável · ✅ Compras (c/ gráfico) · ✅ Música · ✅ Corridas · ✅ Dias importantes)*
 - 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
 - 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
 - ⏳ **Viagens** — você me manda o histórico → eu desenho bonito.

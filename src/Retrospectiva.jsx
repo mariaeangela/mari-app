@@ -14,6 +14,7 @@ const pad2 = (n) => String(n).padStart(2, '0');
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const fmtDM = (s) => { const [, m, d] = s.split('-'); return `${d}/${m}`; };
 const fmtMesAno = (mm) => `${MESES[+mm.slice(5, 7) - 1]} de ${mm.slice(0, 4)}`;
+const fmtDiaMes = (s) => { const [, m, d] = s.split('-'); return `${+d} ${MESES[+m - 1].slice(0, 3)}`; };
 
 // Seletor de ano reutilizável (Compras / Música / Corridas). `datas` = lista de strings "YYYY-..".
 function useAnoSel(datas) {
@@ -39,6 +40,7 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 
 // Cards do hub. `pronto` = sub-página já construída.
 const CARDS = [
+  { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'compras', label: 'Compras', desc: 'o que você comprou', cor: '#ff8a3d', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6' },
@@ -54,6 +56,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (sec === 'compras') return <ComprasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (sec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (sec) return <EmBreve card={CARDS.find(c => c.id === sec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -555,6 +558,82 @@ function CorridasRetro({ onBack, isWide }) {
           );
         })}
       </>}
+    </div>
+  );
+}
+
+// ---- Card: Dias importantes (marcos de vida) ----
+const COR_DIAS = '#7a6ff0';
+function DiasRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const todos = life.marcos || [];
+  const { anos, anoSel, setAnoSel } = useAnoSel(todos.map(m => m.data));
+  const doAno = todos.filter(m => (m.data || '').slice(0, 4) === anoSel).sort((a, b) => (a.data || '').localeCompare(b.data || '')); // cronológico (mais antigo primeiro)
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_DIAS, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Dias importantes</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os marcos que mudaram o seu ano</p>
+        </div>
+        <button onClick={() => setForm({})} title="registrar dia importante" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {todos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar um dia importante.</p>
+      ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_DIAS} />
+        <div style={{ marginBottom: 12 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'dia' : 'dias'} em {anoSel}</span>
+        </div>
+        {doAno.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
+        <div style={{ borderLeft: '2px solid ' + COR_DIAS + '33', marginLeft: 5, paddingLeft: 16 }}>
+          {doAno.map(m => (
+            <div key={m.id} onClick={() => setForm({ editing: m })} style={{ position: 'relative', padding: '8px 0 12px', cursor: 'pointer' }}>
+              <span style={{ position: 'absolute', left: -23, top: 12, width: 9, height: 9, borderRadius: '50%', background: COR_DIAS, border: '2px solid #fafafa' }} />
+              <div style={{ fontSize: 11, color: COR_DIAS, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase', marginBottom: 2 }}>{fmtDiaMes(m.data)}</div>
+              <div style={{ fontSize: 14, color: '#222', lineHeight: 1.45 }}>{m.titulo}</div>
+            </div>
+          ))}
+        </div>
+      </>}
+
+      {form && <DiasForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function DiasForm({ editing, onClose }) {
+  const life = useLife();
+  const [data, setData] = useState(editing?.data || '');
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const podeSalvar = data && titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveMarco({ id: editing?.id, data, titulo: titulo.trim() });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} dia importante</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Quando</label>
+        <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>O que aconteceu</label>
+        <textarea value={titulo} onChange={e => setTitulo(e.target.value)} rows={2} placeholder="ex.: Fiz minha primeira corrida de rua" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteMarco(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
     </div>
   );
 }

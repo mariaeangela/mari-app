@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -532,6 +532,52 @@ function ensureMusica(d) {
   return { ...d, musicaSeeded: true, musica: [...(d.musica || []), ...novos] };
 }
 
+// Dias importantes (marcos) enviados pela Mari. Semeados uma vez (flag marcosSeeded), ids estáveis.
+const MARCOS_SEED = [
+  ['2023-08-12', 'Me mudei para Capote'],
+  ['2024-03-08', 'Comecei a treinar em casa'],
+  ['2024-04-02', 'Comecei a treinar no spinning'],
+  ['2024-04-03', 'Comecei a seguir dieta seriamente'],
+  ['2024-05-25', 'Beijei o Pedro pela primeira vez'],
+  ['2024-07-05', 'Comecei a treinar na academia'],
+  ['2024-08-08', 'Decidi ir morar sozinha'],
+  ['2024-08-31', 'Eu e Pedro começamos a namorar'],
+  ['2024-09-07', 'Me mudei para Mourato'],
+  ['2024-09-28', 'Conheci os pais do Pedro'],
+  ['2024-10-01', 'Eu e o Pedro sobrevivemos à nossa primeira discussão'],
+  ['2025-03-09', 'Mãe conhece os pais do Pedro'],
+  ['2025-03-15', 'Tomei meu primeiro antidepressivo'],
+  ['2025-03-15', 'Fiquei chapada pela primeira vez'],
+  ['2025-06-06', 'Pedro terminou comigo'],
+  ['2025-07-23', 'Transei com a primeira pessoa depois do Pedro'],
+  ['2025-08-19', 'Fiquei no top 10 do II Brasil'],
+  ['2025-08-25', 'Tive minha primeira crise de pânico'],
+  ['2025-10-04', 'Entendi que o meu relacionamento com o Pedro era uma merda'],
+  ['2025-10-05', 'Virei mergulhadora'],
+  ['2025-11-29', 'Pisei na Ásia pela primeira vez'],
+  ['2025-12-07', 'Fui apresentada como mergulhadora pela primeira vez'],
+  ['2025-12-07', 'Mergulhei na Tailândia'],
+  ['2025-12-24', 'Mergulhei com minha mãe em Salvador'],
+  ['2026-02-08', 'Vivi um primeiro bloco de carnaval que mudou minha vida (Borogodó, no Rio de Janeiro)'],
+  ['2026-03-23', 'Fui promovida à Associate'],
+  ['2026-04-08', 'Fiz um código em Python rodar pela primeira vez'],
+  ['2026-04-12', 'Fiz minha primeira corrida de rua'],
+  ['2026-04-25', 'Fiz um banho turco pela primeira vez, em Rudas Budapest, e nunca me senti tão relaxada na vida'],
+  ['2026-05-02', 'Decidi que não iria mais viajar com perrengue'],
+  ['2026-06-20', 'Ouvi a vida com som de amizade mais uma vez (festa junina na casa do Leo)'],
+];
+function ensureMarcos(d) {
+  if (d.marcosSeeded) return d;
+  const have = new Set((d.marcos || []).map(m => m.id));
+  const novos = MARCOS_SEED.map(([data, titulo], i) => ({ id: 'mc' + i, data, titulo })).filter(m => !have.has(m.id));
+  return { ...d, marcosSeeded: true, marcos: [...(d.marcos || []), ...novos] };
+}
+
+// Aplica todos os seeds idempotentes do Life, na ordem.
+function runLifeSeeds(d) {
+  return rolarComprasVencidas(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))));
+}
+
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
@@ -555,7 +601,7 @@ function readLocal() {
 function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {} }
 
 export function LifeProvider({ children }) {
-  const [data, setData] = useState(() => rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(readLocal())))))));
+  const [data, setData] = useState(() => runLifeSeeds(readLocal()));
   const dirty = useRef(false);
 
   useEffect(() => {
@@ -565,13 +611,13 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
       if (!cloud) {
-        const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(local))))));
+        const next = runLifeSeeds(local);
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      const next = rolarComprasVencidas(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(merged))))));
+      const next = runLifeSeeds(merged);
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
     })();
@@ -694,6 +740,13 @@ export function LifeProvider({ children }) {
   const deleteAssistir = (id) => persist({ ...data, assistir: assistir.filter(x => x.id !== id) });
   const toggleAssistir = (id) => persist({ ...data, assistir: assistir.map(x => x.id === id ? { ...x, feito: !x.feito } : x) });
 
+  // ---- Dias importantes (marcos) — Retrospectiva ----
+  const marcos = data.marcos || [];
+  const saveMarco = (m) => persist({ ...data, marcos: m.id && marcos.some(x => x.id === m.id)
+    ? marcos.map(x => x.id === m.id ? m : x)
+    : [...marcos, { ...m, id: uid('mc') }] });
+  const deleteMarco = (id) => persist({ ...data, marcos: marcos.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -725,6 +778,7 @@ export function LifeProvider({ children }) {
     comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
+    marcos, saveMarco, deleteMarco,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

@@ -224,8 +224,12 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   Música e Corridas filtram pelo ano selecionado (chips só aparecem com 2+ anos; default = ano atual,
   cai no mais recente com dados). Compras sem data aparecem em qualquer ano.
 - **Compras: gráfico** (`ComprasChart`) — barras empilhadas por mês (só compras em R$): altura da barra =
-  total do mês (evolução), cada faixa = uma compra (maior embaixo), nº embaixo = qtd no mês; toque numa
-  faixa mostra a compra + valor. USD fica de fora do gráfico (sem taxa pra converter).
+  total do mês (evolução), cada faixa = uma compra (maior embaixo, paleta multicolor `PALETTE`), nº embaixo
+  = qtd no mês; toque numa faixa mostra a compra + valor. USD fica de fora do gráfico (sem taxa).
+- **Dias importantes** (`DiasRetro`/`DiasForm`) — card de marcos de vida. Slice `marcos:[{id,data,titulo}]`
+  no `lifeStore` (CRUD `saveMarco`/`deleteMarco`; seed `MARCOS_SEED`/`ensureMarcos`, flag `marcosSeeded`).
+  Timeline cronológica por ano (usa `useAnoSel`/`AnoChips`). Os seeds do Life agora passam por um único
+  `runLifeSeeds(d)` (encadeia ensureMaquiagem→…→ensureMarcos), usado nos 3 pontos do `LifeProvider`.
 - **"Ano em números" (RetroHome)**: os números de corrida são **"provas de corrida"** (só
   `corrida_prova`/legado `corrida`; drill-down lista data · km · tempo) e **"km corridos"** (soma de
   TODAS as corridas — prova + treino). "km corridos" é clicável → `KmDrilldown` com toggle **por data**
