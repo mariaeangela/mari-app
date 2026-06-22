@@ -15,6 +15,28 @@ const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julh
 const fmtDM = (s) => { const [, m, d] = s.split('-'); return `${d}/${m}`; };
 const fmtMesAno = (mm) => `${MESES[+mm.slice(5, 7) - 1]} de ${mm.slice(0, 4)}`;
 
+// Seletor de ano reutilizável (Compras / Música / Corridas). `datas` = lista de strings "YYYY-..".
+function useAnoSel(datas) {
+  const anoAtual = String(new Date().getFullYear());
+  const anos = [...new Set(datas.map(d => (d || '').slice(0, 4)).filter(Boolean))].filter(a => a <= anoAtual).sort().reverse();
+  const [anoSelRaw, setAnoSel] = useState(anoAtual);
+  const anoSel = anos.includes(anoSelRaw) ? anoSelRaw : (anos[0] || anoAtual);
+  return { anos, anoSel, setAnoSel };
+}
+function AnoChips({ anos, anoSel, setAnoSel, cor }) {
+  if (anos.length < 2) return null;
+  return (
+    <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
+      {anos.map(a => (
+        <button key={a} onClick={() => setAnoSel(a)} style={{
+          whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+          border: '1px solid ' + (anoSel === a ? cor : '#e2e2e2'), background: anoSel === a ? cor + '1c' : '#fff', color: anoSel === a ? '#333' : '#999',
+        }}>{a}</button>
+      ))}
+    </div>
+  );
+}
+
 // Cards do hub. `pronto` = sub-página já construída.
 const CARDS = [
   { id: 'compras', label: 'Compras', desc: 'o que você comprou', cor: '#ff8a3d', pronto: true },
@@ -206,11 +228,13 @@ function ComprasRetro({ onBack, isWide }) {
   // Fonte única: registro próprio (comprasFeitas) — marcado manualmente aqui.
   // (As listas de compras NÃO alimentam mais esta retrospectiva, por decisão da Mari.)
   const todas = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
+  const { anos, anoSel, setAnoSel } = useAnoSel(todas.map(i => i.data));
+  const doAno = todas.filter(i => (i.data || '').slice(0, 4) === anoSel); // só compras do ano selecionado
 
-  const meses = [...new Set(todas.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const meses = [...new Set(doAno.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   const ordDia = (a, b) => (b.data || '').localeCompare(a.data || '');
-  const grupos = meses.map(mm => ({ mm, itens: todas.filter(i => (i.data || '').slice(0, 7) === mm).sort(ordDia) }));
-  const semData = todas.filter(i => !i.data);
+  const grupos = meses.map(mm => ({ mm, itens: doAno.filter(i => (i.data || '').slice(0, 7) === mm).sort(ordDia) }));
+  const semData = todas.filter(i => !i.data); // compras sem data: aparecem em qualquer ano
 
   const linhaItem = (it) => (
     <div key={it.id} onClick={it.editavel ? () => setForm({ editing: it.raw }) : undefined} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: it.editavel ? 'pointer' : 'default' }}>
@@ -234,10 +258,12 @@ function ComprasRetro({ onBack, isWide }) {
       {todas.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra que você fez.</p>
       ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor="#ff8a3d" />
         <div style={{ marginBottom: 18 }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{todas.length}</span>
-          <span style={{ fontSize: 13, color: '#999' }}> {todas.length === 1 ? 'compra' : 'compras'}</span>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'compra' : 'compras'} em {anoSel}</span>
         </div>
+        {grupos.length === 0 && semData.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
         {grupos.map(g => {
           const totalBRL = g.itens.filter(i => i.moeda === 'BRL').reduce((a, i) => a + i.vnum, 0);
           return (
@@ -312,7 +338,9 @@ const COR_MUSICA = '#1db954';
 function MusicaRetro({ onBack, isWide }) {
   const life = useLife();
   const [form, setForm] = useState(null);
-  const meses = [...(life.musica || [])].sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
+  const todasMeses = life.musica || [];
+  const { anos, anoSel, setAnoSel } = useAnoSel(todasMeses.map(m => m.mes));
+  const meses = todasMeses.filter(m => (m.mes || '').slice(0, 4) === anoSel).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
   const totalMin = meses.reduce((a, m) => a + (Number(m.minutos) || 0), 0);
   const fmtMin = (n) => Number(n || 0).toLocaleString('pt-BR');
   const horas = (n) => Math.round((Number(n) || 0) / 60);
@@ -328,13 +356,15 @@ function MusicaRetro({ onBack, isWide }) {
         <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      {meses.length === 0 ? (
+      {todasMeses.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + e cadastre o print do Spotify do mês (minutos, top artista e top música).</p>
       ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_MUSICA} />
         <div style={{ marginBottom: 16 }}>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{fmtMin(totalMin)}</span>
-          <span style={{ fontSize: 13, color: '#999' }}> minutos no total · ~{horas(totalMin)}h</span>
+          <span style={{ fontSize: 13, color: '#999' }}> minutos em {anoSel} · ~{horas(totalMin)}h</span>
         </div>
+        {meses.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
         {meses.map(m => (
           <div key={m.id} onClick={() => setForm({ editing: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10, cursor: 'pointer' }}>
             <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{fmtMesAno(m.mes)}</div>
@@ -413,7 +443,7 @@ function CorridasRetro({ onBack, isWide }) {
   const cal = useCalendar();
   const hoje = new Date();
   const hk = `${hoje.getFullYear()}-${pad2(hoje.getMonth() + 1)}-${pad2(hoje.getDate())}`;
-  const provas = (cal.data.exercicios || [])
+  const todasProvas = (cal.data.exercicios || [])
     .filter(x => x.subtipo === 'corrida_prova' || x.subtipo === 'corrida')
     .filter(x => (x.data || '') <= hk)
     .map(x => {
@@ -424,6 +454,8 @@ function CorridasRetro({ onBack, isWide }) {
       return { ...x, km, pReal, pMeta, nome };
     })
     .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const { anos, anoSel, setAnoSel } = useAnoSel(todasProvas.map(p => p.data));
+  const provas = todasProvas.filter(p => (p.data || '').slice(0, 4) === anoSel);
 
   const comTempo = provas.filter(p => p.tempo);
   const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0) * 10) / 10;
@@ -437,9 +469,11 @@ function CorridasRetro({ onBack, isWide }) {
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Corridas</h2>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>suas provas: meta × executado e evolução do pace</p>
 
-      {provas.length === 0 ? (
+      {todasProvas.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhuma prova ainda. Marque uma "Corrida prova" no Calendário com distância, tempo real e meta de tempo.</p>
       ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_CORRIDA} />
+        {provas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nenhuma prova em {anoSel}.</p>}
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18 }}>
           <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{provas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {provas.length === 1 ? 'prova' : 'provas'}</span></div>
           <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{fmtKm(totalKm)}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>

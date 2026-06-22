@@ -220,6 +220,9 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   artista, top música). **Lembrete recorrente** no Calendário (`ensureLembreteSpotify` no
   `calendarStore`, flag `lembreteSpotifySeeded`): tarefa mensal "Cadastrar Spotify do mês passado"
   (data dia 1, `repetir:'mensal'`) — aparece no Calendário e no **Hoje** (via `HojeAgenda`) todo dia 1.
+- **Seletor de ano nos sub-cards**: `useAnoSel(datas)` + `<AnoChips>` (em Retrospectiva.jsx) — Compras,
+  Música e Corridas filtram pelo ano selecionado (chips só aparecem com 2+ anos; default = ano atual,
+  cai no mais recente com dados). Compras sem data aparecem em qualquer ano.
 - **"Ano em números" (RetroHome)**: os números de corrida são **"provas de corrida"** (só
   `corrida_prova`/legado `corrida`; drill-down lista data · km · tempo) e **"km corridos"** (soma de
   TODAS as corridas — prova + treino). "km corridos" é clicável → `KmDrilldown` com toggle **por data**

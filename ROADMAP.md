@@ -92,7 +92,8 @@ do Calendário: meta × executado, pace real/meta, "bateu a meta", melhor pace +
 
 **Outros desta rodada:** **Conteúdos para assistir** (Explorar — salvar vídeos/matérias por tipo) ·
 **Aprendizados** reordenáveis (⚙) · clicar item da agenda na **Hoje** abre a edição · campo de **km
-aceita decimais** (5.2) no celular · livros lidos + prova "Corrida 7km SP" semeados.
+aceita decimais** (5.2) no celular · livros lidos + prova "Corrida 7km SP" semeados · **seletor de ano**
+nos cards Compras/Música/Corridas da Retrospectiva (consistente com "ano em números").
 
 > Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
 > via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.
