@@ -229,6 +229,12 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
 - **Compras: gráfico** (`ComprasChart`) — barras empilhadas por mês (só compras em R$): altura da barra =
   total do mês (evolução), cada faixa = uma compra (maior embaixo, paleta multicolor `PALETTE`), nº embaixo
   = qtd no mês; toque numa faixa mostra a compra + valor. USD fica de fora do gráfico (sem taxa).
+- **Compras → Coisas caras** (`CoisasCarasView`/`CoisaCaraForm`) — botão dentro da Retrospectiva de
+  Compras. Slice `coisasCaras:[{id,nome,ano,half(1|2=semestre),fimAno?,fimHalf?}]` no `lifeStore`
+  (CRUD `saveCoisaCara`/`deleteCoisaCara`; seed `COISAS_CARAS_SEED`/`ensureCoisasCaras`, flag
+  `coisasCarasSeeded` — Kindle 1H17, Computador 1H18, Tablet 2H22, iPhone 1H25). Mostra "comprei no
+  {sem.} de {ano}" e duração: "em uso há X" (sem fim) ou "durou X" (com fim). ATENÇÃO Regras de Hooks:
+  o early-return `if (verCaras)` fica DEPOIS de todos os hooks (inclui `useAnoSel`).
 - **Dias importantes** (`DiasRetro`/`DiasForm`) — card de marcos de vida. Slice `marcos:[{id,data,titulo}]`
   no `lifeStore` (CRUD `saveMarco`/`deleteMarco`; seed `MARCOS_SEED`/`ensureMarcos`, flag `marcosSeeded`).
   Timeline cronológica por ano (usa `useAnoSel`/`AnoChips`). Os seeds do Life agora passam por um único

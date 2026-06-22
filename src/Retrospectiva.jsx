@@ -266,12 +266,14 @@ function ComprasChart({ meses }) {
 function ComprasRetro({ onBack, isWide }) {
   const life = useLife();
   const [form, setForm] = useState(null); // { editing? }
+  const [verCaras, setVerCaras] = useState(false);
   const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
 
   // Fonte única: registro próprio (comprasFeitas) — marcado manualmente aqui.
   // (As listas de compras NÃO alimentam mais esta retrospectiva, por decisão da Mari.)
   const todas = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
   const { anos, anoSel, setAnoSel } = useAnoSel(todas.map(i => i.data));
+  if (verCaras) return <CoisasCarasView onBack={() => setVerCaras(false)} isWide={isWide} />; // depois de todos os hooks
   const doAno = todas.filter(i => (i.data || '').slice(0, 4) === anoSel); // só compras do ano selecionado
 
   const meses = [...new Set(doAno.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
@@ -302,6 +304,8 @@ function ComprasRetro({ onBack, isWide }) {
         </div>
         <button onClick={() => setForm({})} title="registrar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
+
+      <button onClick={() => setVerCaras(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid #ff8a3d55', background: '#fff8f2', color: '#7a3d12', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🏷️ Coisas caras — quando comprei e quanto duram ›</button>
 
       {todas.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra que você fez.</p>
@@ -334,6 +338,111 @@ function ComprasRetro({ onBack, isWide }) {
       </>}
 
       {form && <CompraFeitaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+// ---- Coisas caras: quando comprei e quanto duram (semestre = ano + half 1|2) ----
+const halfLabel = (h) => (h === 2 ? '2º sem.' : '1º sem.');
+const halfStartMonth = (h) => (h === 2 ? 6 : 0);
+function fmtDuracao(meses) {
+  const a = Math.floor(meses / 12), m = meses % 12;
+  if (a <= 0) return `${m} ${m === 1 ? 'mês' : 'meses'}`;
+  if (m === 0) return `${a} ${a === 1 ? 'ano' : 'anos'}`;
+  return `${a} ${a === 1 ? 'ano' : 'anos'} e ${m} ${m === 1 ? 'mês' : 'meses'}`;
+}
+function CoisasCarasView({ onBack, isWide }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const hoje = new Date();
+  const nowMonths = hoje.getFullYear() * 12 + hoje.getMonth();
+  const itens = [...(life.coisasCaras || [])].sort((a, b) => (b.ano * 12 + halfStartMonth(b.half)) - (a.ano * 12 + halfStartMonth(a.half)));
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Compras</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Coisas caras</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>quando comprei e quanto duram</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar coisa cara" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {itens.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma coisa cara (ex.: notebook, celular).</p>
+      ) : itens.map(c => {
+        const startMonths = c.ano * 12 + halfStartMonth(c.half);
+        const emUso = c.fimAno == null;
+        const endMonths = emUso ? nowMonths : c.fimAno * 12 + halfStartMonth(c.fimHalf || 1);
+        const dur = Math.max(0, endMonths - startMonths);
+        return (
+          <div key={c.id} onClick={() => setForm({ editing: c })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px', marginBottom: 8, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{c.nome}</span>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: emUso ? '#2bb673' : '#999', flexShrink: 0 }}>{emUso ? 'em uso há ' : 'durou '}{fmtDuracao(dur)}</span>
+            </div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>comprei no {halfLabel(c.half)} de {c.ano}{!emUso ? ` · até ${halfLabel(c.fimHalf || 1)} de ${c.fimAno}` : ''}</div>
+          </div>
+        );
+      })}
+
+      {form && <CoisaCaraForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function CoisaCaraForm({ editing, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(editing?.nome || '');
+  const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
+  const [half, setHalf] = useState(editing?.half || 1);
+  const [aindaUso, setAindaUso] = useState(editing ? editing.fimAno == null : true);
+  const [fimAno, setFimAno] = useState(editing?.fimAno != null ? String(editing.fimAno) : '');
+  const [fimHalf, setFimHalf] = useState(editing?.fimHalf || 1);
+  const podeSalvar = nome.trim().length > 0 && ano;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveCoisaCara({ id: editing?.id, nome: nome.trim(), ano: Number(ano), half: Number(half),
+      fimAno: aindaUso || !fimAno ? undefined : Number(fimAno), fimHalf: aindaUso || !fimAno ? undefined : Number(fimHalf) });
+    onClose();
+  };
+  const semSel = (v, set) => (
+    <select value={v} onChange={e => set(Number(e.target.value))} style={{ ...inputStyle, width: 130, flexShrink: 0 }}>
+      <option value={1}>1º semestre</option><option value={2}>2º semestre</option>
+    </select>
+  );
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova'} coisa cara</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>O quê</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Notebook" style={inputStyle} />
+        <label style={labelStyle}>Comprei em</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input type="number" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="ano" style={inputStyle} />
+          {semSel(half, setHalf)}
+        </div>
+        <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 8, textTransform: 'none', letterSpacing: 0, fontSize: 13, color: '#444', cursor: 'pointer' }}>
+          <input type="checkbox" checked={aindaUso} onChange={e => setAindaUso(e.target.checked)} /> Ainda uso
+        </label>
+        {!aindaUso && (
+          <>
+            <label style={labelStyle}>Parei de usar em</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="number" inputMode="numeric" value={fimAno} onChange={e => setFimAno(e.target.value)} placeholder="ano" style={inputStyle} />
+              {semSel(fimHalf, setFimHalf)}
+            </div>
+          </>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteCoisaCara(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
     </div>
   );
 }

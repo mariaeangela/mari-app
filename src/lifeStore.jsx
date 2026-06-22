@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -625,9 +625,23 @@ function ensureAssistirLivrosV2(d) {
   return { ...d, assistirLivrosV2: true, assistir };
 }
 
+// "Coisas caras" (Retrospectiva > Compras): quando comprou e quanto dura. ano + half (1|2 = semestre).
+const COISAS_CARAS_SEED = [
+  ['Kindle', 2017, 1],
+  ['Computador', 2018, 1],
+  ['Tablet', 2022, 2],
+  ['iPhone', 2025, 1],
+];
+function ensureCoisasCaras(d) {
+  if (d.coisasCarasSeeded) return d;
+  const have = new Set((d.coisasCaras || []).map(c => c.id));
+  const novos = COISAS_CARAS_SEED.map(([nome, ano, half], i) => ({ id: 'cc' + i, nome, ano, half })).filter(c => !have.has(c.id));
+  return { ...d, coisasCarasSeeded: true, coisasCaras: [...(d.coisasCaras || []), ...novos] };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))));
+  return rolarComprasVencidas(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))));
 }
 
 const LifeContext = createContext(null);
@@ -799,6 +813,13 @@ export function LifeProvider({ children }) {
     : [...marcos, { ...m, id: uid('mc') }] });
   const deleteMarco = (id) => persist({ ...data, marcos: marcos.filter(x => x.id !== id) });
 
+  // ---- Coisas caras (Retrospectiva > Compras) ----
+  const coisasCaras = data.coisasCaras || [];
+  const saveCoisaCara = (c) => persist({ ...data, coisasCaras: c.id && coisasCaras.some(x => x.id === c.id)
+    ? coisasCaras.map(x => x.id === c.id ? c : x)
+    : [...coisasCaras, { ...c, id: uid('cc') }] });
+  const deleteCoisaCara = (id) => persist({ ...data, coisasCaras: coisasCaras.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -831,6 +852,7 @@ export function LifeProvider({ children }) {
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
     marcos, saveMarco, deleteMarco,
+    coisasCaras, saveCoisaCara, deleteCoisaCara,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
