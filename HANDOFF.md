@@ -156,6 +156,9 @@ link, clicar edita. Tipos: vídeo/série/filme/álbum/livro/artigo/outro. Lista 
 via `ASSISTIR_LIVROS_SEED`/`ensureAssistirLivros` (flag `assistirLivrosSeeded`, em `runLifeSeeds`).
 `ensureAssistirLivrosV2` (flag `assistirLivrosV2`) é um patch único que quebra o item combinado do
 Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item original estiver intacto.
+- **Planos: seed Carnaval 2027** — `ensureCarnaval2027` (flag `carnaval2027Seeded`) adiciona um plano à
+  `planos` (lista/infos/itens; base = `d.planos || DEFAULT_PLANOS`): info "Placas" + checklist com
+  Fantasias e Coisas a comprar (prefixados "Fantasia:" / "Comprar:" porque o checklist é plano, sem grupo).
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
   **Salários** / **Gastos**.

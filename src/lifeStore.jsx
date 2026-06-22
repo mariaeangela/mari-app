@@ -639,9 +639,25 @@ function ensureCoisasCaras(d) {
   return { ...d, coisasCarasSeeded: true, coisasCaras: [...(d.coisasCaras || []), ...novos] };
 }
 
+// Plano "Carnaval 2027" (Life > Planos) enviado pela Mari. Semeado uma vez (flag carnaval2027Seeded).
+// Placas = info; Fantasias e Coisas a comprar = checklist (prefixados pra manter os grupos).
+function ensureCarnaval2027(d) {
+  if (d.carnaval2027Seeded) return d;
+  const base = d.planos || DEFAULT_PLANOS;
+  if (base.lista.some(p => p.id === 'carnaval-2027')) return { ...d, carnaval2027Seeded: true };
+  const lista = [...base.lista, { id: 'carnaval-2027', nome: 'Carnaval 2027' }];
+  const infos = [...base.infos, { id: 'cn-placas', planoId: 'carnaval-2027', titulo: 'Placas', texto: '• Viver é melhor que sonhar\n• Esqueceu de me bloquear no bloco\n• A mais linda história de amor' }];
+  const novos = [
+    'Fantasia: Medusa', 'Fantasia: Aranha', 'Fantasia: Anjo', 'Fantasia: Mounjaro', 'Fantasia: Repórter da Choquei',
+    'Comprar: Dino', 'Comprar: Bolinha de sabão',
+  ].map((texto, i) => ({ id: 'cn-k' + i, planoId: 'carnaval-2027', texto, feito: false }));
+  const itens = [...base.itens, ...novos];
+  return { ...d, carnaval2027Seeded: true, planos: { ...base, lista, infos, itens } };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem.
 function runLifeSeeds(d) {
-  return rolarComprasVencidas(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d))))))))));
+  return rolarComprasVencidas(ensureCarnaval2027(ensureCoisasCaras(ensureAssistirLivrosV2(ensureAssistirLivros(ensureMarcos(ensureMusica(ensureComprasFeitas(ensureNY26(ensureMaquiagemGrupos(ensureMaquiagem(d)))))))))));
 }
 
 const LifeContext = createContext(null);
