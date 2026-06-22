@@ -85,9 +85,9 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   tempos em SEGUNDOS. Helpers em calendarConfig.js: `parseTempo` ("h:mm:ss"/"mm:ss"/
   "32"=min → seg), `fmtTempo`, `paceSecs`(t,km), `fmtPace` (→ "m:ss/km"). O form mostra
   preview de pace ao vivo (real e meta). A **distância aceita decimais** (campo `type=text` +
-  `inputMode=decimal` no form, p/ funcionar no celular): `parseKm` normaliza vírgula→ponto e guarda
-  como número; `fmtKm` exibe com vírgula e 1 casa. Todo lugar que mostra km usa `fmtKm`
-  (Calendário, Retrospectiva, Saúde). CULTURA_SUBTIPOS
+  `inputMode=decimal` no form, p/ funcionar no celular): `parseKm` aceita vírgula OU ponto e guarda
+  como número; `fmtKm` exibe com **ponto** e 1 casa (preferência da Mari). Todo lugar que mostra km usa
+  `fmtKm` (Calendário, Retrospectiva, Saúde). CULTURA_SUBTIPOS
   (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
   ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
   `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da

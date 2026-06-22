@@ -317,7 +317,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
         {tipo === 'exercicio' && EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' && (
           <>
             <label style={labelStyle}>Distância em km (opcional)</label>
-            <input type="text" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5,2" style={inputStyle} />
+            <input type="text" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5.2" style={inputStyle} />
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>Tempo real (opcional)</label>
