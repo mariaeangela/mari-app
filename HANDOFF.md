@@ -264,7 +264,9 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   categorias **sem detalhe** → total por mês (fallback). O gráfico do detalhe tem toggle **barras/linhas**
   (`ComprasChart` × `LinhasGastoChart`); default = **linhas** quando 3+ itens se repetem em vários meses
   (ex.: Fixos), senão barras. `LinhasGastoChart`: uma linha por item ao longo dos meses; tocar na legenda
-  isola o item (auto-escala) e lista os valores por mês. Seeds itemizados: `ensureGastosPresentes`,
+  isola o item (auto-escala) e lista os valores por mês. Abaixo do gráfico, `GastoTabela`: itens nas
+  linhas × meses nas colunas (mês mais recente à ESQUERDA), 1ª coluna sticky, linha Total, célula
+  clicável p/ editar o item. Seeds itemizados: `ensureGastosPresentes`,
   `ensureGastosFixos` (Fixos jan–jun, padronizado: Personal/Faxina/Conta de luz unificados). `runLifeSeeds`
   agora é um `reduce` sobre a lista de seeds (evita inferno de parênteses). Deep-link: `nav.goRetro('gastos', categoria)`
   abre direto o card da categoria (codificado em `secInicial='gastos:Categoria'`, parseado no

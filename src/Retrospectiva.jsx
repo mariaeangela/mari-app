@@ -977,6 +977,50 @@ function LinhasGastoChart({ itens, mesesAsc }) {
   );
 }
 
+// Tabela de evolução: itens nas linhas, meses nas colunas (mais recente à esquerda).
+function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
+  const mesesDesc = [...mesesAsc].reverse(); // mais recente primeiro (coluna da esquerda)
+  const byNomeMes = {};
+  itens.forEach(i => { (byNomeMes[i.nome] = byNomeMes[i.nome] || {}); (byNomeMes[i.nome][i.mes] = byNomeMes[i.nome][i.mes] || []).push(i); });
+  const valOf = (n, mm) => (byNomeMes[n][mm] || []).reduce((a, i) => a + (Number(i.valor) || 0), 0);
+  const totalDe = (n) => mesesDesc.reduce((a, mm) => a + valOf(n, mm), 0);
+  const nomes = Object.keys(byNomeMes).sort((a, b) => totalDe(b) - totalDe(a));
+  const totalMes = (mm) => nomes.reduce((a, n) => a + valOf(n, mm), 0);
+  const fmt = (v) => v ? Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '·';
+  const mAbbr = (mm) => MESES[+mm.slice(5, 7) - 1].slice(0, 3);
+  const stickyL = { position: 'sticky', left: 0, background: '#fff', zIndex: 1 };
+  const th = { padding: '7px 10px', fontSize: 10.5, color: '#888', textTransform: 'uppercase', fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap', borderBottom: '2px solid #eee' };
+  const td = { padding: '7px 10px', fontSize: 12.5, color: '#333', textAlign: 'right', whiteSpace: 'nowrap', borderBottom: '1px solid #f3f3f3' };
+  return (
+    <div style={{ overflowX: 'auto', marginBottom: 18, border: '1px solid #eee', borderRadius: 12 }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+          <tr>
+            <th style={{ ...th, ...stickyL, textAlign: 'left' }}>item</th>
+            {mesesDesc.map(mm => <th key={mm} style={th}>{mAbbr(mm)}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {nomes.map(n => (
+            <tr key={n}>
+              <td style={{ ...td, ...stickyL, textAlign: 'left', fontWeight: 600, color: '#222' }}>{n}</td>
+              {mesesDesc.map(mm => {
+                const arr = byNomeMes[n][mm] || [];
+                const v = valOf(n, mm);
+                return <td key={mm} onClick={arr.length ? () => onEdit(arr[0]) : undefined} style={{ ...td, cursor: arr.length ? 'pointer' : 'default', color: v ? '#333' : '#ccc' }}>{fmt(v)}</td>;
+              })}
+            </tr>
+          ))}
+          <tr>
+            <td style={{ ...td, ...stickyL, textAlign: 'left', fontWeight: 700, color: cor, borderTop: '2px solid #eee' }}>Total</td>
+            {mesesDesc.map(mm => <td key={mm} style={{ ...td, fontWeight: 700, color: cor, borderTop: '2px solid #eee' }}>{fmt(totalMes(mm))}</td>)}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function GastosRetro({ onBack, isWide, catInicial }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(catInicial || null);
@@ -1038,24 +1082,8 @@ function GastosRetro({ onBack, isWide, catInicial }) {
             </div>}
             {chartTipo === 'linhas' ? <LinhasGastoChart itens={itens} mesesAsc={mesesAsc} /> : <ComprasChart meses={mesesChart} />}
           </>}
-          {mesesItens.map(mm => {
-          const doMes = itens.filter(i => i.mes === mm).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
-          const sub = doMes.reduce((a, i) => a + (Number(i.valor) || 0), 0);
-          return (
-            <div key={mm} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: '#4a5468', letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700 }}>{fmtMesAno(mm)}</span>
-                <span style={{ fontSize: 12, color: '#4a5468', fontWeight: 700 }}>{fmtBRLr(sub)}</span>
-              </div>
-              {doMes.map(it => (
-                <div key={it.id} onClick={() => setForm({ editing: it })} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
-                  <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.nome}</span>
-                  <span style={{ fontSize: 13, color: '#666', flexShrink: 0 }}>{fmtBRLr(it.valor)}</span>
-                </div>
-              ))}
-            </div>
-          );
-        })}</> : linhas.length === 0 ? (
+          <GastoTabela itens={itens} mesesAsc={mesesAsc} cor={cor} onEdit={(it) => setForm({ editing: it })} />
+        </> : linhas.length === 0 ? (
           <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}. Toque no + para detalhar.</p>
         ) : <>
           <p style={{ fontSize: 11.5, color: '#bbb', margin: '0 0 10px' }}>total por mês (ainda não detalhado — toque no + para listar os itens)</p>

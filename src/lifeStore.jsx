@@ -93,7 +93,7 @@ export const DEFAULT_GASTOS = [
   { mes: '2026-03', itens: [G('Fixos', 5651.88), G('Mercado', 1458.74), G('Uber', 845.11), G('Trabalho', 938.30), G('Mãe', 457.65), G('Saúde', 265.91), G('Viagem', 2727.06), G('Coisas', 1663.82), G('Roupa', 4333.68), G('Skin care', 300.61), G('Bobeira', 69.80), G('Rolês', 1654.81), G('Presentes', 278.00)] },
   { mes: '2026-04', itens: [G('Fixos', 5577.80), G('Mercado', 1390.67), G('Uber', 519.88), G('Trabalho', 248.78), G('Mãe', 629.58), G('Saúde', 2763.86), G('Viagem', 13249.03), G('Coisas', 1180.34), G('Roupa', 80.00), G('Skin care', 199.90), G('Bobeira', 140.88), G('Rolês', 584.54)] },
   { mes: '2026-05', itens: [G('Fixos', 5564.89), G('Mercado', 178.84), G('Uber', 494.56), G('Trabalho', 90.81), G('Mãe', 137.41), G('Saúde', 2700.00), G('Viagem', 8753.61), G('Coisas', 171.10), G('Skin care', 132.19), G('Bobeira', 140.61), G('Rolês', 507.75)] },
-  { mes: '2026-06', itens: [G('Fixos', 6114.06), G('Mercado', 1565.27), G('Uber', 600.09), G('Trabalho', 194.33), G('Mãe', 293.50), G('Saúde', 2446.01), G('Viagem', 894.50), G('Coisas', 150.79), G('Skin care', 105.00), G('Bobeira', 68.88), G('Rolês', 996.04), G('Presentes', 533.70)] },
+  { mes: '2026-06', itens: [G('Fixos', 6255.26), G('Mercado', 1565.27), G('Uber', 600.09), G('Trabalho', 194.33), G('Mãe', 293.50), G('Saúde', 2446.01), G('Viagem', 894.50), G('Coisas', 150.79), G('Skin care', 105.00), G('Bobeira', 68.88), G('Rolês', 996.04), G('Presentes', 533.70)] },
 ];
 
 // Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
@@ -748,10 +748,16 @@ function ensureGastosFixos(d) {
   const novos = GASTOS_FIXOS_SEED.map(([mes, nome, valor], i) => ({ id: 'gi-fix-' + i, mes, categoria: 'Fixos', nome, valor })).filter(x => !have.has(x.id));
   return { ...d, gastosFixosSeeded: true, gastosItens: [...(d.gastosItens || []), ...novos] };
 }
+// Patch único: corrige o total de Fixos de jun/2026 na Vida Financeira (6114.06 → 6255.26, valor real).
+function ensureFixosJunhoFix(d) {
+  if (d.fixosJunhoFix) return d;
+  if (!d.gastos) return { ...d, fixosJunhoFix: true }; // sem gastos salvos → usa DEFAULT (já corrigido)
+  return { ...d, fixosJunhoFix: true, gastos: d.gastos.map(g => g.mes !== '2026-06' ? g : { ...g, itens: (g.itens || []).map(it => it.categoria === 'Fixos' ? { ...it, valor: 6255.26 } : it) }) };
+}
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureGastosPresentes, ensureGastosFixos, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
