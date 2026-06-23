@@ -142,6 +142,8 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
 `compras`, `cultural`, `planos` (DEFAULT_PLANOS), `financas`, `salarios` (DEFAULT_SALARIOS),
 `gastos` (DEFAULT_GASTOS), `saude`. Seeds históricos (salários/gastos/pesos) **persistem ao
 1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
+**Planos**: hub tem botão ⚙ ("Gerenciar planos") para **reordenar** (↑↓ via `movePlano`) e apagar —
+mesmo padrão do ⚙ de Aprendizados/Compras.
 **Compras**: itens têm campo opcional **`grupo`** (sublista) — `ComprasSection` renderiza agrupado
 (sem-grupo primeiro, depois cada grupo c/ header); `ComprasForm` tem campo "Sublista / grupo" (datalist).
 Dentro de cada grupo, itens ordenados por **data limite** (`porData`: mais próxima primeiro, sem data

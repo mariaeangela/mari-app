@@ -843,6 +843,14 @@ export function LifeProvider({ children }) {
   const addPlano = (nome) => { const id = uid('p'); setPlanos({ ...planos, lista: [...planos.lista, { id, nome }] }); return id; };
   const setPlanoPrazo = (id, prazo) => setPlanos({ ...planos, lista: planos.lista.map(p => p.id === id ? { ...p, prazo: prazo || undefined } : p) });
   const deletePlano = (id) => setPlanos({ lista: planos.lista.filter(p => p.id !== id), infos: planos.infos.filter(i => i.planoId !== id), itens: planos.itens.filter(c => c.planoId !== id) });
+  const movePlano = (id, dir) => {
+    const arr = [...planos.lista];
+    const i = arr.findIndex(p => p.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setPlanos({ ...planos, lista: arr });
+  };
   const savePlanoInfo = (info) => setPlanos(info.id && planos.infos.some(x => x.id === info.id)
     ? { ...planos, infos: planos.infos.map(x => x.id === info.id ? info : x) }
     : { ...planos, infos: [...planos.infos, { ...info, id: uid('i') }] });
@@ -974,7 +982,7 @@ export function LifeProvider({ children }) {
   const value = {
     data, compras,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista, moveComprasLista,
-    planos, addPlano, setPlanoPrazo, deletePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, deletePlanoCheck,
+    planos, addPlano, setPlanoPrazo, deletePlano, movePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
     salarios, saveSalarioAno, deleteSalarioAno,

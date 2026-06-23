@@ -374,6 +374,7 @@ function PlanosSection({ onBack }) {
   const [planoSel, setPlanoSel] = useState(null);
   const [criando, setCriando] = useState(false);
   const [nome, setNome] = useState('');
+  const [gerenciar, setGerenciar] = useState(false);
 
   if (planoSel) {
     const p = life.planos.lista.find(x => x.id === planoSel);
@@ -385,7 +386,10 @@ function PlanosSection({ onBack }) {
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_PLANOS, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 16px' }}>Planos</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 16 }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Planos</h2>
+        {life.planos.lista.length > 1 && <button onClick={() => setGerenciar(true)} title="reordenar / gerenciar planos" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+      </div>
       {life.planos.lista.map(p => {
         const total = life.planos.itens.filter(i => i.planoId === p.id).length;
         const feitos = life.planos.itens.filter(i => i.planoId === p.id && i.feito).length;
@@ -400,6 +404,26 @@ function PlanosSection({ onBack }) {
         <input autoFocus value={nome} onChange={e => setNome(e.target.value)} onBlur={criar} onKeyDown={e => e.key === 'Enter' && criar()} placeholder="nome do plano" style={inputStyle} />
       ) : (
         <button onClick={() => setCriando(true)} style={{ width: '100%', marginTop: 4, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo plano</button>
+      )}
+
+      {gerenciar && (
+        <div onClick={() => setGerenciar(false)} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar planos</h3>
+              <button onClick={() => setGerenciar(false)} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {life.planos.lista.map((p, idx) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                <span style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600 }}>{p.nome}</span>
+                <button onClick={() => life.movePlano(p.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                <button onClick={() => life.movePlano(p.id, 1)} disabled={idx === life.planos.lista.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === life.planos.lista.length - 1 ? '#ddd' : '#777', cursor: idx === life.planos.lista.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                <button onClick={() => { if (window.confirm(`Apagar o plano "${p.nome}" e todo o seu conteúdo?`)) { if (planoSel === p.id) setPlanoSel(null); life.deletePlano(p.id); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Use ↑ ↓ para reordenar os planos. Apagar remove o plano com infos e checklist.</p>
+          </div>
+        </div>
       )}
     </div>
   );
