@@ -198,7 +198,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   no `lifeStore` (CRUDs `addAprendTopico`/`deleteAprendTopico`/`moveAprendTopico`/`saveAprendNota`/`deleteAprendNota`).
   O hub tem botão ⚙ ("Gerenciar tópicos") que abre painel para **reordenar** (↑↓ via `moveAprendTopico`)
   e apagar tópicos — mesmo padrão do ⚙ das listas de Compras.
-  `NotaForm` edita os itens por textarea (1 linha = 1 item). **Vinhos** têm form próprio (`WineForm`,
+  `NotaForm` edita os itens por textarea (1 linha = 1 item). Notas novas ganham `criadoEm` (Date.now) e
+  o `TopicoView` ordena as notas de topo por ele **(mais novas primeiro)**; notas antigas/sem `criadoEm`
+  ficam abaixo na ordem original (não bagunça tópicos curados). `saveAprendNota` faz merge ao editar (preserva `criadoEm`).
+  **Vinhos** têm form próprio (`WineForm`,
   campos país/região/nome/uva/info/data → nota `tipo:'vinho'`): notas-mãe com `grupoVinho:true`
   (Branco/Tinto/Espumante) mostram "+ adicionar vinho" e os filhos `tipo:'vinho'` renderizam em layout
   de vinho (badge país + meta + info) em vez de bullets. Notas `tipo:'compras'` (com `listaId`) renderizam

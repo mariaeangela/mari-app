@@ -975,8 +975,8 @@ export function LifeProvider({ children }) {
     setAprendizados({ ...aprendizados, topicos: arr });
   };
   const saveAprendNota = (nota) => setAprendizados(nota.id && aprendizados.notas.some(n => n.id === nota.id)
-    ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? nota : n) }
-    : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n') }] });
+    ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) } // merge preserva criadoEm
+    : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n'), criadoEm: Date.now() }] });
   const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
 
   const value = {

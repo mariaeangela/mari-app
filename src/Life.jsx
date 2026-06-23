@@ -2236,7 +2236,8 @@ function TopicoView({ topico, onBack }) {
   const [wineForm, setWineForm] = useState(null);
   const [aberta, setAberta] = useState({});
   const todas = life.aprendizados.notas.filter(n => n.topicoId === topico.id);
-  const topo = todas.filter(n => !n.paiId);
+  // notas de topo: mais novas primeiro (por criadoEm); as antigas/sem data ficam na ordem original abaixo.
+  const topo = todas.filter(n => !n.paiId).sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
   const filhos = (id) => todas.filter(n => n.paiId === id);
   const toggle = (id) => setAberta(a => ({ ...a, [id]: !a[id] }));
   return (
