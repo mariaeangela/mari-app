@@ -574,7 +574,7 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
       }}>
         <span style={{ fontSize: 16 }}>↻</span>
         <span style={{ flex: 1, textAlign: 'left' }}>Eventos recorrentes</span>
-        <span style={{ fontSize: 12, color: COR_CULTURAL }}>opções pra quando bate a dúvida ›</span>
+        <span style={{ fontSize: 13, color: COR_CULTURAL }}>›</span>
       </button>
 
       {/* filtros */}
@@ -611,23 +611,14 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
   );
 }
 
-// ---- Eventos recorrentes (opções de "o que fazer" que se repetem) ----
-const REC_TIPOS = [
-  { id: 'feira', label: 'Feira' }, { id: 'exposicao', label: 'Exposição' },
-  { id: 'cinema', label: 'Cinema' }, { id: 'musica', label: 'Música' },
-  { id: 'gastronomia', label: 'Gastronomia' }, { id: 'passeio', label: 'Passeio' },
-  { id: 'evento', label: 'Evento' },
-];
-const recTipoLabel = (id) => REC_TIPOS.find(t => t.id === id)?.label || 'Evento';
-
+// ---- Eventos recorrentes (opções que se repetem) ----
 function RecorrentesView({ onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const [cidadeSel, setCidadeSel] = useState('todas');
-  const [tipoSel, setTipoSel] = useState('todos');
   const cidades = [...new Set(life.recorrentes.map(i => i.cidade).filter(Boolean))].sort();
   const itens = life.recorrentes
-    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel))
+    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel))
     .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 
   const chip = (ativo, label, onClick) => (
@@ -644,21 +635,16 @@ function RecorrentesView({ onBack }) {
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: COR_CULTURAL, borderRadius: 4, marginBottom: 10 }} />
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Eventos recorrentes</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>opções que se repetem, pra quando bater a dúvida do que fazer</p>
         </div>
         <button onClick={() => setForm({})} title="adicionar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
       {cidades.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
           {chip(cidadeSel === 'todas', 'Todas as cidades', () => setCidadeSel('todas'))}
           {cidades.map(c => chip(cidadeSel === c, c, () => setCidadeSel(c)))}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
-        {chip(tipoSel === 'todos', 'Todos', () => setTipoSel('todos'))}
-        {REC_TIPOS.map(t => chip(tipoSel === t.id, t.label, () => setTipoSel(t.id)))}
-      </div>
 
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhuma opção salva ainda. Toque no + para guardar algo que acontece sempre (uma feira, um cineclube, um rolê de domingo…).</p>
@@ -669,7 +655,6 @@ function RecorrentesView({ onBack }) {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
               {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
-              <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{recTipoLabel(it.tipo)}</span>
             </div>
             <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
             {it.nota && <div style={{ fontSize: 12, color: '#777', marginTop: 4 }}>{it.nota}</div>}
@@ -685,7 +670,6 @@ function RecorrentesView({ onBack }) {
 function RecorrenteForm({ editing, onClose }) {
   const life = useLife();
   const [nome, setNome] = useState(editing?.nome || '');
-  const [tipo, setTipo] = useState(editing?.tipo || 'feira');
   const [cidade, setCidade] = useState(editing?.cidade || '');
   const [local, setLocal] = useState(editing?.local || '');
   const [quando, setQuando] = useState(editing?.quando || '');
@@ -696,7 +680,7 @@ function RecorrenteForm({ editing, onClose }) {
   const salvar = () => {
     if (!podeSalvar) return;
     life.saveRecorrente({
-      id: editing?.id, nome: nome.trim(), tipo,
+      id: editing?.id, nome: nome.trim(),
       cidade: cidade.trim() || undefined, local: local.trim() || undefined,
       quando: quando.trim() || undefined, preco: preco.trim() || undefined,
       link: link.trim() || undefined, nota: nota.trim() || undefined,
@@ -712,10 +696,6 @@ function RecorrenteForm({ editing, onClose }) {
         </div>
         <label style={labelStyle}>O quê</label>
         <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Feira da Benedito Calixto" style={inputStyle} />
-        <label style={labelStyle}>Tipo</label>
-        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
-          {REC_TIPOS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-        </select>
         <label style={labelStyle}>Quando / frequência (opcional)</label>
         <input value={quando} onChange={e => setQuando(e.target.value)} placeholder="ex.: todo domingo · 1ª sexta do mês · no verão" style={inputStyle} />
         <label style={labelStyle}>Cidade (opcional)</label>
