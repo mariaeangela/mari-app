@@ -18,8 +18,6 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Perguntas** — cada card termina com uma pergunta; **salvar respostas** → diário intelectual.
 - 🔴 **Álbum da semana** — na capa de Hoje + histórico no Explorar (banda, ano, momento do disco).
 - 🔴 **Cartas** — crescer a coleção, completas e verificadas (incl. brasileiras, tipo Clarice).
-- 🟡 **Imagem de fundo da tela de senha** — fotos bonitas ligadas à estação/frio (hoje é só cor).
-- 🟢 **Número de frases de abertura** — está em **145** (era 12); dá pra continuar engordando.
 - 🟡 **Modo Viagem** — com viagem ativa, a **senha** e a **capa** viram *"Bom dia em Paraty"* + um fato
   da cidade. (A decidir: cidade vem da viagem marcada por você ou do GPS.) — atravessa Hoje + senha.
 - 🟡 (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só.
@@ -60,6 +58,12 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   evolução já estão prontos; falta só o desenho do trajeto.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
 - 🟢 (refino) opção **"por mês"** no ano em números, além do "por ano".
+
+---
+
+## Para depois (não é prioridade — decisão da Mari)
+- 🟡 **Imagem de fundo da tela de senha** — fotos bonitas ligadas à estação/frio (hoje é só cor).
+- 🟢 **Número de frases de abertura** — está em **145** (era 12); dá pra continuar engordando.
 
 ---
 
