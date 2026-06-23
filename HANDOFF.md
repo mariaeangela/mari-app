@@ -227,16 +227,19 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
 - Pendências Life: Estudos (placeholder via `SubPlaceholder`). Ver `ROADMAP.md`.
 - **Viagens** (`ViagensSection`/`ViagemDetail`/`ViagemForm`/`MesaLinkForm`, em Life.jsx) — viagens
   **futuras/em curso**. Slice `viagensFuturas:[{id,titulo,cidade,inicio,fim,hospedagem?,passagens?,notas?,
-  link?,homenageada?:{nome,texto,link},mesas?:[{id,n,dia,hora,titulo,autores,link?}],checklist?:[{id,texto,
-  feito}]}]` no `lifeStore` (CRUD `saveViagemFutura`/`deleteViagemFutura`; ids `vf-*`). Hub lista as viagens
-  ordenadas por início com chip de status (`statusViagem`: faltam N dias / é amanhã / começa hoje / rolando
-  agora / terminou). Detalhe: header + nota do Modo Viagem + site oficial + blocos Hospedagem/Passagens
-  (textareas no `ViagemForm`), Autora homenageada, **Programação** (mesas agrupadas por dia; tocar numa mesa
-  abre `MesaLinkForm` p/ colar o link dela), e checklist "O que levar / comprar" (inline). Seed **FLIP 2026**
-  (`ensureFlip2026`/flag `flip2026Seeded`, id `vf-flip2026`): 22–26/jul/2026, Paraty, 21 mesas (títulos =
-  versos da Orides Fontela, a homenageada), datas/autores/**link oficial por mesa** (flip.org.br/evento/…)
-  embutidos. Patch `ensureFlipMesaLinks` (flag `flipMesaLinks1`) preenche o link nas mesas já semeadas SEM
-  sobrescrever link colado à mão (só age em mesa com link vazio). Ambos encadeados em `runLifeSeeds`.
+  link?,homenageada?:{nome,texto,link},mesas?:[{id,n,dia,hora,titulo,autores,link?,desc?}],
+  levar?:[{id,texto,feito}],comprar?:[…]}]` no `lifeStore` (CRUD `saveViagemFutura`/`deleteViagemFutura`;
+  ids `vf-*`). Hub lista as viagens ordenadas por início com chip de status (`statusViagem`: faltam N dias /
+  é amanhã / começa hoje / rolando agora / terminou). Detalhe: header + site oficial + blocos Hospedagem/
+  Passagens (textareas no `ViagemForm`), Autora homenageada, **Programação** (mesas por dia, com sinopse
+  `desc`; tocar numa mesa abre `MesaLinkForm` p/ colar o link), e **DUAS** checklists separadas — "O que
+  levar" (`levar`) e "O que comprar" (`comprar`), inline via `listaCheck(campo,…)`. (Sem aviso/nota do Modo
+  Viagem na UI — a Mari pediu pra manter o comportamento sem o banner.) Seed **FLIP 2026** (`ensureFlip2026`/
+  flag `flip2026Seeded`, id `vf-flip2026`): 22–26/jul/2026, Paraty, 21 mesas (títulos = versos da Orides
+  Fontela), datas/autores/**link oficial**/**sinopse** por mesa (`FLIP_MESA_DESCS`) + bio rica da homenageada.
+  Patches: `ensureFlipMesaLinks` (flag `flipMesaLinks1`, preenche link onde vazio) e `ensureFlipDetalhes`
+  (flag `flipDetalhes1`: preenche `desc` onde vazia, atualiza a bio da homenageada, migra `checklist`→`levar`).
+  Nenhum sobrescreve o que a Mari editou. Encadeados em `runLifeSeeds`.
 
 ## Modo Viagem (`src/cidadeFatos.js` + Login/App)
 Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e

@@ -731,8 +731,32 @@ const FLIP_MESAS = [
 ];
 const FLIP_HOMENAGEADA = {
   nome: 'Orides Fontela',
-  texto: 'Poeta de São João da Boa Vista/SP (1940–1998), formada em Filosofia na USP. Poesia concisa e despojada, povoada de pássaros, flores e rios; rigor formal e influência da filosofia e do zen-budismo. Livros: Transposição (1969), Helianto (1973), Alba (1983, Prêmio Jabuti), Rosácea (1986) e Teia (1996, Prêmio APCA).',
+  texto: 'Orides Fontela (São João da Boa Vista/SP, 1940 – São Paulo, 1998) foi uma das vozes mais originais da poesia brasileira contemporânea. De família humilde, formou-se em Filosofia na USP e trabalhou como professora primária e bibliotecária. Seu poema "Elegia", publicado em 1965 no jornal O Município, chamou a atenção do crítico Davi Arrigucci Jr. e a projetou no cenário literário; ao longo da vida teve o apoio de figuras como Antonio Candido e Marilena Chaui. Praticante de zen-budismo desde 1972, uniu a essa influência suas leituras filosóficas e a vida no interior — marcas de uma poesia povoada de pássaros, flores, rios e silêncio.\n\nSua obra é conhecida pela concisão, pelo rigor formal com a língua e pelo despojamento de ornamentos. Publicou Transposição (1969), Helianto (1973), Alba (1983, Prêmio Jabuti), Rosácea (1986) e Teia (1996, Prêmio APCA); a obra foi reunida postumamente em Poesia reunida (2006) e Poesia completa (2015). Em 2007 recebeu, postumamente, a Medalha da Ordem do Mérito Cultural.',
   link: 'https://flip.org.br/ed/24a-flip/artistico/orides-fontela-autora-homenageada/',
+};
+// Sinopses oficiais de cada mesa (flip.org.br/evento/…), por número da mesa.
+const FLIP_MESA_DESCS = {
+  1: 'Dois poetas que transitam bem entre a poesia e outros gêneros — o romance, a crônica — e entendem a poesia não só como exercício espontâneo, mas desenhada com capricho para criar um projeto que faça sentido.',
+  2: 'Poetas de uma mesma geração, de obra vasta e grande erudição, o português José Tolentino Mendonça e o brasileiro Edimilson de Almeida Pereira conversam sobre linguagem poética, enigma e identidade.',
+  3: 'Como narrar o que se viu — e o que não se viu, mas está acontecendo? Maria Reva (canadense de origem ucraniana) e Andrei Kurkov tratam, por caminhos distintos (ela em romance bem-humorado, ele em diários), da guerra da Ucrânia e do dilema ético de narrar o conflito.',
+  4: 'Duas das mais inventivas ficcionistas brasileiras da atualidade conversam sobre seus livros, a capacidade de fabulação e a função da literatura.',
+  5: 'Dois grandes escritores, um italiano e uma brasileira, conversam sobre romances que questionam o amor compulsório dos filhos pelos pais e revisam a relação familiar.',
+  6: 'Vencedor do Goncourt 2024, Kamel Daoud, e a luso-angolana Djaimilia Pereira de Almeida (autora de Luanda, Lisboa, Paraíso) conversam sobre a construção de seus romances e sobre esquecimento, luto e dever de memória.',
+  7: 'Espetáculo inspirado na obra de Dalton Trevisan, com direção de Alessandra Maestrini — estreia na FLIP.',
+  8: 'Uma conversa sobre escrita, doenças tropicais, medicina, vida e morte. Carmen Stephan, autora de um romance sobre a malária narrado pelo mosquito, e Drauzio Varella, de O médico doente, sobre quando contraiu febre amarela e esteve à beira da morte.',
+  9: '"De que modo se habita um espaço? A serviço de quem está o uso de um lugar?" Um arquiteto paraguaio e um jornalista brasileiro debatem formas de ocupar o espaço, contrastando a história repressiva da Ilha Dawson com arquiteturas que respeitam a natureza e as populações locais.',
+  10: 'A ministra do STF Cármen Lúcia fala de seu livro recém-lançado, Pela mão do povo – Democracia e voto no Brasil, e dos recentes ataques à democracia brasileira.',
+  11: 'Uma escritora mineira e uma argentina falam de seus livros, que narram com delicadeza e humor o adoecimento por demência de mulheres da família, refletindo sobre as relações entre gerações.',
+  12: 'Duas escritoras, uma brasileira e uma franco-mauriciana, conversam sobre livros de protagonistas mulheres e as diferentes formas de violência que enfrentam. Com Nathacha Appanah (Femina 2025) e Bethânia Pires Amaro (Jabuti 2024).',
+  13: '"Até onde acreditar no que se lê?" As romancistas Katie Kitamura e Marta Pérez-Carbonell discutem narradores pouco confiáveis, narrativas que desestabilizam o leitor e o efeito ilusório da ficção.',
+  14: 'Um escritor guatemalteco de origem judaica, criado nos EUA e hoje em Berlim, e uma escritora argentina que vive no Brasil discutem seus projetos literários, deslocamentos e identidades — ambos escrevem em línguas diferentes de suas origens.',
+  15: 'Encontro de dois ensaístas sobre o autoritarismo e a ascensão da extrema direita. O crítico João Cezar de Castro Rocha e o psicanalista e tradutor Paulo Schiller tentam entender, a partir de suas áreas, como comportamentos autoritários ganharam a cena.',
+  16: 'Vencedora do Prêmio Camões 2025, a poeta, ensaísta e pesquisadora angolana Ana Paula Tavares fala de sua trajetória e de sua poesia — marcadas pela história de seu país e pela luta pela emancipação feminina — e de sua conexão com o Brasil pela língua e pela literatura.',
+  17: 'Hisham Matar conversa com Milton Hatoum sobre famílias cujo destino é determinado por governos autoritários, a partir de suas experiências com ditaduras, explorando memória, literatura, política e ficção.',
+  18: 'Entrevista com a britânica Zadie Smith, uma das vozes mais celebradas da literatura em língua inglesa, sobre sua obra, a construção de seus livros e temas como colonialismo, imigração e racismo.',
+  19: 'Dois autores refletem sobre a diáspora africana contemporânea — imigração, violência, famílias birraciais, afeto, identidade e pertencimento. Um físico e diplomata brasileiro relata a viagem à Guiné-Bissau para conhecer a família paterna; a francesa Ève Guerra narra a repatriação do corpo do pai do Congo para a Europa.',
+  20: 'Um poeta atento às pequenas coisas do cotidiano e uma contista que mira o espaço urbano; somam-se um poeta-pesquisador que enaltece a música nos versos e uma ensaísta dedicada a um dos maiores discos da MPB. Um encontro sobre poemas, canções e cidades.',
+  21: 'Encontro de duas escritoras de enorme originalidade: a catalã Eva Baltasar, de uma vertiginosa trilogia sobre a maternidade, e a amazonense Susy Freitas, de No baile do juízo final. Ambas desconstroem estereótipos femininos e exploram personagens em situações-limite.',
 };
 function ensureFlip2026(d) {
   if (d.flip2026Seeded) return d;
@@ -744,8 +768,8 @@ function ensureFlip2026(d) {
     link: 'https://flip.org.br/ed/24a-flip/',
     hospedagem: '', passagens: '', notas: '',
     homenageada: FLIP_HOMENAGEADA,
-    mesas: FLIP_MESAS.map(([dia, hora, n, titulo, autores, link]) => ({ id: 'flipm-' + n, n, dia, hora, titulo, autores, link: link || '' })),
-    checklist: [],
+    mesas: FLIP_MESAS.map(([dia, hora, n, titulo, autores, link]) => ({ id: 'flipm-' + n, n, dia, hora, titulo, autores, link: link || '', desc: FLIP_MESA_DESCS[n] || '' })),
+    levar: [], comprar: [],
   };
   return { ...d, flip2026Seeded: true, viagensFuturas: [...(d.viagensFuturas || []), viagem] };
 }
@@ -757,6 +781,19 @@ function ensureFlipMesaLinks(d) {
   const viagens = (d.viagensFuturas || []).map(v => v.id !== 'vf-flip2026' ? v
     : { ...v, mesas: (v.mesas || []).map(m => (!m.link && links[m.id]) ? { ...m, link: links[m.id] } : m) });
   return { ...d, flipMesaLinks1: true, viagensFuturas: viagens };
+}
+// Patch único: preenche a sinopse de cada mesa (onde vazia) e atualiza a bio da homenageada
+// na FLIP já semeada; migra a checklist antiga (`checklist`) para a lista "levar". Flag nova.
+function ensureFlipDetalhes(d) {
+  if (d.flipDetalhes1) return d;
+  const viagens = (d.viagensFuturas || []).map(v => v.id !== 'vf-flip2026' ? v : {
+    ...v,
+    homenageada: { ...(v.homenageada || {}), nome: 'Orides Fontela', texto: FLIP_HOMENAGEADA.texto, link: FLIP_HOMENAGEADA.link },
+    levar: v.levar || v.checklist || [],
+    comprar: v.comprar || [],
+    mesas: (v.mesas || []).map(m => (!m.desc && FLIP_MESA_DESCS[m.n]) ? { ...m, desc: FLIP_MESA_DESCS[m.n] } : m),
+  });
+  return { ...d, flipDetalhes1: true, viagensFuturas: viagens };
 }
 
 // Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
@@ -815,7 +852,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
