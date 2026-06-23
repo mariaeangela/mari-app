@@ -15,6 +15,8 @@ const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
 // Rótulo da corrida: "6km - Centro Histórico" (distância antes do nome).
 const corridaLabel = (x) => (x.distancia ? `${fmtKm(x.distancia)}km - ` : '') + exTitulo(x) + (x.tempo ? ` · ${fmtTempo(x.tempo)}` : '');
+// meta de tempo formatada (aceita segundos OU string legada "50:00").
+const metaLabel = (m) => { if (m == null || m === '') return ''; const s = typeof m === 'number' ? m : parseTempo(m); return s ? fmtTempo(s) : ''; };
 // Ordem do dia (Agenda e detalhe do dia): eventos de trabalho SEM horário no
 // topo, depois itens com horário em ordem cronológica, e por fim os demais sem horário.
 const dayOrder = (a, b) => {
@@ -677,6 +679,7 @@ function ProximasCorridas({ data, today, onEdit }) {
             <button key={x.id} onClick={() => onEdit({ ...x, _tipo: 'exercicio' })} style={rowBtn}>
               <span style={{ fontSize: 12, color: EXERCICIO_BY_ID.corrida.cor, fontWeight: 700, minWidth: 52 }}>{d.getDate()} {MESES[d.getMonth()].slice(0, 3)}</span>
               <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{corridaLabel(x)}</span>
+              {x.metaTempo != null && x.metaTempo !== '' && <span style={{ fontSize: 12, fontWeight: 700, color: EXERCICIO_BY_ID.corrida.cor, whiteSpace: 'nowrap', flexShrink: 0 }}>🎯 {metaLabel(x.metaTempo)}</span>}
               {x.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{x.horaInicio}</span>}
             </button>
           );

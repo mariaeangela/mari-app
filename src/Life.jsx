@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
-import { EXERCICIO_BY_ID, fmtKm } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
 
@@ -1824,7 +1824,8 @@ function SaudeSection({ onBack }) {
     .filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida' && x.subtipo !== 'corrida_treino' && (x.data || '') >= hk)
     .sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const labelProva = (x) => [x.distancia ? fmtKm(x.distancia) + 'km' : null, x.titulo].filter(Boolean).join(' · ') || 'Corrida';
-  const salvarMeta = (x, valor) => { cal.saveExercicio({ ...x, metaTempo: valor.trim() || undefined }); setMetaEdit(null); };
+  const metaLabel = (m) => { if (m == null || m === '') return ''; const s = typeof m === 'number' ? m : parseTempo(m); return s ? fmtTempo(s) : ''; };
+  const salvarMeta = (x, valor) => { cal.saveExercicio({ ...x, metaTempo: parseTempo(valor) || undefined }); setMetaEdit(null); };
 
   const editLink = { background: 'none', border: 'none', color: '#bbb', fontSize: 11.5, cursor: 'pointer', flexShrink: 0, padding: 0 };
   const bloco = (titulo, addTipo, conteudo, acao) => (
@@ -1871,11 +1872,11 @@ function SaudeSection({ onBack }) {
                 {metaEdit?.id === x.id ? (
                   <input autoFocus value={metaEdit.valor} onChange={e => setMetaEdit({ id: x.id, valor: e.target.value })}
                     onKeyDown={e => { if (e.key === 'Enter') salvarMeta(x, metaEdit.valor); }}
-                    onBlur={() => salvarMeta(x, metaEdit.valor)} placeholder="ex.: 55min"
+                    onBlur={() => salvarMeta(x, metaEdit.valor)} placeholder="ex.: 50:00"
                     style={{ ...inputStyle, width: 96, flexShrink: 0, padding: '5px 8px', fontSize: 13 }} />
                 ) : (
-                  <span onClick={() => setMetaEdit({ id: x.id, valor: x.metaTempo || '' })} style={{ fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, color: x.metaTempo ? COR_CORRIDA : '#ccc' }}>
-                    {x.metaTempo ? '🎯 ' + x.metaTempo : '+ meta de tempo'}
+                  <span onClick={() => setMetaEdit({ id: x.id, valor: metaLabel(x.metaTempo) })} style={{ fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, color: x.metaTempo ? COR_CORRIDA : '#ccc' }}>
+                    {x.metaTempo ? '🎯 ' + metaLabel(x.metaTempo) : '+ meta de tempo'}
                   </span>
                 )}
               </div>

@@ -90,7 +90,9 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   preview de pace ao vivo (real e meta). A **distância aceita decimais** (campo `type=text` +
   `inputMode=decimal` no form, p/ funcionar no celular): `parseKm` aceita vírgula OU ponto e guarda
   como número; `fmtKm` exibe com **ponto** e 1 casa (preferência da Mari). Todo lugar que mostra km usa
-  `fmtKm` (Calendário, Retrospectiva, Saúde). CULTURA_SUBTIPOS
+  `fmtKm` (Calendário, Retrospectiva, Saúde). `metaTempo` guardado em SEGUNDOS; helper `metaLabel`
+  exibe formatado (tolera string legada). "Próximas corridas" (visão Exercício) e "Próximas metas"
+  (Life→Saúde) mostram **🎯 m:ss**; a edição inline da Saúde salva via `parseTempo`. CULTURA_SUBTIPOS
   (lendo, lido, filme, série, exposição, museu, show, espetáculo). MOODS (5:
   ótimo/bem/triste/estressado/ansioso, sem emoji). LEGENDA (chips de cor).
   `getOnThisDay()` (fato curado de HISTORICAL_FACTS, senão efemérides da
