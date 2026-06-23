@@ -44,7 +44,7 @@ const CARDS = [
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
-  { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954' },
+  { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates e afins', cor: '#c2548f' },
@@ -537,9 +537,66 @@ function CompraFeitaForm({ editing, onClose }) {
 
 // ---- Card: Música (Spotify por mês) ----
 const COR_MUSICA = '#1db954';
+// Visão em gráfico: barras de minutos por mês + ranking de artistas/músicas do ano.
+function MusicaGrafico({ meses, fmtMin, horas }) {
+  const [sel, setSel] = useState(null);
+  const cron = meses.slice().sort((a, b) => (a.mes || '').localeCompare(b.mes || ''));
+  const maxMin = Math.max(1, ...cron.map(m => Number(m.minutos) || 0));
+  const rank = (campo) => {
+    const map = {};
+    cron.forEach(m => { const v = (m[campo] || '').trim(); if (v) map[v] = (map[v] || 0) + 1; });
+    return Object.entries(map).map(([nome, n]) => ({ nome, n })).sort((a, b) => b.n - a.n);
+  };
+  const artistas = rank('artista'), musicas = rank('musica');
+  const maxN = Math.max(1, ...artistas.map(a => a.n), ...musicas.map(a => a.n));
+  const ranking = (titulo, lista) => lista.length > 0 && (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{titulo}</div>
+      {lista.map(item => (
+        <div key={item.nome} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.nome}</div>
+            <div style={{ height: 6, background: COR_MUSICA + '22', borderRadius: 4, marginTop: 3 }}>
+              <div style={{ width: (item.n / maxN * 100) + '%', height: '100%', background: COR_MUSICA, borderRadius: 4 }} />
+            </div>
+          </div>
+          <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{item.n} {item.n > 1 ? 'meses' : 'mês'}</span>
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>minutos por mês</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 150 }}>
+        {cron.map((m, i) => {
+          const min = Number(m.minutos) || 0;
+          const h = Math.max(2, Math.round((min / maxMin) * 116));
+          const on = sel === i;
+          return (
+            <div key={m.id} onClick={() => setSel(on ? null : i)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
+              <div style={{ fontSize: 9, color: '#777', height: 12, fontWeight: 700 }}>{on ? fmtMin(min) : ''}</div>
+              <div style={{ width: '100%', maxWidth: 30, height: h, background: COR_MUSICA, borderRadius: '4px 4px 0 0', opacity: sel == null || on ? 1 : 0.4 }} />
+              <div style={{ fontSize: 9, color: '#aaa', marginTop: 4 }}>{MESES[+(m.mes || '').slice(5, 7) - 1]?.slice(0, 3)}</div>
+            </div>
+          );
+        })}
+      </div>
+      {sel != null && (
+        <div style={{ fontSize: 12, color: '#777', marginTop: 8, textAlign: 'center' }}>
+          {fmtMesAno(cron[sel].mes).replace(/^./, c => c.toUpperCase())}: {fmtMin(cron[sel].minutos)} min · ~{horas(cron[sel].minutos)}h
+        </div>
+      )}
+      {ranking('artistas do ano', artistas)}
+      {ranking('músicas do ano', musicas)}
+    </div>
+  );
+}
+
 function MusicaRetro({ onBack, isWide }) {
   const life = useLife();
   const [form, setForm] = useState(null);
+  const [vis, setVis] = useState('lista');
   const todasMeses = life.musica || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(todasMeses.map(m => m.mes));
   const meses = todasMeses.filter(m => (m.mes || '').slice(0, 4) === anoSel).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
@@ -567,7 +624,19 @@ function MusicaRetro({ onBack, isWide }) {
           <span style={{ fontSize: 13, color: '#999' }}> minutos em {anoSel} · ~{horas(totalMin)}h</span>
         </div>
         {meses.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
-        {meses.map(m => (
+        {meses.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {[['lista', 'Lista'], ['grafico', 'Gráfico']].map(([v, label]) => (
+              <button key={v} onClick={() => setVis(v)} style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: '1px solid ' + (vis === v ? COR_MUSICA : '#e2e2e2'),
+                background: vis === v ? COR_MUSICA + '1c' : '#fff', color: vis === v ? '#0a7d36' : '#888',
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+        {meses.length > 0 && vis === 'grafico' && <MusicaGrafico meses={meses} fmtMin={fmtMin} horas={horas} />}
+        {vis === 'lista' && meses.map(m => (
           <div key={m.id} onClick={() => setForm({ editing: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10, cursor: 'pointer' }}>
             <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{fmtMesAno(m.mes)}</div>
             <div style={{ marginBottom: 6 }}>

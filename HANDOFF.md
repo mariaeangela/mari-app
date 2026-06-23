@@ -246,8 +246,10 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   `arquivarComprados` segue no store, mas sem nenhum chamador.
 - **Música** (`MusicaRetro`/`MusicaForm`): 1 registro por mês (`life.musica = [{id,mes,minutos,artista,
   musica}]`, CRUD `saveMusica`/`deleteMusica`; seed jan–mai/2026 dos prints do Spotify via
-  `ensureMusica`/flag `musicaSeeded`). Mostra total de minutos do ano + cada mês (minutos/horas, top
-  artista, top música). **Lembrete recorrente** no Calendário (`ensureLembreteSpotify` no
+  `ensureMusica`/flag `musicaSeeded`). Mostra total de minutos do ano + **toggle Lista/Gráfico**: Lista =
+  cada mês (minutos/horas, top artista, top música); Gráfico = `MusicaGrafico` (barras de minutos por mês,
+  tap mostra o valor + ranking de artistas e músicas por nº de meses como top no ano). O card no hub da
+  Retrospectiva é `pronto:true` (mostra a descrição, não "em breve"). **Lembrete recorrente** no Calendário (`ensureLembreteSpotify` no
   `calendarStore`, flag `lembreteSpotifySeeded`): tarefa mensal "Cadastrar Spotify do mês passado"
   (data dia 1, `repetir:'mensal'`) — aparece no Calendário e no **Hoje** (via `HojeAgenda`) todo dia 1.
 - **Seletor de ano nos sub-cards**: `useAnoSel(datas)` + `<AnoChips>` (em Retrospectiva.jsx) — Compras,
