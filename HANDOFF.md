@@ -224,7 +224,26 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   (dinheiro/saúde/sentimentos/viagem) e **Maquiagem** (conhecimento + "Para comprar" espelhando a lista de
   Compras **Maquiagem**, semeada idempotente por `ensureMaquiagem`/flag `maquiagemSeeded` por causa do
   merge raso; "Para provar" só referência). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
-- Pendências Life: Estudos, Viagens (placeholders via `SubPlaceholder`). Ver `ROADMAP.md`.
+- Pendências Life: Estudos (placeholder via `SubPlaceholder`). Ver `ROADMAP.md`.
+- **Viagens** (`ViagensSection`/`ViagemDetail`/`ViagemForm`/`MesaLinkForm`, em Life.jsx) — viagens
+  **futuras/em curso**. Slice `viagensFuturas:[{id,titulo,cidade,inicio,fim,hospedagem?,passagens?,notas?,
+  link?,homenageada?:{nome,texto,link},mesas?:[{id,n,dia,hora,titulo,autores,link?}],checklist?:[{id,texto,
+  feito}]}]` no `lifeStore` (CRUD `saveViagemFutura`/`deleteViagemFutura`; ids `vf-*`). Hub lista as viagens
+  ordenadas por início com chip de status (`statusViagem`: faltam N dias / é amanhã / começa hoje / rolando
+  agora / terminou). Detalhe: header + nota do Modo Viagem + site oficial + blocos Hospedagem/Passagens
+  (textareas no `ViagemForm`), Autora homenageada, **Programação** (mesas agrupadas por dia; tocar numa mesa
+  abre `MesaLinkForm` p/ colar o link dela), e checklist "O que levar / comprar" (inline). Seed **FLIP 2026**
+  (`ensureFlip2026`/flag `flip2026Seeded`, id `vf-flip2026`): 22–26/jul/2026, Paraty, 21 mesas (títulos =
+  versos da Orides Fontela, a homenageada), datas/autores embutidos. Encadeado em `runLifeSeeds`.
+
+## Modo Viagem (`src/cidadeFatos.js` + Login/App)
+Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e
+uma **faixa** no topo do app viram *"Bom dia em {cidade}"* + um fato da cidade. Detecção pura em
+`getViagemAtiva(viagensFuturas, hoje)` (lifeStore, exportada); `getViagemAtivaCache()` lê o cache local
+`diagonal_life` p/ a **tela de senha**, que roda ANTES dos providers (Login não tem `useLife`). Fatos por
+cidade em `cidadeFatos.js` (`CIDADE_FATOS` + `getCidadeFato(cidade,date)` girando por dia); só **Paraty**
+por ora (6 fatos verificados). Pontos: `Login.jsx` (senha), `Saudacao` (capa) e `FaixaViagem` (faixa, dentro
+do sticky do Header, só aparece com viagem ativa) em App.jsx. Datas vêm da viagem cadastrada em Life→Viagens.
 
 ## Aba Retrospectiva (`src/Retrospectiva.jsx`) — NOVO
 Virou **aba própria** (tab `retrospectiva`, ao lado de Life). Hub: **"ano em números"** (cultura+

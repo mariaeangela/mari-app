@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], gastosItens: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], gastosItens: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -703,6 +703,52 @@ function ensureViagens(d) {
   return { ...d, viagensSeeded: true, viagens: [...(d.viagens || []), ...novos] };
 }
 
+// Viagem futura FLIP 2026 (alimenta o Modo Viagem + o card em Life > Viagens).
+// Mesas (21): os títulos são versos da Orides Fontela, a autora homenageada. [dia, hora, n, titulo, autores].
+const FLIP_MESAS = [
+  ['2026-07-22', '19h30', 1, '"entra furtivamente a luz"', 'Augusto Massi, Marília Garcia'],
+  ['2026-07-23', '10h', 2, '"saber de cor o silêncio"', 'Edimilson de Almeida Pereira, José Tolentino de Mendonça'],
+  ['2026-07-23', '12h', 3, '"não vim. não vi. não havia guerra alguma"', 'Andrei Kurkov, Maria Reva'],
+  ['2026-07-23', '15h', 4, '"mas para que serve o pássaro? o pássaro não serve"', 'Andréa del Fuego, Paulliny Tort'],
+  ['2026-07-23', '17h', 5, '"A infância volta devagarinho"', 'Andrea Bajani, Maria Esther Maciel'],
+  ['2026-07-23', '19h', 6, '"falo do que impede o sono"', 'Djaimilia Pereira de Almeida, Kamel Daoud'],
+  ['2026-07-23', '21h', 7, '"Do livro ao palco: Dalton, que tinha um cachorro"', 'Denise Stoklos'],
+  ['2026-07-24', '10h', 8, '"água parada água parada água parando"', 'Carmen Stephan, Drauzio Varella'],
+  ['2026-07-24', '12h', 9, '"a severa arquitetura serenamente prende-nos"', 'José Godoy, Solano Benítez'],
+  ['2026-07-24', '13h30', 10, '"estado de sítio, estado de sido, estase"', 'Carmen Lúcia'],
+  ['2026-07-24', '15h', 11, '"Como revelar-te se me revelas?"', 'Flávia Péret, Julieta Correa'],
+  ['2026-07-24', '17h', 12, '"e perdura. Apesar"', 'Bethânia Pires Amaro, Nathacha Appanah'],
+  ['2026-07-24', '19h', 13, '"o tecido: não sabemos qual a trama"', 'Katie Kitamura, Marta Pérez-Carbonell'],
+  ['2026-07-25', '10h', 14, '"a saída é a volta"', 'Eduardo Halfon, Paloma Vidal'],
+  ['2026-07-25', '12h', 15, '"se o delírio te eleva à potência do abismo"', 'João Cezar de Castro Rocha, Paulo Schiller'],
+  ['2026-07-25', '15h', 16, '"o boi é só. o boi é só. o boi"', 'Ana Paula Tavares'],
+  ['2026-07-25', '17h', 17, '"não mais sabemos do barco, mas há sempre um náufrago"', 'Hisham Matar, Milton Hatoum'],
+  ['2026-07-25', '19h', 18, '"e este chão não existe, e esta paz é vertigem"', 'Zadie Smith'],
+  ['2026-07-26', '10h', 19, '"a porta está aberta"', 'Ernesto Mané, Ève Guerra'],
+  ['2026-07-26', '12h', 20, '"nunca crer no que não canta"', 'Leonardo Gandolfi, Mateus Baldi'],
+  ['2026-07-26', '15h30', 21, '"o que faço desfaço, o que amo desamo"', 'Eva Baltasar, Susy Freitas'],
+];
+const FLIP_HOMENAGEADA = {
+  nome: 'Orides Fontela',
+  texto: 'Poeta de São João da Boa Vista/SP (1940–1998), formada em Filosofia na USP. Poesia concisa e despojada, povoada de pássaros, flores e rios; rigor formal e influência da filosofia e do zen-budismo. Livros: Transposição (1969), Helianto (1973), Alba (1983, Prêmio Jabuti), Rosácea (1986) e Teia (1996, Prêmio APCA).',
+  link: 'https://flip.org.br/ed/24a-flip/artistico/orides-fontela-autora-homenageada/',
+};
+function ensureFlip2026(d) {
+  if (d.flip2026Seeded) return d;
+  const have = new Set((d.viagensFuturas || []).map(v => v.id));
+  if (have.has('vf-flip2026')) return { ...d, flip2026Seeded: true };
+  const viagem = {
+    id: 'vf-flip2026', titulo: 'FLIP 2026', cidade: 'Paraty',
+    inicio: '2026-07-22', fim: '2026-07-26',
+    link: 'https://flip.org.br/ed/24a-flip/',
+    hospedagem: '', passagens: '', notas: '',
+    homenageada: FLIP_HOMENAGEADA,
+    mesas: FLIP_MESAS.map(([dia, hora, n, titulo, autores]) => ({ id: 'flipm-' + n, n, dia, hora, titulo, autores, link: '' })),
+    checklist: [],
+  };
+  return { ...d, flip2026Seeded: true, viagensFuturas: [...(d.viagensFuturas || []), viagem] };
+}
+
 // Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
 // Os itens somam o total da categoria no mês (que vem da Vida Financeira). Semeado por lote/categoria.
 const GASTOS_PRESENTES_SEED = [
@@ -759,7 +805,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -777,6 +823,24 @@ function rolarComprasVencidas(d) {
     return i;
   });
   return changed ? { ...d, compras: { ...compras, itens } } : d;
+}
+
+// Modo Viagem: viagem "ativa" hoje = hoje entre a VÉSPERA do início e o fim (inclusive).
+// (decisão da Mari: liga da véspera ao fim.) Funções puras p/ reuso (capa, faixa, senha).
+function ymdLocal(d = new Date()) { const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+function vesperaYmd(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return ymdLocal(new Date(y, m - 1, d - 1));
+}
+export function getViagemAtiva(viagensFuturas, hoje = ymdLocal()) {
+  return (viagensFuturas || []).find(v => v.inicio && v.fim && vesperaYmd(v.inicio) <= hoje && hoje <= v.fim) || null;
+}
+// Versão que lê o cache local (p/ a tela de senha, que roda ANTES dos providers).
+export function getViagemAtivaCache() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || '{}');
+    return getViagemAtiva(d.viagensFuturas);
+  } catch { return null; }
 }
 
 function readLocal() {
@@ -867,6 +931,16 @@ export function LifeProvider({ children }) {
     ? { ...cultural, itens: cultural.itens.map(x => x.id === it.id ? it : x) }
     : { ...cultural, itens: [...cultural.itens, { ...it, id: uid('e') }] });
   const deleteCulturalItem = (id) => setCultural({ ...cultural, itens: cultural.itens.filter(x => x.id !== id) });
+
+  // ---- Viagens futuras / em curso (card por viagem + Modo Viagem) ----
+  // viagem = { id, titulo, cidade, inicio, fim, hospedagem?, passagens?, notas?, link?,
+  //   homenageada?:{nome,texto,link}, mesas?:[{id,n,dia,hora,titulo,autores,link?}],
+  //   checklist?:[{id,texto,feito}] }
+  const viagensFuturas = data.viagensFuturas || [];
+  const saveViagemFutura = (v) => persist({ ...data, viagensFuturas: v.id && viagensFuturas.some(x => x.id === v.id)
+    ? viagensFuturas.map(x => x.id === v.id ? v : x)
+    : [...viagensFuturas, { ...v, id: uid('vf') }] });
+  const deleteViagemFutura = (id) => persist({ ...data, viagensFuturas: viagensFuturas.filter(x => x.id !== id) });
 
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
@@ -1005,6 +1079,7 @@ export function LifeProvider({ children }) {
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
+    viagensFuturas, saveViagemFutura, deleteViagemFutura,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

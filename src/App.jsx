@@ -6,10 +6,11 @@ import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
-import { LifeProvider, useLife } from './lifeStore.jsx';
+import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
+import { getCidadeFato } from './cidadeFatos.js';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -112,14 +113,31 @@ const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'q
 const capaInput = { width: '100%', padding: '9px 12px', border: '1px solid #e6e6e6', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
 
 // Saudação + data
+// Faixa do Modo Viagem: aparece no topo do app inteiro enquanto a viagem está ativa.
+function FaixaViagem() {
+  const life = useLife();
+  const viagem = getViagemAtiva(life.viagensFuturas);
+  if (!viagem) return null;
+  return (
+    <div style={{ background: '#19b3a6', color: '#fff', textAlign: 'center', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', letterSpacing: '0.3px' }}>
+      ✈ Você está em {viagem.cidade} · {viagem.titulo}
+    </div>
+  );
+}
+
 function Saudacao() {
+  const life = useLife();
   const d = new Date();
   const h = d.getHours();
   const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  // Modo Viagem: com viagem ativa, a saudação vira "Bom dia em <cidade>" + um fato da cidade.
+  const viagem = getViagemAtiva(life.viagensFuturas);
+  const fatoCidade = viagem ? getCidadeFato(viagem.cidade, d) : null;
   return (
     <div style={{ marginBottom: 16 }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0, lineHeight: 1.15 }}>{saud}, Mari</h2>
-      <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '0.5px', marginTop: 3 }}>{DIAS_SEM[d.getDay()]}, {d.getDate()} de {MESES[d.getMonth()]}</p>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0, lineHeight: 1.15 }}>{viagem ? `${saud} em ${viagem.cidade}` : `${saud}, Mari`}</h2>
+      <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '0.5px', marginTop: 3 }}>{DIAS_SEM[d.getDay()]}, {d.getDate()} de {MESES[d.getMonth()]}{viagem ? ` · ${viagem.titulo}` : ''}</p>
+      {fatoCidade && <p style={{ fontSize: 12.5, color: '#2a6b65', fontStyle: 'italic', marginTop: 8, lineHeight: 1.55, background: '#19b3a612', border: '1px solid #19b3a633', borderRadius: 10, padding: '9px 11px' }}>{fatoCidade}</p>}
     </div>
   );
 }
@@ -392,6 +410,7 @@ export default function App() {
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
+              <FaixaViagem />
             </div>
             {/* key = edição (+homeNonce): o feed remonta às 6h/14h e ao reclicar "Hoje" */}
             {tab === 'feed' && <Feed key={getEditionPeriod() + '-' + homeNonce} isWide={isWide} />}

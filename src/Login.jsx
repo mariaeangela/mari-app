@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSeason, SEASON_THEMES, getGreeting, getDayName, getTodayFact } from './contentLibrary.js';
+import { getViagemAtivaCache } from './lifeStore.jsx';
+import { getCidadeFato } from './cidadeFatos.js';
 
 export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
@@ -21,6 +23,9 @@ export default function Login({ onLogin }) {
   const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const dateStr = `${now.getDate()} de ${months[now.getMonth()]}`;
   const fact = getTodayFact();
+  // Modo Viagem: com viagem ativa (lida do cache local), a senha vira "Bom dia em <cidade>" + fato da cidade.
+  const viagem = getViagemAtivaCache();
+  const fatoCidade = viagem ? getCidadeFato(viagem.cidade, now) : null;
 
   const handleSubmit = () => {
     if (password === 'taylor13') {
@@ -82,14 +87,16 @@ export default function Login({ onLogin }) {
         {/* Greeting card */}
         <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '20px 22px', marginBottom: 28, border: `1px solid ${theme.accentLight}`, boxShadow: `0 4px 24px ${theme.accent}15` }}>
           <p style={{ fontFamily: "'Lora', serif", fontSize: 20, color: '#111', marginBottom: 4, fontStyle: 'italic' }}>
-            {greeting}, Mari! ✨
+            {viagem ? `${greeting} em ${viagem.cidade}, Mari! ✨` : `${greeting}, Mari! ✨`}
           </p>
           <p style={{ fontSize: 12, color: '#777', marginBottom: 14 }}>
-            Hoje é {dayName}, {dateStr}.
+            Hoje é {dayName}, {dateStr}.{viagem ? ` ${viagem.titulo} 📚` : ''}
           </p>
           <div style={{ width: '100%', height: 1, background: theme.accentLight, marginBottom: 14 }} />
           <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65 }}>
-            <span style={{ fontWeight: 700, color: theme.accent }}>Sabia que</span> {fact}
+            {viagem && fatoCidade
+              ? <><span style={{ fontWeight: 700, color: theme.accent }}>{viagem.cidade}</span> {fatoCidade}</>
+              : <><span style={{ fontWeight: 700, color: theme.accent }}>Sabia que</span> {fact}</>}
           </p>
         </div>
 

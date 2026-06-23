@@ -18,8 +18,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Perguntas** — cada card termina com uma pergunta; **salvar respostas** → diário intelectual.
 - 🔴 **Álbum da semana** — na capa de Hoje + histórico no Explorar (banda, ano, momento do disco).
 - 🔴 **Cartas** — crescer a coleção, completas e verificadas (incl. brasileiras, tipo Clarice).
-- 🟡 **Modo Viagem** — com viagem ativa, a **senha** e a **capa** viram *"Bom dia em Paraty"* + um fato
-  da cidade. (A decidir: cidade vem da viagem marcada por você ou do GPS.) — atravessa Hoje + senha.
+- 🟢✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
+  topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
+  (datas). FALTA (refino): mais cidades em `cidadeFatos.js` · opção por GPS.
 - 🟡 (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só.
 - ⏸🔴🔴 **Mapa da mente** *(bem depois)* — visualização do grafo dos seus interesses.
 
@@ -41,7 +42,10 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 ## 💛 Life
 *(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos · Viagens)*
 - 🟡 **Estudos** — aulas, leituras, cursos (placeholder; único que sobra).
-- 🟡 **Viagens** — planejamento de **futuras** + listas de compras por ocasião; **feitas** (passado).
+- 🟢✅ **Viagens** — seção real: viagens **futuras** com card (datas, hospedagem, passagens, programação,
+  homenageada, checklist "o que levar"). Seed FLIP 2026 (22–26/jul, Paraty; 21 mesas; Orides Fontela).
+  Alimenta o Modo Viagem. FALTA: link por mesa (sai no site oficial perto da data) · **feitas** (passado,
+  hoje na Retrospectiva) · juntar com listas de compras por ocasião.
 - **Vida Financeira:** 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs rendimento** (separar
   "quanto aportei" de "quanto rendeu") · 🟢 2ª linha de total também na vista **Tabela**.
 - **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima

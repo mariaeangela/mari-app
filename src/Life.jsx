@@ -2507,6 +2507,253 @@ function AprendizadosSection({ onBack }) {
   );
 }
 
+// ---- Viagens (futuras + em curso): card por viagem; alimenta o Modo Viagem ----
+const COR_VIAGEM = '#19b3a6';
+const MESES_LONGOS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const vgHoje = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+const fmtDiaMesAno = (s) => { if (!s) return ''; const [y, m, d] = s.split('-'); return `${+d} de ${MESES_LONGOS[+m - 1]} de ${y}`; };
+function fmtIntervalo(ini, fim) {
+  if (!ini) return 'sem data';
+  if (!fim || ini === fim) return fmtDiaMesAno(ini);
+  const [yi, mi, di] = ini.split('-'), [yf, mf, df] = fim.split('-');
+  if (yi === yf && mi === mf) return `${+di}–${+df} de ${MESES_LONGOS[+mi - 1]} de ${yi}`;
+  if (yi === yf) return `${+di} de ${MESES_LONGOS[+mi - 1]} a ${+df} de ${MESES_LONGOS[+mf - 1]} de ${yf}`;
+  return `${fmtDiaMesAno(ini)} a ${fmtDiaMesAno(fim)}`;
+}
+const diasEntre = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
+function statusViagem(v) {
+  const hoje = vgHoje();
+  if (!v.inicio) return { label: 'sem data', cor: '#aaa', ativa: false };
+  if (v.fim && hoje > v.fim) return { label: 'terminou', cor: '#bbb', ativa: false };
+  if (hoje >= v.inicio && v.fim && hoje <= v.fim) return { label: 'rolando agora', cor: COR_VIAGEM, ativa: true };
+  const d = diasEntre(hoje, v.inicio);
+  if (d === 0) return { label: 'começa hoje', cor: COR_VIAGEM, ativa: true };
+  if (d === 1) return { label: 'é amanhã', cor: COR_VIAGEM, ativa: true };
+  return { label: `faltam ${d} dias`, cor: '#888', ativa: false };
+}
+
+function ViagensSection({ onBack }) {
+  const life = useLife();
+  const [selId, setSelId] = useState(null);
+  const [form, setForm] = useState(null);
+  const trips = (life.viagensFuturas || []).slice().sort((a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999'));
+  const sel = selId ? trips.find(t => t.id === selId) : null;
+  if (sel) return <ViagemDetail trip={sel} onBack={() => setSelId(null)} />;
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Viagens</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>pra onde e quando — o Modo Viagem liga sozinho na época</p>
+        </div>
+        <button onClick={() => setForm({})} title="nova viagem" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {trips.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhuma viagem ainda. Toque no + pra cadastrar uma.</p>
+      ) : trips.map(t => {
+        const st = statusViagem(t);
+        return (
+          <button key={t.id} onClick={() => setSelId(t.id)} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid ' + (st.ativa ? COR_VIAGEM + '66' : '#eee'), borderRadius: 14, padding: '15px 16px', marginBottom: 10, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#111' }}>{t.titulo}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: st.cor, flexShrink: 0 }}>{st.label}</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: '#888', marginTop: 4 }}>{[t.cidade, fmtIntervalo(t.inicio, t.fim)].filter(Boolean).join(' · ')}</div>
+          </button>
+        );
+      })}
+
+      {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={() => { setForm(null); }} />}
+    </div>
+  );
+}
+
+function ViagemDetail({ trip, onBack }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);     // editar a viagem
+  const [mesaForm, setMesaForm] = useState(null); // {mesa} editar link da mesa
+  const [novoItem, setNovoItem] = useState('');
+  const st = statusViagem(trip);
+  const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
+  const checklist = trip.checklist || [];
+  const addItem = () => { const t = novoItem.trim(); if (!t) return; salvar({ checklist: [...checklist, { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); setNovoItem(''); };
+  const toggleItem = (id) => salvar({ checklist: checklist.map(c => c.id === id ? { ...c, feito: !c.feito } : c) });
+  const delItem = (id) => salvar({ checklist: checklist.filter(c => c.id !== id) });
+
+  const bloco = (titulo, conteudo) => (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ fontSize: 11, color: COR_VIAGEM, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{titulo}</div>
+      {conteudo}
+    </div>
+  );
+  const anotavel = (txt) => txt
+    ? <div style={{ fontSize: 13.5, color: '#333', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{txt}</div>
+    : <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic' }}>vazio — toque em ✎ Editar pra anotar.</div>;
+
+  const dias = [...new Set((trip.mesas || []).map(m => m.dia))].sort();
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Viagens</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, color: '#111', margin: 0 }}>{trip.titulo}</h2>
+          <div style={{ fontSize: 13, color: '#888', marginTop: 5 }}>{[trip.cidade, fmtIntervalo(trip.inicio, trip.fim)].filter(Boolean).join(' · ')}</div>
+          <div style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: st.cor, borderRadius: 12, padding: '3px 10px' }}>{st.label}</div>
+        </div>
+        <button onClick={() => setForm({ editing: trip })} title="editar" style={{ flexShrink: 0, background: '#fff', border: '1px solid #e2e2e2', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 700, color: '#555', cursor: 'pointer' }}>✎ Editar</button>
+      </div>
+
+      {trip.cidade && (
+        <div style={{ marginTop: 14, background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 10, padding: '10px 12px', fontSize: 12, color: '#2a6b65', lineHeight: 1.5 }}>
+          📱 Na época da viagem (da véspera ao fim), a tela de senha e a capa de Hoje viram <b>“Bom dia em {trip.cidade}”</b> + um fato da cidade.
+        </div>
+      )}
+      {trip.link && <div style={{ marginTop: 12 }}><a href={trip.link} target="_blank" rel="noopener noreferrer" style={{ color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>site oficial ↗</a></div>}
+
+      {bloco('Hospedagem', anotavel(trip.hospedagem))}
+      {bloco('Passagens', anotavel(trip.passagens))}
+
+      {trip.homenageada && bloco('Autora homenageada', (
+        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#111' }}>{trip.homenageada.nome}</div>
+          {trip.homenageada.texto && <div style={{ fontSize: 13, color: '#444', lineHeight: 1.6, marginTop: 6 }}>{trip.homenageada.texto}</div>}
+          {trip.homenageada.link && <a href={trip.homenageada.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 8, color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>saiba mais ↗</a>}
+        </div>
+      ))}
+
+      {dias.length > 0 && bloco('Programação', (
+        <div>
+          {dias.map(dia => {
+            const dt = new Date(dia + 'T00:00:00');
+            const wd = DIAS_LONGOS[dt.getDay()];
+            const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
+            const ms = (trip.mesas || []).filter(m => m.dia === dia).sort((a, b) => (a.n || 0) - (b.n || 0));
+            return (
+              <div key={dia} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
+                {ms.map(m => (
+                  <div key={m.id} onClick={() => setMesaForm({ mesa: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>
+                      <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic' }}>{m.titulo}</span>
+                      {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+                    </div>
+                    {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+          <p style={{ fontSize: 11.5, color: '#bbb', fontStyle: 'italic', marginTop: 2 }}>Toque numa mesa pra colar o link dela quando sair no site.</p>
+        </div>
+      ))}
+
+      {bloco('O que levar / comprar', (
+        <div>
+          {checklist.map(c => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+              <span onClick={() => toggleItem(c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
+              <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
+              <button onClick={() => delItem(c.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <input value={novoItem} onChange={e => setNovoItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem()} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+            <button onClick={addItem} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+          </div>
+        </div>
+      ))}
+
+      {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
+      {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
+    </div>
+  );
+}
+
+function ViagemForm({ editing, onClose, onDeleted }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [cidade, setCidade] = useState(editing?.cidade || '');
+  const [inicio, setInicio] = useState(editing?.inicio || '');
+  const [fim, setFim] = useState(editing?.fim || '');
+  const [link, setLink] = useState(editing?.link || '');
+  const [hospedagem, setHospedagem] = useState(editing?.hospedagem || '');
+  const [passagens, setPassagens] = useState(editing?.passagens || '');
+  const [notas, setNotas] = useState(editing?.notas || '');
+  const podeSalvar = titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveViagemFutura({
+      ...(editing || {}), id: editing?.id, titulo: titulo.trim(), cidade: cidade.trim() || undefined,
+      inicio: inicio || undefined, fim: fim || undefined, link: link.trim() || undefined,
+      hospedagem: hospedagem.trim(), passagens: passagens.trim(), notas: notas.trim(),
+    });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar viagem' : 'Nova viagem'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Nome</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: FLIP 2026" style={inputStyle} />
+        <label style={labelStyle}>Cidade</label>
+        <input value={cidade} onChange={e => setCidade(e.target.value)} placeholder="ex.: Paraty" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Início</label><input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Fim</label><input type="date" value={fim} onChange={e => setFim(e.target.value)} style={inputStyle} /></div>
+        </div>
+        <label style={labelStyle}>Site / link (opcional)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
+        <label style={labelStyle}>Hospedagem</label>
+        <textarea value={hospedagem} onChange={e => setHospedagem(e.target.value)} rows={2} placeholder="onde vai ficar, endereço, check-in…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <label style={labelStyle}>Passagens</label>
+        <textarea value={passagens} onChange={e => setPassagens(e.target.value)} rows={2} placeholder="ida e volta, horários, assento…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <label style={labelStyle}>Notas (opcional)</label>
+        <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2} placeholder="qualquer outra coisa…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteViagemFutura(editing.id); onClose(); onDeleted && onDeleted(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MesaLinkForm({ trip, mesa, onClose }) {
+  const life = useLife();
+  const [link, setLink] = useState(mesa.link || '');
+  const salvar = () => {
+    life.saveViagemFutura({ ...trip, mesas: (trip.mesas || []).map(m => m.id === mesa.id ? { ...m, link: link.trim() } : m) });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: '#111', margin: 0 }}>Link da mesa</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <div style={{ fontSize: 13, color: '#555', fontStyle: 'italic', marginBottom: 4 }}>{mesa.hora} · {mesa.titulo}</div>
+        {mesa.autores && <div style={{ fontSize: 12, color: '#999', marginBottom: 6 }}>{mesa.autores}</div>}
+        <label style={labelStyle}>Link da mesa (cole quando sair no site)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://flip.org.br/…" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <button onClick={salvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: '#111', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -2529,6 +2776,7 @@ export default function LifePage({ isWide }) {
   if (sec === 'financas') return <FinancasSection onBack={() => setSec(null)} />;
   if (sec === 'saude') return <SaudeSection onBack={() => setSec(null)} />;
   if (sec === 'aprendizados') return <AprendizadosSection onBack={() => setSec(null)} />;
+  if (sec === 'viagens') return <ViagensSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
