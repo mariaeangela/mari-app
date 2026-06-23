@@ -704,29 +704,30 @@ function ensureViagens(d) {
 }
 
 // Viagem futura FLIP 2026 (alimenta o Modo Viagem + o card em Life > Viagens).
-// Mesas (21): os títulos são versos da Orides Fontela, a autora homenageada. [dia, hora, n, titulo, autores].
+// Mesas (21): títulos = versos da Orides Fontela (homenageada). [dia, hora, n, titulo, autores, link].
+// Links oficiais por mesa (flip.org.br/evento/...), conferidos no site da 24ª Flip.
 const FLIP_MESAS = [
-  ['2026-07-22', '19h30', 1, '"entra furtivamente a luz"', 'Augusto Massi, Marília Garcia'],
-  ['2026-07-23', '10h', 2, '"saber de cor o silêncio"', 'Edimilson de Almeida Pereira, José Tolentino de Mendonça'],
-  ['2026-07-23', '12h', 3, '"não vim. não vi. não havia guerra alguma"', 'Andrei Kurkov, Maria Reva'],
-  ['2026-07-23', '15h', 4, '"mas para que serve o pássaro? o pássaro não serve"', 'Andréa del Fuego, Paulliny Tort'],
-  ['2026-07-23', '17h', 5, '"A infância volta devagarinho"', 'Andrea Bajani, Maria Esther Maciel'],
-  ['2026-07-23', '19h', 6, '"falo do que impede o sono"', 'Djaimilia Pereira de Almeida, Kamel Daoud'],
-  ['2026-07-23', '21h', 7, '"Do livro ao palco: Dalton, que tinha um cachorro"', 'Denise Stoklos'],
-  ['2026-07-24', '10h', 8, '"água parada água parada água parando"', 'Carmen Stephan, Drauzio Varella'],
-  ['2026-07-24', '12h', 9, '"a severa arquitetura serenamente prende-nos"', 'José Godoy, Solano Benítez'],
-  ['2026-07-24', '13h30', 10, '"estado de sítio, estado de sido, estase"', 'Carmen Lúcia'],
-  ['2026-07-24', '15h', 11, '"Como revelar-te se me revelas?"', 'Flávia Péret, Julieta Correa'],
-  ['2026-07-24', '17h', 12, '"e perdura. Apesar"', 'Bethânia Pires Amaro, Nathacha Appanah'],
-  ['2026-07-24', '19h', 13, '"o tecido: não sabemos qual a trama"', 'Katie Kitamura, Marta Pérez-Carbonell'],
-  ['2026-07-25', '10h', 14, '"a saída é a volta"', 'Eduardo Halfon, Paloma Vidal'],
-  ['2026-07-25', '12h', 15, '"se o delírio te eleva à potência do abismo"', 'João Cezar de Castro Rocha, Paulo Schiller'],
-  ['2026-07-25', '15h', 16, '"o boi é só. o boi é só. o boi"', 'Ana Paula Tavares'],
-  ['2026-07-25', '17h', 17, '"não mais sabemos do barco, mas há sempre um náufrago"', 'Hisham Matar, Milton Hatoum'],
-  ['2026-07-25', '19h', 18, '"e este chão não existe, e esta paz é vertigem"', 'Zadie Smith'],
-  ['2026-07-26', '10h', 19, '"a porta está aberta"', 'Ernesto Mané, Ève Guerra'],
-  ['2026-07-26', '12h', 20, '"nunca crer no que não canta"', 'Leonardo Gandolfi, Mateus Baldi'],
-  ['2026-07-26', '15h30', 21, '"o que faço desfaço, o que amo desamo"', 'Eva Baltasar, Susy Freitas'],
+  ['2026-07-22', '19h30', 1, '"entra furtivamente a luz"', 'Augusto Massi, Marília Garcia', 'https://flip.org.br/evento/mesa-1-entra-furtivamente-a-luz/'],
+  ['2026-07-23', '10h', 2, '"saber de cor o silêncio"', 'Edimilson de Almeida Pereira, José Tolentino de Mendonça', 'https://flip.org.br/evento/mesa-2-saber-de-cor-o-silencio/'],
+  ['2026-07-23', '12h', 3, '"não vim. não vi. não havia guerra alguma"', 'Andrei Kurkov, Maria Reva', 'https://flip.org.br/evento/mesa-3-nao-vim-nao-vi-nao-havia-guerra-alguma/'],
+  ['2026-07-23', '15h', 4, '"mas para que serve o pássaro? o pássaro não serve"', 'Andréa del Fuego, Paulliny Tort', 'https://flip.org.br/evento/mesa-4-mas-para-que-serve-o-passaro-o-passaro-nao-serve/'],
+  ['2026-07-23', '17h', 5, '"A infância volta devagarinho"', 'Andrea Bajani, Maria Esther Maciel', 'https://flip.org.br/evento/mesa-5-a-infancia-volta-devagarinho/'],
+  ['2026-07-23', '19h', 6, '"falo do que impede o sono"', 'Djaimilia Pereira de Almeida, Kamel Daoud', 'https://flip.org.br/evento/mesa-6-falo-do-que-impede-o-sono/'],
+  ['2026-07-23', '21h', 7, '"Do livro ao palco: Dalton, que tinha um cachorro"', 'Denise Stoklos', 'https://flip.org.br/evento/mesa-7-do-livro-ao-palco-dalton-que-tinha-um-cachorro/'],
+  ['2026-07-24', '10h', 8, '"água parada água parada água parando"', 'Carmen Stephan, Drauzio Varella', 'https://flip.org.br/evento/mesa-8-agua-parada-agua-parada-agua-parando/'],
+  ['2026-07-24', '12h', 9, '"a severa arquitetura serenamente prende-nos"', 'José Godoy, Solano Benítez', 'https://flip.org.br/evento/mesa-9-mesa-ze-kleber-a-severa-arquitetura-serenamente-prende-nos/'],
+  ['2026-07-24', '13h30', 10, '"estado de sítio, estado de sido, estase"', 'Carmen Lúcia', 'https://flip.org.br/evento/mesa-10-estado-de-sitio-estado-de-sido-estase/'],
+  ['2026-07-24', '15h', 11, '"Como revelar-te se me revelas?"', 'Flávia Péret, Julieta Correa', 'https://flip.org.br/evento/mesa-11-como-revelar-te-se-me-revelas/'],
+  ['2026-07-24', '17h', 12, '"e perdura. Apesar"', 'Bethânia Pires Amaro, Nathacha Appanah', 'https://flip.org.br/evento/mesa-12-e-perdura-apesar/'],
+  ['2026-07-24', '19h', 13, '"o tecido: não sabemos qual a trama"', 'Katie Kitamura, Marta Pérez-Carbonell', 'https://flip.org.br/evento/mesa-13-o-tecido-nao-sabemos-qual-a-trama/'],
+  ['2026-07-25', '10h', 14, '"a saída é a volta"', 'Eduardo Halfon, Paloma Vidal', 'https://flip.org.br/evento/mesa-14-a-saida-e-a-volta/'],
+  ['2026-07-25', '12h', 15, '"se o delírio te eleva à potência do abismo"', 'João Cezar de Castro Rocha, Paulo Schiller', 'https://flip.org.br/evento/mesa-15-se-o-delirio-te-eleva-a-potencia-do-abismo/'],
+  ['2026-07-25', '15h', 16, '"o boi é só. o boi é só. o boi"', 'Ana Paula Tavares', 'https://flip.org.br/evento/mesa-16-o-boi-e-so-o-boi-e-so-o-boi/'],
+  ['2026-07-25', '17h', 17, '"não mais sabemos do barco, mas há sempre um náufrago"', 'Hisham Matar, Milton Hatoum', 'https://flip.org.br/evento/mesa-17-nao-mais-sabemos-do-barco-mas-ha-sempre-um-naufrago/'],
+  ['2026-07-25', '19h', 18, '"e este chão não existe, e esta paz é vertigem"', 'Zadie Smith', 'https://flip.org.br/evento/mesa-18-e-este-chao-nao-existe-e-esta-paz-e-vertigem/'],
+  ['2026-07-26', '10h', 19, '"a porta está aberta"', 'Ernesto Mané, Ève Guerra', 'https://flip.org.br/evento/mesa-19-a-porta-esta-aberta/'],
+  ['2026-07-26', '12h', 20, '"nunca crer no que não canta"', 'Leonardo Gandolfi, Mateus Baldi', 'https://flip.org.br/evento/mesa-20-nunca-crer-no-que-nao-canta/'],
+  ['2026-07-26', '15h30', 21, '"o que faço desfaço, o que amo desamo"', 'Eva Baltasar, Susy Freitas', 'https://flip.org.br/evento/mesa-21-o-que-faco-desfaco-o-que-amo-desamo/'],
 ];
 const FLIP_HOMENAGEADA = {
   nome: 'Orides Fontela',
@@ -743,10 +744,19 @@ function ensureFlip2026(d) {
     link: 'https://flip.org.br/ed/24a-flip/',
     hospedagem: '', passagens: '', notas: '',
     homenageada: FLIP_HOMENAGEADA,
-    mesas: FLIP_MESAS.map(([dia, hora, n, titulo, autores]) => ({ id: 'flipm-' + n, n, dia, hora, titulo, autores, link: '' })),
+    mesas: FLIP_MESAS.map(([dia, hora, n, titulo, autores, link]) => ({ id: 'flipm-' + n, n, dia, hora, titulo, autores, link: link || '' })),
     checklist: [],
   };
   return { ...d, flip2026Seeded: true, viagensFuturas: [...(d.viagensFuturas || []), viagem] };
+}
+// Patch único: preenche o link oficial de cada mesa da FLIP já semeada, SEM sobrescrever
+// um link que a Mari tenha colado à mão (só age em mesa com link vazio). Flag nova.
+function ensureFlipMesaLinks(d) {
+  if (d.flipMesaLinks1) return d;
+  const links = Object.fromEntries(FLIP_MESAS.map(([, , n, , , link]) => ['flipm-' + n, link]));
+  const viagens = (d.viagensFuturas || []).map(v => v.id !== 'vf-flip2026' ? v
+    : { ...v, mesas: (v.mesas || []).map(m => (!m.link && links[m.id]) ? { ...m, link: links[m.id] } : m) });
+  return { ...d, flipMesaLinks1: true, viagensFuturas: viagens };
 }
 
 // Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
@@ -805,7 +815,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

@@ -234,7 +234,9 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   (textareas no `ViagemForm`), Autora homenageada, **Programação** (mesas agrupadas por dia; tocar numa mesa
   abre `MesaLinkForm` p/ colar o link dela), e checklist "O que levar / comprar" (inline). Seed **FLIP 2026**
   (`ensureFlip2026`/flag `flip2026Seeded`, id `vf-flip2026`): 22–26/jul/2026, Paraty, 21 mesas (títulos =
-  versos da Orides Fontela, a homenageada), datas/autores embutidos. Encadeado em `runLifeSeeds`.
+  versos da Orides Fontela, a homenageada), datas/autores/**link oficial por mesa** (flip.org.br/evento/…)
+  embutidos. Patch `ensureFlipMesaLinks` (flag `flipMesaLinks1`) preenche o link nas mesas já semeadas SEM
+  sobrescrever link colado à mão (só age em mesa com link vazio). Ambos encadeados em `runLifeSeeds`.
 
 ## Modo Viagem (`src/cidadeFatos.js` + Login/App)
 Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e
