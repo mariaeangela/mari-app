@@ -157,11 +157,15 @@ O slice `cultural` segue no `lifeStore`, mas sua UI — `CulturalSection` ("Cale
 exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile próprio), não na Life.
 Dentro da `CulturalSection` há um botão **"↻ Eventos recorrentes"** (estado `verRec`) que abre a sub-view
 `RecorrentesView`/`RecorrenteForm`: opções que se repetem, pra consultar quando estiver em dúvida do que
-fazer. Slice próprio `recorrentes:[{id,nome,cidade?,local?,quando?,preco?,link?,nota?}]` no `lifeStore`
-(CRUD `saveRecorrente`/`deleteRecorrente`; ids `r-*`). `quando` é texto livre ("todo domingo", "1ª sexta
-do mês"). **SEM tipo/categoria** (a Mari não quis chips/select/badge) e **sem subtítulo** — só cadastrar a
-opção. Único filtro = cidade (some quando há 1 só); sem seed. ATENÇÃO Regras de Hooks: o `if (verRec)
-return …` fica DEPOIS de todos os `useState` da `CulturalSection`.
+fazer. Slice próprio `recorrentes:[{id,nome,freq,dias?,hora?,cidade?,local?,preco?,link?,nota?}]` no
+`lifeStore` (CRUD `saveRecorrente`/`deleteRecorrente`; ids `r-*`). O "quando" é **estruturado**:
+`freq` ∈ `REC_FREQS` (Semanal/Mensal/Outro, chips no form), `dias` = índices 0–6 (caixinhas Dom–Sáb,
+mesmo padrão do funcionamento da `CulturalForm`) e `hora` (input time). A **Nota** é onde se explica
+(sobretudo no "Outro", ex.: "1ª sexta do mês"). `fmtRecQuando(it)` monta a linha exibida
+("Semanal · seg, ter, sáb · 08h30"); `recDiasLabel` formata os dias; tolera o campo legado `quando`
+(texto livre) como fallback. **SEM tipo/categoria** (a Mari não quis chips/select/badge) e **sem
+subtítulo** — só cadastrar a opção. Único filtro = cidade (some quando há 1 só); sem seed. ATENÇÃO Regras
+de Hooks: o `if (verRec) return …` fica DEPOIS de todos os `useState` da `CulturalSection`.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;

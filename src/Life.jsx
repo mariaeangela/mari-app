@@ -612,6 +612,26 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
 }
 
 // ---- Eventos recorrentes (opções que se repetem) ----
+const REC_FREQS = [
+  { id: 'semanal', label: 'Semanal' }, { id: 'mensal', label: 'Mensal' }, { id: 'outro', label: 'Outro' },
+];
+const recDiasLabel = (dias = []) => {
+  if (!dias.length) return '';
+  const set = [...dias].sort((a, b) => a - b);
+  if (set.length === 7) return 'todo dia';
+  return set.map(x => DIAS_ABREV[x]).join(', ');
+};
+// Monta o "quando" exibido a partir de frequência + dias + horário (+ fallback ao texto legado).
+function fmtRecQuando(it) {
+  const parts = [];
+  if (it.freq) parts.push(REC_FREQS.find(f => f.id === it.freq)?.label || it.freq);
+  const dias = recDiasLabel(it.dias);
+  if (dias) parts.push(dias);
+  if (it.hora) parts.push(fmtHora(it.hora));
+  if (!parts.length && it.quando) return it.quando;
+  return parts.join(' · ');
+}
+
 function RecorrentesView({ onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);
@@ -649,7 +669,7 @@ function RecorrentesView({ onBack }) {
       {itens.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhuma opção salva ainda. Toque no + para guardar algo que acontece sempre (uma feira, um cineclube, um rolê de domingo…).</p>
       ) : itens.map(it => {
-        const meta = [it.local, it.quando, it.preco].filter(Boolean).join(' · ');
+        const meta = [fmtRecQuando(it), it.local, it.preco].filter(Boolean).join(' · ');
         return (
           <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -670,19 +690,23 @@ function RecorrentesView({ onBack }) {
 function RecorrenteForm({ editing, onClose }) {
   const life = useLife();
   const [nome, setNome] = useState(editing?.nome || '');
+  const [freq, setFreq] = useState(editing?.freq || 'semanal');
+  const [dias, setDias] = useState(editing?.dias || []);
+  const [hora, setHora] = useState(editing?.hora || '');
   const [cidade, setCidade] = useState(editing?.cidade || '');
   const [local, setLocal] = useState(editing?.local || '');
-  const [quando, setQuando] = useState(editing?.quando || '');
   const [preco, setPreco] = useState(editing?.preco || '');
   const [link, setLink] = useState(editing?.link || '');
   const [nota, setNota] = useState(editing?.nota || '');
+  const toggleDia = (i) => setDias(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i]);
   const podeSalvar = nome.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
     life.saveRecorrente({
       id: editing?.id, nome: nome.trim(),
+      freq, dias: dias.length ? [...dias].sort((a, b) => a - b) : undefined, hora: hora || undefined,
       cidade: cidade.trim() || undefined, local: local.trim() || undefined,
-      quando: quando.trim() || undefined, preco: preco.trim() || undefined,
+      preco: preco.trim() || undefined,
       link: link.trim() || undefined, nota: nota.trim() || undefined,
     });
     onClose();
@@ -696,8 +720,34 @@ function RecorrenteForm({ editing, onClose }) {
         </div>
         <label style={labelStyle}>O quê</label>
         <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Feira da Benedito Calixto" style={inputStyle} />
-        <label style={labelStyle}>Quando / frequência (opcional)</label>
-        <input value={quando} onChange={e => setQuando(e.target.value)} placeholder="ex.: todo domingo · 1ª sexta do mês · no verão" style={inputStyle} />
+        <label style={labelStyle}>Frequência</label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {REC_FREQS.map(f => {
+            const on = freq === f.id;
+            return (
+              <button key={f.id} onClick={() => setFreq(f.id)} style={{
+                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                border: '1.5px solid ' + (on ? COR_CULTURAL : '#e2e2e2'),
+                background: on ? COR_CULTURAL + '22' : '#fff', color: on ? '#6a2350' : '#999',
+              }}>{f.label}</button>
+            );
+          })}
+        </div>
+        <label style={labelStyle}>Dias da semana (opcional)</label>
+        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+          {DIAS_SEM.map((d, i) => {
+            const on = dias.includes(i);
+            return (
+              <button key={i} onClick={() => toggleDia(i)} style={{
+                padding: '7px 11px', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+                border: '1.5px solid ' + (on ? COR_CULTURAL : '#e2e2e2'),
+                background: on ? COR_CULTURAL + '22' : '#fff', color: on ? '#6a2350' : '#999',
+              }}>{d}</button>
+            );
+          })}
+        </div>
+        <label style={labelStyle}>Horário (opcional)</label>
+        <input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} />
         <label style={labelStyle}>Cidade (opcional)</label>
         <input value={cidade} onChange={e => setCidade(e.target.value)} placeholder="ex.: São Paulo" style={inputStyle} />
         <label style={labelStyle}>Local (opcional)</label>
@@ -707,7 +757,7 @@ function RecorrenteForm({ editing, onClose }) {
         <label style={labelStyle}>Link (opcional)</label>
         <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
         <label style={labelStyle}>Nota (opcional)</label>
-        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="por que vale, do que se trata…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="explique a frequência (ex.: 1ª sexta do mês) ou anote detalhes…" style={{ ...inputStyle, resize: 'vertical' }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteRecorrente(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
