@@ -541,6 +541,8 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
   const [form, setForm] = useState(null);
   const [cidadeSel, setCidadeSel] = useState('todas');
   const [tipoSel, setTipoSel] = useState('todos');
+  const [verRec, setVerRec] = useState(false);
+  if (verRec) return <RecorrentesView onBack={() => setVerRec(false)} />;
   const cidades = [...new Set(life.cultural.itens.map(i => i.cidade).filter(Boolean))].sort();
   const itens = life.cultural.itens
     .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel))
@@ -563,6 +565,17 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
         </div>
         <button onClick={() => setForm({})} title="adicionar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
+
+      {/* atalho para os eventos recorrentes (o que fazer quando bate a dúvida) */}
+      <button onClick={() => setVerRec(true)} style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16,
+        background: COR_CULTURAL + '12', border: '1px solid ' + COR_CULTURAL + '40', borderRadius: 10,
+        padding: '11px 13px', cursor: 'pointer', color: '#6a2350', fontSize: 13.5, fontWeight: 700,
+      }}>
+        <span style={{ fontSize: 16 }}>↻</span>
+        <span style={{ flex: 1, textAlign: 'left' }}>Eventos recorrentes</span>
+        <span style={{ fontSize: 12, color: COR_CULTURAL }}>opções pra quando bate a dúvida ›</span>
+      </button>
 
       {/* filtros */}
       {cidades.length > 0 && (
@@ -594,6 +607,132 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
       })}
 
       {form && <CulturalForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+// ---- Eventos recorrentes (opções de "o que fazer" que se repetem) ----
+const REC_TIPOS = [
+  { id: 'feira', label: 'Feira' }, { id: 'exposicao', label: 'Exposição' },
+  { id: 'cinema', label: 'Cinema' }, { id: 'musica', label: 'Música' },
+  { id: 'gastronomia', label: 'Gastronomia' }, { id: 'passeio', label: 'Passeio' },
+  { id: 'evento', label: 'Evento' },
+];
+const recTipoLabel = (id) => REC_TIPOS.find(t => t.id === id)?.label || 'Evento';
+
+function RecorrentesView({ onBack }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const [cidadeSel, setCidadeSel] = useState('todas');
+  const [tipoSel, setTipoSel] = useState('todos');
+  const cidades = [...new Set(life.recorrentes.map(i => i.cidade).filter(Boolean))].sort();
+  const itens = life.recorrentes
+    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel))
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+
+  const chip = (ativo, label, onClick) => (
+    <button key={label} onClick={onClick} style={{
+      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+      border: '1px solid ' + (ativo ? COR_CULTURAL : '#e2e2e2'), background: ativo ? COR_CULTURAL + '1c' : '#fff', color: ativo ? '#6a2350' : '#888',
+    }}>{label}</button>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Calendário cultural</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_CULTURAL, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Eventos recorrentes</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>opções que se repetem, pra quando bater a dúvida do que fazer</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {cidades.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+          {chip(cidadeSel === 'todas', 'Todas as cidades', () => setCidadeSel('todas'))}
+          {cidades.map(c => chip(cidadeSel === c, c, () => setCidadeSel(c)))}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+        {chip(tipoSel === 'todos', 'Todos', () => setTipoSel('todos'))}
+        {REC_TIPOS.map(t => chip(tipoSel === t.id, t.label, () => setTipoSel(t.id)))}
+      </div>
+
+      {itens.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhuma opção salva ainda. Toque no + para guardar algo que acontece sempre (uma feira, um cineclube, um rolê de domingo…).</p>
+      ) : itens.map(it => {
+        const meta = [it.local, it.quando, it.preco].filter(Boolean).join(' · ');
+        return (
+          <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
+              {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+              <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{recTipoLabel(it.tipo)}</span>
+            </div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
+            {it.nota && <div style={{ fontSize: 12, color: '#777', marginTop: 4 }}>{it.nota}</div>}
+          </div>
+        );
+      })}
+
+      {form && <RecorrenteForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function RecorrenteForm({ editing, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(editing?.nome || '');
+  const [tipo, setTipo] = useState(editing?.tipo || 'feira');
+  const [cidade, setCidade] = useState(editing?.cidade || '');
+  const [local, setLocal] = useState(editing?.local || '');
+  const [quando, setQuando] = useState(editing?.quando || '');
+  const [preco, setPreco] = useState(editing?.preco || '');
+  const [link, setLink] = useState(editing?.link || '');
+  const [nota, setNota] = useState(editing?.nota || '');
+  const podeSalvar = nome.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveRecorrente({
+      id: editing?.id, nome: nome.trim(), tipo,
+      cidade: cidade.trim() || undefined, local: local.trim() || undefined,
+      quando: quando.trim() || undefined, preco: preco.trim() || undefined,
+      link: link.trim() || undefined, nota: nota.trim() || undefined,
+    });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova opção recorrente'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>O quê</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Feira da Benedito Calixto" style={inputStyle} />
+        <label style={labelStyle}>Tipo</label>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          {REC_TIPOS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <label style={labelStyle}>Quando / frequência (opcional)</label>
+        <input value={quando} onChange={e => setQuando(e.target.value)} placeholder="ex.: todo domingo · 1ª sexta do mês · no verão" style={inputStyle} />
+        <label style={labelStyle}>Cidade (opcional)</label>
+        <input value={cidade} onChange={e => setCidade(e.target.value)} placeholder="ex.: São Paulo" style={inputStyle} />
+        <label style={labelStyle}>Local (opcional)</label>
+        <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: Praça Benedito Calixto" style={inputStyle} />
+        <label style={labelStyle}>Preço (opcional)</label>
+        <input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: grátis · R$ 20" style={inputStyle} />
+        <label style={labelStyle}>Link (opcional)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
+        <label style={labelStyle}>Nota (opcional)</label>
+        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="por que vale, do que se trata…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteRecorrente(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
     </div>
   );
 }

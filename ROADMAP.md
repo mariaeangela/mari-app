@@ -31,8 +31,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - Quase tudo pronto. Recebe o **Álbum da semana** e o **Modo Viagem** (ver Estruturais).
 
 ## 🧭 Explorar
-- Calendário cultural e **Conteúdos para assistir** já vivem aqui. A reforma dos cards é estrutural —
-  sem pendência só desta página.
+- Calendário cultural e **Conteúdos para assistir** já vivem aqui. ✅ O Calendário cultural tem o botão
+  **"↻ Eventos recorrentes"** (opções que se repetem, pra quando bate a dúvida do que fazer). A reforma
+  dos cards é estrutural — sem pendência só desta página.
 
 ## 🗓️ Calendário
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".

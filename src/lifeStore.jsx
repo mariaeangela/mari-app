@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], gastosItens: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], gastosItens: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -868,6 +868,15 @@ export function LifeProvider({ children }) {
     : { ...cultural, itens: [...cultural.itens, { ...it, id: uid('e') }] });
   const deleteCulturalItem = (id) => setCultural({ ...cultural, itens: cultural.itens.filter(x => x.id !== id) });
 
+  // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
+  // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
+  const recorrentes = data.recorrentes || DEFAULT.recorrentes;
+  const setRecorrentes = (next) => persist({ ...data, recorrentes: next });
+  const saveRecorrente = (it) => setRecorrentes(it.id && recorrentes.some(x => x.id === it.id)
+    ? recorrentes.map(x => x.id === it.id ? it : x)
+    : [...recorrentes, { ...it, id: uid('r') }]);
+  const deleteRecorrente = (id) => setRecorrentes(recorrentes.filter(x => x.id !== id));
+
   // ---- Vida financeira (carteira de investimentos: 1 snapshot por mês) ----
   // snapshot = { id, mes: 'YYYY-MM', holdings: [{ id, nome, categoria, valor }] } (valores em R$)
   const financas = data.financas || DEFAULT.financas;
@@ -984,6 +993,7 @@ export function LifeProvider({ children }) {
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista, moveComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, movePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
+    recorrentes, saveRecorrente, deleteRecorrente,
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,

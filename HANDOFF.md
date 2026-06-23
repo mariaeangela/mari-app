@@ -155,6 +155,13 @@ itens reais checáveis. As 3 notas `tipo:'compras'` do tópico Maquiagem (Aprend
 **filtrados por grupo** (`ComprasMirror` aceita `grupo`): editar/adicionar de um lado reflete no outro.
 O slice `cultural` segue no `lifeStore`, mas sua UI — `CulturalSection` ("Calendário cultural",
 exportada de `Life.jsx`) — agora é renderizada na aba **Explorar** (tile próprio), não na Life.
+Dentro da `CulturalSection` há um botão **"↻ Eventos recorrentes"** (estado `verRec`) que abre a sub-view
+`RecorrentesView`/`RecorrenteForm`: opções de "o que fazer" que se repetem (pra quando bate a dúvida).
+Slice próprio `recorrentes:[{id,nome,tipo,cidade?,local?,quando?,preco?,link?,nota?}]` no `lifeStore`
+(CRUD `saveRecorrente`/`deleteRecorrente`; ids `r-*`). `quando` é texto livre ("todo domingo", "1ª sexta
+do mês"); `REC_TIPOS` = Feira/Exposição/Cinema/Música/Gastronomia/Passeio/Evento. Filtros por cidade e
+tipo (mesmo padrão da `CulturalSection`), sem seed. ATENÇÃO Regras de Hooks: o `if (verRec) return …`
+fica DEPOIS de todos os `useState` da `CulturalSection`.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
