@@ -627,7 +627,6 @@ function fmtRecQuando(it) {
   if (it.freq) parts.push(REC_FREQS.find(f => f.id === it.freq)?.label || it.freq);
   const dias = recDiasLabel(it.dias);
   if (dias) parts.push(dias);
-  if (it.hora) parts.push(fmtHora(it.hora));
   if (!parts.length && it.quando) return it.quando;
   return parts.join(' · ');
 }
@@ -681,7 +680,7 @@ function RecorrentesView({ onBack }) {
         return (
           <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
+              <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.hora && <span style={{ color: COR_CULTURAL }}>{it.hora} - </span>}{it.nome}</span>
               {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
             </div>
             <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
