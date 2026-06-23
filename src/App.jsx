@@ -6,7 +6,7 @@ import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
-import { LifeProvider, useLife, simboloMoeda } from './lifeStore.jsx';
+import { LifeProvider, useLife } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
@@ -146,7 +146,8 @@ function SeuDia() {
   );
 }
 
-// Antecipação: contagem regressiva (viagem), próxima prova (corrida) e compra com prazo.
+// Antecipação: contagem regressiva (viagem), próxima prova (corrida) e eventos culturais
+// que "vencem" (dataMax) nos próximos 30 dias (última chance de ver).
 function Antecipacao() {
   const cal = useCalendar();
   const life = useLife();
@@ -161,20 +162,24 @@ function Antecipacao() {
 
   const proxEvento = nearest(cal.data.events.filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
   const proxProva = nearest(cal.data.exercicios.filter(x => x.subtipo === 'corrida_prova'), x => x.data);
-  const proxCompra = nearest((life.compras.itens || []).filter(i => !i.comprado), i => i.dataLimite);
+  // culturais acabando em até 30 dias (mais próximos do fim primeiro)
+  const culturais = (life.cultural?.itens || [])
+    .filter(c => c.dataMax && c.dataMax >= tk && dias(c.dataMax) <= 30)
+    .sort((a, b) => a.dataMax.localeCompare(b.dataMax))
+    .slice(0, 5);
 
-  const linha = (cor, label, dd) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}>
+  const linha = (key, cor, label, dd) => (
+    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: cor, flexShrink: 0 }} />
-      {label} · <b style={{ color: '#333' }}>{dd === 1 ? '1 dia' : dd + ' dias'}</b>
+      {label} · <b style={{ color: '#333' }}>{dd === 0 ? 'acaba hoje' : dd === 1 ? 'acaba amanhã' : 'acaba em ' + dd + ' dias'}</b>
     </div>
   );
-  if (!proxEvento && !proxProva && !proxCompra) return null;
+  if (!proxEvento && !proxProva && culturais.length === 0) return null;
   return (
     <div style={{ marginBottom: 22 }}>
-      {proxEvento && linha(CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', proxEvento.it.titulo, proxEvento.dias)}
-      {proxProva && linha(EXERCICIO_BY_ID.corrida_prova.cor, 'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : ''), proxProva.dias)}
-      {proxCompra && linha('#ff8a3d', 'comprar: ' + proxCompra.it.titulo + (proxCompra.it.orcamento ? ' · ' + simboloMoeda(proxCompra.it.moeda) + ' ' + proxCompra.it.orcamento : ''), proxCompra.dias)}
+      {proxEvento && <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', flexShrink: 0 }} />{proxEvento.it.titulo} · <b style={{ color: '#333' }}>{proxEvento.dias === 1 ? '1 dia' : proxEvento.dias + ' dias'}</b></div>}
+      {proxProva && <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: EXERCICIO_BY_ID.corrida_prova.cor, flexShrink: 0 }} />{'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : '')} · <b style={{ color: '#333' }}>{proxProva.dias === 1 ? '1 dia' : proxProva.dias + ' dias'}</b></div>}
+      {culturais.map(c => linha(c.id, '#c2548f', c.nome, dias(c.dataMax)))}
     </div>
   );
 }
