@@ -162,24 +162,31 @@ function Antecipacao() {
 
   const proxEvento = nearest(cal.data.events.filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
   const proxProva = nearest(cal.data.exercicios.filter(x => x.subtipo === 'corrida_prova'), x => x.data);
+  // compras com prazo nos próximos 7 dias (mais urgentes primeiro)
+  const comprasPrazo = (life.compras?.itens || [])
+    .filter(i => !i.comprado && i.dataLimite && i.dataLimite >= tk && dias(i.dataLimite) <= 7)
+    .sort((a, b) => a.dataLimite.localeCompare(b.dataLimite))
+    .slice(0, 5);
   // culturais acabando em até 30 dias (mais próximos do fim primeiro)
   const culturais = (life.cultural?.itens || [])
     .filter(c => c.dataMax && c.dataMax >= tk && dias(c.dataMax) <= 30)
     .sort((a, b) => a.dataMax.localeCompare(b.dataMax))
     .slice(0, 5);
 
-  const linha = (key, cor, label, dd) => (
+  const fmtPrazo = (dd) => dd === 0 ? 'hoje' : dd === 1 ? 'amanhã' : 'em ' + dd + ' dias';
+  const linha = (key, cor, label, bold) => (
     <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: cor, flexShrink: 0 }} />
-      {label} · <b style={{ color: '#333' }}>{dd === 0 ? 'acaba hoje' : dd === 1 ? 'acaba amanhã' : 'acaba em ' + dd + ' dias'}</b>
+      {label} · <b style={{ color: '#333' }}>{bold}</b>
     </div>
   );
-  if (!proxEvento && !proxProva && culturais.length === 0) return null;
+  if (!proxEvento && !proxProva && comprasPrazo.length === 0 && culturais.length === 0) return null;
   return (
     <div style={{ marginBottom: 22 }}>
-      {proxEvento && <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', flexShrink: 0 }} />{proxEvento.it.titulo} · <b style={{ color: '#333' }}>{proxEvento.dias === 1 ? '1 dia' : proxEvento.dias + ' dias'}</b></div>}
-      {proxProva && <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#666', marginBottom: 6 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: EXERCICIO_BY_ID.corrida_prova.cor, flexShrink: 0 }} />{'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : '')} · <b style={{ color: '#333' }}>{proxProva.dias === 1 ? '1 dia' : proxProva.dias + ' dias'}</b></div>}
-      {culturais.map(c => linha(c.id, '#c2548f', c.nome, dias(c.dataMax)))}
+      {proxEvento && linha('ev', CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', proxEvento.it.titulo, proxEvento.dias === 1 ? '1 dia' : proxEvento.dias + ' dias')}
+      {proxProva && linha('prova', EXERCICIO_BY_ID.corrida_prova.cor, 'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : ''), proxProva.dias === 1 ? '1 dia' : proxProva.dias + ' dias')}
+      {comprasPrazo.map(i => linha(i.id, '#ff8a3d', 'comprar: ' + i.titulo, fmtPrazo(dias(i.dataLimite))))}
+      {culturais.map(c => linha(c.id, '#c2548f', c.nome, 'acaba ' + fmtPrazo(dias(c.dataMax))))}
     </div>
   );
 }

@@ -13,8 +13,9 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   "diagonal" no Header também vai pra Hoje. A agenda "hoje" da capa (`HojeAgenda`)
   reaproveita `itemsForDay`; clicar no título de um item abre o `AddSheet` (exportado
   de Calendario.jsx) para editar direto na Hoje, sem ir ao Calendário. O bloco `Antecipacao`
-  (capa) mostra contagem regressiva: viagem/aniversário, próxima prova de corrida e **eventos
-  culturais que acabam (dataMax) nos próximos 30 dias** — NÃO mostra mais compras com prazo.
+  (capa) mostra contagem regressiva: viagem/aniversário, próxima prova de corrida, **compras com
+  `dataLimite` nos próximos 7 dias** (label "comprar: …") e, por último, **eventos culturais que acabam
+  (dataMax) nos próximos 30 dias** ("acaba em N dias"). Compras vêm antes das últimas chances culturais.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
