@@ -636,9 +636,11 @@ function RecorrentesView({ onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const [cidadeSel, setCidadeSel] = useState('todas');
+  const [diaSel, setDiaSel] = useState(null);
   const cidades = [...new Set(life.recorrentes.map(i => i.cidade).filter(Boolean))].sort();
+  const temDias = life.recorrentes.some(i => (i.dias || []).length);
   const itens = life.recorrentes
-    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel))
+    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (diaSel === null || (i.dias || []).includes(diaSel)))
     .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
 
   const chip = (ativo, label, onClick) => (
@@ -660,9 +662,15 @@ function RecorrentesView({ onBack }) {
       </div>
 
       {cidades.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: temDias ? 8 : 16 }}>
           {chip(cidadeSel === 'todas', 'Todas as cidades', () => setCidadeSel('todas'))}
           {cidades.map(c => chip(cidadeSel === c, c, () => setCidadeSel(c)))}
+        </div>
+      )}
+      {temDias && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+          {chip(diaSel === null, 'Todos os dias', () => setDiaSel(null))}
+          {DIAS_SEM.map((d, i) => chip(diaSel === i, d, () => setDiaSel(i)))}
         </div>
       )}
 

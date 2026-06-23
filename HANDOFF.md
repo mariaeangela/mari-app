@@ -164,8 +164,9 @@ mesmo padrão do funcionamento da `CulturalForm`) e `hora` (input time). A **Not
 (sobretudo no "Outro", ex.: "1ª sexta do mês"). `fmtRecQuando(it)` monta a linha exibida
 ("Semanal · seg, ter, sáb · 08h30"); `recDiasLabel` formata os dias; tolera o campo legado `quando`
 (texto livre) como fallback. **SEM tipo/categoria** (a Mari não quis chips/select/badge) e **sem
-subtítulo** — só cadastrar a opção. Único filtro = cidade (some quando há 1 só); sem seed. ATENÇÃO Regras
-de Hooks: o `if (verRec) return …` fica DEPOIS de todos os `useState` da `CulturalSection`.
+subtítulo** — só cadastrar a opção. Filtros: **cidade** (só aparece com 1+ cidade) e **dia da semana**
+(chips Dom–Sáb, só aparece quando algum item tem `dias`; `diaSel` ∈ 0–6 ou `null`); sem seed. ATENÇÃO
+Regras de Hooks: o `if (verRec) return …` fica DEPOIS de todos os `useState` da `CulturalSection`.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
