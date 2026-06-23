@@ -141,6 +141,8 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
 1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
 **Compras**: itens têm campo opcional **`grupo`** (sublista) — `ComprasSection` renderiza agrupado
 (sem-grupo primeiro, depois cada grupo c/ header); `ComprasForm` tem campo "Sublista / grupo" (datalist).
+Dentro de cada grupo, itens ordenados por **data limite** (`porData`: mais próxima primeiro, sem data
+por último, comprados no fim).
 Listas semeadas idempotentes (flags): **Maquiagem** (`ensureMaquiagem`) e **NY26** (`ensureNY26` —
 acha a lista pelo nome, USD, ~45 itens em 7 grupos com teto no nome do grupo). A lista **Maquiagem**
 tem 3 grupos (`ensureMaquiagemGrupos`): **Compras decididas / Experimentar BR / Comprar fora** — todos

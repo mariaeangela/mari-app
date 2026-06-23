@@ -160,11 +160,15 @@ function ComprasSection({ onBack }) {
   const [gerenciar, setGerenciar] = useState(false);
 
   const itensLista = life.compras.itens.filter(i => i.listaId === listaSel);
-  const porComprado = (a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1);
-  const semGrupo = itensLista.filter(i => !i.grupo).sort(porComprado);
+  // ordena por data limite (mais próxima primeiro; sem data por último); já comprados ficam no fim.
+  const porData = (a, b) => {
+    if (!!a.comprado !== !!b.comprado) return a.comprado ? 1 : -1;
+    return (a.dataLimite || '9999-99-99').localeCompare(b.dataLimite || '9999-99-99');
+  };
+  const semGrupo = itensLista.filter(i => !i.grupo).sort(porData);
   const gruposOrdem = [];
   itensLista.forEach(i => { if (i.grupo && !gruposOrdem.includes(i.grupo)) gruposOrdem.push(i.grupo); });
-  const grupos = gruposOrdem.map(g => ({ nome: g, itens: itensLista.filter(i => i.grupo === g).sort(porComprado) }));
+  const grupos = gruposOrdem.map(g => ({ nome: g, itens: itensLista.filter(i => i.grupo === g).sort(porData) }));
   const itemRow = (it) => {
     const meta = [it.orcamento ? simboloMoeda(it.moeda) + ' ' + it.orcamento : null, it.pais || null, it.dataLimite ? fmtData(it.dataLimite) : null].filter(Boolean).join(' · ');
     return (
