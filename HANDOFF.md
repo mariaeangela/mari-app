@@ -131,8 +131,6 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   diário, mais recente primeiro). Tudo dentro da aba Humor (não polui o Mês).
 - Bilhete para o futuro: `bilhetes{}` (chave = dia). Escreve-se no DayModal de um
   dia FUTURO; no dia marcado aparece um aviso no topo do calendário (toque p/ ler).
-- IDEIA pendente (não feita): "era/música do mês" — legenda pequena sob o nome do
-  mês, guardada por mês (como humor/diário). Aguardando decisão da usuária.
 - Leva 2 (parcial): a **retrospectiva de exercícios** (treinos/tipo, km, total no ano) já
   existe na **Saúde** (puxa `cal.data.exercicios`). FALTA o card **Retrospectivas** juntar o
   resto (livros lidos, filmes, nº museu por mês/ano), o **"quem você viu"** somado (campo
