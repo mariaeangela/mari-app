@@ -16,7 +16,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario } from './cloud';
 
 const KEY = 'diagonal_calendario';
-const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [] };
+const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {} };
 const CalContext = createContext(null);
 
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -212,10 +212,16 @@ export function CalendarProvider({ children }) {
     patch({ bilhetes });
   };
 
+  // ---- Metas do mês (chave 'YYYY-MM' → [{id, texto, feito}]) ----
+  const addMeta = (mesKey, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: [...(data.metas?.[mesKey] || []), { id: uid('m'), texto: t, feito: false }] } }); };
+  const toggleMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, feito: !m.feito } : m) } });
+  const deleteMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).filter(m => m.id !== id) } });
+
   const value = {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
+    addMeta, toggleMeta, deleteMeta,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

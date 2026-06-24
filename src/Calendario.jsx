@@ -62,7 +62,9 @@ function taskOccursOn(t, date) {
 const ehRotina = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino' || x.subtipo === 'corrida_treino';
 const ehCorrida = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida';
 
-export function itemsForDay(data, date) {
+export const PLANO_COR = '#6b7a99';
+// `planos` (opcional, = life.planos) injeta itens do checklist de Planos com `prazo` neste dia.
+export function itemsForDay(data, date, planos) {
   const key = ymd(date);
   const events = data.events.filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo, _dia: key }));
@@ -76,14 +78,20 @@ export function itemsForDay(data, date) {
   // (e volta para o calendário como 'lido' quando concluído).
   const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo')
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
-  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura].sort(dayOrderDoneLast);
-  return { events, exercicios, tasks, roles, cultura, all };
+  let planoItens = [];
+  if (planos) {
+    const nomeDe = (pid) => (planos.lista || []).find(p => p.id === pid)?.nome || 'Plano';
+    planoItens = (planos.itens || []).filter(i => i.prazo === key && !i.feito)
+      .map(i => ({ ...i, _tipo: 'plano', _cor: PLANO_COR, _titulo: i.texto, _planoNome: nomeDe(i.planoId), _dia: key }));
+  }
+  const all = [...events, ...exercicios, ...tasks, ...roles, ...cultura, ...planoItens].sort(dayOrderDoneLast);
+  return { events, exercicios, tasks, roles, cultura, planoItens, all };
 }
 
 // Itens do dia para as visões Mês/Agenda: exclui os treinos de grupo muscular
 // (que só aparecem na visão Exercício). Corrida e "outros" permanecem.
-export function itemsGeral(data, date) {
-  return itemsForDay(data, date).all.filter(it => !(it._tipo === 'exercicio' && ehRotina(it)));
+export function itemsGeral(data, date, planos) {
+  return itemsForDay(data, date, planos).all.filter(it => !(it._tipo === 'exercicio' && ehRotina(it)));
 }
 
 // ---------------- "Neste dia" (data + suas lembranças). O fato histórico
@@ -400,9 +408,10 @@ export function AddSheet({ initialDate, editing, onClose }) {
 // ---------------- Detalhe do dia ----------------
 function DayModal({ date, onClose, onAdd, onEdit }) {
   const cal = useCalendar();
+  const life = useLife();
   const key = ymd(date);
   const todayKey = ymd(hoje());
-  const { events, exercicios, tasks, roles, cultura } = itemsForDay(cal.data, date);
+  const { events, exercicios, tasks, roles, cultura, planoItens } = itemsForDay(cal.data, date, life.planos);
   const mood = cal.data.moods[key];
 
   const linha = (it, extra) => (
@@ -460,6 +469,19 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
             ))}
           </div>
         ))}
+
+        {planoItens.length > 0 && (
+          <div>
+            <label style={labelStyle}>Planos</label>
+            {planoItens.map(i => (
+              <div key={i.id} style={{ ...rowBtn, cursor: 'default' }}>
+                <span onClick={(e) => { e.stopPropagation(); life.togglePlanoCheck(i.id); }} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
+                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{i._titulo}</span>
+                <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700 }}>{i._planoNome}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <button onClick={() => onAdd(key)} style={dashedBtn}>+ adicionar neste dia</button>
       </div>
@@ -623,13 +645,14 @@ function DiarioList({ refDate, setRefDate, data, onDayClick }) {
 // ---------------- Visão Agenda (Próximos / Passado) ----------------
 function AgendaView({ onEdit }) {
   const cal = useCalendar();
+  const life = useLife();
   const [modo, setModo] = useState('proximos');
   const start = hoje();
   const dias = [];
   if (modo === 'proximos') {
-    for (let i = 0; i < 90; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const all = itemsGeral(cal.data, d); if (all.length) dias.push({ d, all }); }
+    for (let i = 0; i < 90; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const all = itemsGeral(cal.data, d, life.planos); if (all.length) dias.push({ d, all }); }
   } else {
-    for (let i = 1; i <= 180; i++) { const d = new Date(start); d.setDate(start.getDate() - i); const all = itemsGeral(cal.data, d); if (all.length) dias.push({ d, all }); }
+    for (let i = 1; i <= 180; i++) { const d = new Date(start); d.setDate(start.getDate() - i); const all = itemsGeral(cal.data, d, life.planos); if (all.length) dias.push({ d, all }); }
   }
   return (
     <div>
@@ -645,7 +668,13 @@ function AgendaView({ onEdit }) {
         : dias.map(({ d, all }) => (
           <div key={ymd(d)} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 12, color: '#888', fontWeight: 700, marginBottom: 6 }}>{DIAS_SEMANA[d.getDay()]}, {d.getDate()} {MESES[d.getMonth()].slice(0, 3)}</div>
-            {all.map(it => it._tipo === 'tarefa' ? (
+            {all.map(it => it._tipo === 'plano' ? (
+              <div key={it.id} style={rowBtn}>
+                <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
+                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it._titulo}</span>
+                <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700 }}>{it._planoNome}</span>
+              </div>
+            ) : it._tipo === 'tarefa' ? (
               <div key={it.id} style={rowBtn}>
                 <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
                 <span onClick={() => onEdit(it)} style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1 }}>{it._titulo}</span>
@@ -697,6 +726,31 @@ function ExSummary({ data }) {
       <span><b style={{ color: '#5b8def' }}>{nT}</b> treino{nT === 1 ? '' : 's'}</span>
       <span><b style={{ color: EXERCICIO_BY_ID.corrida.cor }}>{nC}</b> corrida{nC === 1 ? '' : 's'}</span>
       <span><b style={{ color: '#8d99ae' }}>{nO}</b> outro{nO === 1 ? '' : 's'}</span>
+    </div>
+  );
+}
+
+// ---------------- Metas do mês ----------------
+const META_COR = '#caa43a';
+function MetasMes({ mesKey, mesLabel }) {
+  const cal = useCalendar();
+  const [txt, setTxt] = useState('');
+  const metas = cal.data.metas?.[mesKey] || [];
+  const add = () => { cal.addMeta(mesKey, txt); setTxt(''); };
+  return (
+    <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+      <div style={{ fontSize: 11, color: META_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Metas de {mesLabel}</div>
+      {metas.map(m => (
+        <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span onClick={() => cal.toggleMeta(mesKey, m.id)} style={{ fontSize: 18, color: m.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{m.feito ? '☑' : '☐'}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: m.feito ? 'line-through' : 'none', opacity: m.feito ? 0.5 : 1 }}>{m.texto}</span>
+          <button onClick={() => cal.deleteMeta(mesKey, m.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <input value={txt} onChange={e => setTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`nova meta de ${mesLabel.toLowerCase()}…`} style={{ ...inputStyle, flex: 1 }} />
+        <button onClick={add} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+      </div>
     </div>
   );
 }
@@ -777,10 +831,11 @@ export default function Calendario({ isWide }) {
         <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal}
           getDots={view === 'exercicio'
             ? (d) => itemsForDay(cal.data, d).exercicios
-            : (d) => itemsGeral(cal.data, d)} />
+            : (d) => itemsGeral(cal.data, d, life.planos)} />
       )}
       {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
       {view === 'mes' && <Legenda items={LEGENDA} />}
+      {view === 'mes' && <MetasMes mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} />}
       {view === 'exercicio' && <Legenda items={EXERCICIO_LEGENDA} />}
 
       {/* Próximas corridas — só na visão Exercício */}

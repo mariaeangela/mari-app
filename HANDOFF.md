@@ -16,6 +16,10 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   (capa) mostra contagem regressiva: viagem/aniversário, próxima prova de corrida, **compras com
   `dataLimite` nos próximos 7 dias** (label "comprar: …") e, por último, **eventos culturais que acabam
   (dataMax) nos próximos 30 dias** ("acaba em N dias"). Compras vêm antes das últimas chances culturais.
+  A capa também tem `MetasHoje` (metas do mês corrente, slice `metas` do calendarStore — toque marca feito)
+  e `PlanosProximos` (itens do checklist de Planos com `prazo` nos **próximos 15 dias**, toque =
+  `togglePlanoCheck`). Ordem do `Feed`: Saudacao · NesteDiaFato · SeuDia · MetasHoje · Antecipacao ·
+  LendoAgora · PlanosProximos · HojeAgenda.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
@@ -109,7 +113,7 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   padrão útil quando precisa atualizar um seed que já rodou (a flag de seed sozinha faz early-return).
   Para semear mais conteúdo, criar outra `ensure*` e encadear em `runSeeds`.
   Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
-  savedRoles[].
+  savedRoles[], **metas{}** (chave 'YYYY-MM' → [{id,texto,feito}]; CRUDs `addMeta`/`toggleMeta`/`deleteMeta`).
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
   regressiva (só viagem/aniversário/corrida). `+` no topo abre AddSheet (tipos:
   Evento, Exercício, Tarefa, Rolê, Cultura — escolhe data no form). Visões: Mês
@@ -122,7 +126,11 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Na visão Mês há
   também "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
   mês"** — agrupado por plano: prazo do próprio plano + **itens do checklist com
-  `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`). Eventos:
+  `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`); e **"Metas de {mês}"**
+  (`MetasMes`, slice `metas` — add/✓/apagar por mês exibido). **`itemsForDay(data, date, planos?)`**
+  aceita um 3º arg opcional (`life.planos`): injeta itens do checklist com `prazo===dia` (não-feitos) como
+  `_tipo:'plano'` (cor `PLANO_COR`, `_planoNome`), entrando nos pontinhos do Mês, na Agenda e no DayModal
+  (bloco "Planos", ✓ = `togglePlanoCheck`). Eventos:
   intervalo, hora, repetir, "com quem". Tarefas têm ✓ (com ou sem data). Rolês:
   opções do dia c/ horário (sem ✓; editar usa updateRole p/ não duplicar).
   Exercício: treino/corrida c/ hora e distância (corrida). Cultura alimentará Projetos.
