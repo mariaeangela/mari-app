@@ -197,9 +197,10 @@ do slice `assistir` e o tipo "Livro" saiu de `ASSISTIR_TIPOS` (livros concentrad
 ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem datalist de país/gênero e temas
 por vírgula. **Páginas** (do print do Skoob ou média da internet) no card + **ordenação A–Z / ↑ páginas**
 (ajuda a escolher o que ler por tempo). **Toggle de 3 abas "Estante / Não tenho / Já lidos"** (estado `aba` ∈ estante/naotenho/lidos) no topo:
-campo **`tenho`** (bool, default true) separa os não-lidos em **Estante** (`!lido && tenho!==false`) e **Não
-tenho** (`!lido && tenho===false`, lista de "quero ler" que não possui); **Já lidos** = `lido`. Toggle
-"Onde está" (Estante/Não tenho) no form. Todas as abas com os MESMOS filtros, cards iguais, contagem reflete
+campo **`tenho`** (bool) e `lido` são INDEPENDENTES: **Estante** = `!lido && tenho!==false` (só não-lidos),
+**Não tenho** = `!lido && tenho===false`, **Já lidos** = `lido` (qualquer `tenho`). No form, "Situação"
+(Estante/Não tenho/**Já li**) define lido+tenho; quando = "Já li", aparece um check **"Tenho o livro"** que
+seta `tenho` independente da Estante (livro lido nunca cai na Estante). Card de lido sem posse mostra "não tenho". Todas as abas com os MESMOS filtros, cards iguais, contagem reflete
 o filtro. O ✓ do card marca lido (vai p/ Já lidos; ao desmarcar volta p/ estante ou não-tenho conforme `tenho`). Seed dos **lidos**: `LEITURAS_LIDOS_SEED` em `src/leiturasSeed.js`
 (~181 livros do Skoob, limpos: título/autor/país/idioma/ano/gênero/páginas/temas) → `ensureLeiturasLidos`
 (flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. Temas **consolidados** num

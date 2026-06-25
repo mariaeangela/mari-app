@@ -945,7 +945,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         <span onClick={() => life.toggleLeituraLido(l.id)} title={l.lido ? 'marcar como não lido' : 'marcar como lido'} style={{ fontSize: 18, color: l.lido ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>{l.lido ? '☑' : '☐'}</span>
         <div onClick={() => setForm({ editing: l })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{l.titulo}</div>
-          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero, l.paginas ? l.paginas + ' p.' : null, (l.lidoEm && l.lidoEm.length) ? 'lido em ' + l.lidoEm.join(', ') + (l.lidoEm.length > 1 ? ' (releitura)' : '') : null].filter(Boolean).join(' · ')}</div>
+          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero, l.paginas ? l.paginas + ' p.' : null, (l.lidoEm && l.lidoEm.length) ? 'lido em ' + l.lidoEm.join(', ') + (l.lidoEm.length > 1 ? ' (releitura)' : '') : null, (l.lido && l.tenho === false) ? 'não tenho' : null].filter(Boolean).join(' · ')}</div>
           {(l.temas || []).length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
               {l.temas.map(t => (
@@ -1058,6 +1058,7 @@ function LeituraForm({ editing, onClose }) {
   const [genero] = useState(editing?.genero || '');
   const [tipo, setTipo] = useState(editing?.tipo || 'ficção');
   const [status, setStatus] = useState(editing ? (editing.lido ? 'lido' : (editing.tenho === false ? 'naotenho' : 'estante')) : 'estante');
+  const [tenhoLido, setTenhoLido] = useState(editing && editing.lido ? editing.tenho !== false : true);
   const [lidoEm, setLidoEm] = useState((editing?.lidoEm || []).join(', '));
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
   const [nota, setNota] = useState(editing?.nota || '');
@@ -1069,7 +1070,7 @@ function LeituraForm({ editing, onClose }) {
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
       pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
       paginas: paginas ? Number(paginas.replace(/\D/g, '')) || undefined : undefined,
-      genero: genero.trim() || undefined, tipo, tenho: status !== 'naotenho', temas: temasArr, nota: nota.trim() || undefined,
+      genero: genero.trim() || undefined, tipo, tenho: status === 'lido' ? tenhoLido : status === 'estante', temas: temasArr, nota: nota.trim() || undefined,
       lidoEm: (() => { const a = [...new Set(lidoEm.split(/[,;\s]+/).map(s => parseInt(s, 10)).filter(n => n >= 1900 && n <= 2100))].sort((x, y) => x - y); return a.length ? a : undefined; })(),
       lido: status === 'lido',
     });
@@ -1123,6 +1124,12 @@ function LeituraForm({ editing, onClose }) {
             );
           })}
         </div>
+        {status === 'lido' && (
+          <div onClick={() => setTenhoLido(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer' }}>
+            <span style={{ fontSize: 18, color: tenhoLido ? '#54c08a' : '#ccc' }}>{tenhoLido ? '☑' : '☐'}</span>
+            <span style={{ fontSize: 13.5, color: '#444' }}>Tenho o livro</span>
+          </div>
+        )}
         <label style={labelStyle}>Ano(s) que li (opcional)</label>
         <input type="text" inputMode="numeric" value={lidoEm} onChange={e => setLidoEm(e.target.value)} placeholder="ex.: 2024 · ou 2019, 2023 se releu" style={inputStyle} />
         <label style={labelStyle}>Temas (separados por vírgula)</label>
