@@ -7,7 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
-import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED } from './leiturasSeed.js';
+import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -820,6 +820,17 @@ function ensureLeiturasCasa(d) {
     .filter(l => !have.has(l.id));
   return { ...d, leiturasCasaSeeded: true, leituras: [...(d.leituras || []), ...novos] };
 }
+// Livros que a Mari quer ler mas NÃO TEM (de "Conteúdos para assistir") → leituras com tenho:false.
+function ensureLeiturasNaoTenho(d) {
+  if (d.leiturasNaoTenhoSeeded) return d;
+  const have = new Set((d.leituras || []).map(l => l.id));
+  const novos = LEITURAS_NAOTENHO_SEED
+    .map(([titulo, autor, pais, idioma, ano, genero, paginas, temas, tipo], i) => ({
+      id: 'lv-nt-' + i, titulo, autor, pais, idioma, ano: ano || undefined, genero, paginas, temas, tipo, tenho: false, lido: false,
+    }))
+    .filter(l => !have.has(l.id));
+  return { ...d, leiturasNaoTenhoSeeded: true, leituras: [...(d.leituras || []), ...novos] };
+}
 // Patch único: classifica cada leitura em ficção / não ficção (onde ainda não tem `tipo`).
 function ensureLeiturasTipo(d) {
   if (d.leiturasTipo1) return d;
@@ -909,7 +920,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

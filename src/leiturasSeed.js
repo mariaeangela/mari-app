@@ -311,3 +311,32 @@ export const LEITURAS_CASA_SEED = [
   ['O livro do riso e do esquecimento', 'Milan Kundera', 'Tchéquia', 'Tcheco', 1979, 'Romance', 328, ['memória', 'política', 'identidade', 'humor'], 'ficção'],
   ['O velho e o mar', 'Ernest Hemingway', 'Estados Unidos', 'Inglês', 1952, 'Novela', 96, ['solidão', 'natureza', 'envelhecimento', 'sacrifício'], 'ficção'],
 ];
+
+// Livros que a Mari NÃO TEM mas quer ler (vindos de "Conteúdos para assistir" → aba Não tenho).
+// Mesmo formato do casa; o ensure marca tenho:false. (Excluído: "Carta de tarot" — não é livro; "Ember"
+// = As brasas, que ela já leu.)
+export const LEITURAS_NAOTENHO_SEED = [
+  ['Tecidos: história, tramas, tipos e usos', 'Dinah Bueno Pezzolo', 'Brasil', 'Português', 2007, 'Não ficção / Têxtil', 360, ['ciência', 'sociedade'], 'não ficção'],
+  ['Rápido e devagar', 'Daniel Kahneman', 'Israel', 'Inglês', 2011, 'Não ficção / Psicologia', 608, ['ciência', 'dinheiro', 'existência'], 'não ficção'],
+  ['O dia em que a Selma sonhou com o ocapi', 'Mariana Leky', 'Alemanha', 'Alemão', 2017, 'Romance', 320, ['amor', 'luto', 'memória', 'amizade'], 'ficção'],
+  ['Knulp', 'Hermann Hesse', 'Alemanha', 'Alemão', 1915, 'Novela', 120, ['solidão', 'liberdade', 'existência', 'amizade'], 'ficção'],
+  ['Os sussurros', 'Ashley Audrain', 'Canadá', 'Inglês', 2024, 'Romance', 352, ['maternidade', 'amizade', 'trauma', 'mistério'], 'ficção'],
+  ['No meu caminho — Malala', 'Malala Yousafzai', 'Paquistão', 'Inglês', 2012, 'Memória', 224, ['escola', 'feminismo', 'política', 'liberdade'], 'não ficção'],
+  ['Sobre os ossos dos mortos', 'Olga Tokarczuk', 'Polônia', 'Polonês', 2009, 'Romance', 320, ['natureza', 'crime', 'justiça', 'solidão'], 'ficção'],
+  ['No rastro dos deuses', 'Sándor Márai', 'Hungria', 'Húngaro', null, 'Romance', 240, ['memória', 'existência', 'solidão'], 'ficção'],
+  ['O legado de Esther', 'Sándor Márai', 'Hungria', 'Húngaro', 1939, 'Romance', 160, ['amor', 'memória', 'honra'], 'ficção'],
+  ['A conversa', 'Sándor Márai', 'Hungria', 'Húngaro', null, 'Romance', 160, ['memória', 'amizade', 'existência'], 'ficção'],
+  ['Jogo da amarelinha', 'Julio Cortázar', 'Argentina', 'Espanhol', 1963, 'Romance', 640, ['existência', 'amor', 'escrita', 'liberdade'], 'ficção'],
+  ['A casa dos espíritos', 'Isabel Allende', 'Chile', 'Espanhol', 1982, 'Romance', 480, ['família', 'política', 'amor', 'memória'], 'ficção'],
+  ['A porta', 'Magda Szabó', 'Hungria', 'Húngaro', 1987, 'Romance', 272, ['amizade', 'classe', 'mistério', 'memória'], 'ficção'],
+  ['Trem Noturno para Lisboa', 'Pascal Mercier', 'Suíça', 'Alemão', 2004, 'Romance', 480, ['existência', 'memória', 'identidade', 'solidão'], 'ficção'],
+  ['O Fim do Homem Soviético', 'Svetlana Aleksiévitch', 'Bielorrússia', 'Russo', 2013, 'Não ficção / História oral', 624, ['política', 'memória', 'sociedade', 'luto'], 'não ficção'],
+  ['A Bandeira Vermelha: A História do Comunismo', 'David Priestland', 'Reino Unido', 'Inglês', 2009, 'Não ficção / História', 720, ['política', 'revolução', 'sociedade'], 'não ficção'],
+  ['Era dos Extremos: O Breve Século XX', 'Eric Hobsbawm', 'Reino Unido', 'Inglês', 1994, 'Não ficção / História', 632, ['política', 'guerra', 'sociedade', 'revolução'], 'não ficção'],
+  ['The Power of the Powerless', 'Václav Havel', 'Tchéquia', 'Tcheco', 1978, 'Não ficção / Ensaio', 96, ['política', 'liberdade', 'sociedade'], 'não ficção'],
+  ['Limite de caracteres: como Elon Musk destruiu o Twitter', 'Kate Conger e Ryan Mac', 'Estados Unidos', 'Inglês', 2024, 'Não ficção / Jornalismo', 464, ['dinheiro', 'política', 'sociedade'], 'não ficção'],
+  ['Untrue', 'Wednesday Martin', 'Estados Unidos', 'Inglês', 2018, 'Não ficção', 320, ['sexualidade', 'feminismo', 'desejo', 'corpo'], 'não ficção'],
+  ['A capital da solidão', 'Roberto Pompeu de Toledo', 'Brasil', 'Português', 2003, 'Não ficção / História', 592, ['sociedade', 'memória', 'política'], 'não ficção'],
+  ['A capital da vertigem', 'Roberto Pompeu de Toledo', 'Brasil', 'Português', 2015, 'Não ficção / História', 688, ['sociedade', 'memória', 'política'], 'não ficção'],
+  ['Metrópole', 'Ben Wilson', 'Reino Unido', 'Inglês', 2020, 'Não ficção / História', 464, ['sociedade', 'memória', 'política'], 'não ficção'],
+];

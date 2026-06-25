@@ -196,9 +196,12 @@ leituras (não só o seed). Pra mudar o vocabulário no futuro: editar `TEMA_CAN
 `'não ficção'` | `'outros'`) — filtro próprio (Tudo/Ficção/Não ficção/Outros, 1ª linha) + toggle no form;
 patch `ensureLeiturasTipo` (flag `leiturasTipo1`) classifica ficção/não-ficção (lista `NAOFICCAO_TITULOS`
 → não ficção, resto → ficção) e `ensureLeiturasOutros` (flag `leiturasOutros1`) move **poesia/teatro/
-quadrinhos/contos** p/ `outros` pelo gênero (regex sobre `genero`; roda por último, sobrepõe ficção). **A ler** (livros de casa): `LEITURAS_CASA_SEED` + `ensureLeiturasCasa` (flag
-`leiturasCasaSeeded`, ids `lv-casa-N`, `lido:false`); 1º lote = 7 livros. Mais livros = estender o array
-(novos índices não duplicam) ou novo `ensureLeiturasCasa2`.
+quadrinhos/contos** p/ `outros` pelo gênero (regex sobre `genero`; roda por último, sobrepõe ficção). **Estante** (livros de casa): `LEITURAS_CASA_SEED` + `ensureLeiturasCasa` (flag
+`leiturasCasaSeeded`, ids `lv-casa-N`, `lido:false`, tenho default true); 1º lote = 7 livros. **Não tenho**
+(quero ler, vindos de "Conteúdos para assistir"): `LEITURAS_NAOTENHO_SEED` + `ensureLeiturasNaoTenho` (flag
+`leiturasNaoTenhoSeeded`, ids `lv-nt-N`, `tenho:false`); 23 livros (exclui "Carta de tarot" — não é livro —
+e "Ember" = As brasas, já lido). Os originais seguem em `assistir` (não removidos). Mais livros = estender
+o array ou novo `ensureLeituras*2`.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
