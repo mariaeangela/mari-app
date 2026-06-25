@@ -828,6 +828,14 @@ function ensureLeiturasTipo(d) {
   const leituras = d.leituras.map(l => l.tipo ? l : { ...l, tipo: naoFiccao.has(l.titulo) ? 'não ficção' : 'ficção' });
   return { ...d, leiturasTipo1: true, leituras };
 }
+// Patch único: poesia / teatro / quadrinhos / contos viram a categoria "outros" (pelo gênero).
+function ensureLeiturasOutros(d) {
+  if (d.leiturasOutros1) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasOutros1: true };
+  const ehOutro = (g) => /poesia|teatro|tragédia|quadrinhos|conto/i.test(g || '');
+  const leituras = d.leituras.map(l => ehOutro(l.genero) ? { ...l, tipo: 'outros' } : l);
+  return { ...d, leiturasOutros1: true, leituras };
+}
 // Patch único: consolida os temas das leituras p/ o vocabulário enxuto (TEMA_CANON),
 // funde sinônimos e descarta lugares; dedupe + teto de 5. Não mexe em outros campos.
 function ensureLeiturasTemasV2(d) {
@@ -901,7 +909,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

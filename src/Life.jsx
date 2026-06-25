@@ -981,10 +981,11 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       )}
 
       {todas.length > 0 && <>
-        <div style={{ display: 'flex', gap: 6, paddingBottom: 4, marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
           {chip(tipoSel === 'todos', 'Tudo', () => setTipoSel('todos'))}
           {chip(tipoSel === 'ficção', 'Ficção', () => setTipoSel('ficção'))}
           {chip(tipoSel === 'não ficção', 'Não ficção', () => setTipoSel('não ficção'))}
+          {chip(tipoSel === 'outros', 'Outros', () => setTipoSel('outros'))}
         </div>
         {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
         {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
@@ -1079,7 +1080,7 @@ function LeituraForm({ editing, onClose }) {
         <datalist id="leitura-generos">{opts('genero').map(g => <option key={g} value={g} />)}</datalist>
         <label style={labelStyle}>Categoria</label>
         <div style={{ display: 'flex', gap: 6 }}>
-          {['ficção', 'não ficção'].map(t => {
+          {['ficção', 'não ficção', 'outros'].map(t => {
             const on = tipo === t;
             return (
               <button key={t} onClick={() => setTipo(t)} style={{
