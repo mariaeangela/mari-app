@@ -317,6 +317,10 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   alimenta esta retrospectiva — o antigo botão "limpar comprados → histórico" (`arquivarComprados`) foi
   REMOVIDO da UI porque vazava itens da lista pra cá; marcar item como comprado só fica na própria lista.
   `arquivarComprados` segue no store, mas sem nenhum chamador.
+- **Leituras** (`LeiturasRetro`) — espelho da Música, mas pros livros. Lê `life.leituras` (lidos com
+  `lidoEm`): barras de **livros por ano** (clicáveis), seletor de ano (`AnoChips`), **N livros · páginas**
+  do ano, rankings de **países** (com bandeiras `LIVRO_FLAG`), **idiomas**, **gêneros** (`tipo`) e **temas**,
+  e a lista dos livros do ano (com "(releitura)" p/ 2+ anos). Card `pronto:true` no hub. `COR_LIVROS` roxo.
 - **Música** (`MusicaRetro`/`MusicaForm`): 1 registro por mês (`life.musica = [{id,mes,minutos,artista,
   musica}]`, CRUD `saveMusica`/`deleteMusica`; seed jan–mai/2026 dos prints do Spotify via
   `ensureMusica`/flag `musicaSeeded`). Mostra total de minutos do ano + **toggle Lista/Gráfico**: Lista =

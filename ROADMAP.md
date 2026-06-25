@@ -55,7 +55,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   **grupo de vinho** / métodos novos pela UI · 🟡 outras listas espelhando Compras.
 
 ## 📊 Retrospectiva
-*(prontos: ✅ ano em números · ✅ Gastos (grid por categoria; Coisas=compras itemizado; deep-link da VF) · ✅ Música · ✅ Corridas · ✅ Dias importantes · ✅ Viagens)*
+*(prontos: ✅ ano em números · ✅ Gastos (grid por categoria; Coisas=compras itemizado; deep-link da VF) · ✅ Música · ✅ Corridas · ✅ Dias importantes · ✅ Viagens · ✅ Leituras)*
+- ✅ **Leituras** — livros por ano (gráfico), páginas no ano, países/idiomas (lista c/ bandeiras), gênero/tema
+  mais lido. Usa o slice `leituras` (lido + `lidoEm`/`paginas`/`pais`/`idioma`/`tipo`/`temas`).
 - 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
 - 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
 - ✅ **Viagens** — timeline por ano + países com bandeiras + barras por ano (jovem→2026). Editável.
@@ -64,6 +66,32 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   evolução já estão prontos; falta só o desenho do trajeto.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
 - 🟢 (refino) opção **"por mês"** no ano em números, além do "por ano".
+
+---
+
+# IDEIAS (eventualmente) — brainstorm jun/2026
+
+**📚 Leituras** *(em cima da aba nova)*
+- ✅ **Retrospectiva de Leituras** (feita — ver acima).
+- 🟢 **Meta de leitura anual** — "X livros / X páginas em 2026", barra de progresso (puxa dos "lido em 2026").
+- 🟡 **"Me sugere um livro"** — sugere da Estante por tempo/humor/tema ("tá com 1h? esse tem 96 páginas").
+- 🟢 **Trechos favoritos** — guardar 1–2 frases marcantes por livro.
+
+**🎬 Novas coleções (mesmo molde da de livros)**
+- 🟡 **Filmes & séries vistos** — aba gêmea da de leituras: por ano · diretor · país · gênero, com nota e filtros.
+- 🟡 **Lugares** — restaurantes/cafés/cidades que foi e quer ir, por cidade (conversa com Eventos recorrentes).
+- 🟢 **Álbuns marcantes** — coleção de discos por ano/artista (complementa a Música do Spotify).
+
+**🪞 Pessoais / reflexivas**
+- 🔴 **"Seu ano em revisão" (Wrapped)** — tela linda no fim do ano juntando livros, viagens, corridas, música,
+  humor, gastos, dias importantes. Grand finale da Retrospectiva.
+- 🟢 **3 coisas boas do dia** — no Hoje, ao lado do diário/humor (gratidão).
+- 🟡 **"Neste mês, anos atrás"** — memórias do mesmo mês em anos passados (diário, livros, viagens).
+
+**🌍 Cruzando tudo**
+- 🔴 **Mapa-múndi pessoal** — mapa que se preenche com países visitados (viagens) + países dos autores lidos +
+  filmes. "O mundo que você percorreu lendo e viajando."
+- 🟡 **Humor + correlações** — padrões do humor ("fica melhor nos dias que corre ou lê").
 
 ---
 

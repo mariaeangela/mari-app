@@ -45,6 +45,7 @@ const CARDS = [
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
+  { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates e afins', cor: '#c2548f' },
@@ -57,6 +58,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
   if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
   if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -650,6 +652,95 @@ function MusicaRetro({ onBack, isWide }) {
       </>}
 
       {form && <MusicaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+// ---- Card: Leituras (livros por ano · páginas · países/idiomas · gênero/tema) ----
+const COR_LIVROS = '#7a5c9e';
+const LIVRO_FLAG = {
+  'Brasil': '🇧🇷', 'Estados Unidos': '🇺🇸', 'Reino Unido': '🇬🇧', 'Inglaterra': '🇬🇧', 'Irlanda': '🇮🇪',
+  'França': '🇫🇷', 'Itália': '🇮🇹', 'Espanha': '🇪🇸', 'Portugal': '🇵🇹', 'Alemanha': '🇩🇪', 'Rússia': '🇷🇺',
+  'Japão': '🇯🇵', 'Coreia do Sul': '🇰🇷', 'Hungria': '🇭🇺', 'Tchéquia': '🇨🇿', 'Polônia': '🇵🇱',
+  'Bielorrússia': '🇧🇾', 'Grécia': '🇬🇷', 'Suíça': '🇨🇭', 'Canadá': '🇨🇦', 'México': '🇲🇽', 'Argentina': '🇦🇷',
+  'Chile': '🇨🇱', 'Colômbia': '🇨🇴', 'Peru': '🇵🇪', 'Bolívia': '🇧🇴', 'Paquistão': '🇵🇰', 'Israel': '🇮🇱', 'Austrália': '🇦🇺',
+};
+function LeiturasRetro({ onBack, isWide }) {
+  const life = useLife();
+  const lidos = (life.leituras || []).filter(l => l.lido && l.lidoEm && l.lidoEm.length);
+  const { anos, anoSel, setAnoSel } = useAnoSel(lidos.flatMap(l => l.lidoEm.map(a => String(a))));
+  const doAno = lidos.filter(l => l.lidoEm.includes(Number(anoSel)));
+  const totalPaginas = doAno.reduce((s, l) => s + (Number(l.paginas) || 0), 0);
+  const fmtN = (n) => Number(n || 0).toLocaleString('pt-BR');
+  const porAno = {}; lidos.forEach(l => l.lidoEm.forEach(a => { porAno[a] = (porAno[a] || 0) + 1; }));
+  const anosCron = Object.keys(porAno).map(Number).sort((a, b) => a - b);
+  const maxAno = Math.max(1, ...Object.values(porAno));
+  const rank = (vals) => { const m = {}; vals.forEach(v => { if (v) m[v] = (m[v] || 0) + 1; }); return Object.entries(m).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n); };
+  const paises = rank(doAno.map(l => l.pais)), idiomas = rank(doAno.map(l => l.idioma)), generos = rank(doAno.map(l => l.tipo)), temas = rank(doAno.flatMap(l => l.temas || []));
+  const maxRank = Math.max(1, ...paises.map(x => x.n), ...temas.map(x => x.n), ...generos.map(x => x.n));
+
+  const ranking = (titulo, lista, fmtK = (k) => k, cap = false, limite = 6) => lista.length > 0 && (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{titulo}</div>
+      {lista.slice(0, limite).map(item => (
+        <div key={item.k} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: cap ? 'capitalize' : 'none' }}>{fmtK(item.k)}</div>
+            <div style={{ height: 6, background: COR_LIVROS + '22', borderRadius: 4, marginTop: 3 }}>
+              <div style={{ width: (item.n / maxRank * 100) + '%', height: '100%', background: COR_LIVROS, borderRadius: 4 }} />
+            </div>
+          </div>
+          <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{item.n}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_LIVROS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Leituras</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os livros que você leu, por ano</p>
+
+      {lidos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum livro com ano de leitura ainda. Marque "lido em ANO" nos livros (Explorar › Próximas leituras) que eles aparecem aqui.</p>
+      ) : <>
+        {anosCron.length > 1 && <>
+          <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>livros por ano</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, marginBottom: 18 }}>
+            {anosCron.map(a => {
+              const n = porAno[a], h = Math.max(3, Math.round((n / maxAno) * 100));
+              return (
+                <div key={a} onClick={() => setAnoSel(String(a))} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
+                  <div style={{ fontSize: 10, color: '#777', height: 13, fontWeight: 700 }}>{n}</div>
+                  <div style={{ width: '100%', maxWidth: 34, height: h, background: COR_LIVROS, borderRadius: '4px 4px 0 0', opacity: String(a) === anoSel ? 1 : 0.45 }} />
+                  <div style={{ fontSize: 9.5, color: '#aaa', marginTop: 4 }}>{a}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>}
+
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_LIVROS} />
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'livro' : 'livros'} em {anoSel} · {fmtN(totalPaginas)} páginas</span>
+        </div>
+
+        {ranking('países', paises, (k) => `${LIVRO_FLAG[k] || '📖'}  ${k}`)}
+        {ranking('idiomas', idiomas)}
+        {ranking('gêneros', generos, (k) => k, true)}
+        {ranking('temas', temas, (k) => k, true)}
+
+        <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, margin: '22px 0 8px' }}>os livros</div>
+        {doAno.slice().sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '')).map(l => (
+          <div key={l.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 13px', marginBottom: 6 }}>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{l.titulo}{(l.lidoEm || []).length > 1 ? <span style={{ fontSize: 11, color: COR_LIVROS, fontWeight: 700 }}>  (releitura)</span> : null}</div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>{[l.autor, l.pais, l.paginas ? l.paginas + ' p.' : null].filter(Boolean).join(' · ')}</div>
+          </div>
+        ))}
+      </>}
     </div>
   );
 }
