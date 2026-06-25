@@ -899,6 +899,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const [idiomaSel, setIdiomaSel] = useState('todos');
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
+  const [abreFiltro, setAbreFiltro] = useState(null);
   const [ordem, setOrdem] = useState('titulo');
   const [aba, setAba] = useState('estante');
 
@@ -979,16 +980,43 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         </div>
       )}
 
-      {todas.length > 0 && <>
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
-          {chip(tipoSel === 'todos', 'Tudo', () => setTipoSel('todos'))}
-          {LEITURA_CATS.map(([v, label]) => chip(tipoSel === v, label, () => setTipoSel(v)))}
-        </div>
-        {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
-        {filtroRow(idiomas, idiomaSel, setIdiomaSel, 'Todos os idiomas')}
-        {filtroRow(paises, paisSel, setPaisSel, 'Todos os países')}
-        {filtroRow(decadas, decadaSel, setDecadaSel, 'Todas as décadas', (d) => `déc. ${d}`)}
-      </>}
+      {todas.length > 0 && (() => {
+        const dims = [
+          { key: 'genero', label: 'Gênero', sel: tipoSel, set: setTipoSel, todos: 'todos', all: 'Todos os gêneros', opts: LEITURA_CATS },
+          { key: 'tema', label: 'Tema', sel: temaSel, set: setTemaSel, todos: 'todos', all: 'Todos os temas', opts: temas.map(t => [t, t]) },
+          { key: 'idioma', label: 'Idioma', sel: idiomaSel, set: setIdiomaSel, todos: 'todos', all: 'Todos os idiomas', opts: idiomas.map(i => [i, i]) },
+          { key: 'pais', label: 'País', sel: paisSel, set: setPaisSel, todos: 'todos', all: 'Todos os países', opts: paises.map(p => [p, p]) },
+          { key: 'decada', label: 'Década', sel: decadaSel, set: setDecadaSel, todos: 'todas', all: 'Todas as décadas', opts: decadas.map(d => [d, 'déc. ' + d]) },
+        ].filter(dim => dim.opts.length > 0);
+        const aberto = dims.find(dim => dim.key === abreFiltro);
+        const labelDe = (dim) => dim.sel === dim.todos ? dim.label : ((dim.opts.find(([v]) => v === dim.sel) || [, dim.sel])[1]);
+        const opcao = (label, on, onClick) => (
+          <div key={String(label)} onClick={onClick} style={{ padding: '10px 12px', borderRadius: 8, fontSize: 13.5, cursor: 'pointer', fontWeight: on ? 700 : 400, color: on ? '#4a3470' : '#333', background: on ? COR_LEITURA + '12' : 'transparent' }}>{label}{on ? '  ✓' : ''}</div>
+        );
+        return (
+          <div style={{ position: 'relative', marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', position: 'relative', zIndex: 13 }}>
+              {dims.map(dim => {
+                const ativo = dim.sel !== dim.todos;
+                return (
+                  <button key={dim.key} onClick={() => setAbreFiltro(abreFiltro === dim.key ? null : dim.key)} style={{
+                    padding: '7px 12px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+                    border: '1px solid ' + ((ativo || abreFiltro === dim.key) ? COR_LEITURA : '#e2e2e2'),
+                    background: ativo ? COR_LEITURA + '1c' : '#fff', color: ativo ? '#4a3470' : '#888',
+                  }}>{labelDe(dim)} {abreFiltro === dim.key ? '▴' : '▾'}</button>
+                );
+              })}
+            </div>
+            {aberto && <>
+              <div onClick={() => setAbreFiltro(null)} style={{ position: 'fixed', inset: 0, zIndex: 10 }} />
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, background: '#fff', border: '1px solid #e2e2e2', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', maxHeight: 320, overflowY: 'auto', zIndex: 12, padding: 6 }}>
+                {opcao(aberto.all, aberto.sel === aberto.todos, () => { aberto.set(aberto.todos); setAbreFiltro(null); })}
+                {aberto.opts.map(([v, label]) => opcao(label, aberto.sel === v, () => { aberto.set(v); setAbreFiltro(null); }))}
+              </div>
+            </>}
+          </div>
+        );
+      })()}
 
       {todas.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic', lineHeight: 1.6 }}>Nenhum livro ainda. Toque no + pra adicionar — ou me mande os nomes que eu preencho autor, país, ano, gênero e temas.</p>
