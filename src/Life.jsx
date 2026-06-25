@@ -898,6 +898,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const [generoSel, setGeneroSel] = useState('todos');
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
+  const [ordem, setOrdem] = useState('titulo');
   const [verLidos, setVerLidos] = useState(false);
 
   const todas = life.leituras || [];
@@ -913,9 +914,12 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
     && (generoSel === 'todos' || l.genero === generoSel)
     && (temaSel === 'todos' || (l.temas || []).includes(temaSel))
     && (decadaSel === 'todas' || decadaDe(l.ano) === decadaSel);
-  const filtradas = todas.filter(passa).sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
-  const proximas = filtradas.filter(l => !l.lido);
-  const lidos = filtradas.filter(l => l.lido);
+  const ordenar = (arr) => arr.slice().sort((a, b) => ordem === 'paginas'
+    ? ((a.paginas || 1e9) - (b.paginas || 1e9))
+    : (a.titulo || '').localeCompare(b.titulo || ''));
+  const filtradas = todas.filter(passa);
+  const proximas = ordenar(filtradas.filter(l => !l.lido));
+  const lidos = ordenar(filtradas.filter(l => l.lido));
 
   const chip = (ativo, label, onClick) => (
     <button key={label} onClick={onClick} style={{
@@ -936,7 +940,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         <span onClick={() => life.toggleLeituraLido(l.id)} title={l.lido ? 'marcar como não lido' : 'marcar como lido'} style={{ fontSize: 18, color: l.lido ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>{l.lido ? '☑' : '☐'}</span>
         <div onClick={() => setForm({ editing: l })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25, textDecoration: l.lido ? 'line-through' : 'none', opacity: l.lido ? 0.55 : 1 }}>{l.titulo}</div>
-          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero].filter(Boolean).join(' · ')}</div>
+          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero, l.paginas ? l.paginas + ' p.' : null].filter(Boolean).join(' · ')}</div>
           {(l.temas || []).length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
               {l.temas.map(t => (
@@ -973,6 +977,17 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       {todas.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic', lineHeight: 1.6 }}>Nenhum livro ainda. Toque no + pra adicionar — ou me mande os nomes que eu preencho autor, país, ano, gênero e temas.</p>
       ) : <>
+        {todas.some(l => l.paginas) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, marginBottom: 4 }}>
+            <span style={{ fontSize: 11, color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ordenar</span>
+            {[['titulo', 'A–Z'], ['paginas', '↑ páginas']].map(([id, label]) => (
+              <button key={id} onClick={() => setOrdem(id)} style={{
+                padding: '4px 10px', borderRadius: 14, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                border: '1px solid ' + (ordem === id ? COR_LEITURA : '#e2e2e2'), background: ordem === id ? COR_LEITURA + '1c' : '#fff', color: ordem === id ? '#4a3470' : '#999',
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
         <div style={{ marginTop: 4 }}>{proximas.map(card)}</div>
         {proximas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada nesse filtro (ou tudo já lido).</p>}
         {lidos.length > 0 && <>
@@ -993,6 +1008,7 @@ function LeituraForm({ editing, onClose }) {
   const [pais, setPais] = useState(editing?.pais || '');
   const [idioma, setIdioma] = useState(editing?.idioma || '');
   const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
+  const [paginas, setPaginas] = useState(editing?.paginas != null ? String(editing.paginas) : '');
   const [genero, setGenero] = useState(editing?.genero || '');
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
   const [nota, setNota] = useState(editing?.nota || '');
@@ -1003,6 +1019,7 @@ function LeituraForm({ editing, onClose }) {
     life.saveLeitura({
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
       pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
+      paginas: paginas ? Number(paginas.replace(/\D/g, '')) || undefined : undefined,
       genero: genero.trim() || undefined, temas: temasArr, nota: nota.trim() || undefined,
       lido: editing?.lido || false,
     });
@@ -1027,9 +1044,13 @@ function LeituraForm({ editing, onClose }) {
             <input list="leitura-paises" value={pais} onChange={e => setPais(e.target.value)} placeholder="ex.: Brasil" style={inputStyle} />
             <datalist id="leitura-paises">{opts('pais').map(p => <option key={p} value={p} />)}</datalist>
           </div>
-          <div style={{ width: 96 }}>
+          <div style={{ width: 84 }}>
             <label style={labelStyle}>Ano</label>
             <input type="text" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="1977" style={inputStyle} />
+          </div>
+          <div style={{ width: 84 }}>
+            <label style={labelStyle}>Páginas</label>
+            <input type="text" inputMode="numeric" value={paginas} onChange={e => setPaginas(e.target.value)} placeholder="240" style={inputStyle} />
           </div>
         </div>
         <label style={labelStyle}>Idioma (original)</label>
