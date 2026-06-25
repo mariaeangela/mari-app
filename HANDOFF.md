@@ -185,8 +185,11 @@ ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem 
 por vírgula. **Páginas** (do print do Skoob ou média da internet) no card + **ordenação A–Z / ↑ páginas**
 (ajuda a escolher o que ler por tempo). Seed dos **lidos**: `LEITURAS_LIDOS_SEED` em `src/leiturasSeed.js`
 (~181 livros do Skoob, limpos: título/autor/país/idioma/ano/gênero/páginas/temas) → `ensureLeiturasLidos`
-(flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. As **a ler** entram por outro
-`ensureLeituras*` quando a Mari mandar (páginas = média da internet).
+(flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. Temas **consolidados** num
+vocabulário de **58 canônicos** (`TEMA_CANON` em leiturasSeed.js) via patch `ensureLeiturasTemasV2` (flag
+`leiturasTemasV2`): funde sinônimos, descarta lugares (Paris/Nápoles/…), dedupe + teto 5; aplica a TODAS as
+leituras (não só o seed). Pra mudar o vocabulário no futuro: editar `TEMA_CANON` + nova flag. As **a ler**
+entram por outro `ensureLeituras*` quando a Mari mandar (páginas = média da internet).
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;

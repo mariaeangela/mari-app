@@ -7,7 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
-import { LEITURAS_LIDOS_SEED } from './leiturasSeed.js';
+import { LEITURAS_LIDOS_SEED, TEMA_CANON } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -809,6 +809,22 @@ function ensureLeiturasLidos(d) {
     .filter(l => !have.has(l.id));
   return { ...d, leiturasLidosSeeded: true, leituras: [...(d.leituras || []), ...novos] };
 }
+// Patch único: consolida os temas das leituras p/ o vocabulário enxuto (TEMA_CANON),
+// funde sinônimos e descarta lugares; dedupe + teto de 5. Não mexe em outros campos.
+function ensureLeiturasTemasV2(d) {
+  if (d.leiturasTemasV2) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasTemasV2: true };
+  const leituras = d.leituras.map(l => {
+    if (!l.temas || !l.temas.length) return l;
+    const norm = [];
+    for (const t of l.temas) {
+      const c = (t in TEMA_CANON) ? TEMA_CANON[t] : t;
+      if (c && !norm.includes(c)) norm.push(c);
+    }
+    return { ...l, temas: norm.slice(0, 5) };
+  });
+  return { ...d, leiturasTemasV2: true, leituras };
+}
 
 // Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
 // Os itens somam o total da categoria no mês (que vem da Vida Financeira). Semeado por lote/categoria.
@@ -866,7 +882,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasTemasV2, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

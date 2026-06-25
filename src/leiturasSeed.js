@@ -1,3 +1,111 @@
+// Consolidação de temas → vocabulário enxuto (~58 canônicos). Funde sinônimos e agrupa
+// os muito específicos; `null` = descartar (eram lugar/cenário, não tema). Tudo que não está
+// aqui é mantido como está (já é canônico). Aplicado por patch sem mexer nos livros.
+export const TEMA_CANON = {
+  // descartar (lugares/cenário)
+  'Paris': null, 'Nápoles': null, 'Bahia': null, 'Bolívia': null,
+  // humor
+  'sátira': 'humor', 'cotidiano': 'humor', 'crônica': 'humor', 'humor sombrio': 'humor',
+  'ironia': 'humor', 'confusão': 'humor', 'malandragem': 'humor',
+  // luto
+  'perda': 'luto', 'abandono': 'luto',
+  // justiça
+  'moralidade': 'justiça', 'consciência': 'justiça', 'lei': 'justiça', 'verdade': 'justiça',
+  // dinheiro
+  'consumo': 'dinheiro', 'dívida': 'dinheiro', 'educação financeira': 'dinheiro', 'trabalho': 'dinheiro',
+  // aventura
+  'coragem': 'aventura', 'busca': 'aventura', 'heroísmo': 'aventura',
+  // saúde mental
+  'alienação': 'saúde mental', 'loucura': 'saúde mental', 'depressão': 'saúde mental',
+  'insônia': 'saúde mental', 'rotina': 'saúde mental', 'drogas': 'saúde mental',
+  // juventude
+  'amadurecimento': 'juventude',
+  // magia
+  'imaginação': 'magia', 'poderes': 'magia', 'fantasmas': 'magia', 'contos de fada': 'magia',
+  'mitologia': 'magia', 'mito': 'magia', 'surreal': 'magia', 'vampiros': 'magia',
+  // existência
+  'sentido': 'existência', 'absurdo': 'existência', 'corrida': 'existência', 'disciplina': 'existência',
+  // destino
+  'acaso': 'destino', 'profecia': 'destino', 'astrologia': 'destino',
+  // recomeço
+  'adversidade': 'recomeço', 'fracasso': 'recomeço',
+  // amor
+  'amor proibido': 'amor', 'primeiro amor': 'amor', 'amor obsessivo': 'amor',
+  'idealização': 'amor', 'ilusão': 'amor', 'relacionamentos': 'amor',
+  // liberdade
+  'autonomia': 'liberdade', 'boemia': 'liberdade', 'controle': 'liberdade',
+  // identidade
+  'exílio': 'identidade', 'pertencimento': 'identidade', 'identidade caribenha': 'identidade', 'origem': 'identidade',
+  // saudade
+  'distância': 'saudade',
+  // feminismo
+  'feminilidade': 'feminismo', 'ambição feminina': 'feminismo', 'mulheres': 'feminismo',
+  // escrita
+  'linguagem': 'escrita', 'concisão': 'escrita', 'arte': 'escrita', 'música': 'escrita', 'poesia': 'escrita',
+  // mistério
+  'segredos': 'mistério', 'mentira': 'mistério', 'segredo': 'mistério', 'engano': 'mistério',
+  // política
+  'poder': 'política', 'capitalismo': 'política', 'colonização': 'política',
+  'opressão': 'política', 'resistência': 'política', 'indígena': 'política',
+  // sociedade
+  'antropologia': 'sociedade', 'civilização': 'sociedade', 'coletividade': 'sociedade',
+  'burocracia': 'sociedade', 'modernidade': 'sociedade', 'regras': 'sociedade',
+  // memória
+  'história': 'memória',
+  // ciência
+  'arquitetura': 'ciência', 'engenharia': 'ciência',
+  // sexualidade
+  'repressão': 'sexualidade',
+  // morte
+  'mortalidade': 'morte', 'doença': 'morte', 'ultrarromantismo': 'morte',
+  // classe
+  'marginalização': 'classe', 'analfabetismo': 'classe', 'elite': 'classe', 'status': 'classe', 'dignidade': 'classe',
+  // pobreza
+  'seca': 'pobreza',
+  // fé
+  'religião': 'fé', 'Deus': 'fé', 'milagre': 'fé',
+  // natureza
+  'ecologia': 'natureza', 'meio ambiente': 'natureza', 'mar': 'natureza',
+  // solidão
+  'vazio': 'solidão', 'melancolia': 'solidão', 'desencontro': 'solidão', 'desilusão': 'solidão', 'espera': 'solidão',
+  // maternidade
+  'dúvida': 'maternidade',
+  // ambição
+  'vaidade': 'ambição', 'fama': 'ambição',
+  // família
+  'pai': 'família', 'conselhos': 'família', 'orfandade': 'família',
+  // infância
+  'brincadeira': 'infância', 'inocência': 'infância',
+  // escola
+  'universidade': 'escola',
+  // envelhecimento
+  'velhice': 'envelhecimento',
+  // amizade
+  'lealdade': 'amizade', 'irmandade': 'amizade',
+  // honra
+  'traição': 'honra',
+  // medo
+  'perigo': 'medo',
+  // preconceito
+  'bullying': 'preconceito', 'diferença': 'preconceito',
+  // bondade
+  'empatia': 'bondade',
+  // transformação
+  'despertar': 'transformação',
+  // esperança
+  'sonhos': 'esperança', 'sonho': 'esperança', 'otimismo': 'esperança', 'gratidão': 'esperança', 'futuro': 'esperança',
+  // desejo
+  'desejos': 'desejo',
+  // guerra
+  'Holocausto': 'guerra',
+  // trauma
+  'abuso': 'trauma', 'violência': 'trauma',
+  // culpa
+  'culpa coletiva': 'culpa',
+  // escolha
+  'escolhas': 'escolha',
+};
+
 // Livros que a Mari JÁ LEU (importados do Skoob, limpos). Semeados como lido:true.
 // Formato: [titulo, autor, pais, idioma(original), ano(1ª pub|null), genero, paginas, [temas 3–5]].
 // País/idioma = origem do autor/obra; ano = 1ª publicação; páginas = do print do Skoob (ou média).
