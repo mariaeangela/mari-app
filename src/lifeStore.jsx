@@ -7,7 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
-import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES } from './leiturasSeed.js';
+import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -856,6 +856,16 @@ function ensureLeiturasCat(d) {
   };
   return { ...d, leiturasCat1: true, leituras: d.leituras.map(l => ({ ...l, tipo: catDe(l) })) };
 }
+// Patch: preenche o(s) ano(s) de leitura (`lidoEm`) por título (não sobrescreve se a Mari já editou).
+function ensureLeiturasAnos(d) {
+  if (d.leiturasAnos1) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasAnos1: true };
+  const leituras = d.leituras.map(l => {
+    const anos = LEITURAS_ANOS_SEED[l.titulo];
+    return (anos && !(l.lidoEm && l.lidoEm.length)) ? { ...l, lidoEm: anos } : l;
+  });
+  return { ...d, leiturasAnos1: true, leituras };
+}
 // Patch: idioma de leitura em 3 línguas (Português padrão; Espanhol/Inglês p/ os títulos no original).
 function ensureLeiturasIdioma3(d) {
   if (d.leiturasIdioma3) return d;
@@ -950,7 +960,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

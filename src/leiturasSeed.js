@@ -110,6 +110,21 @@ export const TEMA_CANON = {
 export const LEITURA_ESPANHOL = ['Travesuras de la niña mala', 'Crónica de una Muerte Anunciada', 'París puede esperar', 'Tú también naciste desnudito'];
 export const LEITURA_INGLES = ['Little Women', "King's Ransom", 'Beach Read', 'Pygmalion', 'Judy Moody Declares Independence!', 'The Power of the Powerless', 'Untrue'];
 
+// Ano(s) em que a Mari leu cada livro (do Skoob 2021–2025 + calendário 2026). Lista p/ suportar releitura.
+export const LEITURAS_ANOS_SEED = {
+  'A Luz que Há Entre Nós': [2021], 'París puede esperar': [2021], 'Do que eu falo quando eu falo de corrida': [2021],
+  'Sono': [2021], 'Conversas entre amigos': [2021], 'A Espera': [2021],
+  'Manual para Românticas Incorrigíveis': [2022], 'Os afetos': [2022], 'A Prometida': [2022],
+  'Pequena coreografia do adeus': [2023], 'Primeira pessoa do singular': [2023], 'Quem vai dormir com quem?': [2023],
+  'Primatas da Park Avenue': [2023], 'Noites Brancas': [2023], 'Beach Read': [2023],
+  'A mulher que escreveu a Bíblia': [2024], 'Meu ano de descanso e relaxamento': [2024], 'Ouça a canção do vento / Pinball, 1973': [2024],
+  'A palavra que resta': [2025], 'História de quem foge e de quem fica': [2025], 'História do novo sobrenome': [2025],
+  'A anatomia de um luto': [2025], 'A amiga genial': [2025], 'Oração para Desaparecer': [2025], 'O fuzil de caça': [2025],
+  'As intermitências da morte': [2025], 'A morte e a morte de Quincas Berro Dágua': [2025], 'O impulso': [2025],
+  'Sr. Loverman': [2025], 'A cabeça do santo': [2025],
+  'Travesuras de la niña mala': [2026], 'A insustentável leveza do ser': [2026], 'A vegetariana': [2026], 'Como arruinar um casamento': [2026],
+};
+
 // Livros que a Mari JÁ LEU (importados do Skoob, limpos). Semeados como lido:true.
 // Formato: [titulo, autor, pais, idioma(original), ano(1ª pub|null), genero, paginas, [temas 3–5]].
 // País/idioma = origem do autor/obra; ano = 1ª publicação; páginas = do print do Skoob (ou média).
