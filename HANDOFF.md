@@ -180,8 +180,10 @@ casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,idioma?,ano?,genero?,temas:
 `lifeStore` (CRUD `saveLeitura`/`deleteLeitura`/`toggleLeituraLido`; ids `lv-*`). **Tema em vez de sinopse**
 (sem spoiler), **3–5 temas por livro** (preferência da Mari). As tags de tema aparecem no card e são
 clicáveis (viram filtro). `idioma` = língua de leitura, **só 3** (Português/Espanhol/Inglês; patch `ensureLeiturasIdioma3` via
-`LEITURA_ESPANHOL`/`LEITURA_INGLES`, resto → Português; select no form). Filtros em **dropdown** (estado `abreFiltro`): uma barra de botões (Gênero ·
-Tema · Idioma · País · Década) que ABREM uma caixa de opções pra baixo (sem rolagem lateral); o botão mostra
+`LEITURA_ESPANHOL`/`LEITURA_INGLES`, resto → Português; select no form). Campo `anoLeitura` (ano em que a Mari leu) — input no form, mostrado no card ("lido em ANO") e filtro
+dropdown **"Ano da leitura"** (só aparece quando há dados). Falta semear os anos (a Mari vai mandar →
+patch `ensureLeiturasAnoLeitura` mapeando título→ano). Filtros em **dropdown** (estado `abreFiltro`): uma
+barra de botões (Gênero · Tema · Idioma · País · Década · Ano da leitura) que ABREM uma caixa de opções pra baixo (sem rolagem lateral); o botão mostra
 o valor selecionado; clicar numa opção filtra e fecha; overlay `position:fixed` fecha ao clicar fora. (O
 toggle Estante/Não tenho/Já lidos segue em botões.) O **gênero** é simplificado em 7 buckets no campo `tipo` — `LEITURA_CATS`:
 ficção/não ficção/poesia/teatro/contos e crônicas/quadrinhos/YA — derivado do gênero detalhado pelo patch
