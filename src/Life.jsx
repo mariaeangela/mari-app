@@ -900,7 +900,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
   const [ordem, setOrdem] = useState('titulo');
-  const [aba, setAba] = useState('proximas');
+  const [aba, setAba] = useState('estante');
 
   const todas = life.leituras || [];
   const uniq = (arr) => [...new Set(arr.filter(Boolean))];
@@ -920,7 +920,8 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
     ? ((a.paginas || 1e9) - (b.paginas || 1e9))
     : (a.titulo || '').localeCompare(b.titulo || ''));
   const filtradas = todas.filter(passa);
-  const proximas = ordenar(filtradas.filter(l => !l.lido));
+  const estante = ordenar(filtradas.filter(l => !l.lido && l.tenho !== false));
+  const naotenho = ordenar(filtradas.filter(l => !l.lido && l.tenho === false));
   const lidos = ordenar(filtradas.filter(l => l.lido));
 
   const chip = (ativo, label, onClick) => (
@@ -963,16 +964,16 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: COR_LEITURA, borderRadius: 4, marginBottom: 10 }} />
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Próximas leituras</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>seus livros em casa, por tema · país · ano · gênero</p>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>estante, lidos e quero ler — por tema · país · idioma · ano · gênero</p>
         </div>
         <button onClick={() => setForm({})} title="adicionar livro" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
       {todas.length > 0 && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-          {[['proximas', 'A ler', proximas.length], ['lidos', 'Já lidos', lidos.length]].map(([id, label, n]) => (
+          {[['estante', 'Estante', estante.length], ['naotenho', 'Não tenho', naotenho.length], ['lidos', 'Já lidos', lidos.length]].map(([id, label, n]) => (
             <button key={id} onClick={() => setAba(id)} style={{
-              flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              flex: 1, padding: '9px 2px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
               border: '1px solid ' + (aba === id ? COR_LEITURA : '#e2e2e2'),
               background: aba === id ? COR_LEITURA + '1c' : '#fff', color: aba === id ? '#4a3470' : '#999',
             }}>{label} ({n})</button>
@@ -1008,9 +1009,9 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
             ))}
           </div>
         )}
-        {(() => { const lista = aba === 'lidos' ? lidos : proximas; return <>
+        {(() => { const lista = aba === 'lidos' ? lidos : aba === 'naotenho' ? naotenho : estante; return <>
           <div style={{ marginTop: 4 }}>{lista.map(card)}</div>
-          {lista.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0', lineHeight: 1.6 }}>{aba === 'lidos' ? 'Nenhum livro lido nesse filtro.' : 'Nada para ler nesse filtro. Toque no + pra adicionar um livro de casa.'}</p>}
+          {lista.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0', lineHeight: 1.6 }}>{aba === 'lidos' ? 'Nenhum livro lido nesse filtro.' : aba === 'naotenho' ? 'Nada em "não tenho" nesse filtro.' : 'Sua estante está vazia nesse filtro. Toque no + pra adicionar.'}</p>}
         </>; })()}
       </>}
 
@@ -1029,6 +1030,7 @@ function LeituraForm({ editing, onClose }) {
   const [paginas, setPaginas] = useState(editing?.paginas != null ? String(editing.paginas) : '');
   const [genero, setGenero] = useState(editing?.genero || '');
   const [tipo, setTipo] = useState(editing?.tipo || 'ficção');
+  const [tenho, setTenho] = useState(editing ? editing.tenho !== false : true);
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
   const [nota, setNota] = useState(editing?.nota || '');
   const podeSalvar = titulo.trim().length > 0;
@@ -1039,7 +1041,7 @@ function LeituraForm({ editing, onClose }) {
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
       pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
       paginas: paginas ? Number(paginas.replace(/\D/g, '')) || undefined : undefined,
-      genero: genero.trim() || undefined, tipo, temas: temasArr, nota: nota.trim() || undefined,
+      genero: genero.trim() || undefined, tipo, tenho, temas: temasArr, nota: nota.trim() || undefined,
       lido: editing?.lido || false,
     });
     onClose();
@@ -1087,6 +1089,18 @@ function LeituraForm({ editing, onClose }) {
                 flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
                 border: '1.5px solid ' + (on ? COR_LEITURA : '#e2e2e2'), background: on ? COR_LEITURA + '22' : '#fff', color: on ? '#4a3470' : '#999',
               }}>{t}</button>
+            );
+          })}
+        </div>
+        <label style={labelStyle}>Onde está</label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[[true, 'Estante'], [false, 'Não tenho']].map(([v, label]) => {
+            const on = tenho === v;
+            return (
+              <button key={label} onClick={() => setTenho(v)} style={{
+                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                border: '1.5px solid ' + (on ? COR_LEITURA : '#e2e2e2'), background: on ? COR_LEITURA + '22' : '#fff', color: on ? '#4a3470' : '#999',
+              }}>{label}</button>
             );
           })}
         </div>
