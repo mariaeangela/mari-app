@@ -182,7 +182,11 @@ casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,idioma?,ano?,genero?,temas:
 clicáveis (viram filtro). `idioma` (original) é campo SEPARADO de `pais`. Filtros por **tema · gênero ·
 idioma · país · década** (chips `filtroRow`, cada um só aparece com 2+ valores; década = `decadaDe(ano)`). Cards
 ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem datalist de país/gênero e temas
-por vírgula. Sem seed ainda — a lista de livros da Mari será semeada por `ensureLeituras*` quando ela mandar.
+por vírgula. **Páginas** (do print do Skoob ou média da internet) no card + **ordenação A–Z / ↑ páginas**
+(ajuda a escolher o que ler por tempo). Seed dos **lidos**: `LEITURAS_LIDOS_SEED` em `src/leiturasSeed.js`
+(~181 livros do Skoob, limpos: título/autor/país/idioma/ano/gênero/páginas/temas) → `ensureLeiturasLidos`
+(flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. As **a ler** entram por outro
+`ensureLeituras*` quando a Mari mandar (páginas = média da internet).
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;

@@ -7,6 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
+import { LEITURAS_LIDOS_SEED } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -796,6 +797,19 @@ function ensureFlipDetalhes(d) {
   return { ...d, flipDetalhes1: true, viagensFuturas: viagens };
 }
 
+// Livros já lidos (importados do Skoob) → slice `leituras` com lido:true. Idempotente.
+function ensureLeiturasLidos(d) {
+  if (d.leiturasLidosSeeded) return d;
+  const have = new Set((d.leituras || []).map(l => l.id));
+  const novos = LEITURAS_LIDOS_SEED
+    .map(([titulo, autor, pais, idioma, ano, genero, paginas, temas], i) => ({
+      id: 'lv-lido-' + i, titulo, autor, pais, idioma,
+      ano: ano || undefined, genero, paginas, temas, lido: true,
+    }))
+    .filter(l => !have.has(l.id));
+  return { ...d, leiturasLidosSeeded: true, leituras: [...(d.leituras || []), ...novos] };
+}
+
 // Quebra itemizada dos Gastos por categoria (Retrospectiva). [mes, categoria, nome, valor].
 // Os itens somam o total da categoria no mês (que vem da Vida Financeira). Semeado por lote/categoria.
 const GASTOS_PRESENTES_SEED = [
@@ -852,7 +866,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
