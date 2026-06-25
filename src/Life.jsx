@@ -893,6 +893,7 @@ const decadaDe = (ano) => { const a = Number(ano); return a ? Math.floor(a / 10)
 export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const life = useLife();
   const [form, setForm] = useState(null);
+  const [tipoSel, setTipoSel] = useState('todos');
   const [paisSel, setPaisSel] = useState('todos');
   const [idiomaSel, setIdiomaSel] = useState('todos');
   const [generoSel, setGeneroSel] = useState('todos');
@@ -909,7 +910,8 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const temas = uniq(todas.flatMap(l => l.temas || [])).sort((a, b) => a.localeCompare(b));
   const decadas = uniq(todas.map(l => decadaDe(l.ano))).sort((a, b) => b - a);
 
-  const passa = (l) => (paisSel === 'todos' || l.pais === paisSel)
+  const passa = (l) => (tipoSel === 'todos' || (l.tipo || 'ficção') === tipoSel)
+    && (paisSel === 'todos' || l.pais === paisSel)
     && (idiomaSel === 'todos' || l.idioma === idiomaSel)
     && (generoSel === 'todos' || l.genero === generoSel)
     && (temaSel === 'todos' || (l.temas || []).includes(temaSel))
@@ -979,6 +981,11 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       )}
 
       {todas.length > 0 && <>
+        <div style={{ display: 'flex', gap: 6, paddingBottom: 4, marginBottom: 8 }}>
+          {chip(tipoSel === 'todos', 'Tudo', () => setTipoSel('todos'))}
+          {chip(tipoSel === 'ficção', 'Ficção', () => setTipoSel('ficção'))}
+          {chip(tipoSel === 'não ficção', 'Não ficção', () => setTipoSel('não ficção'))}
+        </div>
         {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
         {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
         {filtroRow(idiomas, idiomaSel, setIdiomaSel, 'Todos os idiomas')}
@@ -1020,6 +1027,7 @@ function LeituraForm({ editing, onClose }) {
   const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
   const [paginas, setPaginas] = useState(editing?.paginas != null ? String(editing.paginas) : '');
   const [genero, setGenero] = useState(editing?.genero || '');
+  const [tipo, setTipo] = useState(editing?.tipo || 'ficção');
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
   const [nota, setNota] = useState(editing?.nota || '');
   const podeSalvar = titulo.trim().length > 0;
@@ -1030,7 +1038,7 @@ function LeituraForm({ editing, onClose }) {
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
       pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
       paginas: paginas ? Number(paginas.replace(/\D/g, '')) || undefined : undefined,
-      genero: genero.trim() || undefined, temas: temasArr, nota: nota.trim() || undefined,
+      genero: genero.trim() || undefined, tipo, temas: temasArr, nota: nota.trim() || undefined,
       lido: editing?.lido || false,
     });
     onClose();
@@ -1069,6 +1077,18 @@ function LeituraForm({ editing, onClose }) {
         <label style={labelStyle}>Gênero</label>
         <input list="leitura-generos" value={genero} onChange={e => setGenero(e.target.value)} placeholder="ex.: Romance · Conto · Ensaio" style={inputStyle} />
         <datalist id="leitura-generos">{opts('genero').map(g => <option key={g} value={g} />)}</datalist>
+        <label style={labelStyle}>Categoria</label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['ficção', 'não ficção'].map(t => {
+            const on = tipo === t;
+            return (
+              <button key={t} onClick={() => setTipo(t)} style={{
+                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
+                border: '1.5px solid ' + (on ? COR_LEITURA : '#e2e2e2'), background: on ? COR_LEITURA + '22' : '#fff', color: on ? '#4a3470' : '#999',
+              }}>{t}</button>
+            );
+          })}
+        </div>
         <label style={labelStyle}>Temas (separados por vírgula)</label>
         <input value={temas} onChange={e => setTemas(e.target.value)} placeholder="ex.: pobreza, identidade, solidão" style={inputStyle} />
         <label style={labelStyle}>Nota (opcional)</label>

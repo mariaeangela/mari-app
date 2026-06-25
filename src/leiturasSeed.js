@@ -292,3 +292,22 @@ export const LEITURAS_LIDOS_SEED = [
   ['O Pequeno Príncipe', 'Antoine de Saint-Exupéry', 'França', 'Francês', 1943, 'Fábula', 96, ['infância', 'amizade', 'sentido', 'solidão']],
   ['Harry Potter e a pedra filosofal', 'J.K. Rowling', 'Reino Unido', 'Inglês', 1997, 'Fantasia / YA', 264, ['magia', 'amizade', 'coragem', 'pertencimento']],
 ];
+
+// Categoria ficção / não ficção: dos lidos seedados, estes são NÃO FICÇÃO (o resto = ficção).
+export const NAOFICCAO_TITULOS = [
+  'A anatomia de um luto', 'Primatas da Park Avenue', 'Do que eu falo quando eu falo de corrida',
+  'Me Poupe!', 'Ideias para adiar o fim do mundo', 'Por Que os Edifícios Ficam de Pé',
+  'O Hipster', 'Os encontros', 'Um presente para minha filha', 'Mulheres',
+];
+
+// Livros que a Mari TEM EM CASA (a ler → lido:false). Páginas = média da internet.
+// Formato: [titulo, autor, pais, idioma, ano, genero, paginas, [temas], tipo].
+export const LEITURAS_CASA_SEED = [
+  ['Deluxe: como a moda perdeu o brilho', 'Dana Thomas', 'Estados Unidos', 'Inglês', 2007, 'Não ficção / Jornalismo', 384, ['consumo', 'dinheiro', 'classe', 'sociedade'], 'não ficção'],
+  ['Dom Casmurro', 'Machado de Assis', 'Brasil', 'Português', 1899, 'Romance', 256, ['amor', 'memória', 'identidade', 'culpa'], 'ficção'],
+  ['A elegância do ouriço', 'Muriel Barbery', 'França', 'Francês', 2006, 'Romance', 360, ['classe', 'solidão', 'existência', 'amizade'], 'ficção'],
+  ['Anna Karênina', 'Liev Tolstói', 'Rússia', 'Russo', 1877, 'Romance', 816, ['amor', 'casamento', 'família', 'sociedade', 'morte'], 'ficção'],
+  ['De quanta terra precisa o homem', 'Liev Tolstói', 'Rússia', 'Russo', 1886, 'Conto', 64, ['ambição', 'dinheiro', 'morte', 'existência'], 'ficção'],
+  ['O livro do riso e do esquecimento', 'Milan Kundera', 'Tchéquia', 'Tcheco', 1979, 'Romance', 328, ['memória', 'política', 'identidade', 'humor'], 'ficção'],
+  ['O velho e o mar', 'Ernest Hemingway', 'Estados Unidos', 'Inglês', 1952, 'Novela', 96, ['solidão', 'natureza', 'envelhecimento', 'sacrifício'], 'ficção'],
+];

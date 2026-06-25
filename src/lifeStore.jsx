@@ -7,7 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
-import { LEITURAS_LIDOS_SEED, TEMA_CANON } from './leiturasSeed.js';
+import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -809,6 +809,25 @@ function ensureLeiturasLidos(d) {
     .filter(l => !have.has(l.id));
   return { ...d, leiturasLidosSeeded: true, leituras: [...(d.leituras || []), ...novos] };
 }
+// Livros que a Mari tem em casa (a ler) → slice `leituras` com lido:false. Idempotente.
+function ensureLeiturasCasa(d) {
+  if (d.leiturasCasaSeeded) return d;
+  const have = new Set((d.leituras || []).map(l => l.id));
+  const novos = LEITURAS_CASA_SEED
+    .map(([titulo, autor, pais, idioma, ano, genero, paginas, temas, tipo], i) => ({
+      id: 'lv-casa-' + i, titulo, autor, pais, idioma, ano: ano || undefined, genero, paginas, temas, tipo, lido: false,
+    }))
+    .filter(l => !have.has(l.id));
+  return { ...d, leiturasCasaSeeded: true, leituras: [...(d.leituras || []), ...novos] };
+}
+// Patch único: classifica cada leitura em ficção / não ficção (onde ainda não tem `tipo`).
+function ensureLeiturasTipo(d) {
+  if (d.leiturasTipo1) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasTipo1: true };
+  const naoFiccao = new Set(NAOFICCAO_TITULOS);
+  const leituras = d.leituras.map(l => l.tipo ? l : { ...l, tipo: naoFiccao.has(l.titulo) ? 'não ficção' : 'ficção' });
+  return { ...d, leiturasTipo1: true, leituras };
+}
 // Patch único: consolida os temas das leituras p/ o vocabulário enxuto (TEMA_CANON),
 // funde sinônimos e descarta lugares; dedupe + teto de 5. Não mexe em outros campos.
 function ensureLeiturasTemasV2(d) {
@@ -882,7 +901,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasTemasV2, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

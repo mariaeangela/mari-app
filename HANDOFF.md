@@ -190,8 +190,12 @@ card move o livro entre as abas). Contagem na aba reflete o filtro ativo. Seed d
 (flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. Temas **consolidados** num
 vocabulário de **58 canônicos** (`TEMA_CANON` em leiturasSeed.js) via patch `ensureLeiturasTemasV2` (flag
 `leiturasTemasV2`): funde sinônimos, descarta lugares (Paris/Nápoles/…), dedupe + teto 5; aplica a TODAS as
-leituras (não só o seed). Pra mudar o vocabulário no futuro: editar `TEMA_CANON` + nova flag. As **a ler**
-entram por outro `ensureLeituras*` quando a Mari mandar (páginas = média da internet).
+leituras (não só o seed). Pra mudar o vocabulário no futuro: editar `TEMA_CANON` + nova flag. Campo **`tipo`** (`'ficção'` |
+`'não ficção'`) — filtro próprio (Tudo/Ficção/Não ficção, 1ª linha) + toggle no form; patch
+`ensureLeiturasTipo` (flag `leiturasTipo1`) classifica os já semeados (lista `NAOFICCAO_TITULOS` → não
+ficção, resto → ficção). **A ler** (livros de casa): `LEITURAS_CASA_SEED` + `ensureLeiturasCasa` (flag
+`leiturasCasaSeeded`, ids `lv-casa-N`, `lido:false`); 1º lote = 7 livros. Mais livros = estender o array
+(novos índices não duplicam) ou novo `ensureLeiturasCasa2`.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
 Explorar) — vídeos/matérias para depois. Slice `assistir:[{id,url,titulo?,tipo:'video'|'artigo'|
 'outro',nota?,feito?,criadoEm}]` no `lifeStore` (CRUDs `saveAssistir`/`deleteAssistir`/`toggleAssistir`;
