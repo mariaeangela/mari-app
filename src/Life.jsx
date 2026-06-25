@@ -1057,7 +1057,7 @@ function LeituraForm({ editing, onClose }) {
   const [paginas, setPaginas] = useState(editing?.paginas != null ? String(editing.paginas) : '');
   const [genero] = useState(editing?.genero || '');
   const [tipo, setTipo] = useState(editing?.tipo || 'ficção');
-  const [tenho, setTenho] = useState(editing ? editing.tenho !== false : true);
+  const [status, setStatus] = useState(editing ? (editing.lido ? 'lido' : (editing.tenho === false ? 'naotenho' : 'estante')) : 'estante');
   const [lidoEm, setLidoEm] = useState((editing?.lidoEm || []).join(', '));
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
   const [nota, setNota] = useState(editing?.nota || '');
@@ -1069,9 +1069,9 @@ function LeituraForm({ editing, onClose }) {
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
       pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
       paginas: paginas ? Number(paginas.replace(/\D/g, '')) || undefined : undefined,
-      genero: genero.trim() || undefined, tipo, tenho, temas: temasArr, nota: nota.trim() || undefined,
+      genero: genero.trim() || undefined, tipo, tenho: status !== 'naotenho', temas: temasArr, nota: nota.trim() || undefined,
       lidoEm: (() => { const a = [...new Set(lidoEm.split(/[,;\s]+/).map(s => parseInt(s, 10)).filter(n => n >= 1900 && n <= 2100))].sort((x, y) => x - y); return a.length ? a : undefined; })(),
-      lido: editing?.lido || false,
+      lido: status === 'lido',
     });
     onClose();
   };
@@ -1111,13 +1111,13 @@ function LeituraForm({ editing, onClose }) {
         <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
           {LEITURA_CATS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
         </select>
-        <label style={labelStyle}>Onde está</label>
+        <label style={labelStyle}>Situação</label>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[[true, 'Estante'], [false, 'Não tenho']].map(([v, label]) => {
-            const on = tenho === v;
+          {[['estante', 'Estante'], ['naotenho', 'Não tenho'], ['lido', 'Já li']].map(([v, label]) => {
+            const on = status === v;
             return (
-              <button key={label} onClick={() => setTenho(v)} style={{
-                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              <button key={v} onClick={() => setStatus(v)} style={{
+                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                 border: '1.5px solid ' + (on ? COR_LEITURA : '#e2e2e2'), background: on ? COR_LEITURA + '22' : '#fff', color: on ? '#4a3470' : '#999',
               }}>{label}</button>
             );
