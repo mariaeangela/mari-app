@@ -886,6 +886,163 @@ function AssistirForm({ editing, onClose }) {
   );
 }
 
+// ---- Próximas leituras (livros a ler; temas em vez de sinopse, sem spoiler) ----
+const COR_LEITURA = '#7a5c9e';
+const decadaDe = (ano) => { const a = Number(ano); return a ? Math.floor(a / 10) * 10 : null; };
+
+export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const [paisSel, setPaisSel] = useState('todos');
+  const [generoSel, setGeneroSel] = useState('todos');
+  const [temaSel, setTemaSel] = useState('todos');
+  const [decadaSel, setDecadaSel] = useState('todas');
+  const [verLidos, setVerLidos] = useState(false);
+
+  const todas = life.leituras || [];
+  const uniq = (arr) => [...new Set(arr.filter(Boolean))];
+  const paises = uniq(todas.map(l => l.pais)).sort();
+  const generos = uniq(todas.map(l => l.genero)).sort();
+  const temas = uniq(todas.flatMap(l => l.temas || [])).sort((a, b) => a.localeCompare(b));
+  const decadas = uniq(todas.map(l => decadaDe(l.ano))).sort((a, b) => b - a);
+
+  const passa = (l) => (paisSel === 'todos' || l.pais === paisSel)
+    && (generoSel === 'todos' || l.genero === generoSel)
+    && (temaSel === 'todos' || (l.temas || []).includes(temaSel))
+    && (decadaSel === 'todas' || decadaDe(l.ano) === decadaSel);
+  const filtradas = todas.filter(passa).sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+  const proximas = filtradas.filter(l => !l.lido);
+  const lidos = filtradas.filter(l => l.lido);
+
+  const chip = (ativo, label, onClick) => (
+    <button key={label} onClick={onClick} style={{
+      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+      border: '1px solid ' + (ativo ? COR_LEITURA : '#e2e2e2'), background: ativo ? COR_LEITURA + '1c' : '#fff', color: ativo ? '#4a3470' : '#888',
+    }}>{label}</button>
+  );
+  const filtroRow = (vals, sel, setSel, rotuloTodos, fmt = (v) => v) => vals.length > 1 && (
+    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+      {chip(sel === (rotuloTodos.includes('Todas') ? 'todas' : 'todos'), rotuloTodos, () => setSel(rotuloTodos.includes('Todas') ? 'todas' : 'todos'))}
+      {vals.map(v => chip(sel === v, fmt(v), () => setSel(v)))}
+    </div>
+  );
+
+  const card = (l) => (
+    <div key={l.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <span onClick={() => life.toggleLeituraLido(l.id)} title={l.lido ? 'marcar como não lido' : 'marcar como lido'} style={{ fontSize: 18, color: l.lido ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>{l.lido ? '☑' : '☐'}</span>
+        <div onClick={() => setForm({ editing: l })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25, textDecoration: l.lido ? 'line-through' : 'none', opacity: l.lido ? 0.55 : 1 }}>{l.titulo}</div>
+          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.ano, l.genero].filter(Boolean).join(' · ')}</div>
+          {(l.temas || []).length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
+              {l.temas.map(t => (
+                <span key={t} onClick={(e) => { e.stopPropagation(); setTemaSel(t); }} style={{ fontSize: 11, fontWeight: 700, color: '#4a3470', background: COR_LEITURA + '18', borderRadius: 12, padding: '3px 9px', cursor: 'pointer' }}>{t}</span>
+              ))}
+            </div>
+          )}
+          {l.nota && <div style={{ fontSize: 12.5, color: '#777', marginTop: 7, fontStyle: 'italic' }}>{l.nota}</div>}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_LEITURA, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Próximas leituras</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>seus livros em casa, por tema · país · ano · gênero</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar livro" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {todas.length > 0 && <>
+        {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
+        {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
+        {filtroRow(paises, paisSel, setPaisSel, 'Todos os países')}
+        {filtroRow(decadas, decadaSel, setDecadaSel, 'Todas as décadas', (d) => `déc. ${d}`)}
+      </>}
+
+      {todas.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic', lineHeight: 1.6 }}>Nenhum livro ainda. Toque no + pra adicionar — ou me mande os nomes que eu preencho autor, país, ano, gênero e temas.</p>
+      ) : <>
+        <div style={{ marginTop: 4 }}>{proximas.map(card)}</div>
+        {proximas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada nesse filtro (ou tudo já lido).</p>}
+        {lidos.length > 0 && <>
+          <div onClick={() => setVerLidos(v => !v)} style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, margin: '18px 0 8px', cursor: 'pointer' }}>já lidos ({lidos.length}) {verLidos ? '▾' : '▸'}</div>
+          {verLidos && lidos.map(card)}
+        </>}
+      </>}
+
+      {form && <LeituraForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function LeituraForm({ editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [autor, setAutor] = useState(editing?.autor || '');
+  const [pais, setPais] = useState(editing?.pais || '');
+  const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
+  const [genero, setGenero] = useState(editing?.genero || '');
+  const [temas, setTemas] = useState((editing?.temas || []).join(', '));
+  const [nota, setNota] = useState(editing?.nota || '');
+  const podeSalvar = titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const temasArr = temas.split(',').map(t => t.trim()).filter(Boolean);
+    life.saveLeitura({
+      id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
+      pais: pais.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
+      genero: genero.trim() || undefined, temas: temasArr, nota: nota.trim() || undefined,
+      lido: editing?.lido || false,
+    });
+    onClose();
+  };
+  const lista = life.leituras || [];
+  const opts = (campo) => [...new Set(lista.map(l => l[campo]).filter(Boolean))].sort();
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar livro' : 'Novo livro'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Título</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: A Hora da Estrela" style={inputStyle} />
+        <label style={labelStyle}>Autor(a)</label>
+        <input value={autor} onChange={e => setAutor(e.target.value)} placeholder="ex.: Clarice Lispector" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>País</label>
+            <input list="leitura-paises" value={pais} onChange={e => setPais(e.target.value)} placeholder="ex.: Brasil" style={inputStyle} />
+            <datalist id="leitura-paises">{opts('pais').map(p => <option key={p} value={p} />)}</datalist>
+          </div>
+          <div style={{ width: 96 }}>
+            <label style={labelStyle}>Ano</label>
+            <input type="text" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="1977" style={inputStyle} />
+          </div>
+        </div>
+        <label style={labelStyle}>Gênero</label>
+        <input list="leitura-generos" value={genero} onChange={e => setGenero(e.target.value)} placeholder="ex.: Romance · Conto · Ensaio" style={inputStyle} />
+        <datalist id="leitura-generos">{opts('genero').map(g => <option key={g} value={g} />)}</datalist>
+        <label style={labelStyle}>Temas (separados por vírgula)</label>
+        <input value={temas} onChange={e => setTemas(e.target.value)} placeholder="ex.: pobreza, identidade, solidão" style={inputStyle} />
+        <label style={labelStyle}>Nota (opcional)</label>
+        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="por que quer ler, de quem ganhou…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteLeitura(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---- Vida financeira ----
 // Gráfico de pizza (SVG) por categoria.
 function PizzaFin({ fatias, hover, setHover }) {

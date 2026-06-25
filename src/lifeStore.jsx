@@ -34,7 +34,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], gastosItens: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -989,6 +989,15 @@ export function LifeProvider({ children }) {
     : [...viagensFuturas, { ...v, id: uid('vf') }] });
   const deleteViagemFutura = (id) => persist({ ...data, viagensFuturas: viagensFuturas.filter(x => x.id !== id) });
 
+  // ---- Próximas leituras (livros a ler; tema em vez de sinopse, sem spoiler) ----
+  // leitura = { id, titulo, autor?, pais?, ano?, genero?, temas:[string], nota?, lido? }
+  const leituras = data.leituras || [];
+  const saveLeitura = (l) => persist({ ...data, leituras: l.id && leituras.some(x => x.id === l.id)
+    ? leituras.map(x => x.id === l.id ? l : x)
+    : [...leituras, { ...l, id: uid('lv') }] });
+  const deleteLeitura = (id) => persist({ ...data, leituras: leituras.filter(x => x.id !== id) });
+  const toggleLeituraLido = (id) => persist({ ...data, leituras: leituras.map(x => x.id === id ? { ...x, lido: !x.lido } : x) });
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1127,6 +1136,7 @@ export function LifeProvider({ children }) {
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
     viagensFuturas, saveViagemFutura, deleteViagemFutura,
+    leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

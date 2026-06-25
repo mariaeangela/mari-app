@@ -32,9 +32,10 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - Quase tudo pronto. Recebe o **Álbum da semana** e o **Modo Viagem** (ver Estruturais).
 
 ## 🧭 Explorar
-- Calendário cultural e **Conteúdos para assistir** já vivem aqui. ✅ O Calendário cultural tem o botão
-  **"↻ Eventos recorrentes"** (opções que se repetem, pra quando bate a dúvida do que fazer). A reforma
-  dos cards é estrutural — sem pendência só desta página.
+- Calendário cultural, **Conteúdos para assistir** e **Próximas leituras** já vivem aqui. ✅ O Calendário
+  cultural tem o botão **"↻ Eventos recorrentes"**. ✅ **Próximas leituras** (livros em casa, por tema ·
+  país · ano · gênero; tema no lugar de sinopse, sem spoiler) — FALTA semear a lista de livros da Mari
+  (`ensureLeituras*`) quando ela mandar os nomes. A reforma dos cards é estrutural — sem pendência só desta página.
 
 ## 🗓️ Calendário
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".

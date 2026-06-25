@@ -7,7 +7,7 @@ import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
-import LifePage, { CulturalSection, AssistirSection } from './Life.jsx';
+import LifePage, { CulturalSection, AssistirSection, LeiturasSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
 import { getCidadeFato } from './cidadeFatos.js';
@@ -345,6 +345,11 @@ function ExplorePage({ isWide }) {
       <AssistirSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
     </div>
   );
+  if (selectedType === 'leituras') return (
+    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <LeiturasSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
+    </div>
+  );
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
@@ -368,6 +373,10 @@ function ExplorePage({ isWide }) {
             <button key="assistir" onClick={() => setSelectedType('assistir')} style={{ background: '#4f7cca12', border: '1px solid #4f7cca33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ width: 24, height: 4, background: '#4f7cca', borderRadius: 4, marginBottom: 12 }} />
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Conteúdos para assistir</div>
+            </button>
+            <button key="leituras" onClick={() => setSelectedType('leituras')} style={{ background: '#7a5c9e12', border: '1px solid #7a5c9e33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: '#7a5c9e', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Próximas leituras</div>
             </button>
           </div>
         </>
