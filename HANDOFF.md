@@ -179,8 +179,14 @@ Outra tile da Explorar: **`LeiturasSection`** ("Próximas leituras", exportada d
 casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,idioma?,ano?,genero?,temas:[string],nota?,lido?}]` no
 `lifeStore` (CRUD `saveLeitura`/`deleteLeitura`/`toggleLeituraLido`; ids `lv-*`). **Tema em vez de sinopse**
 (sem spoiler), **3–5 temas por livro** (preferência da Mari). As tags de tema aparecem no card e são
-clicáveis (viram filtro). `idioma` (original) é campo SEPARADO de `pais`. Filtros por **tema · gênero ·
-idioma · país · década** (chips `filtroRow`, cada um só aparece com 2+ valores; década = `decadaDe(ano)`). Cards
+clicáveis (viram filtro). `idioma` = língua de leitura, **só 3** (Português/Espanhol/Inglês; patch `ensureLeiturasIdioma3` via
+`LEITURA_ESPANHOL`/`LEITURA_INGLES`, resto → Português; select no form). Filtros: **gênero (1 só) · tema ·
+idioma · país · década**. O **gênero** é simplificado em 7 buckets no campo `tipo` — `LEITURA_CATS`:
+ficção/não ficção/poesia/teatro/contos e crônicas/quadrinhos/YA — derivado do gênero detalhado pelo patch
+`ensureLeiturasCat` (`leiturasCat1`); substitui os filtros antigos de tipo (ficção/não-ficção) e de gênero
+detalhado. O `genero` detalhado ainda existe nos dados (mostrado no card) mas não é mais filtrável nem
+editável. Livros saíram de "Conteúdos para assistir": patch `ensureAssistirSemLivros` remove `tipo:'livro'`
+do slice `assistir` e o tipo "Livro" saiu de `ASSISTIR_TIPOS` (livros concentrados nas Leituras). Cards
 ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem datalist de país/gênero e temas
 por vírgula. **Páginas** (do print do Skoob ou média da internet) no card + **ordenação A–Z / ↑ páginas**
 (ajuda a escolher o que ler por tempo). **Toggle de 3 abas "Estante / Não tenho / Já lidos"** (estado `aba` ∈ estante/naotenho/lidos) no topo:

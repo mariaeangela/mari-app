@@ -106,6 +106,10 @@ export const TEMA_CANON = {
   'escolhas': 'escolha',
 };
 
+// Idioma de leitura (a Mari lê em 3 línguas). Default = Português; estes títulos ela lê no original:
+export const LEITURA_ESPANHOL = ['Travesuras de la niña mala', 'Crónica de una Muerte Anunciada', 'París puede esperar', 'Tú también naciste desnudito'];
+export const LEITURA_INGLES = ['Little Women', "King's Ransom", 'Beach Read', 'Pygmalion', 'Judy Moody Declares Independence!', 'The Power of the Powerless', 'Untrue'];
+
 // Livros que a Mari JÁ LEU (importados do Skoob, limpos). Semeados como lido:true.
 // Formato: [titulo, autor, pais, idioma(original), ano(1ª pub|null), genero, paginas, [temas 3–5]].
 // País/idioma = origem do autor/obra; ano = 1ª publicação; páginas = do print do Skoob (ou média).

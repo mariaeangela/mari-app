@@ -781,7 +781,6 @@ const ASSISTIR_TIPOS = [
   { id: 'serie', label: 'Série', emoji: '📺' },
   { id: 'filme', label: 'Filme', emoji: '🎬' },
   { id: 'album', label: 'Álbum', emoji: '💿' },
-  { id: 'livro', label: 'Livro', emoji: '📖' },
   { id: 'artigo', label: 'Artigo', emoji: '📄' },
   { id: 'outro', label: 'Outro', emoji: '🔗' },
 ];
@@ -889,6 +888,8 @@ function AssistirForm({ editing, onClose }) {
 // ---- Próximas leituras (livros a ler; temas em vez de sinopse, sem spoiler) ----
 const COR_LEITURA = '#7a5c9e';
 const decadaDe = (ano) => { const a = Number(ano); return a ? Math.floor(a / 10) * 10 : null; };
+// Gênero simplificado (1 filtro só): [valor, rótulo]. Ficção/não-ficção entram aqui também.
+const LEITURA_CATS = [['ficção', 'Ficção'], ['não ficção', 'Não ficção'], ['poesia', 'Poesia'], ['teatro', 'Teatro'], ['contos e crônicas', 'Contos e crônicas'], ['quadrinhos', 'Quadrinhos'], ['YA', 'YA']];
 
 export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const life = useLife();
@@ -896,7 +897,6 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const [tipoSel, setTipoSel] = useState('todos');
   const [paisSel, setPaisSel] = useState('todos');
   const [idiomaSel, setIdiomaSel] = useState('todos');
-  const [generoSel, setGeneroSel] = useState('todos');
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
   const [ordem, setOrdem] = useState('titulo');
@@ -906,14 +906,12 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const uniq = (arr) => [...new Set(arr.filter(Boolean))];
   const paises = uniq(todas.map(l => l.pais)).sort();
   const idiomas = uniq(todas.map(l => l.idioma)).sort();
-  const generos = uniq(todas.map(l => l.genero)).sort();
   const temas = uniq(todas.flatMap(l => l.temas || [])).sort((a, b) => a.localeCompare(b));
   const decadas = uniq(todas.map(l => decadaDe(l.ano))).sort((a, b) => b - a);
 
   const passa = (l) => (tipoSel === 'todos' || (l.tipo || 'ficção') === tipoSel)
     && (paisSel === 'todos' || l.pais === paisSel)
     && (idiomaSel === 'todos' || l.idioma === idiomaSel)
-    && (generoSel === 'todos' || l.genero === generoSel)
     && (temaSel === 'todos' || (l.temas || []).includes(temaSel))
     && (decadaSel === 'todas' || decadaDe(l.ano) === decadaSel);
   const ordenar = (arr) => arr.slice().sort((a, b) => ordem === 'paginas'
@@ -984,12 +982,9 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       {todas.length > 0 && <>
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
           {chip(tipoSel === 'todos', 'Tudo', () => setTipoSel('todos'))}
-          {chip(tipoSel === 'ficção', 'Ficção', () => setTipoSel('ficção'))}
-          {chip(tipoSel === 'não ficção', 'Não ficção', () => setTipoSel('não ficção'))}
-          {chip(tipoSel === 'outros', 'Outros', () => setTipoSel('outros'))}
+          {LEITURA_CATS.map(([v, label]) => chip(tipoSel === v, label, () => setTipoSel(v)))}
         </div>
         {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
-        {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
         {filtroRow(idiomas, idiomaSel, setIdiomaSel, 'Todos os idiomas')}
         {filtroRow(paises, paisSel, setPaisSel, 'Todos os países')}
         {filtroRow(decadas, decadaSel, setDecadaSel, 'Todas as décadas', (d) => `déc. ${d}`)}
@@ -1025,10 +1020,10 @@ function LeituraForm({ editing, onClose }) {
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [autor, setAutor] = useState(editing?.autor || '');
   const [pais, setPais] = useState(editing?.pais || '');
-  const [idioma, setIdioma] = useState(editing?.idioma || '');
+  const [idioma, setIdioma] = useState(editing?.idioma || 'Português');
   const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
   const [paginas, setPaginas] = useState(editing?.paginas != null ? String(editing.paginas) : '');
-  const [genero, setGenero] = useState(editing?.genero || '');
+  const [genero] = useState(editing?.genero || '');
   const [tipo, setTipo] = useState(editing?.tipo || 'ficção');
   const [tenho, setTenho] = useState(editing ? editing.tenho !== false : true);
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
@@ -1074,24 +1069,14 @@ function LeituraForm({ editing, onClose }) {
             <input type="text" inputMode="numeric" value={paginas} onChange={e => setPaginas(e.target.value)} placeholder="240" style={inputStyle} />
           </div>
         </div>
-        <label style={labelStyle}>Idioma (original)</label>
-        <input list="leitura-idiomas" value={idioma} onChange={e => setIdioma(e.target.value)} placeholder="ex.: Português · Inglês · Espanhol" style={inputStyle} />
-        <datalist id="leitura-idiomas">{opts('idioma').map(i => <option key={i} value={i} />)}</datalist>
+        <label style={labelStyle}>Idioma</label>
+        <select value={idioma} onChange={e => setIdioma(e.target.value)} style={inputStyle}>
+          {['Português', 'Espanhol', 'Inglês'].map(i => <option key={i} value={i}>{i}</option>)}
+        </select>
         <label style={labelStyle}>Gênero</label>
-        <input list="leitura-generos" value={genero} onChange={e => setGenero(e.target.value)} placeholder="ex.: Romance · Conto · Ensaio" style={inputStyle} />
-        <datalist id="leitura-generos">{opts('genero').map(g => <option key={g} value={g} />)}</datalist>
-        <label style={labelStyle}>Categoria</label>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {['ficção', 'não ficção', 'outros'].map(t => {
-            const on = tipo === t;
-            return (
-              <button key={t} onClick={() => setTipo(t)} style={{
-                flex: 1, padding: '9px 0', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize',
-                border: '1.5px solid ' + (on ? COR_LEITURA : '#e2e2e2'), background: on ? COR_LEITURA + '22' : '#fff', color: on ? '#4a3470' : '#999',
-              }}>{t}</button>
-            );
-          })}
-        </div>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          {LEITURA_CATS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
         <label style={labelStyle}>Onde está</label>
         <div style={{ display: 'flex', gap: 6 }}>
           {[[true, 'Estante'], [false, 'Não tenho']].map(([v, label]) => {

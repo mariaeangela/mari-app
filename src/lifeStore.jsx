@@ -7,7 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife } from './cloud';
-import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED } from './leiturasSeed.js';
+import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -839,6 +839,36 @@ function ensureLeiturasTipo(d) {
   const leituras = d.leituras.map(l => l.tipo ? l : { ...l, tipo: naoFiccao.has(l.titulo) ? 'não ficção' : 'ficção' });
   return { ...d, leiturasTipo1: true, leituras };
 }
+// Patch: gênero simplificado em 7 categorias (campo `tipo`): ficção / não ficção / poesia / teatro /
+// contos e crônicas / quadrinhos / YA — derivado do gênero detalhado (+ tipo não-ficção anterior).
+function ensureLeiturasCat(d) {
+  if (d.leiturasCat1) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasCat1: true };
+  const catDe = (l) => {
+    const g = (l.genero || '').toLowerCase();
+    if (/poesia/.test(g)) return 'poesia';
+    if (/teatro|tragédia/.test(g)) return 'teatro';
+    if (/quadrinhos/.test(g)) return 'quadrinhos';
+    if (/conto|crônica/.test(g)) return 'contos e crônicas';
+    if (l.tipo === 'não ficção' || /não ficção/.test(g)) return 'não ficção';
+    if (/\bya\b/.test(g)) return 'YA';
+    return 'ficção';
+  };
+  return { ...d, leiturasCat1: true, leituras: d.leituras.map(l => ({ ...l, tipo: catDe(l) })) };
+}
+// Patch: idioma de leitura em 3 línguas (Português padrão; Espanhol/Inglês p/ os títulos no original).
+function ensureLeiturasIdioma3(d) {
+  if (d.leiturasIdioma3) return d;
+  if (!d.leituras || !d.leituras.length) return { ...d, leiturasIdioma3: true };
+  const es = new Set(LEITURA_ESPANHOL), en = new Set(LEITURA_INGLES);
+  const idiomaDe = (t) => es.has(t) ? 'Espanhol' : en.has(t) ? 'Inglês' : 'Português';
+  return { ...d, leiturasIdioma3: true, leituras: d.leituras.map(l => ({ ...l, idioma: idiomaDe(l.titulo) })) };
+}
+// Patch: remove os itens de livro de "Conteúdos para assistir" (agora concentrados nas Leituras).
+function ensureAssistirSemLivros(d) {
+  if (d.assistirSemLivros) return d;
+  return { ...d, assistirSemLivros: true, assistir: (d.assistir || []).filter(a => a.tipo !== 'livro') };
+}
 // Patch único: poesia / teatro / quadrinhos / contos viram a categoria "outros" (pelo gênero).
 function ensureLeiturasOutros(d) {
   if (d.leiturasOutros1) return d;
@@ -920,7 +950,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
