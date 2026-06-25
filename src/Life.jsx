@@ -899,7 +899,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
   const [ordem, setOrdem] = useState('titulo');
-  const [verLidos, setVerLidos] = useState(false);
+  const [aba, setAba] = useState('proximas');
 
   const todas = life.leituras || [];
   const uniq = (arr) => [...new Set(arr.filter(Boolean))];
@@ -939,7 +939,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <span onClick={() => life.toggleLeituraLido(l.id)} title={l.lido ? 'marcar como não lido' : 'marcar como lido'} style={{ fontSize: 18, color: l.lido ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>{l.lido ? '☑' : '☐'}</span>
         <div onClick={() => setForm({ editing: l })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25, textDecoration: l.lido ? 'line-through' : 'none', opacity: l.lido ? 0.55 : 1 }}>{l.titulo}</div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{l.titulo}</div>
           <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero, l.paginas ? l.paginas + ' p.' : null].filter(Boolean).join(' · ')}</div>
           {(l.temas || []).length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
@@ -966,6 +966,18 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         <button onClick={() => setForm({})} title="adicionar livro" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
+      {todas.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          {[['proximas', 'A ler', proximas.length], ['lidos', 'Já lidos', lidos.length]].map(([id, label, n]) => (
+            <button key={id} onClick={() => setAba(id)} style={{
+              flex: 1, padding: '9px 0', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              border: '1px solid ' + (aba === id ? COR_LEITURA : '#e2e2e2'),
+              background: aba === id ? COR_LEITURA + '1c' : '#fff', color: aba === id ? '#4a3470' : '#999',
+            }}>{label} ({n})</button>
+          ))}
+        </div>
+      )}
+
       {todas.length > 0 && <>
         {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
         {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
@@ -988,12 +1000,10 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
             ))}
           </div>
         )}
-        <div style={{ marginTop: 4 }}>{proximas.map(card)}</div>
-        {proximas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada nesse filtro (ou tudo já lido).</p>}
-        {lidos.length > 0 && <>
-          <div onClick={() => setVerLidos(v => !v)} style={{ fontSize: 11, color: '#bbb', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, margin: '18px 0 8px', cursor: 'pointer' }}>já lidos ({lidos.length}) {verLidos ? '▾' : '▸'}</div>
-          {verLidos && lidos.map(card)}
-        </>}
+        {(() => { const lista = aba === 'lidos' ? lidos : proximas; return <>
+          <div style={{ marginTop: 4 }}>{lista.map(card)}</div>
+          {lista.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0', lineHeight: 1.6 }}>{aba === 'lidos' ? 'Nenhum livro lido nesse filtro.' : 'Nada para ler nesse filtro. Toque no + pra adicionar um livro de casa.'}</p>}
+        </>; })()}
       </>}
 
       {form && <LeituraForm editing={form.editing} onClose={() => setForm(null)} />}

@@ -183,7 +183,9 @@ clicáveis (viram filtro). `idioma` (original) é campo SEPARADO de `pais`. Filt
 idioma · país · década** (chips `filtroRow`, cada um só aparece com 2+ valores; década = `decadaDe(ano)`). Cards
 ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem datalist de país/gênero e temas
 por vírgula. **Páginas** (do print do Skoob ou média da internet) no card + **ordenação A–Z / ↑ páginas**
-(ajuda a escolher o que ler por tempo). Seed dos **lidos**: `LEITURAS_LIDOS_SEED` em `src/leiturasSeed.js`
+(ajuda a escolher o que ler por tempo). **Toggle "A ler / Já lidos"** (estado `aba`) no topo: troca de "tela"
+entre os não-lidos e os lidos, ambos com os MESMOS filtros e cards iguais (lidos NÃO ficam riscados; o ✓ do
+card move o livro entre as abas). Contagem na aba reflete o filtro ativo. Seed dos **lidos**: `LEITURAS_LIDOS_SEED` em `src/leiturasSeed.js`
 (~181 livros do Skoob, limpos: título/autor/país/idioma/ano/gênero/páginas/temas) → `ensureLeiturasLidos`
 (flag `leiturasLidosSeeded`, ids `lv-lido-N`, `lido:true`) em `runLifeSeeds`. Temas **consolidados** num
 vocabulário de **58 canônicos** (`TEMA_CANON` em leiturasSeed.js) via patch `ensureLeiturasTemasV2` (flag
