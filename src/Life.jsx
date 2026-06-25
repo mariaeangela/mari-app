@@ -894,6 +894,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const [paisSel, setPaisSel] = useState('todos');
+  const [idiomaSel, setIdiomaSel] = useState('todos');
   const [generoSel, setGeneroSel] = useState('todos');
   const [temaSel, setTemaSel] = useState('todos');
   const [decadaSel, setDecadaSel] = useState('todas');
@@ -902,11 +903,13 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
   const todas = life.leituras || [];
   const uniq = (arr) => [...new Set(arr.filter(Boolean))];
   const paises = uniq(todas.map(l => l.pais)).sort();
+  const idiomas = uniq(todas.map(l => l.idioma)).sort();
   const generos = uniq(todas.map(l => l.genero)).sort();
   const temas = uniq(todas.flatMap(l => l.temas || [])).sort((a, b) => a.localeCompare(b));
   const decadas = uniq(todas.map(l => decadaDe(l.ano))).sort((a, b) => b - a);
 
   const passa = (l) => (paisSel === 'todos' || l.pais === paisSel)
+    && (idiomaSel === 'todos' || l.idioma === idiomaSel)
     && (generoSel === 'todos' || l.genero === generoSel)
     && (temaSel === 'todos' || (l.temas || []).includes(temaSel))
     && (decadaSel === 'todas' || decadaDe(l.ano) === decadaSel);
@@ -933,7 +936,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
         <span onClick={() => life.toggleLeituraLido(l.id)} title={l.lido ? 'marcar como não lido' : 'marcar como lido'} style={{ fontSize: 18, color: l.lido ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, marginTop: 1 }}>{l.lido ? '☑' : '☐'}</span>
         <div onClick={() => setForm({ editing: l })} style={{ flex: 1, cursor: 'pointer', minWidth: 0 }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#111', lineHeight: 1.25, textDecoration: l.lido ? 'line-through' : 'none', opacity: l.lido ? 0.55 : 1 }}>{l.titulo}</div>
-          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.ano, l.genero].filter(Boolean).join(' · ')}</div>
+          <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{[l.autor, l.pais, l.idioma, l.ano, l.genero].filter(Boolean).join(' · ')}</div>
           {(l.temas || []).length > 0 && (
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 8 }}>
               {l.temas.map(t => (
@@ -962,6 +965,7 @@ export function LeiturasSection({ onBack, backLabel = 'Explorar' }) {
       {todas.length > 0 && <>
         {filtroRow(temas, temaSel, setTemaSel, 'Todos os temas')}
         {filtroRow(generos, generoSel, setGeneroSel, 'Todos os gêneros')}
+        {filtroRow(idiomas, idiomaSel, setIdiomaSel, 'Todos os idiomas')}
         {filtroRow(paises, paisSel, setPaisSel, 'Todos os países')}
         {filtroRow(decadas, decadaSel, setDecadaSel, 'Todas as décadas', (d) => `déc. ${d}`)}
       </>}
@@ -987,6 +991,7 @@ function LeituraForm({ editing, onClose }) {
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [autor, setAutor] = useState(editing?.autor || '');
   const [pais, setPais] = useState(editing?.pais || '');
+  const [idioma, setIdioma] = useState(editing?.idioma || '');
   const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
   const [genero, setGenero] = useState(editing?.genero || '');
   const [temas, setTemas] = useState((editing?.temas || []).join(', '));
@@ -997,7 +1002,7 @@ function LeituraForm({ editing, onClose }) {
     const temasArr = temas.split(',').map(t => t.trim()).filter(Boolean);
     life.saveLeitura({
       id: editing?.id, titulo: titulo.trim(), autor: autor.trim() || undefined,
-      pais: pais.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
+      pais: pais.trim() || undefined, idioma: idioma.trim() || undefined, ano: ano ? Number(ano.replace(/\D/g, '')) || undefined : undefined,
       genero: genero.trim() || undefined, temas: temasArr, nota: nota.trim() || undefined,
       lido: editing?.lido || false,
     });
@@ -1027,6 +1032,9 @@ function LeituraForm({ editing, onClose }) {
             <input type="text" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="1977" style={inputStyle} />
           </div>
         </div>
+        <label style={labelStyle}>Idioma (original)</label>
+        <input list="leitura-idiomas" value={idioma} onChange={e => setIdioma(e.target.value)} placeholder="ex.: Português · Inglês · Espanhol" style={inputStyle} />
+        <datalist id="leitura-idiomas">{opts('idioma').map(i => <option key={i} value={i} />)}</datalist>
         <label style={labelStyle}>Gênero</label>
         <input list="leitura-generos" value={genero} onChange={e => setGenero(e.target.value)} placeholder="ex.: Romance · Conto · Ensaio" style={inputStyle} />
         <datalist id="leitura-generos">{opts('genero').map(g => <option key={g} value={g} />)}</datalist>

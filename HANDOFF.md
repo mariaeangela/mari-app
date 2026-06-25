@@ -176,10 +176,11 @@ subtítulo** — só cadastrar a opção. Filtros: **cidade** (só aparece com 1
 (chips Dom–Sáb, só aparece quando algum item tem `dias`; `diaSel` ∈ 0–6 ou `null`); sem seed. ATENÇÃO
 Regras de Hooks: o `if (verRec) return …` fica DEPOIS de todos os `useState` da `CulturalSection`.
 Outra tile da Explorar: **`LeiturasSection`** ("Próximas leituras", exportada de `Life.jsx`) — livros em
-casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,ano?,genero?,temas:[string],nota?,lido?}]` no
+casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,idioma?,ano?,genero?,temas:[string],nota?,lido?}]` no
 `lifeStore` (CRUD `saveLeitura`/`deleteLeitura`/`toggleLeituraLido`; ids `lv-*`). **Tema em vez de sinopse**
-(sem spoiler): as tags de tema aparecem no card e são clicáveis (viram filtro). Filtros por **tema · gênero
-· país · década** (chips `filtroRow`, cada um só aparece com 2+ valores; década = `decadaDe(ano)`). Cards
+(sem spoiler), **3–5 temas por livro** (preferência da Mari). As tags de tema aparecem no card e são
+clicáveis (viram filtro). `idioma` (original) é campo SEPARADO de `pais`. Filtros por **tema · gênero ·
+idioma · país · década** (chips `filtroRow`, cada um só aparece com 2+ valores; década = `decadaDe(ano)`). Cards
 ordenados por título; lidos vão p/ "já lidos" colapsável. `LeituraForm` tem datalist de país/gênero e temas
 por vírgula. Sem seed ainda — a lista de livros da Mari será semeada por `ensureLeituras*` quando ela mandar.
 Mesma ideia: **`AssistirSection`** ("Conteúdos para assistir", exportada de `Life.jsx`, tile próprio na
