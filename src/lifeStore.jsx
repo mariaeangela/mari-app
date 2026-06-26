@@ -866,6 +866,19 @@ function ensureLeiturasAnos(d) {
   });
   return { ...d, leiturasAnos1: true, leituras };
 }
+// Patch: acrescenta um livro lido que faltou nos prints do Skoob (Amyr Klink, lido em 2025).
+function ensureLeiturasAmyr(d) {
+  if (d.leiturasAmyr1) return d;
+  const have = new Set((d.leituras || []).map(l => (l.titulo || '').toLowerCase()));
+  if (have.has('cem dias entre céu e mar')) return { ...d, leiturasAmyr1: true };
+  const livro = {
+    id: 'lv-amyr-cemdias', titulo: 'Cem dias entre céu e mar', autor: 'Amyr Klink',
+    pais: 'Brasil', idioma: 'Português', ano: 1985, genero: 'Não ficção / Relato', paginas: 264,
+    tipo: 'não ficção', temas: ['aventura', 'natureza', 'solidão', 'sobrevivência'],
+    lido: true, tenho: true, lidoEm: [2025],
+  };
+  return { ...d, leiturasAmyr1: true, leituras: [...(d.leituras || []), livro] };
+}
 // Patch: idioma de leitura em 3 línguas (Português padrão; Espanhol/Inglês p/ os títulos no original).
 function ensureLeiturasIdioma3(d) {
   if (d.leiturasIdioma3) return d;
@@ -960,7 +973,7 @@ function ensureFixosJunhoFix(d) {
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
