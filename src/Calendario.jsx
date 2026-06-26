@@ -496,10 +496,14 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
   const startPad = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const todayKey = ymd(hoje());
+  // Em vez de células vazias, preenche os dias de fora (mês anterior no início,
+  // próximo mês no fim) apagados — completa a 1ª e a última semana, dando um
+  // overview que cruza a virada do mês.
   const cells = [];
-  for (let i = 0; i < startPad; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(y, m, d));
-  while (cells.length % 7 !== 0) cells.push(null);
+  for (let i = 0; i < startPad; i++) cells.push({ date: new Date(y, m, 1 - (startPad - i)), out: true });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ date: new Date(y, m, d), out: false });
+  let nd = 1;
+  while (cells.length % 7 !== 0) cells.push({ date: new Date(y, m + 1, nd++), out: true });
 
   return (
     <div>
@@ -510,8 +514,7 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
         {DIAS_SEMANA.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.5px', paddingBottom: 4 }}>{d}</div>)}
-        {cells.map((date, i) => {
-          if (!date) return <div key={i} />;
+        {cells.map(({ date, out }, i) => {
           const key = ymd(date);
           const dots = moodMode ? [] : (getDots ? getDots(date) : itemsForDay(cal.data, date).all);
           const mood = cal.data.moods[key];
@@ -519,12 +522,13 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
           return (
             <button key={i} onClick={() => onDayClick(date)} style={{
               aspectRatio: '1', border: '1px solid #eee', borderRadius: 10,
-              background: moodMode && mood ? MOOD_BY_ID[mood]?.cor + '2e' : '#fff', cursor: 'pointer',
+              background: moodMode && mood ? MOOD_BY_ID[mood]?.cor + '2e' : (out ? '#fafafa' : '#fff'), cursor: 'pointer',
+              opacity: out ? 0.5 : 1,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '4px 2px',
             }}>
               <span style={isToday
                 ? { fontSize: 12, fontWeight: 700, color: '#fff', background: '#111', borderRadius: '50%', width: 19, height: 19, display: 'flex', alignItems: 'center', justifyContent: 'center' }
-                : { fontSize: 12.5, color: '#555', fontWeight: 500 }}>{date.getDate()}</span>
+                : { fontSize: 12.5, color: out ? '#aaa' : '#555', fontWeight: 500 }}>{date.getDate()}</span>
               {!moodMode && dots.length > 0 && (
                 <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', marginTop: 3 }}>
                   {dots.slice(0, 4).map((it, j) => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: it._cor }} />)}

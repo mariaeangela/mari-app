@@ -121,7 +121,10 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   um CALENDÁRIO, só pontinhos de treino+corrida, + contagem), Humor (mapa de
   cores). Treino só aparece na visão Exercício; corrida aparece em todas. Itens
   do dia em ordem cronológica de horário (helper byTime; itemsGeral exclui
-  treino do Mês/Agenda). DayModal: humor + diário + itens do dia. Sempre no fim
+  treino do Mês/Agenda). DayModal: humor + diário + itens do dia. **A grade do Mês completa a 1ª e a última semana com os
+  dias de fora** (fim do mês anterior / início do próximo) renderizados apagados (`out:true`, opacity
+  0.5, número cinza) — ainda com pontinhos e clicáveis (abrem o DayModal do dia) — pra dar overview da
+  virada do mês. Sempre no fim
   da página: "Lendo no momento" (cultura subtipo lendo) com botão "concluído"
   que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Na visão Mês há
   também "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
