@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], cursos: [], acompLeituras: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -972,8 +972,32 @@ function ensureFixosJunhoFix(d) {
 }
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
+// Primeiro livro do Acompanhamento de leituras: Anna Kariênina (começou em 25/06/2026).
+// O GUIA é texto curado/verificado por mim (Wikipédia PT/EN), SEM NENHUM SPOILER do enredo:
+// só publicação, contexto da Rússia da época e o autor.
+function ensureAnnaKarenina(d) {
+  if (d.annaKareninaSeeded) return d;
+  const livro = {
+    id: 'al-anna-karenina',
+    titulo: 'Anna Kariênina',
+    autor: 'Liev Tolstói',
+    ano: 1877,
+    pais: 'Rússia',
+    inicio: '2026-06-25',
+    status: 'lendo',
+    personagens: [],
+    notas: [],
+    guia: {
+      publicacao: 'Anna Kariênina saiu em capítulos na revista O Mensageiro Russo (Russkii Vestnik) entre 1875 e 1877. O editor, Mikhail Katkov — nacionalista — recusou-se a publicar a última parte por discordar das posições de Tolstói sobre o envolvimento russo na guerra dos Bálcãs; Tolstói então lançou a Parte 8 como um folheto avulso, em 1877. O romance completo só saiu em livro em 1878. Foi a obra que Tolstói escreveu logo depois de Guerra e Paz (1869).',
+      russia: 'O livro nasce numa Rússia em plena transformação. Em 1861, o czar Alexandre II — o "czar libertador" — emancipou cerca de 22,5 milhões de servos, pondo fim à servidão que estruturava o campo havia séculos. Vieram as "Grandes Reformas", resposta ao atraso exposto pela derrota na Guerra da Crimeia: reorganização do exército, reforma da Justiça, criação dos zemstvos (conselhos locais) e a expansão das ferrovias, que encurtavam um país imenso. Era um tempo de tensão entre o velho e o novo — a aristocracia rural diante da modernização, o debate entre eslavófilos (um caminho russo próprio) e ocidentalizadores (olhos na Europa), o despertar da "questão feminina" e um pan-eslavismo crescente que empurrava o país para os Bálcãs, culminando na Guerra Russo-Turca de 1877–78, contemporânea dos últimos capítulos.',
+      autor: 'Liev Tolstói (1828–1910) nasceu em Iasnaia Poliana, a propriedade da família perto de Tula, numa antiga linhagem da nobreza russa. Estudou direito e línguas orientais em Cazã, mas largou a universidade. Serviu no exército no Cáucaso e na Guerra da Crimeia, de onde tirou as Crônicas de Sebastopol (1855). Já consagrado por Guerra e Paz (1869), escreveu Anna Kariênina entre 1873 e 1877 — para muitos, seu "primeiro romance verdadeiro". Casou-se com Sófia Behrs em 1862, com quem teve treze filhos; ela foi também sua copista e editora. Foi justamente nos anos 1870, enquanto escrevia este livro, que mergulhou na crise espiritual que mudaria sua vida (relatada depois em Uma Confissão, 1882), rumo a um cristianismo radical, pacifista e de não-violência que mais tarde inspiraria Gandhi. Anos antes, fundara escolas para filhos de camponeses em suas terras.',
+    },
+  };
+  return { ...d, annaKareninaSeeded: true, acompLeituras: [...(d.acompLeituras || []), livro] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -1119,6 +1143,51 @@ export function LifeProvider({ children }) {
   const deleteLeitura = (id) => persist({ ...data, leituras: leituras.filter(x => x.id !== id) });
   const toggleLeituraLido = (id) => persist({ ...data, leituras: leituras.map(x => x.id === id ? { ...x, lido: !x.lido } : x) });
 
+  // ---- Estudos › Cursos online (matriculado; status + progresso) ----
+  // curso = { id, titulo, tipo, plataforma?, status:'quero'|'fazendo'|'concluido'|'pausado',
+  //   cargaHoras?, progresso?(0-100), inicio?, fim?, link?, nota?,
+  //   modulos?:[{id,texto,feito}] }  // progresso pelos módulos quando houver
+  const cursos = data.cursos || [];
+  const saveCurso = (c) => persist({ ...data, cursos: c.id && cursos.some(x => x.id === c.id)
+    ? cursos.map(x => x.id === c.id ? c : x)
+    : [...cursos, { ...c, id: uid('cs') }] });
+  const deleteCurso = (id) => persist({ ...data, cursos: cursos.filter(x => x.id !== id) });
+  const toggleCursoModulo = (cursoId, modId) => persist({ ...data, cursos: cursos.map(x => x.id === cursoId
+    ? { ...x, modulos: (x.modulos || []).map(m => m.id === modId ? { ...m, feito: !m.feito } : m) } : x) });
+
+  // ---- Estudos › Acompanhamento de leituras (livro em curso, de perto) ----
+  // Diferente das "Próximas leituras" (catálogo): aqui acompanha-se a leitura ATUAL com
+  // mapa de personagens (sem spoiler — construído pela Mari), anotações e guia de contexto.
+  // livro = { id, titulo, autor?, ano?, pais?, inicio?, status:'lendo'|'pausado'|'concluido',
+  //   personagens:[{id,nome,descricao?,obs?,relacoes:[{id,tipo,comId}]}],
+  //   notas:[{id,texto,criadoEm}], guia?:{publicacao?,russia?,autor?} }  // guia = texto curado por mim
+  const acompLeituras = data.acompLeituras || [];
+  const setAcomp = (next) => persist({ ...data, acompLeituras: next });
+  const saveAcompLeitura = (l) => setAcomp(l.id && acompLeituras.some(x => x.id === l.id)
+    ? acompLeituras.map(x => x.id === l.id ? { ...x, ...l } : x)
+    : [...acompLeituras, { id: uid('al'), personagens: [], notas: [], ...l }]);
+  const deleteAcompLeitura = (id) => setAcomp(acompLeituras.filter(x => x.id !== id));
+  const _mapLivro = (livroId, fn) => setAcomp(acompLeituras.map(x => x.id === livroId ? fn(x) : x));
+  const savePersonagem = (livroId, p) => _mapLivro(livroId, l => {
+    const lista = l.personagens || [];
+    return { ...l, personagens: p.id && lista.some(x => x.id === p.id)
+      ? lista.map(x => x.id === p.id ? { ...x, ...p } : x)
+      : [...lista, { id: uid('pg'), relacoes: [], ...p }] };
+  });
+  const deletePersonagem = (livroId, persId) => _mapLivro(livroId, l => ({
+    ...l,
+    // remove o personagem e qualquer relação que aponte pra ele
+    personagens: (l.personagens || []).filter(x => x.id !== persId)
+      .map(x => ({ ...x, relacoes: (x.relacoes || []).filter(r => r.comId !== persId) })),
+  }));
+  const saveNotaLeitura = (livroId, nota) => _mapLivro(livroId, l => {
+    const lista = l.notas || [];
+    return { ...l, notas: nota.id && lista.some(x => x.id === nota.id)
+      ? lista.map(x => x.id === nota.id ? { ...x, ...nota } : x)
+      : [{ id: uid('nl'), criadoEm: Date.now(), ...nota }, ...lista] };
+  });
+  const deleteNotaLeitura = (livroId, notaId) => _mapLivro(livroId, l => ({ ...l, notas: (l.notas || []).filter(x => x.id !== notaId) }));
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1258,6 +1327,8 @@ export function LifeProvider({ children }) {
     viagens, saveViagem, deleteViagem,
     viagensFuturas, saveViagemFutura, deleteViagemFutura,
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
+    cursos, saveCurso, deleteCurso, toggleCursoModulo,
+    acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

@@ -276,7 +276,29 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   (dinheiro/saúde/sentimentos/viagem) e **Maquiagem** (conhecimento + "Para comprar" espelhando a lista de
   Compras **Maquiagem**, semeada idempotente por `ensureMaquiagem`/flag `maquiagemSeeded` por causa do
   merge raso; "Para provar" só referência). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
-- Pendências Life: Estudos (placeholder via `SubPlaceholder`). Ver `ROADMAP.md`.
+- **Estudos** (`EstudosPage` hub + cards, em Life.jsx) — a aba virou um **hub** (grade de cards, como o
+  hub da Life), porque vai abrigar várias coisas. Cards atuais:
+  - **Acompanhamento de leituras** (`AcompLeiturasSection`/`LivroAcompDetail`) — acompanhar a leitura
+    EM CURSO de perto (≠ "Próximas leituras" da Explorar, que é o catálogo/estante do Skoob). Slice
+    `acompLeituras:[{id,titulo,autor?,ano?,pais?,inicio?,status:'lendo'|'pausado'|'concluido',
+    personagens:[{id,nome,descricao?,obs?,relacoes:[{id,tipo,comId}]}],notas:[{id,texto,criadoEm}],
+    guia?:{publicacao?,russia?,autor?}}]` no `lifeStore` (CRUD `saveAcompLeitura`/`deleteAcompLeitura`/
+    `savePersonagem`/`deletePersonagem`/`saveNotaLeitura`/`deleteNotaLeitura`; ids `al-`/`pg-`/`nl-`).
+    Detalhe do livro = 4 abas: **Personagens** (mapa que a Mari constrói conforme lê, sem spoiler —
+    cada um com nome/descrição + **relações estruturadas** `tipo`∈`REL_TIPOS` ligando a outro personagem
+    via `comId`, mais `obs` texto livre; apagar um personagem remove as relações órfãs que apontam pra ele,
+    via `deletePersonagem`), **Anotações** (notas datadas, mais recentes 1º), **Guia** (texto curado por
+    mim, SEM SPOILER — só publicação/contexto da Rússia/autor), **Na estante** (cruza com `life.leituras`
+    lidos: `mesmoPais` por `pais` + `mesmaEpoca` ±25 anos do `ano`, excluindo os já listados no país;
+    `normTxt` normaliza acento/caixa). Seed **Anna Kariênina** (`ensureAnnaKarenina`/flag
+    `annaKareninaSeeded`, id `al-anna-karenina`, Tolstói/1877/Rússia, `inicio:'2026-06-25'`, com o guia
+    verificado embutido) em `runLifeSeeds`. Pra outro livro com guia: novo `ensure*` no mesmo molde.
+  - **Cursos online** (`CursosSection`/`CursoCard`/`CursoForm`) — cursos/aulas/certificações em que se
+    matriculou. Slice `cursos:[{id,titulo,tipo,plataforma?,status:'quero'|'fazendo'|'concluido'|'pausado',
+    cargaHoras?,progresso?(0-100),inicio?,fim?,link?,nota?,modulos?:[{id,texto,feito}]}]` (CRUD `saveCurso`/
+    `deleteCurso`/`toggleCursoModulo`; ids `cs-`). Abas por situação, filtro por `tipo` (`ESTUDO_TIPOS`),
+    barra de progresso (pelos módulos marcados quando houver, senão campo manual; `estudoProgresso`). Vazio.
+  - FALTA (a Mari vai detalhar): card **Temas para estudar** e **registro do que aprendeu** por tema.
 - **Viagens** (`ViagensSection`/`ViagemDetail`/`ViagemForm`/`MesaLinkForm`, em Life.jsx) — viagens
   **futuras/em curso**. Slice `viagensFuturas:[{id,titulo,cidade,inicio,fim,hospedagem?,passagens?,notas?,
   link?,homenageada?:{nome,texto,link},mesas?:[{id,n,dia,hora,titulo,autores,link?,desc?}],

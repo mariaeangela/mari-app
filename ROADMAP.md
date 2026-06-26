@@ -41,8 +41,13 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".
 
 ## 💛 Life
-*(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos · Viagens)*
-- 🟡 **Estudos** — aulas, leituras, cursos (placeholder; único que sobra).
+*(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos ✅ · Viagens)*
+- ✅ **Estudos** — virou **hub** de cards. ✅ **Acompanhamento de leituras** (livro em curso, de perto:
+  mapa de personagens que a Mari constrói sem spoiler + relações; anotações datadas; guia de contexto
+  sem spoiler; "na estante" cruzando com os lidos por país/época). Seed **Anna Kariênina** (Tolstói, 1877).
+  ✅ **Cursos online** (matrícula/progresso, módulos, status). FALTA (a Mari vai detalhar): card **Temas
+  para estudar** e **registro do que aprendeu** por tema. Guia por livro hoje é seedado à mão (Anna);
+  ideia futura: botão "pedir guia" pra qualquer livro acompanhado.
 - 🟢✅ **Viagens** — seção real: viagens **futuras** com card (datas, hospedagem, passagens, programação,
   homenageada, checklist "o que levar"). Seed FLIP 2026 (22–26/jul, Paraty; 21 mesas; Orides Fontela).
   Alimenta o Modo Viagem. Cada mesa já tem o **link oficial** (flip.org.br/evento/…). FALTA: **feitas**
