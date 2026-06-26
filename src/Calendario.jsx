@@ -582,20 +582,22 @@ function HumorView({ data, onDayClick }) {
 function MiniMonth({ year, month, moods, onDayClick }) {
   const startPad = new Date(year, month, 1).getDay();
   const days = new Date(year, month + 1, 0).getDate();
+  // Completa 1ª e última semana com os dias de fora (apagados), igual à visão Mês.
   const cells = [];
-  for (let i = 0; i < startPad; i++) cells.push(null);
-  for (let d = 1; d <= days; d++) cells.push(d);
+  for (let i = 0; i < startPad; i++) cells.push({ date: new Date(year, month, 1 - (startPad - i)), out: true });
+  for (let d = 1; d <= days; d++) cells.push({ date: new Date(year, month, d), out: false });
+  let nd = 1;
+  while (cells.length % 7 !== 0) cells.push({ date: new Date(year, month + 1, nd++), out: true });
   return (
     <div>
       <div style={{ fontSize: 11, color: '#888', fontWeight: 700, marginBottom: 5, textTransform: 'capitalize' }}>{MESES[month]}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-        {cells.map((d, i) => {
-          if (d === null) return <div key={i} />;
-          const date = new Date(year, month, d);
+        {cells.map(({ date, out }, i) => {
           const mood = moods[ymd(date)];
-          return <button key={i} onClick={() => onDayClick(date)} title={String(d)} style={{
+          return <button key={i} onClick={() => onDayClick(date)} title={String(date.getDate())} style={{
             aspectRatio: '1', borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
             background: mood ? MOOD_BY_ID[mood]?.cor : '#f1f1f1',
+            opacity: out ? 0.35 : 1,
           }} />;
         })}
       </div>
