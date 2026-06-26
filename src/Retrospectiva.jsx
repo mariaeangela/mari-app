@@ -668,11 +668,16 @@ const LIVRO_FLAG = {
 function LeiturasRetro({ onBack, isWide }) {
   const life = useLife();
   const lidos = (life.leituras || []).filter(l => l.lido && l.lidoEm && l.lidoEm.length);
-  const { anos, anoSel, setAnoSel } = useAnoSel(lidos.flatMap(l => l.lidoEm.map(a => String(a))));
-  const doAno = lidos.filter(l => l.lidoEm.includes(Number(anoSel)));
+  const anosNum = [...new Set(lidos.flatMap(l => l.lidoEm.filter(a => typeof a === 'number')))].sort((a, b) => b - a);
+  const temAntes = lidos.some(l => l.lidoEm.includes('antes'));
+  const opcoes = [...anosNum.map(String), ...(temAntes ? ['antes'] : [])];
+  const anoAtual = String(new Date().getFullYear());
+  const [selRaw, setSel] = useState(null);
+  const sel = (selRaw && opcoes.includes(selRaw)) ? selRaw : (opcoes.includes(anoAtual) ? anoAtual : opcoes[0]);
+  const doAno = sel === 'antes' ? lidos.filter(l => l.lidoEm.includes('antes')) : lidos.filter(l => l.lidoEm.includes(Number(sel)));
   const totalPaginas = doAno.reduce((s, l) => s + (Number(l.paginas) || 0), 0);
   const fmtN = (n) => Number(n || 0).toLocaleString('pt-BR');
-  const porAno = {}; lidos.forEach(l => l.lidoEm.forEach(a => { porAno[a] = (porAno[a] || 0) + 1; }));
+  const porAno = {}; lidos.forEach(l => l.lidoEm.forEach(a => { if (typeof a === 'number') porAno[a] = (porAno[a] || 0) + 1; }));
   const anosCron = Object.keys(porAno).map(Number).sort((a, b) => a - b);
   const maxAno = Math.max(1, ...Object.values(porAno));
   const rank = (vals) => { const m = {}; vals.forEach(v => { if (v) m[v] = (m[v] || 0) + 1; }); return Object.entries(m).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n); };
@@ -712,9 +717,9 @@ function LeiturasRetro({ onBack, isWide }) {
             {anosCron.map(a => {
               const n = porAno[a], h = Math.max(3, Math.round((n / maxAno) * 100));
               return (
-                <div key={a} onClick={() => setAnoSel(String(a))} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
+                <div key={a} onClick={() => setSel(String(a))} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
                   <div style={{ fontSize: 10, color: '#777', height: 13, fontWeight: 700 }}>{n}</div>
-                  <div style={{ width: '100%', maxWidth: 34, height: h, background: COR_LIVROS, borderRadius: '4px 4px 0 0', opacity: String(a) === anoSel ? 1 : 0.45 }} />
+                  <div style={{ width: '100%', maxWidth: 34, height: h, background: COR_LIVROS, borderRadius: '4px 4px 0 0', opacity: String(a) === sel ? 1 : 0.45 }} />
                   <div style={{ fontSize: 9.5, color: '#aaa', marginTop: 4 }}>{a}</div>
                 </div>
               );
@@ -722,10 +727,19 @@ function LeiturasRetro({ onBack, isWide }) {
           </div>
         </>}
 
-        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_LIVROS} />
+        {opcoes.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
+            {opcoes.map(o => (
+              <button key={o} onClick={() => setSel(o)} style={{
+                whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                border: '1px solid ' + (sel === o ? COR_LIVROS : '#e2e2e2'), background: sel === o ? COR_LIVROS + '1c' : '#fff', color: sel === o ? '#4a3470' : '#999',
+              }}>{o === 'antes' ? 'antes de 2013' : o}</button>
+            ))}
+          </div>
+        )}
         <div style={{ marginBottom: 4 }}>
           <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
-          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'livro' : 'livros'} em {anoSel} · {fmtN(totalPaginas)} páginas</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'livro' : 'livros'} {sel === 'antes' ? (doAno.length === 1 ? 'lido' : 'lidos') + ' antes de 2013' : 'em ' + sel} · {fmtN(totalPaginas)} páginas</span>
         </div>
 
         {ranking('países', paises, (k) => `${LIVRO_FLAG[k] || '📖'}  ${k}`)}

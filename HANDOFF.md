@@ -180,9 +180,12 @@ casa a ler. Slice `leituras:[{id,titulo,autor?,pais?,idioma?,ano?,genero?,temas:
 `lifeStore` (CRUD `saveLeitura`/`deleteLeitura`/`toggleLeituraLido`; ids `lv-*`). **Tema em vez de sinopse**
 (sem spoiler), **3–5 temas por livro** (preferência da Mari). As tags de tema aparecem no card e são
 clicáveis (viram filtro). `idioma` = língua de leitura, **só 3** (Português/Espanhol/Inglês; patch `ensureLeiturasIdioma3` via
-`LEITURA_ESPANHOL`/`LEITURA_INGLES`, resto → Português; select no form). Campo **`lidoEm`** (lista de anos em que a Mari leu — array p/ suportar **releitura**) — input
-multi-ano no form (vírgula/espaço), card mostra "lido em 2021, 2024 (releitura)" e filtro dropdown
-**"Ano da leitura"** com opção **"Sem data"** (lidos sem ano, p/ ela preencher) + os anos. Seed
+`LEITURA_ESPANHOL`/`LEITURA_INGLES`, resto → Português; select no form). Campo **`lidoEm`** (lista de anos em que a Mari leu — array p/ suportar **releitura**; pode conter o
+marcador especial **`'antes'`** = "antes de 2013", livros da infância) — input multi-ano + check "Li antes
+de 2013" no form; card via `lidoEmLabel` ("lido em 2021, 2024 (releitura)" / "lido antes de 2013"); filtro
+dropdown **"Ano da leitura"** com **"Sem data"** + **"Antes de 2013"** (se houver) + os anos numéricos. Na
+`LeiturasRetro` o `'antes'` NÃO entra nas barras por ano (só anos numéricos), mas vira um chip próprio no
+seletor. Seed
 `LEITURAS_ANOS_SEED` (título→[anos], 2021–2026) via patch `ensureLeiturasAnos` (`leiturasAnos1`, não
 sobrescreve edição); 2026 veio dos livros lidos do calendário (`ensureLivrosLidos2026`). 34 livros com
 ano, ~147 lidos "sem data". Filtros em **dropdown** (estado `abreFiltro`): uma
