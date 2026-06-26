@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], cursos: [], acompLeituras: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1143,18 +1143,6 @@ export function LifeProvider({ children }) {
   const deleteLeitura = (id) => persist({ ...data, leituras: leituras.filter(x => x.id !== id) });
   const toggleLeituraLido = (id) => persist({ ...data, leituras: leituras.map(x => x.id === id ? { ...x, lido: !x.lido } : x) });
 
-  // ---- Estudos › Cursos online (matriculado; status + progresso) ----
-  // curso = { id, titulo, tipo, plataforma?, status:'quero'|'fazendo'|'concluido'|'pausado',
-  //   cargaHoras?, progresso?(0-100), inicio?, fim?, link?, nota?,
-  //   modulos?:[{id,texto,feito}] }  // progresso pelos módulos quando houver
-  const cursos = data.cursos || [];
-  const saveCurso = (c) => persist({ ...data, cursos: c.id && cursos.some(x => x.id === c.id)
-    ? cursos.map(x => x.id === c.id ? c : x)
-    : [...cursos, { ...c, id: uid('cs') }] });
-  const deleteCurso = (id) => persist({ ...data, cursos: cursos.filter(x => x.id !== id) });
-  const toggleCursoModulo = (cursoId, modId) => persist({ ...data, cursos: cursos.map(x => x.id === cursoId
-    ? { ...x, modulos: (x.modulos || []).map(m => m.id === modId ? { ...m, feito: !m.feito } : m) } : x) });
-
   // ---- Estudos › Acompanhamento de leituras (livro em curso, de perto) ----
   // Diferente das "Próximas leituras" (catálogo): aqui acompanha-se a leitura ATUAL com
   // mapa de personagens (sem spoiler — construído pela Mari), anotações e guia de contexto.
@@ -1327,7 +1315,6 @@ export function LifeProvider({ children }) {
     viagens, saveViagem, deleteViagem,
     viagensFuturas, saveViagemFutura, deleteViagemFutura,
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
-    cursos, saveCurso, deleteCurso, toggleCursoModulo,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     gastosItens, saveGastoItem, deleteGastoItem,
   };

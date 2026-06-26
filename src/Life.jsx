@@ -3028,247 +3028,8 @@ function MesaLinkForm({ trip, mesa, onClose }) {
   );
 }
 
-// ---- Estudos (cursos, aulas, leituras, palestras… com status e progresso) ----
+// Cor da aba Estudos (mesma do card no hub da Life).
 const COR_ESTUDO = '#5c6bc0';
-const ESTUDO_TIPOS = [
-  { id: 'curso', label: 'Curso' },
-  { id: 'aula', label: 'Aula' },
-  { id: 'leitura', label: 'Leitura' },
-  { id: 'palestra', label: 'Palestra' },
-  { id: 'podcast', label: 'Podcast' },
-  { id: 'certificacao', label: 'Certificação' },
-  { id: 'outro', label: 'Outro' },
-];
-const ESTUDO_STATUS = [
-  { id: 'fazendo', label: 'Fazendo' },
-  { id: 'quero', label: 'Quero' },
-  { id: 'concluido', label: 'Concluído' },
-  { id: 'pausado', label: 'Pausado' },
-];
-const estTipoLabel = (id) => (ESTUDO_TIPOS.find(t => t.id === id)?.label) || 'Outro';
-// Progresso (0–100): pelos módulos quando existem; senão 100 se concluído, ou o campo manual.
-const estudoProgresso = (e) => {
-  const m = e.modulos || [];
-  if (m.length) return Math.round(m.filter(x => x.feito).length / m.length * 100);
-  if ((e.status || 'fazendo') === 'concluido') return 100;
-  return Math.max(0, Math.min(100, Number(e.progresso) || 0));
-};
-
-function CursoCard({ e, onEdit }) {
-  const life = useLife();
-  const prog = estudoProgresso(e);
-  const mods = e.modulos || [];
-  const temBarra = (e.status || 'fazendo') === 'fazendo' || mods.length > 0 || prog > 0;
-  return (
-    <div style={{ border: '1px solid #ececec', borderRadius: 14, background: '#fff', padding: '14px 15px', marginBottom: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-        <div onClick={() => onEdit(e)} style={{ cursor: 'pointer', flex: 1 }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, color: '#1a1a1a', fontWeight: 700, lineHeight: 1.25 }}>{e.titulo}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 7 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: COR_ESTUDO, background: COR_ESTUDO + '15', borderRadius: 6, padding: '2px 8px' }}>{estTipoLabel(e.tipo)}</span>
-            {e.plataforma && <span style={{ fontSize: 11.5, color: '#888' }}>{e.plataforma}</span>}
-            {e.cargaHoras ? <span style={{ fontSize: 11.5, color: '#aaa' }}>· {e.cargaHoras}h</span> : null}
-          </div>
-        </div>
-        {e.link && <a href={e.link} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()} title="abrir" style={{ flexShrink: 0, textDecoration: 'none', color: COR_ESTUDO, fontSize: 18 }}>↗</a>}
-      </div>
-
-      {temBarra && (
-        <div style={{ marginTop: 11 }}>
-          <div style={{ height: 7, borderRadius: 5, background: '#eee', overflow: 'hidden' }}>
-            <div style={{ width: prog + '%', height: '100%', background: COR_ESTUDO, borderRadius: 5, transition: 'width .2s' }} />
-          </div>
-          <div style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>{prog}%{mods.length ? ` · ${mods.filter(m => m.feito).length}/${mods.length} módulos` : ''}</div>
-        </div>
-      )}
-
-      {(e.inicio || e.fim) && <div style={{ fontSize: 11.5, color: '#aaa', marginTop: 9 }}>{fmtIntervalo(e.inicio, e.fim)}</div>}
-      {e.nota && <div style={{ fontSize: 13, color: '#666', lineHeight: 1.55, marginTop: 9, whiteSpace: 'pre-wrap' }}>{e.nota}</div>}
-
-      {mods.length > 0 && (
-        <div style={{ marginTop: 11, borderTop: '1px solid #f3f3f3', paddingTop: 9 }}>
-          {mods.map(m => (
-            <div key={m.id} onClick={() => life.toggleCursoModulo(e.id, m.id)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
-              <span style={{ flexShrink: 0, width: 17, height: 17, borderRadius: 5, border: '1.5px solid ' + (m.feito ? COR_ESTUDO : '#ccc'), background: m.feito ? COR_ESTUDO : '#fff', color: '#fff', fontSize: 11, lineHeight: '15px', textAlign: 'center', marginTop: 1 }}>{m.feito ? '✓' : ''}</span>
-              <span style={{ fontSize: 13, color: m.feito ? '#aaa' : '#444', textDecoration: m.feito ? 'line-through' : 'none', lineHeight: 1.4 }}>{m.texto}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CursoForm({ editing, onClose }) {
-  const life = useLife();
-  const [titulo, setTitulo] = useState(editing?.titulo || '');
-  const [tipo, setTipo] = useState(editing?.tipo || 'curso');
-  const [plataforma, setPlataforma] = useState(editing?.plataforma || '');
-  const [status, setStatus] = useState(editing?.status || 'fazendo');
-  const [cargaHoras, setCargaHoras] = useState(editing?.cargaHoras != null ? String(editing.cargaHoras) : '');
-  const [progresso, setProgresso] = useState(editing?.progresso != null ? String(editing.progresso) : '');
-  const [inicio, setInicio] = useState(editing?.inicio || '');
-  const [fim, setFim] = useState(editing?.fim || '');
-  const [link, setLink] = useState(editing?.link || '');
-  const [nota, setNota] = useState(editing?.nota || '');
-  const [modsText, setModsText] = useState((editing?.modulos || []).map(m => m.texto).join('\n'));
-  const plataformas = [...new Set((life.cursos || []).map(x => x.plataforma).filter(Boolean))];
-  const podeSalvar = titulo.trim().length > 0;
-  const salvar = () => {
-    if (!podeSalvar) return;
-    const modulos = modsText.split('\n').map(s => s.trim()).filter(Boolean).map((texto, i) => {
-      const prev = (editing?.modulos || []).find(m => m.texto === texto);
-      return prev || { id: 'em' + Date.now().toString(36) + i, texto, feito: false };
-    });
-    const obj = {
-      titulo: titulo.trim(), tipo, status,
-      plataforma: plataforma.trim() || undefined,
-      cargaHoras: cargaHoras ? Number(cargaHoras) : undefined,
-      progresso: progresso !== '' ? Math.max(0, Math.min(100, Number(progresso) || 0)) : undefined,
-      inicio: inicio || undefined, fim: fim || undefined,
-      link: link.trim() || undefined, nota: nota.trim() || undefined,
-      modulos: modulos.length ? modulos : undefined,
-    };
-    life.saveCurso(editing?.id ? { ...obj, id: editing.id } : obj);
-    onClose();
-  };
-  return (
-    <div onClick={onClose} style={overlay}>
-      <div onClick={e => e.stopPropagation()} style={sheet}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar curso' : 'Novo curso'}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
-        </div>
-
-        <label style={labelStyle}>Título</label>
-        <input value={titulo} autoFocus onChange={e => setTitulo(e.target.value)} placeholder="ex.: CS50 — Harvard" style={inputStyle} />
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Tipo</label>
-            <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
-              {ESTUDO_TIPOS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Situação</label>
-            <select value={status} onChange={e => setStatus(e.target.value)} style={inputStyle}>
-              {ESTUDO_STATUS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <label style={labelStyle}>Plataforma / instituição</label>
-        <input value={plataforma} onChange={e => setPlataforma(e.target.value)} list="estudo-plataformas" placeholder="ex.: Coursera, USP, YouTube" style={inputStyle} />
-        <datalist id="estudo-plataformas">{plataformas.map(p => <option key={p} value={p} />)}</datalist>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Carga horária (h)</label>
-            <input value={cargaHoras} onChange={e => setCargaHoras(e.target.value)} inputMode="numeric" placeholder="ex.: 40" style={inputStyle} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Progresso (%)</label>
-            <input value={progresso} onChange={e => setProgresso(e.target.value)} inputMode="numeric" placeholder="0–100" style={inputStyle} />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Início</label>
-            <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} style={inputStyle} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Fim</label>
-            <input type="date" value={fim} onChange={e => setFim(e.target.value)} style={inputStyle} />
-          </div>
-        </div>
-
-        <label style={labelStyle}>Link</label>
-        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
-
-        <label style={labelStyle}>Módulos / aulas (1 por linha)</label>
-        <textarea value={modsText} onChange={e => setModsText(e.target.value)} rows={4} placeholder={'Semana 1 — Introdução\nSemana 2 — Funções'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
-        <p style={{ fontSize: 11, color: '#bbb', margin: '5px 2px 0' }}>Com módulos, o progresso vem do que você marca como feito.</p>
-
-        <label style={labelStyle}>Nota</label>
-        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="anotações livres" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
-
-        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-          {editing && <button onClick={() => { if (window.confirm('Apagar este curso?')) { life.deleteCurso(editing.id); onClose(); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 11, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '12px 16px', fontSize: 13, fontWeight: 700 }}>Apagar</button>}
-          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, border: 'none', borderRadius: 11, background: podeSalvar ? '#111' : '#ccc', color: '#fff', cursor: podeSalvar ? 'pointer' : 'default', padding: '12px 0', fontSize: 14, fontWeight: 700 }}>Salvar</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CursosSection({ onBack }) {
-  const life = useLife();
-  const [statusSel, setStatusSel] = useState('fazendo');
-  const [tipoSel, setTipoSel] = useState(null);
-  const [form, setForm] = useState(null); // null | { editing } | {} (novo)
-  const cursos = life.cursos || [];
-  const countStatus = (s) => cursos.filter(e => (e.status || 'fazendo') === s).length;
-  const tiposUsados = ESTUDO_TIPOS.filter(t => cursos.some(e => e.tipo === t.id));
-  let lista = cursos.filter(e => (e.status || 'fazendo') === statusSel);
-  if (tipoSel) lista = lista.filter(e => e.tipo === tipoSel);
-  lista = [...lista].sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '', 'pt'));
-  return (
-    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Estudos</button>
-      <div style={{ width: 36, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-        <div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Cursos online</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 16px' }}>cursos, aulas e certificações — matrícula e progresso</p>
-        </div>
-        <button onClick={() => setForm({})} title="novo estudo" style={{ flexShrink: 0, border: 'none', borderRadius: 20, background: '#111', color: '#fff', cursor: 'pointer', padding: '8px 14px', fontSize: 18, lineHeight: 1 }}>+</button>
-      </div>
-
-      {/* abas por situação */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 12 }}>
-        {ESTUDO_STATUS.map(s => {
-          const n = countStatus(s.id);
-          const ativo = statusSel === s.id;
-          return (
-            <button key={s.id} onClick={() => setStatusSel(s.id)} style={{
-              border: '1px solid ' + (ativo ? COR_ESTUDO : '#e2e2e2'), borderRadius: 20,
-              background: ativo ? COR_ESTUDO : '#fff', color: ativo ? '#fff' : '#777',
-              cursor: 'pointer', padding: '6px 13px', fontSize: 12.5, fontWeight: 700,
-            }}>{s.label}{n ? ` ${n}` : ''}</button>
-          );
-        })}
-      </div>
-
-      {/* filtro por tipo (só quando há variedade) */}
-      {tiposUsados.length > 1 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-          <button onClick={() => setTipoSel(null)} style={chipFiltro(tipoSel === null)}>Todos</button>
-          {tiposUsados.map(t => <button key={t.id} onClick={() => setTipoSel(t.id)} style={chipFiltro(tipoSel === t.id)}>{t.label}</button>)}
-        </div>
-      )}
-
-      {lista.length === 0 ? (
-        <div style={{ marginTop: 18, padding: 24, borderRadius: 16, background: COR_ESTUDO + '0e', border: '1px dashed ' + COR_ESTUDO + '55', textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15, color: '#666', margin: 0 }}>{cursos.length === 0 ? 'Nada por aqui ainda.' : 'Nada nesta aba.'}</p>
-          <p style={{ fontSize: 12.5, color: '#aaa', marginTop: 7 }}>Toque em <strong>+</strong> para adicionar um curso, aula ou certificação.</p>
-        </div>
-      ) : (
-        lista.map(e => <CursoCard key={e.id} e={e} onEdit={(ed) => setForm({ editing: ed })} />)
-      )}
-
-      {form && <CursoForm editing={form.editing} onClose={() => setForm(null)} />}
-    </div>
-  );
-}
-
-// chip de filtro reutilizável (Estudos)
-const chipFiltro = (ativo) => ({
-  border: '1px solid ' + (ativo ? '#111' : '#e2e2e2'), borderRadius: 16,
-  background: ativo ? '#111' : '#fff', color: ativo ? '#fff' : '#888',
-  cursor: 'pointer', padding: '5px 11px', fontSize: 12, fontWeight: 600,
-});
 
 // ===== Estudos › Acompanhamento de leituras (livro em curso, de perto) =====
 const COR_ACOMP = '#7e57c2';
@@ -3634,15 +3395,13 @@ function AcompLeiturasSection({ onBack }) {
   );
 }
 
-// ===== Estudos — hub (cards: acompanhamento de leituras, cursos online) =====
+// ===== Estudos — hub (cards: acompanhamento de leituras; outros virão) =====
 function EstudosPage({ onBack }) {
   const life = useLife();
   const [sec, setSec] = useState(null);
   if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
-  if (sec === 'cursos') return <CursosSection onBack={() => setSec(null)} />;
   const cards = [
     { id: 'acomp', label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: COR_ACOMP, n: (life.acompLeituras || []).length, sufixo: 'leitura' },
-    { id: 'cursos', label: 'Cursos online', desc: 'matrículas e progresso', cor: COR_ESTUDO, n: (life.cursos || []).length, sufixo: 'curso' },
   ];
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3650,7 +3409,7 @@ function EstudosPage({ onBack }) {
       <div style={{ width: 36, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Estudos</h2>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>aulas, leituras e cursos</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: cards.length > 1 ? '1fr 1fr' : '1fr', gap: 12 }}>
         {cards.map(c => (
           <button key={c.id} onClick={() => setSec(c.id)} style={{ background: c.cor + '12', border: '1px solid ' + c.cor + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 24, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
