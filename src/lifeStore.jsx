@@ -1049,8 +1049,40 @@ function ensureViagensQueroV2(d) {
   return { ...d, viagensQueroV2: true, viagensQuero: vq };
 }
 
+// Patch: corrige os erros de digitação da wishlist (verbatim dos prints → grafia
+// certa). Só troca o texto EXATO semeado — se a Mari já editou um item, não casa
+// e fica intacto. Roda depois do seed, então também corrige instalações novas.
+function ensureViagensQueroFix(d) {
+  if (d.viagensQueroFix1) return d;
+  const FIX = {
+    'Amazônia (anavilhanas, dolphi lodge, presidente figueiredo)': 'Amazônia (Anavilhanas, Dolphin Lodge, Presidente Figueiredo)',
+    'Alter do chão': 'Alter do Chão',
+    'Lençóis maranhenses': 'Lençóis Maranhenses',
+    'Ilha bela': 'Ilhabela',
+    'Cambará do sul': 'Cambará do Sul',
+    'Bahia - boipeba, maraú, algodões (perto de morro de sp), moreré': 'Bahia - Boipeba, Maraú, Algodões (perto de Morro de São Paulo), Moreré',
+    'Bahia - abrolhos para ver baleia jubarte': 'Bahia - Abrolhos para ver baleia jubarte',
+    'Salar de uyni alagado': 'Salar de Uyuni alagado',
+    'Norte da espanha': 'Norte da Espanha',
+    'Lisboa, porto, sintra, cascais, alagarve': 'Lisboa, Porto, Sintra, Cascais, Algarve',
+    'Costa amalfitana': 'Costa Amalfitana',
+    'Vale de Aosta (italia)': 'Vale de Aosta (Itália)',
+    'Berlim, munique, Frankfurt': 'Berlim, Munique, Frankfurt',
+    'Arizona / gran canyon': 'Arizona / Grand Canyon',
+    'Vietna': 'Vietnã',
+    'India': 'Índia',
+    'Russia (em Moscou, visitar a praça vermelha sábado de manhã, para ver estudantes colegiais russos lustrando as estátuas de renas)': 'Rússia (em Moscou, visitar a praça vermelha sábado de manhã, para ver estudantes colegiais russos lustrando as estátuas de renas)',
+    'Tanzania': 'Tanzânia',
+    'Giraffe manor': 'Giraffe Manor',
+    'Namíbia (giraffe manor)': 'Namíbia (Giraffe Manor)',
+    'Butao': 'Butão',
+  };
+  const vq = (d.viagensQuero || []).map(g => ({ ...g, itens: (g.itens || []).map(it => FIX[it.texto] ? { ...it, texto: FIX[it.texto] } : it) }));
+  return { ...d, viagensQueroFix1: true, viagensQuero: vq };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

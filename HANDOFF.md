@@ -334,7 +334,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. Patch `ensureViagensQueroV2` (flag
   `viagensQueroV2`) acrescenta +4 destinos na África (Giraffe manor/Namíbia/Ruanda/Marrocos) e a região
   **Outros** (Antártida/Islândia/Dubai/Butao), sem duplicar nem mexer no que a Mari editou → 7 regiões /
-  ~55 destinos. O early-return `if (verQuero)` fica DEPOIS dos hooks da `ViagensSection`.
+  ~55 destinos. Patch `ensureViagensQueroFix` (flag `viagensQueroFix1`) corrige os erros de digitação dos
+  prints (mapa texto-antigo→texto-novo; só casa o texto exato semeado, preservando edições da Mari; roda
+  após o seed, então corrige instalações novas também). O early-return `if (verQuero)` fica DEPOIS dos
+  hooks da `ViagensSection`.
 
 ## Modo Viagem (`src/cidadeFatos.js` + Login/App)
 Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e
