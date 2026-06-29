@@ -326,11 +326,13 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Nenhum sobrescreve o que a Mari editou. Encadeados em `runLifeSeeds`.
   A `ViagensSection` tem ainda um botão **"🗺️ Viagens que quero fazer"** (estado `verQuero`) que abre a
   sub-view **`QueroViajarView`** — wishlist por **região**. Slice `viagensQuero:[{id,nome,itens:[{id,texto,
-  feito}]}]` no `lifeStore` (CRUD `addQueroGrupo`/`renameQueroGrupo`/`deleteQueroGrupo`/`moveQueroGrupo`/
-  `addQueroItem`/`saveQueroItemTexto`/`toggleQueroItem`/`deleteQueroItem`; ids `vq-`/`vqi-`). UI: regiões
-  como cabeçalhos (uppercase) com destinos checáveis (☐/☑, riscado quando feito), toque no texto = **edição
-  inline**, × apaga, "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar regiões, igual
-  Legendas/Aprendizados). Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
+  notas:[{id,texto}]}]}]` no `lifeStore` (CRUD `addQueroGrupo`/`renameQueroGrupo`/`deleteQueroGrupo`/
+  `moveQueroGrupo`/`addQueroItem`/`saveQueroItemTexto`/`deleteQueroItem` + notas
+  `addQueroNota`/`saveQueroNotaTexto`/`deleteQueroNota`; ids `vq-`/`vqi-`/`vqn-`). UI: regiões como
+  cabeçalhos (uppercase); **destinos SEM check** (a Mari pediu — só lista) que **expandem ao tocar** (▸/▾)
+  mostrando **notas** (anotações pra viagens futuras: add/apagar inline, badge "N notas"); **✎** renomeia o
+  destino (edição inline), × apaga; "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar
+  regiões, igual Legendas/Aprendizados). (Campo legado `feito` segue inerte nos itens já semeados.) Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
   regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. Patch `ensureViagensQueroV2` (flag
   `viagensQueroV2`) acrescenta +4 destinos na África (Giraffe manor/Namíbia/Ruanda/Marrocos) e a região
   **Outros** (Antártida/Islândia/Dubai/Butao), sem duplicar nem mexer no que a Mari editou → 7 regiões /

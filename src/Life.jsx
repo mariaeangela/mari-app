@@ -2859,8 +2859,10 @@ function QueroViajarView({ onBack }) {
   const life = useLife();
   const grupos = life.viagensQuero || [];
   const [novos, setNovos] = useState({});       // texto do "+ destino" por grupo
-  const [editId, setEditId] = useState(null);   // item em edição inline
+  const [editId, setEditId] = useState(null);   // item em edição inline (renomear)
   const [editTxt, setEditTxt] = useState('');
+  const [expandedId, setExpandedId] = useState(null); // destino aberto (notas)
+  const [notaInputs, setNotaInputs] = useState({});   // texto da nova nota por destino
   const [novoGrupo, setNovoGrupo] = useState('');
   const [addingGrupo, setAddingGrupo] = useState(false);
   const [gerenciar, setGerenciar] = useState(false);
@@ -2870,9 +2872,10 @@ function QueroViajarView({ onBack }) {
   const startEdit = (it) => { setEditId(it.id); setEditTxt(it.texto); };
   const commitEdit = (gid) => { const t = editTxt.trim(); if (t && t !== '') life.saveQueroItemTexto(gid, editId, t); setEditId(null); setEditTxt(''); };
   const addGrupo = () => { const nome = novoGrupo.trim(); if (!nome) return; life.addQueroGrupo(nome); setNovoGrupo(''); setAddingGrupo(false); };
+  const setNotaInput = (iid, v) => setNotaInputs(n => ({ ...n, [iid]: v }));
+  const addNota = (gid, iid) => { const t = (notaInputs[iid] || '').trim(); if (!t) return; life.addQueroNota(gid, iid, t); setNotaInput(iid, ''); };
 
   const total = grupos.reduce((s, g) => s + (g.itens || []).length, 0);
-  const feitos = grupos.reduce((s, g) => s + (g.itens || []).filter(i => i.feito).length, 0);
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -2881,32 +2884,57 @@ function QueroViajarView({ onBack }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
         <div>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 25, color: '#111', margin: '0 0 4px' }}>Viagens que quero fazer</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 16px' }}>{total} destinos{feitos ? ` · ${feitos} realizada${feitos === 1 ? '' : 's'}` : ''} · toque pra editar, ☐ pra marcar</p>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 16px' }}>{total} destinos · toque num destino pra anotar · ✎ renomeia</p>
         </div>
         {grupos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar regiões" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
       </div>
 
       {grupos.map(g => {
         const itens = g.itens || [];
-        const nf = itens.filter(i => i.feito).length;
         return (
           <div key={g.id} style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: '2px solid ' + COR_VIAGEM + '33', paddingBottom: 6, marginBottom: 6 }}>
               <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#444', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{g.nome}</span>
-              <span style={{ fontSize: 11, color: '#bbb' }}>{nf ? `${nf}/${itens.length}` : itens.length}</span>
+              <span style={{ fontSize: 11, color: '#bbb' }}>{itens.length}</span>
             </div>
-            {itens.map(it => (
-              <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f5f5f5' }}>
-                <span onClick={() => life.toggleQueroItem(g.id, it.id)} style={{ fontSize: 18, color: it.feito ? COR_VIAGEM : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{it.feito ? '☑' : '☐'}</span>
-                {editId === it.id ? (
-                  <input value={editTxt} autoFocus onChange={e => setEditTxt(e.target.value)} onBlur={() => commitEdit(g.id)} onKeyDown={e => { if (e.key === 'Enter') commitEdit(g.id); if (e.key === 'Escape') { setEditId(null); setEditTxt(''); } }} style={{ ...inputStyle, flex: 1, padding: '6px 9px' }} />
-                ) : (
-                  <span onClick={() => startEdit(it)} style={{ flex: 1, fontSize: 14, color: '#333', lineHeight: 1.45, cursor: 'text', textDecoration: it.feito ? 'line-through' : 'none', opacity: it.feito ? 0.5 : 1 }}>{it.texto}</span>
-                )}
-                <button onClick={() => life.deleteQueroItem(g.id, it.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
-              </div>
-            ))}
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            {itens.map(it => {
+              const notas = it.notas || [];
+              const aberto = expandedId === it.id;
+              return (
+                <div key={it.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+                    <span style={{ color: COR_VIAGEM, flexShrink: 0, fontSize: 13 }}>{aberto ? '▾' : '▸'}</span>
+                    {editId === it.id ? (
+                      <input value={editTxt} autoFocus onChange={e => setEditTxt(e.target.value)} onBlur={() => commitEdit(g.id)} onKeyDown={e => { if (e.key === 'Enter') commitEdit(g.id); if (e.key === 'Escape') { setEditId(null); setEditTxt(''); } }} style={{ ...inputStyle, flex: 1, padding: '6px 9px' }} />
+                    ) : (
+                      <span onClick={() => setExpandedId(aberto ? null : it.id)} style={{ flex: 1, fontSize: 14, color: '#333', lineHeight: 1.45, cursor: 'pointer' }}>
+                        {it.texto}
+                        {notas.length > 0 && <span style={{ marginLeft: 8, fontSize: 11, color: COR_VIAGEM, background: COR_VIAGEM + '15', borderRadius: 6, padding: '1px 7px' }}>{notas.length} nota{notas.length === 1 ? '' : 's'}</span>}
+                      </span>
+                    )}
+                    <button onClick={() => startEdit(it)} title="renomear" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+                    <button onClick={() => { if (window.confirm(`Apagar "${it.texto}"${notas.length ? ' e suas notas' : ''}?`)) life.deleteQueroItem(g.id, it.id); }} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+                  </div>
+                  {aberto && (
+                    <div style={{ paddingLeft: 21, paddingBottom: 12 }}>
+                      {notas.length === 0 && <div style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', padding: '2px 0 8px' }}>Sem notas ainda — escreva abaixo.</div>}
+                      {notas.map(n => (
+                        <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0' }}>
+                          <span style={{ color: '#ccc', flexShrink: 0, fontSize: 13, lineHeight: 1.5 }}>–</span>
+                          <span style={{ flex: 1, fontSize: 13, color: '#555', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{n.texto}</span>
+                          <button onClick={() => life.deleteQueroNota(g.id, it.id, n.id)} title="apagar nota" style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}>×</button>
+                        </div>
+                      ))}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 7 }}>
+                        <input value={notaInputs[it.id] || ''} onChange={e => setNotaInput(it.id, e.target.value)} onKeyDown={e => e.key === 'Enter' && addNota(g.id, it.id)} placeholder="adicionar nota…" style={{ ...inputStyle, flex: 1, padding: '7px 10px', fontSize: 13 }} />
+                        <button onClick={() => addNota(g.id, it.id)} style={{ padding: '0 13px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
               <input value={novos[g.id] || ''} onChange={e => setNovo(g.id, e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem(g.id)} placeholder="adicionar destino…" style={{ ...inputStyle, flex: 1, padding: '8px 10px' }} />
               <button onClick={() => addItem(g.id)} style={{ padding: '0 15px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
             </div>

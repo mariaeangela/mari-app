@@ -1296,10 +1296,14 @@ export function LifeProvider({ children }) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
     setViagensQuero(arr);
   };
-  const addQueroItem = (gid, texto) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: [...(g.itens || []), { id: uid('vqi'), texto, feito: false }] } : g));
+  const addQueroItem = (gid, texto) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: [...(g.itens || []), { id: uid('vqi'), texto, notas: [] }] } : g));
   const saveQueroItemTexto = (gid, iid, texto) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, texto } : x) } : g));
-  const toggleQueroItem = (gid, iid) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, feito: !x.feito } : x) } : g));
   const deleteQueroItem = (gid, iid) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).filter(x => x.id !== iid) } : g));
+  // Notas por destino (anotações pra viagens futuras)
+  const _mapQueroItem = (gid, iid, fn) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? fn(x) : x) } : g));
+  const addQueroNota = (gid, iid, texto) => _mapQueroItem(gid, iid, x => ({ ...x, notas: [...(x.notas || []), { id: uid('vqn'), texto }] }));
+  const saveQueroNotaTexto = (gid, iid, nid, texto) => _mapQueroItem(gid, iid, x => ({ ...x, notas: (x.notas || []).map(n => n.id === nid ? { ...n, texto } : n) }));
+  const deleteQueroNota = (gid, iid, nid) => _mapQueroItem(gid, iid, x => ({ ...x, notas: (x.notas || []).filter(n => n.id !== nid) }));
 
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
@@ -1442,7 +1446,7 @@ export function LifeProvider({ children }) {
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
-    viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, toggleQueroItem, deleteQueroItem,
+    viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, deleteQueroItem, addQueroNota, saveQueroNotaTexto, deleteQueroNota,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
