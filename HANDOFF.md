@@ -330,7 +330,8 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   `moveQueroGrupo`/`addQueroItem`/`saveQueroItemTexto`/`deleteQueroItem` + notas
   `addQueroNota`/`saveQueroNotaTexto`/`deleteQueroNota`; ids `vq-`/`vqi-`/`vqn-`). UI: regiões como
   cabeçalhos (uppercase); **destinos SEM check** (a Mari pediu — só lista) que **expandem ao tocar** (▸/▾)
-  mostrando **notas** (anotações pra viagens futuras: add/apagar inline, badge "N notas"); **✎** renomeia o
+  mostrando **notas** (anotações pra viagens futuras: add via input, **editar inline** tocando na nota →
+  textarea com commit no `focusout`/`saveQueroNotaTexto`, apagar via ×, badge "N notas"); **✎** renomeia o
   destino (edição inline), × apaga; "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar
   regiões, igual Legendas/Aprendizados). (Campo legado `feito` segue inerte nos itens já semeados.)
   Acima da lista de viagens futuras há **2 botões** no mesmo estilo: "🗺️ Viagens que quero fazer" (abre a

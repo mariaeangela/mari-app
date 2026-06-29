@@ -2870,6 +2870,8 @@ function QueroViajarView({ onBack }) {
   const [editTxt, setEditTxt] = useState('');
   const [expandedId, setExpandedId] = useState(null); // destino aberto (notas)
   const [notaInputs, setNotaInputs] = useState({});   // texto da nova nota por destino
+  const [editNotaId, setEditNotaId] = useState(null); // nota em edição inline
+  const [editNotaTxt, setEditNotaTxt] = useState('');
   const [novoGrupo, setNovoGrupo] = useState('');
   const [addingGrupo, setAddingGrupo] = useState(false);
   const [gerenciar, setGerenciar] = useState(false);
@@ -2881,6 +2883,8 @@ function QueroViajarView({ onBack }) {
   const addGrupo = () => { const nome = novoGrupo.trim(); if (!nome) return; life.addQueroGrupo(nome); setNovoGrupo(''); setAddingGrupo(false); };
   const setNotaInput = (iid, v) => setNotaInputs(n => ({ ...n, [iid]: v }));
   const addNota = (gid, iid) => { const t = (notaInputs[iid] || '').trim(); if (!t) return; life.addQueroNota(gid, iid, t); setNotaInput(iid, ''); };
+  const startEditNota = (n) => { setEditNotaId(n.id); setEditNotaTxt(n.texto); };
+  const commitNota = (gid, iid) => { const t = editNotaTxt.trim(); if (t) life.saveQueroNotaTexto(gid, iid, editNotaId, t); setEditNotaId(null); setEditNotaTxt(''); };
 
   const total = grupos.reduce((s, g) => s + (g.itens || []).length, 0);
 
@@ -2928,7 +2932,11 @@ function QueroViajarView({ onBack }) {
                       {notas.map(n => (
                         <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0' }}>
                           <span style={{ color: '#ccc', flexShrink: 0, fontSize: 13, lineHeight: 1.5 }}>–</span>
-                          <span style={{ flex: 1, fontSize: 13, color: '#555', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{n.texto}</span>
+                          {editNotaId === n.id ? (
+                            <textarea value={editNotaTxt} autoFocus rows={2} onChange={e => setEditNotaTxt(e.target.value)} onBlur={() => commitNota(g.id, it.id)} onKeyDown={e => { if (e.key === 'Escape') { setEditNotaId(null); setEditNotaTxt(''); } }} style={{ ...inputStyle, flex: 1, padding: '6px 9px', fontSize: 13, resize: 'vertical', lineHeight: 1.5 }} />
+                          ) : (
+                            <span onClick={() => startEditNota(n)} title="tocar pra editar" style={{ flex: 1, fontSize: 13, color: '#555', lineHeight: 1.5, whiteSpace: 'pre-wrap', cursor: 'pointer' }}>{n.texto}</span>
+                          )}
                           <button onClick={() => life.deleteQueroNota(g.id, it.id, n.id)} title="apagar nota" style={{ background: 'none', border: 'none', color: '#ddd', cursor: 'pointer', fontSize: 14, flexShrink: 0 }}>×</button>
                         </div>
                       ))}
