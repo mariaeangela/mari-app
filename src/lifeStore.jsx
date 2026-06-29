@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -996,8 +996,46 @@ function ensureAnnaKarenina(d) {
   return { ...d, annaKareninaSeeded: true, acompLeituras: [...(d.acompLeituras || []), livro] };
 }
 
+// Wishlist "Viagens que quero fazer" (lista da Mari, por região; verbatim dos prints).
+function ensureViagensQuero(d) {
+  if (d.viagensQueroSeeded) return d;
+  const mk = (id, nome, itens) => ({ id, nome, itens: itens.map((texto, i) => ({ id: `${id}-${i + 1}`, texto, feito: false })) });
+  const grupos = [
+    mk('vq-brasil', 'Brasil', [
+      'Chapada Diamantina / Vale do Pati',
+      'Amazônia (anavilhanas, dolphi lodge, presidente figueiredo)',
+      'Alter do chão',
+      'Lençóis maranhenses',
+      'Ilha bela',
+      'Cambará do sul',
+      'Bahia - boipeba, maraú, algodões (perto de morro de sp), moreré',
+      'Bahia - abrolhos para ver baleia jubarte',
+    ]),
+    mk('vq-latam', 'América Latina', [
+      'Atacama', 'Patagônia chilena', 'Patagônia argentina', 'Mendoza', 'Córdoba',
+      'Salar de uyni alagado', 'Arequipa', 'Curaçao', 'Cartagena', 'Guatemala',
+    ]),
+    mk('vq-europa', 'Europa', [
+      'Norte da espanha', 'Lisboa, porto, sintra, cascais, alagarve', 'Costa amalfitana',
+      'Grécia', 'Croácia', 'Reino Unido', 'Viena', 'Vale de Aosta (italia)',
+      'Berlim, munique, Frankfurt', 'Turquia', 'Uzbequistão', 'Caminho de Santiago',
+    ]),
+    mk('vq-norte', 'América do Norte', [
+      'Nova York', 'Arizona / gran canyon', 'Miami', 'Califórnia', 'Chicago',
+    ]),
+    mk('vq-asia', 'Ásia', [
+      'Camboja', 'Vietna', 'India', 'Laos', 'Indonésia', 'Malásia',
+      'Russia (em Moscou, visitar a praça vermelha sábado de manhã, para ver estudantes colegiais russos lustrando as estátuas de renas)',
+    ]),
+    mk('vq-africa', 'África', [
+      'África do Sul', 'Quênia', 'Tanzania', 'Egito', 'Jordânia',
+    ]),
+  ];
+  return { ...d, viagensQueroSeeded: true, viagensQuero: [...(d.viagensQuero || []), ...grupos] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -1197,6 +1235,25 @@ export function LifeProvider({ children }) {
     : g));
   const deleteLegenda = (grupoId, itemId) => setLegendas(legendas.map(g => g.id === grupoId ? { ...g, itens: (g.itens || []).filter(x => x.id !== itemId) } : g));
 
+  // ---- Viagens que quero fazer (wishlist por região; mora na aba Viagens) ----
+  // viagensQuero = [{ id, nome, itens:[{id,texto,feito}] }]
+  const viagensQuero = data.viagensQuero || [];
+  const setViagensQuero = (next) => persist({ ...data, viagensQuero: next });
+  const addQueroGrupo = (nome) => { const id = uid('vq'); setViagensQuero([...viagensQuero, { id, nome, itens: [] }]); return id; };
+  const renameQueroGrupo = (id, nome) => setViagensQuero(viagensQuero.map(g => g.id === id ? { ...g, nome } : g));
+  const deleteQueroGrupo = (id) => setViagensQuero(viagensQuero.filter(g => g.id !== id));
+  const moveQueroGrupo = (id, dir) => {
+    const arr = [...viagensQuero];
+    const i = arr.findIndex(g => g.id === id), j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setViagensQuero(arr);
+  };
+  const addQueroItem = (gid, texto) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: [...(g.itens || []), { id: uid('vqi'), texto, feito: false }] } : g));
+  const saveQueroItemTexto = (gid, iid, texto) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, texto } : x) } : g));
+  const toggleQueroItem = (gid, iid) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, feito: !x.feito } : x) } : g));
+  const deleteQueroItem = (gid, iid) => setViagensQuero(viagensQuero.map(g => g.id === gid ? { ...g, itens: (g.itens || []).filter(x => x.id !== iid) } : g));
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1338,6 +1395,7 @@ export function LifeProvider({ children }) {
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
+    viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, toggleQueroItem, deleteQueroItem,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

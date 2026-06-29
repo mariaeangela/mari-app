@@ -52,8 +52,10 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   (Um card **Cursos online** chegou a existir e foi removido a pedido da Mari — pode voltar no futuro.)
 - 🟢✅ **Viagens** — seção real: viagens **futuras** com card (datas, hospedagem, passagens, programação,
   homenageada, checklist "o que levar"). Seed FLIP 2026 (22–26/jul, Paraty; 21 mesas; Orides Fontela).
-  Alimenta o Modo Viagem. Cada mesa já tem o **link oficial** (flip.org.br/evento/…). FALTA: **feitas**
-  (passado, hoje na Retrospectiva) · juntar com listas de compras por ocasião.
+  Alimenta o Modo Viagem. Cada mesa já tem o **link oficial** (flip.org.br/evento/…). ✅ **"Viagens que
+  quero fazer"** — wishlist por região (Brasil/América Latina/Europa/América do Norte/Ásia/África), destinos
+  checáveis, editável (botão na aba Viagens). FALTA: **feitas** (passado, hoje na Retrospectiva) · juntar
+  com listas de compras por ocasião.
 - **Vida Financeira:** 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs rendimento** (separar
   "quanto aportei" de "quanto rendeu") · 🟢 2ª linha de total também na vista **Tabela**.
 - **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima

@@ -324,6 +324,15 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Patches: `ensureFlipMesaLinks` (flag `flipMesaLinks1`, preenche link onde vazio) e `ensureFlipDetalhes`
   (flag `flipDetalhes1`: preenche `desc` onde vazia, atualiza a bio da homenageada, migra `checklist`→`levar`).
   Nenhum sobrescreve o que a Mari editou. Encadeados em `runLifeSeeds`.
+  A `ViagensSection` tem ainda um botão **"🗺️ Viagens que quero fazer"** (estado `verQuero`) que abre a
+  sub-view **`QueroViajarView`** — wishlist por **região**. Slice `viagensQuero:[{id,nome,itens:[{id,texto,
+  feito}]}]` no `lifeStore` (CRUD `addQueroGrupo`/`renameQueroGrupo`/`deleteQueroGrupo`/`moveQueroGrupo`/
+  `addQueroItem`/`saveQueroItemTexto`/`toggleQueroItem`/`deleteQueroItem`; ids `vq-`/`vqi-`). UI: regiões
+  como cabeçalhos (uppercase) com destinos checáveis (☐/☑, riscado quando feito), toque no texto = **edição
+  inline**, × apaga, "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar regiões, igual
+  Legendas/Aprendizados). Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
+  regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. O early-return `if (verQuero)` fica DEPOIS
+  dos hooks da `ViagensSection`.
 
 ## Modo Viagem (`src/cidadeFatos.js` + Login/App)
 Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e
