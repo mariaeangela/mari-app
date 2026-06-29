@@ -331,8 +331,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   como cabeçalhos (uppercase) com destinos checáveis (☐/☑, riscado quando feito), toque no texto = **edição
   inline**, × apaga, "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar regiões, igual
   Legendas/Aprendizados). Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
-  regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. O early-return `if (verQuero)` fica DEPOIS
-  dos hooks da `ViagensSection`.
+  regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. Patch `ensureViagensQueroV2` (flag
+  `viagensQueroV2`) acrescenta +4 destinos na África (Giraffe manor/Namíbia/Ruanda/Marrocos) e a região
+  **Outros** (Antártida/Islândia/Dubai/Butao), sem duplicar nem mexer no que a Mari editou → 7 regiões /
+  ~55 destinos. O early-return `if (verQuero)` fica DEPOIS dos hooks da `ViagensSection`.
 
 ## Modo Viagem (`src/cidadeFatos.js` + Login/App)
 Com viagem ativa (da **véspera ao fim**: hoje ∈ [início−1, fim]), a tela de **senha**, a **capa de Hoje** e

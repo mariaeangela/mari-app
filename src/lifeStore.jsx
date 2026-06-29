@@ -1034,8 +1034,23 @@ function ensureViagensQuero(d) {
   return { ...d, viagensQueroSeeded: true, viagensQuero: [...(d.viagensQuero || []), ...grupos] };
 }
 
+// Patch: completa a wishlist com o que faltou nos prints — mais 4 destinos na
+// África e a região "Outros". Não duplica nem mexe no que a Mari editou.
+function ensureViagensQueroV2(d) {
+  if (d.viagensQueroV2) return d;
+  let vq = d.viagensQuero || [];
+  const maisAfrica = ['Giraffe manor', 'Namíbia (giraffe manor)', 'Ruanda (gorila trekking)', 'Marrocos'];
+  vq = vq.map(g => g.id === 'vq-africa'
+    ? { ...g, itens: [...(g.itens || []), ...maisAfrica.filter(t => !(g.itens || []).some(i => i.texto === t)).map((texto, i) => ({ id: `vq-africa-x${i + 1}`, texto, feito: false }))] }
+    : g);
+  if (!vq.some(g => g.id === 'vq-outros')) {
+    vq = [...vq, { id: 'vq-outros', nome: 'Outros', itens: ['Antártida', 'Islândia', 'Dubai', 'Butao'].map((texto, i) => ({ id: `vq-outros-${i + 1}`, texto, feito: false })) }];
+  }
+  return { ...d, viagensQueroV2: true, viagensQuero: vq };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
