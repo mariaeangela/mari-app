@@ -4,7 +4,7 @@ import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
-import Calendario, { itemsForDay, trabTag, AddSheet } from './Calendario.jsx';
+import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection } from './Life.jsx';
@@ -242,9 +242,11 @@ function NesteDiaFato() {
 // Lista do que está marcado para hoje (eventos, tarefas, rolês, cultura…).
 function HojeAgenda() {
   const cal = useCalendar();
+  const life = useLife();
   const [editing, setEditing] = useState(null);
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-  const items = itemsForDay(cal.data, hoje).all;
+  // passa life.planos → itens do checklist com prazo == hoje entram aqui (não em "próximos")
+  const items = itemsForDay(cal.data, hoje, life.planos).all;
   if (!items.length) return null;
   return (
     <div style={{ marginBottom: 24 }}>
@@ -253,8 +255,11 @@ function HojeAgenda() {
         <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
           {it._tipo === 'tarefa'
             ? <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
-            : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
-          <span onClick={() => setEditing(it)} style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
+            : it._tipo === 'plano'
+              ? <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer', flexShrink: 0 }}>☐</span>
+              : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
+          <span onClick={() => it._tipo === 'plano' ? life.togglePlanoCheck(it.id) : setEditing(it)} style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
+          {it._tipo === 'plano' && <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700, flexShrink: 0 }}>{it._planoNome}</span>}
           {it.trabalho && <span style={trabTag}>trabalho</span>}
           {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
         </div>
@@ -284,7 +289,8 @@ function MetasHoje() {
   );
 }
 
-// Itens do checklist de Planos com prazo nos próximos 15 dias; toque marca como feito.
+// Itens do checklist de Planos com prazo nos próximos 15 dias (a partir de amanhã;
+// os que vencem HOJE aparecem na seção "Hoje" via HojeAgenda). Toque marca como feito.
 function PlanosProximos() {
   const life = useLife();
   const today = hojeMid();
@@ -293,7 +299,7 @@ function PlanosProximos() {
   const lk = ymd(limite);
   const nomeDe = (pid) => (life.planos?.lista || []).find(p => p.id === pid)?.nome || 'Plano';
   const itens = (life.planos?.itens || [])
-    .filter(i => i.prazo && !i.feito && i.prazo >= tk && i.prazo <= lk)
+    .filter(i => i.prazo && !i.feito && i.prazo > tk && i.prazo <= lk)
     .sort((a, b) => a.prazo.localeCompare(b.prazo));
   if (!itens.length) return null;
   return (
@@ -313,7 +319,7 @@ function PlanosProximos() {
 
 function Feed({ isWide }) {
   // Capa (Hoje): saudação · neste dia · seu dia · metas do mês · antecipação ·
-  // lendo · planos (15 dias) · agenda do dia · dois cards (texto e imagem).
+  // lendo · agenda do dia (hoje) · planos (próximos dias) · dois cards (texto e imagem).
   const slots = ['texto', 'imagem'];
   const cards = slots.map((cat, i) => <CardWithContent key={cat} type={cat} offset={i} tile={isWide} showReload={false} />);
   return (
@@ -325,8 +331,8 @@ function Feed({ isWide }) {
         <MetasHoje />
         <Antecipacao />
         <LendoAgora />
-        <PlanosProximos />
         <HojeAgenda />
+        <PlanosProximos />
       </div>
       {isWide ? <div style={{ ...GRID_3, padding: '0 18px 48px' }}>{cards}</div> : cards}
     </div>

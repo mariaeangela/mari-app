@@ -19,7 +19,10 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   A capa também tem `MetasHoje` (metas do mês corrente, slice `metas` do calendarStore — toque marca feito)
   e `PlanosProximos` (itens do checklist de Planos com `prazo` nos **próximos 15 dias**, toque =
   `togglePlanoCheck`). Ordem do `Feed`: Saudacao · NesteDiaFato · SeuDia · MetasHoje · Antecipacao ·
-  LendoAgora · PlanosProximos · HojeAgenda.
+  LendoAgora · **HojeAgenda · PlanosProximos** (hoje primeiro, depois próximos dias). `HojeAgenda` passa
+  `life.planos` ao `itemsForDay`, então **itens de plano com `prazo`==hoje aparecem no bloco "Hoje"**
+  (checkbox `togglePlanoCheck` + nome do plano); e `PlanosProximos` agora filtra `prazo > hoje` (amanhã→+15
+  dias) pra não duplicar.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
