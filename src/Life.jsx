@@ -2813,9 +2813,11 @@ function ViagensSection({ onBack }) {
   const [selId, setSelId] = useState(null);
   const [form, setForm] = useState(null);
   const [verQuero, setVerQuero] = useState(false);
+  const [verPlanos, setVerPlanos] = useState(false);
   const trips = (life.viagensFuturas || []).slice().sort((a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999'));
   const sel = selId ? trips.find(t => t.id === selId) : null;
   if (sel) return <ViagemDetail trip={sel} onBack={() => setSelId(null)} />;
+  if (verPlanos) return <PlanosViagemView onBack={() => setVerPlanos(false)} />;
   if (verQuero) return <QueroViajarView onBack={() => setVerQuero(false)} />;
   const totalQuero = (life.viagensQuero || []).reduce((s, g) => s + (g.itens || []).length, 0);
   const totalFeitas = (life.viagens || []).length;
@@ -2830,6 +2832,11 @@ function ViagensSection({ onBack }) {
         </div>
         <button onClick={() => setForm({})} title="nova viagem" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
+
+      <button onClick={() => setVerPlanos(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
+        <span><span style={{ fontSize: 15 }}>📝</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>Planos próximos</span></span>
+        <span style={{ fontSize: 12, color: '#999' }}>{'2026 · 2027 ›'}</span>
+      </button>
 
       <button onClick={() => setVerQuero(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
         <span><span style={{ fontSize: 15 }}>🗺️</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>Viagens que quero fazer</span></span>
@@ -2857,6 +2864,91 @@ function ViagensSection({ onBack }) {
       })}
 
       {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={() => { setForm(null); }} />}
+    </div>
+  );
+}
+
+// Planos próximos — seções editáveis (2026, 2027, ideias…) dentro da aba Viagens.
+function PlanosViagemView({ onBack }) {
+  const life = useLife();
+  const grupos = life.planosViagem || [];
+  const [novos, setNovos] = useState({});
+  const [editId, setEditId] = useState(null);
+  const [editTxt, setEditTxt] = useState('');
+  const [novoGrupo, setNovoGrupo] = useState('');
+  const [addingGrupo, setAddingGrupo] = useState(false);
+  const [gerenciar, setGerenciar] = useState(false);
+
+  const setNovo = (gid, v) => setNovos(n => ({ ...n, [gid]: v }));
+  const addItem = (gid) => { const t = (novos[gid] || '').trim(); if (!t) return; life.addPVItem(gid, t); setNovo(gid, ''); };
+  const startEdit = (it) => { setEditId(it.id); setEditTxt(it.texto); };
+  const commitEdit = (gid) => { const t = editTxt.trim(); if (t) life.savePVItemTexto(gid, editId, t); setEditId(null); setEditTxt(''); };
+  const addGrupo = () => { const nome = novoGrupo.trim(); if (!nome) return; life.addPVGrupo(nome); setNovoGrupo(''); setAddingGrupo(false); };
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Viagens</button>
+      <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 12 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 25, color: '#111', margin: '0 0 4px' }}>Planos próximos</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 16px' }}>o que você está planejando — toque pra editar</p>
+        </div>
+        {grupos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar seções" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+      </div>
+
+      {grupos.map(g => {
+        const itens = g.itens || [];
+        return (
+          <div key={g.id} style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#444', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '2px solid ' + COR_VIAGEM + '33', paddingBottom: 6, marginBottom: 6 }}>{g.nome}</div>
+            {itens.map(it => (
+              <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f5f5f5' }}>
+                <span style={{ color: COR_VIAGEM, flexShrink: 0, fontSize: 13 }}>•</span>
+                {editId === it.id ? (
+                  <input value={editTxt} autoFocus onChange={e => setEditTxt(e.target.value)} onBlur={() => commitEdit(g.id)} onKeyDown={e => { if (e.key === 'Enter') commitEdit(g.id); if (e.key === 'Escape') { setEditId(null); setEditTxt(''); } }} style={{ ...inputStyle, flex: 1, padding: '6px 9px' }} />
+                ) : (
+                  <span onClick={() => startEdit(it)} style={{ flex: 1, fontSize: 14, color: '#333', lineHeight: 1.45, cursor: 'text' }}>{it.texto}</span>
+                )}
+                <button onClick={() => life.deletePVItem(g.id, it.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <input value={novos[g.id] || ''} onChange={e => setNovo(g.id, e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem(g.id)} placeholder="adicionar plano…" style={{ ...inputStyle, flex: 1, padding: '8px 10px' }} />
+              <button onClick={() => addItem(g.id)} style={{ padding: '0 15px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+            </div>
+          </div>
+        );
+      })}
+
+      {addingGrupo ? (
+        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          <input value={novoGrupo} autoFocus onChange={e => setNovoGrupo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGrupo()} placeholder="nova seção (ex.: 2028)" style={inputStyle} />
+          <button onClick={addGrupo} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+        </div>
+      ) : (
+        <button onClick={() => setAddingGrupo(true)} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ nova seção</button>
+      )}
+
+      {gerenciar && (
+        <div onClick={() => setGerenciar(false)} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar seções</h3>
+              <button onClick={() => setGerenciar(false)} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {grupos.map((g, idx) => (
+              <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                <input value={g.nome} onChange={e => life.renamePVGrupo(g.id, e.target.value)} style={{ ...inputStyle, flex: 1, padding: '8px 10px' }} />
+                <button onClick={() => life.movePVGrupo(g.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                <button onClick={() => life.movePVGrupo(g.id, 1)} disabled={idx === grupos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === grupos.length - 1 ? '#ddd' : '#777', cursor: idx === grupos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                <button onClick={() => { if (window.confirm(`Apagar a seção "${g.nome}" e seus planos?`)) life.deletePVGrupo(g.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Edite o nome no campo · ↑ ↓ reordena · Apagar remove a seção e seus planos.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

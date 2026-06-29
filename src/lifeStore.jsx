@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1152,8 +1152,21 @@ function ensureViagensQueroFix(d) {
   return { ...d, viagensQueroFix1: true, viagensQuero: vq };
 }
 
+// Seed: planos próximos de viagem da Mari (seções por ano + ideias + mais caras).
+function ensurePlanosViagem(d) {
+  if (d.planosViagemSeeded) return d;
+  const mk = (id, nome, itens) => ({ id, nome, itens: itens.map((texto, i) => ({ id: `${id}-${i + 1}`, texto })) });
+  const grupos = [
+    mk('pv-2026', '2026', ['Flip', 'Nova York, Filadélfia, Chicago', 'Atacama / Amazonas', 'Fim do ano: Mergulho ou Amazonas']),
+    mk('pv-2027', '2027', ['Carnaval Olinda', 'Turquia e Egito']),
+    mk('pv-ideias', 'Ideias', ['Indonésia', 'Guatemala', 'Vale do Pati / Chapada Diamantina', 'Colômbia', 'Amazônia', 'Mergulho Abrolhos']),
+    mk('pv-caras', 'Mais caras', ['China', 'Vietnã', 'Indonésia']),
+  ];
+  return { ...d, planosViagemSeeded: true, planosViagem: [...(d.planosViagem || []), ...grupos] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -1376,6 +1389,24 @@ export function LifeProvider({ children }) {
   const saveQueroNotaTexto = (gid, iid, nid, texto) => _mapQueroItem(gid, iid, x => ({ ...x, notas: (x.notas || []).map(n => n.id === nid ? { ...n, texto } : n) }));
   const deleteQueroNota = (gid, iid, nid) => _mapQueroItem(gid, iid, x => ({ ...x, notas: (x.notas || []).filter(n => n.id !== nid) }));
 
+  // ---- Planos próximos de viagem (seções editáveis: 2026, 2027, ideias…) ----
+  // planosViagem = [{ id, nome, itens:[{id,texto}] }]
+  const planosViagem = data.planosViagem || [];
+  const setPlanosViagem = (next) => persist({ ...data, planosViagem: next });
+  const addPVGrupo = (nome) => { const id = uid('pv'); setPlanosViagem([...planosViagem, { id, nome, itens: [] }]); return id; };
+  const renamePVGrupo = (id, nome) => setPlanosViagem(planosViagem.map(g => g.id === id ? { ...g, nome } : g));
+  const deletePVGrupo = (id) => setPlanosViagem(planosViagem.filter(g => g.id !== id));
+  const movePVGrupo = (id, dir) => {
+    const arr = [...planosViagem];
+    const i = arr.findIndex(g => g.id === id), j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setPlanosViagem(arr);
+  };
+  const addPVItem = (gid, texto) => setPlanosViagem(planosViagem.map(g => g.id === gid ? { ...g, itens: [...(g.itens || []), { id: uid('pvi'), texto }] } : g));
+  const savePVItemTexto = (gid, iid, texto) => setPlanosViagem(planosViagem.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, texto } : x) } : g));
+  const deletePVItem = (gid, iid) => setPlanosViagem(planosViagem.map(g => g.id === gid ? { ...g, itens: (g.itens || []).filter(x => x.id !== iid) } : g));
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1518,6 +1549,7 @@ export function LifeProvider({ children }) {
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
     viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, deleteQueroItem, addQueroNota, saveQueroNotaTexto, deleteQueroNota,
+    planosViagem, addPVGrupo, renamePVGrupo, deletePVGrupo, movePVGrupo, addPVItem, savePVItemTexto, deletePVItem,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

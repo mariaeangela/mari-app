@@ -335,9 +335,14 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   textarea com commit no `focusout`/`saveQueroNotaTexto`, apagar via ×, badge "N notas"); **✎** renomeia o
   destino (edição inline), × apaga; "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar
   regiões, igual Legendas/Aprendizados). (Campo legado `feito` segue inerte nos itens já semeados.)
-  Acima da lista de viagens futuras há **2 botões** no mesmo estilo: "🗺️ Viagens que quero fazer" (abre a
-  wishlist) e "🧳 Viagens que já fiz" (deep-link `nav.goRetro('viagens')` → Retrospectiva › Viagens; mostra
-  a contagem de `life.viagens`). Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
+  Acima da lista de viagens futuras há **3 botões** no mesmo estilo: "📝 Planos próximos" (abre
+  `PlanosViagemView`), "🗺️ Viagens que quero fazer" (wishlist) e "🧳 Viagens que já fiz" (deep-link
+  `nav.goRetro('viagens')` → Retrospectiva › Viagens; mostra a contagem de `life.viagens`).
+  **Planos próximos** (`PlanosViagemView`) = seções editáveis (2026/2027/Ideias/Mais caras…) com linhas
+  livres. Slice `planosViagem:[{id,nome,itens:[{id,texto}]}]` no `lifeStore` (CRUD `addPVGrupo`/
+  `renamePVGrupo`/`deletePVGrupo`/`movePVGrupo`/`addPVItem`/`savePVItemTexto`/`deletePVItem`; ids
+  `pv-`/`pvi-`). Linha: toque edita inline, × apaga, "+ adicionar plano" por seção; "+ nova seção" e ⚙
+  (renomear/reordenar/apagar). Seed `ensurePlanosViagem` (flag `planosViagemSeeded`) com os planos da Mari. Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
   regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. Patch `ensureViagensQueroV2` (flag
   `viagensQueroV2`) acrescenta +4 destinos na África (Giraffe manor/Namíbia/Ruanda/Marrocos) e a região
   **Outros** (Antártida/Islândia/Dubai/Butao), sem duplicar nem mexer no que a Mari editou → 7 regiões /
