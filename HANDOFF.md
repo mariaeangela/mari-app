@@ -404,8 +404,11 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   há; senão pelo `titulo`** (então entrada de região com `locais` não conta o título como cidade). Patch
   `ensureViagensCidades` (flag `viagensCidades1`, `VIAGENS_CIDADES_SEED`, ids `vgc*`): +31 entradas com a
   lista de cidades visitadas da Mari (anos confirmados por ela; cidade isolada no `titulo`/`locais:[]`,
-  grupo em `locais`; Vaticano contado em Itália) → ~69 viagens / ~129 cidades / 13 países, anos novos
-  2013/2016/2017/2018/2019.
+  grupo em `locais`; Vaticano contado em Itália), anos novos 2013/2016/2017/2018/2019. Em seguida o patch
+  `ensureViagensMerge` (flag `viagensMerge1`) **junta** os extras dentro da viagem-pai (ex.: Tailândia que
+  aparecia 2x; Petar/Iporanga que eram a mesma viagem) reescrevendo `titulo`/`locais` da pai e removendo as
+  entradas redundantes (`vgc*` mescladas) → fica **~54 viagens / ~129 cidades / 13 países** (a contagem de
+  cidades é mantida porque os nomes vão todos pra `locais` da pai).
 - **Dias importantes** (`DiasRetro`/`DiasForm`) — card de marcos de vida. Slice `marcos:[{id,data,titulo}]`
   no `lifeStore` (CRUD `saveMarco`/`deleteMarco`; seed `MARCOS_SEED`/`ensureMarcos`, flag `marcosSeeded`).
   Timeline cronológica por ano (usa `useAnoSel`/`AnoChips`). Os seeds do Life agora passam por um único

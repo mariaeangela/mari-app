@@ -747,6 +747,34 @@ function ensureViagensCidades(d) {
   return { ...d, viagensCidades1: true, viagens: [...(d.viagens || []), ...novos] };
 }
 
+// Patch: junta os "extras" que eu havia criado como entradas separadas dentro da
+// viagem-pai (ex.: Tailândia aparecia 2x; Petar e Iporanga eram a mesma viagem) e
+// remove as redundantes. Cidade conta por `locais`, então a pai vira um grupo com
+// todas as cidades (mantém a contagem; some a duplicação na timeline).
+function ensureViagensMerge(d) {
+  if (d.viagensMerge1) return d;
+  const M = {
+    vg0:  { titulo: 'Cananéia e ilhas', locais: ['Cananéia', 'Ilha do Cardoso', 'Ilha Comprida'] },
+    vg17: { titulo: 'Salvador e ilhas', locais: ['Salvador', 'Itaparica', 'Morro de São Paulo', 'Ilha dos Frades'] },
+    vg18: { titulo: 'Porto Alegre e serra gaúcha', locais: ['Porto Alegre', 'Canela', 'Gramado'] },
+    vg19: { titulo: 'Chapada dos Veadeiros e arredores', locais: ['Chapada dos Veadeiros', 'Cavalcante', 'Alto Paraíso de Goiás'] },
+    vg20: { titulo: 'Canoa Quebrada e Beberibe', locais: ['Canoa Quebrada', 'Beberibe'] },
+    vg21: { titulo: 'Foz e Puerto Iguazú', locais: ['Foz do Iguaçu', 'Puerto Iguazú'], paises: ['Brasil', 'Argentina'] },
+    vg22: { titulo: 'Argentina', locais: ['Salta', 'Buenos Aires', 'Bariloche', 'Cafayate', 'Cachi', 'San Martín de Los Andes'] },
+    vg23: { titulo: 'Paraty e Trindade', locais: ['Paraty', 'Trindade'] },
+    vg24: { titulo: 'Europa', locais: ['Roma', 'Verona', 'Veneza', 'Milão', 'Paris', 'Bruxelas', 'Lisboa', 'Murano', 'Burano', 'Torcello', 'Bruges', 'Vaticano'] },
+    vg25: { titulo: 'Porto de Galinhas e Recife', locais: ['Porto de Galinhas', 'Recife'] },
+    vg26: { titulo: 'Jalapão e Palmas', locais: ['Jalapão', 'Palmas'] },
+    vg27: { titulo: 'Peru', locais: ['Lima', 'Paracas', 'Cusco', 'Machu Picchu', 'Maras', 'Písac', 'Ollantaytambo', 'Chinchero', 'Urubamba', 'Huacachina', 'Ica', 'Machu Picchu pueblo'] },
+    vg30: { titulo: 'Petar e Iporanga', locais: ['Petar', 'Iporanga'] },
+    vg31: { titulo: 'Ilha Grande e Angra', locais: ['Ilha Grande', 'Angra dos Reis', 'Ilha da Jipóia'] },
+    vg33: { titulo: 'Tailândia', locais: ['Bangkok', 'Chiang Mai', 'Koh Phi Phi', 'Krabi', 'Ayutthaya', 'Chiang Rai', 'Praia de Railay'] },
+  };
+  const remove = new Set(['vgc1', 'vgc11', 'vgc15', 'vgc16', 'vgc17', 'vgc18', 'vgc19', 'vgc20', 'vgc21', 'vgc23', 'vgc24', 'vgc25', 'vgc28', 'vgc29', 'vgc30']);
+  const viagens = (d.viagens || []).filter(v => !remove.has(v.id)).map(v => M[v.id] ? { ...v, ...M[v.id] } : v);
+  return { ...d, viagensMerge1: true, viagens };
+}
+
 // Viagem futura FLIP 2026 (alimenta o Modo Viagem + o card em Life > Viagens).
 // Mesas (21): títulos = versos da Orides Fontela (homenageada). [dia, hora, n, titulo, autores, link].
 // Links oficiais por mesa (flip.org.br/evento/...), conferidos no site da 24ª Flip.
@@ -1125,7 +1153,7 @@ function ensureViagensQueroFix(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
