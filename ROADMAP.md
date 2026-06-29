@@ -41,7 +41,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".
 
 ## 💛 Life
-*(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos ✅ · Viagens)*
+*(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos ✅ · Legendas ✅ · Viagens)*
+- ✅ **Legendas** — frases salvas pra reusar, em grupos livres (ex.: "Madrid", "mergulho") + Gerais;
+  cada legenda = título + texto; tocar copia, ✎ edita; ⚙ renomeia/reordena/apaga grupos.
 - ✅ **Estudos** — virou **hub** de cards. ✅ **Acompanhamento de leituras** (livro em curso, de perto:
   mapa de personagens que a Mari constrói sem spoiler + relações; anotações datadas; guia de contexto
   sem spoiler; "na estante" cruzando com os lidos por país **OU** época). Seed **Anna Kariênina** (Tolstói, 1877).

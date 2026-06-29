@@ -12,6 +12,7 @@ const SECOES = [
   { id: 'planos',         label: 'Planos',         desc: 'projetos com info + checklist',    cor: '#6b7a99' },
   { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
   { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
+  { id: 'legendas',       label: 'Legendas',       desc: 'frases salvas pra reusar',         cor: '#c2548f' },
   { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
   { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
@@ -3422,6 +3423,153 @@ function EstudosPage({ onBack }) {
   );
 }
 
+// ===== Legendas (frases salvas pra reusar; grupos livres + Gerais) =====
+const COR_LEG = '#c2548f';
+function copiarTexto(t) {
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return true; } } catch (e) { /* fallback abaixo */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    return true;
+  } catch (e) { return false; }
+}
+
+function LegendaForm({ grupoId, editing, onClose }) {
+  const life = useLife();
+  const [titulo, setTitulo] = useState(editing?.titulo || '');
+  const [texto, setTexto] = useState(editing?.texto || '');
+  const podeSalvar = texto.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const obj = { titulo: titulo.trim() || undefined, texto: texto.trim() };
+    life.saveLegenda(grupoId, editing?.id ? { ...obj, id: editing.id } : obj);
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar legenda' : 'Nova legenda'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Título</label>
+        <input value={titulo} autoFocus onChange={e => setTitulo(e.target.value)} placeholder="ex.: pôr do sol na praia" style={inputStyle} />
+        <label style={labelStyle}>Legenda</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={5} placeholder="o texto da legenda…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          {editing && <button onClick={() => { if (window.confirm('Apagar esta legenda?')) { life.deleteLegenda(grupoId, editing.id); onClose(); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 11, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '12px 16px', fontSize: 13, fontWeight: 700 }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, border: 'none', borderRadius: 11, background: podeSalvar ? '#111' : '#ccc', color: '#fff', cursor: podeSalvar ? 'pointer' : 'default', padding: '12px 0', fontSize: 14, fontWeight: 700 }}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LegendaGrupoView({ grupo, onBack }) {
+  const life = useLife();
+  const [form, setForm] = useState(null); // null | {editing?}
+  const [copiado, setCopiado] = useState(null); // id da legenda copiada
+  const itens = grupo.itens || [];
+  const copiar = (it) => { if (copiarTexto(it.texto)) { setCopiado(it.id); setTimeout(() => setCopiado(c => c === it.id ? null : c), 1500); } };
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Legendas</button>
+      <div style={{ width: 36, height: 4, background: COR_LEG, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 25, color: '#111', margin: '0 0 4px' }}>{grupo.nome}</h2>
+      <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 16px' }}>toque numa legenda para copiar · ✎ edita</p>
+
+      {itens.length === 0 ? (
+        <div style={{ padding: 22, borderRadius: 14, background: COR_LEG + '0e', border: '1px dashed ' + COR_LEG + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14.5, color: '#666', margin: 0 }}>Nenhuma legenda ainda.</p>
+        </div>
+      ) : itens.map(it => (
+        <div key={it.id} onClick={() => copiar(it)} style={{ position: 'relative', border: '1px solid #ececec', borderRadius: 14, background: '#fff', padding: '13px 15px', marginBottom: 10, cursor: 'pointer' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              {it.titulo && <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#1a1a1a', fontWeight: 700, marginBottom: 4 }}>{it.titulo}</div>}
+              <div style={{ fontSize: 14, color: '#3a3a3a', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{it.texto}</div>
+            </div>
+            <button onClick={e => { e.stopPropagation(); setForm({ editing: it }); }} title="editar" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 16, background: '#fff', color: '#999', cursor: 'pointer', padding: '5px 9px', fontSize: 13 }}>✎</button>
+          </div>
+          {copiado === it.id && <span style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 11, fontWeight: 700, color: COR_LEG }}>copiado ✓</span>}
+        </div>
+      ))}
+
+      <button onClick={() => setForm({})} style={{ width: '100%', marginTop: 4, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ legenda</button>
+
+      {form && <LegendaForm grupoId={grupo.id} editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function LegendasSection({ onBack }) {
+  const life = useLife();
+  const [sel, setSel] = useState(null);
+  const [novo, setNovo] = useState('');
+  const [adicionando, setAdicionando] = useState(false);
+  const [gerenciar, setGerenciar] = useState(false);
+  const grupos = life.legendas || [];
+  const grupo = grupos.find(g => g.id === sel);
+  if (grupo) return <LegendaGrupoView grupo={grupo} onBack={() => setSel(null)} />;
+  const addGrupo = () => { const nome = novo.trim(); if (!nome) return; const id = life.addLegGrupo(nome); setNovo(''); setAdicionando(false); setSel(id); };
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_LEG, borderRadius: 4, marginBottom: 12 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Legendas</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>frases salvas pra reusar — por tema</p>
+        </div>
+        {grupos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar grupos" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {grupos.map(g => {
+          const n = (g.itens || []).length;
+          return (
+            <button key={g.id} onClick={() => setSel(g.id)} style={{ background: COR_LEG + '12', border: '1px solid ' + COR_LEG + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: COR_LEG, borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{g.nome}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{n} {n === 1 ? 'legenda' : 'legendas'}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {adicionando ? (
+        <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+          <input value={novo} autoFocus onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGrupo()} placeholder="novo grupo (ex.: Madrid)" style={inputStyle} />
+          <button onClick={addGrupo} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+        </div>
+      ) : (
+        <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo grupo</button>
+      )}
+
+      {gerenciar && (
+        <div onClick={() => setGerenciar(false)} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar grupos</h3>
+              <button onClick={() => setGerenciar(false)} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {grupos.map((g, idx) => (
+              <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                <input value={g.nome} onChange={e => life.renameLegGrupo(g.id, e.target.value)} style={{ ...inputStyle, flex: 1, padding: '8px 10px' }} />
+                <button onClick={() => life.moveLegGrupo(g.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                <button onClick={() => life.moveLegGrupo(g.id, 1)} disabled={idx === grupos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === grupos.length - 1 ? '#ddd' : '#777', cursor: idx === grupos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                <button onClick={() => { if (window.confirm(`Apagar o grupo "${g.nome}" e todas as suas legendas?`)) life.deleteLegGrupo(g.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Edite o nome no campo · ↑ ↓ reordena · Apagar remove o grupo e suas legendas.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SubPlaceholder({ secao, onBack }) {
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: 620, margin: '0 auto' }}>
@@ -3444,6 +3592,7 @@ export default function LifePage({ isWide }) {
   if (sec === 'financas') return <FinancasSection onBack={() => setSec(null)} />;
   if (sec === 'saude') return <SaudeSection onBack={() => setSec(null)} />;
   if (sec === 'aprendizados') return <AprendizadosSection onBack={() => setSec(null)} />;
+  if (sec === 'legendas') return <LegendasSection onBack={() => setSec(null)} />;
   if (sec === 'estudos') return <EstudosPage onBack={() => setSec(null)} />;
   if (sec === 'viagens') return <ViagensSection onBack={() => setSec(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;

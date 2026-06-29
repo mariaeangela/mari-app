@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1176,6 +1176,27 @@ export function LifeProvider({ children }) {
   });
   const deleteNotaLeitura = (livroId, notaId) => _mapLivro(livroId, l => ({ ...l, notas: (l.notas || []).filter(x => x.id !== notaId) }));
 
+  // ---- Legendas (frases salvas pra reusar; grupos livres + Gerais) ----
+  // legendas = [{ id, nome, itens:[{id,titulo,texto,criadoEm}] }]  (grupos criados pela Mari)
+  const legendas = data.legendas || DEFAULT.legendas;
+  const setLegendas = (next) => persist({ ...data, legendas: next });
+  const addLegGrupo = (nome) => { const id = uid('lg'); setLegendas([...legendas, { id, nome, itens: [] }]); return id; };
+  const renameLegGrupo = (id, nome) => setLegendas(legendas.map(g => g.id === id ? { ...g, nome } : g));
+  const deleteLegGrupo = (id) => setLegendas(legendas.filter(g => g.id !== id));
+  const moveLegGrupo = (id, dir) => {
+    const arr = [...legendas];
+    const i = arr.findIndex(g => g.id === id), j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setLegendas(arr);
+  };
+  const saveLegenda = (grupoId, item) => setLegendas(legendas.map(g => g.id === grupoId
+    ? { ...g, itens: item.id && (g.itens || []).some(x => x.id === item.id)
+        ? g.itens.map(x => x.id === item.id ? { ...x, ...item } : x)
+        : [{ id: uid('li'), criadoEm: Date.now(), ...item }, ...(g.itens || [])] }
+    : g));
+  const deleteLegenda = (grupoId, itemId) => setLegendas(legendas.map(g => g.id === grupoId ? { ...g, itens: (g.itens || []).filter(x => x.id !== itemId) } : g));
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1316,6 +1337,7 @@ export function LifeProvider({ children }) {
     viagensFuturas, saveViagemFutura, deleteViagemFutura,
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
+    legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
