@@ -3582,10 +3582,10 @@ function LegendaForm({ grupoId, editing, onClose }) {
   const life = useLife();
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [texto, setTexto] = useState(editing?.texto || '');
-  const podeSalvar = texto.trim().length > 0;
+  const podeSalvar = titulo.trim().length > 0 || texto.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
-    const obj = { titulo: titulo.trim() || undefined, texto: texto.trim() };
+    const obj = { titulo: titulo.trim() || undefined, texto: texto.trim() || undefined };
     life.saveLegenda(grupoId, editing?.id ? { ...obj, id: editing.id } : obj);
     onClose();
   };
@@ -3614,7 +3614,7 @@ function LegendaGrupoView({ grupo, onBack }) {
   const [form, setForm] = useState(null); // null | {editing?}
   const [copiado, setCopiado] = useState(null); // id da legenda copiada
   const itens = grupo.itens || [];
-  const copiar = (it) => { if (copiarTexto(it.texto)) { setCopiado(it.id); setTimeout(() => setCopiado(c => c === it.id ? null : c), 1500); } };
+  const copiar = (it) => { const t = it.texto || it.titulo || ''; if (t && copiarTexto(t)) { setCopiado(it.id); setTimeout(() => setCopiado(c => c === it.id ? null : c), 1500); } };
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Legendas</button>
@@ -3630,8 +3630,8 @@ function LegendaGrupoView({ grupo, onBack }) {
         <div key={it.id} onClick={() => copiar(it)} style={{ position: 'relative', border: '1px solid #ececec', borderRadius: 14, background: '#fff', padding: '13px 15px', marginBottom: 10, cursor: 'pointer' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
             <div style={{ flex: 1 }}>
-              {it.titulo && <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#1a1a1a', fontWeight: 700, marginBottom: 4 }}>{it.titulo}</div>}
-              <div style={{ fontSize: 14, color: '#3a3a3a', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{it.texto}</div>
+              {it.titulo && <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#1a1a1a', fontWeight: 700, marginBottom: it.texto ? 4 : 0 }}>{it.titulo}</div>}
+              {it.texto && <div style={{ fontSize: 14, color: '#3a3a3a', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{it.texto}</div>}
             </div>
             <button onClick={e => { e.stopPropagation(); setForm({ editing: it }); }} title="editar" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 16, background: '#fff', color: '#999', cursor: 'pointer', padding: '5px 9px', fontSize: 13 }}>✎</button>
           </div>

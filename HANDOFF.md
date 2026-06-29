@@ -306,7 +306,8 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Slice `legendas:[{id,nome,itens:[{id,titulo,texto,criadoEm}]}]` no `lifeStore` (DEFAULT já traz
   `[{id:'leg-gerais',nome:'Gerais',itens:[]}]`; CRUD `addLegGrupo`/`renameLegGrupo`/`deleteLegGrupo`/
   `moveLegGrupo`/`saveLegenda`/`deleteLegenda`; ids `lg-`/`li-`; legendas novas entram no topo). Cada
-  legenda = **título + texto**. **Tocar na legenda copia o texto** (`copiarTexto`: `navigator.clipboard`
+  legenda = **título e/ou texto** (basta UM dos dois — dá pra salvar só com título; o card omite o corpo
+  vazio e o copiar usa `texto || titulo`). **Tocar na legenda copia o texto** (`copiarTexto`: `navigator.clipboard`
   com fallback `execCommand`; feedback "copiado ✓" por 1,5s) e o **✎** edita. Hub tem ⚙ ("Gerenciar
   grupos") que **renomeia** (input inline), **reordena** (↑↓) e apaga. Cor `COR_LEG` `#c2548f`.
 - **Viagens** (`ViagensSection`/`ViagemDetail`/`ViagemForm`/`MesaLinkForm`, em Life.jsx) — viagens
