@@ -332,7 +332,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   cabeçalhos (uppercase); **destinos SEM check** (a Mari pediu — só lista) que **expandem ao tocar** (▸/▾)
   mostrando **notas** (anotações pra viagens futuras: add/apagar inline, badge "N notas"); **✎** renomeia o
   destino (edição inline), × apaga; "+ destino" por região, "+ nova região" e ⚙ (renomear/reordenar/apagar
-  regiões, igual Legendas/Aprendizados). (Campo legado `feito` segue inerte nos itens já semeados.) Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
+  regiões, igual Legendas/Aprendizados). (Campo legado `feito` segue inerte nos itens já semeados.)
+  Acima da lista de viagens futuras há **2 botões** no mesmo estilo: "🗺️ Viagens que quero fazer" (abre a
+  wishlist) e "🧳 Viagens que já fiz" (deep-link `nav.goRetro('viagens')` → Retrospectiva › Viagens; mostra
+  a contagem de `life.viagens`). Seed `ensureViagensQuero` (flag `viagensQueroSeeded`) com a lista da Mari (6
   regiões, ~47 destinos, verbatim dos prints) em `runLifeSeeds`. Patch `ensureViagensQueroV2` (flag
   `viagensQueroV2`) acrescenta +4 destinos na África (Giraffe manor/Namíbia/Ruanda/Marrocos) e a região
   **Outros** (Antártida/Islândia/Dubai/Butao), sem duplicar nem mexer no que a Mari editou → 7 regiões /

@@ -2809,6 +2809,7 @@ function statusViagem(v) {
 
 function ViagensSection({ onBack }) {
   const life = useLife();
+  const nav = useNav();
   const [selId, setSelId] = useState(null);
   const [form, setForm] = useState(null);
   const [verQuero, setVerQuero] = useState(false);
@@ -2817,6 +2818,7 @@ function ViagensSection({ onBack }) {
   if (sel) return <ViagemDetail trip={sel} onBack={() => setSelId(null)} />;
   if (verQuero) return <QueroViajarView onBack={() => setVerQuero(false)} />;
   const totalQuero = (life.viagensQuero || []).reduce((s, g) => s + (g.itens || []).length, 0);
+  const totalFeitas = (life.viagens || []).length;
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
@@ -2829,9 +2831,14 @@ function ViagensSection({ onBack }) {
         <button onClick={() => setForm({})} title="nova viagem" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      <button onClick={() => setVerQuero(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 16, cursor: 'pointer' }}>
+      <button onClick={() => setVerQuero(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
         <span><span style={{ fontSize: 15 }}>🗺️</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>Viagens que quero fazer</span></span>
         <span style={{ fontSize: 12, color: '#999' }}>{totalQuero ? `${totalQuero} destinos ›` : '›'}</span>
+      </button>
+
+      <button onClick={() => nav.goRetro('viagens')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 16, cursor: 'pointer' }}>
+        <span><span style={{ fontSize: 15 }}>🧳</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>Viagens que já fiz</span></span>
+        <span style={{ fontSize: 12, color: '#999' }}>{totalFeitas ? `${totalFeitas} viagens ›` : '›'}</span>
       </button>
 
       {trips.length === 0 ? (
