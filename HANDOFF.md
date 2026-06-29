@@ -400,7 +400,12 @@ Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
   por ano, países com bandeiras (derivados das viagens, `PAIS_FLAG`) e timeline por ano. Slice
   `viagens:[{id,ano('jovem'|'YYYY'),titulo,locais[],paises[]}]` no `lifeStore` (CRUD `saveViagem`/
   `deleteViagem`; seed `VIAGENS_SEED`/`ensureViagens`, flag `viagensSeeded`). Países e cidades são
-  derivados (não duplicar); 'jovem' ordena antes de tudo (`vAnoKey`).
+  derivados (não duplicar); 'jovem' ordena antes de tudo (`vAnoKey`). **Cidade conta por `locais` quando
+  há; senão pelo `titulo`** (então entrada de região com `locais` não conta o título como cidade). Patch
+  `ensureViagensCidades` (flag `viagensCidades1`, `VIAGENS_CIDADES_SEED`, ids `vgc*`): +31 entradas com a
+  lista de cidades visitadas da Mari (anos confirmados por ela; cidade isolada no `titulo`/`locais:[]`,
+  grupo em `locais`; Vaticano contado em Itália) → ~69 viagens / ~129 cidades / 13 países, anos novos
+  2013/2016/2017/2018/2019.
 - **Dias importantes** (`DiasRetro`/`DiasForm`) — card de marcos de vida. Slice `marcos:[{id,data,titulo}]`
   no `lifeStore` (CRUD `saveMarco`/`deleteMarco`; seed `MARCOS_SEED`/`ensureMarcos`, flag `marcosSeeded`).
   Timeline cronológica por ano (usa `useAnoSel`/`AnoChips`). Os seeds do Life agora passam por um único

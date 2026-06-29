@@ -704,6 +704,49 @@ function ensureViagens(d) {
   return { ...d, viagensSeeded: true, viagens: [...(d.viagens || []), ...novos] };
 }
 
+// Patch: cidades visitadas que faltavam (lista do Google Maps da Mari, anos confirmados
+// por ela). Cidade isolada vai no `titulo` (locais []); grupo/região vai em `locais`
+// (ViagensRetro conta `locais` quando há, senão o título). Vaticano contado em Itália.
+const VIAGENS_CIDADES_SEED = [
+  ['jovem', 'Litoral e interior de SP', ['Bertioga', 'Guarujá', 'Santos', 'São Vicente', 'Praia Grande', 'Mairiporã', 'Embu-Guaçu', 'Itapecerica da Serra', 'Aparecida', 'Pres. Prudente', 'Bauru'], ['Brasil']],
+  ['jovem', 'Ilhas de Cananéia', ['Ilha do Cardoso', 'Ilha Comprida'], ['Brasil']],
+  ['2013', 'Trancoso', [], ['Brasil']],
+  ['2016', 'Niterói', [], ['Brasil']],
+  ['2017', 'Avaré e Americana', ['Avaré', 'Americana'], ['Brasil']],
+  ['2018', 'Araraquara e São Carlos', ['Araraquara', 'São Carlos'], ['Brasil']],
+  ['2019', 'Itu e Casa Branca', ['Itu', 'Casa Branca'], ['Brasil']],
+  ['2020', 'Espanha — arredores de Madrid e Andaluzia', ['Segóvia', 'Toledo', 'Aranjuez', 'Alcalá de Henares', 'Navacerrada', 'Buitrago del Lozoya', 'San Lorenzo de El Escorial', 'Nerja', 'Maro', 'Alicante'], ['Espanha']],
+  ['2020', 'França e Itália (mais)', ['Versalhes', 'Vaticano', 'Santa Maria Capua Vetere'], ['França', 'Itália']],
+  ['2020', 'Litoral do Paraná', ['Matinhos', 'Morretes'], ['Brasil']],
+  ['2021', 'Ubatuba', [], ['Brasil']],
+  ['2021', 'Ilhas da Bahia', ['Itaparica', 'Morro de São Paulo', 'Ilha dos Frades'], ['Brasil']],
+  ['2022', 'Ubatuba', [], ['Brasil']],
+  ['2022', 'Boituva', [], ['Brasil']],
+  ['2022', 'Luminárias', [], ['Brasil']],
+  ['2022', 'Beberibe', [], ['Brasil']],
+  ['2022', 'Chapada dos Veadeiros (arredores)', ['Cavalcante', 'Alto Paraíso de Goiás'], ['Brasil']],
+  ['2022', 'Serra gaúcha', ['Canela', 'Gramado'], ['Brasil']],
+  ['2023', 'Argentina — Salta e Andes', ['Cafayate', 'Cachi', 'San Martín de Los Andes'], ['Argentina']],
+  ['2023', 'Puerto Iguazú', [], ['Argentina']],
+  ['2023', 'Europa — Veneza, Bruges e Vaticano', ['Murano', 'Burano', 'Torcello', 'Bruges', 'Vaticano'], ['Itália', 'Bélgica']],
+  ['2023', 'Trindade', [], ['Brasil']],
+  ['2023', 'São Miguel dos Milagres', [], ['Brasil']],
+  ['2024', 'Peru — Vale Sagrado e Ica', ['Maras', 'Písac', 'Ollantaytambo', 'Chinchero', 'Urubamba', 'Huacachina', 'Ica', 'Machu Picchu pueblo'], ['Peru']],
+  ['2024', 'Palmas', [], ['Brasil']],
+  ['2024', 'Recife', [], ['Brasil']],
+  ['2024', 'Campos do Jordão', [], ['Brasil']],
+  ['2024', 'Tigre', [], ['Argentina']],
+  ['2025', 'Tailândia — Ayutthaya, Chiang Rai e Railay', ['Ayutthaya', 'Chiang Rai', 'Praia de Railay'], ['Tailândia']],
+  ['2025', 'Iporanga', [], ['Brasil']],
+  ['2025', 'Angra e Ilha da Jipóia', ['Angra dos Reis', 'Ilha da Jipóia'], ['Brasil']],
+];
+function ensureViagensCidades(d) {
+  if (d.viagensCidades1) return d;
+  const have = new Set((d.viagens || []).map(v => v.id));
+  const novos = VIAGENS_CIDADES_SEED.map(([ano, titulo, locais, paises], i) => ({ id: 'vgc' + i, ano, titulo, locais, paises })).filter(v => !have.has(v.id));
+  return { ...d, viagensCidades1: true, viagens: [...(d.viagens || []), ...novos] };
+}
+
 // Viagem futura FLIP 2026 (alimenta o Modo Viagem + o card em Life > Viagens).
 // Mesas (21): títulos = versos da Orides Fontela (homenageada). [dia, hora, n, titulo, autores, link].
 // Links oficiais por mesa (flip.org.br/evento/...), conferidos no site da 24ª Flip.
@@ -1082,7 +1125,7 @@ function ensureViagensQueroFix(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, rolarComprasVencidas, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
