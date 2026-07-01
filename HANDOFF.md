@@ -307,7 +307,9 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
     `en-`). Lista ordenada A–Z, **busca** (termo + significado + origem, sem acento), toque edita, + adiciona.
     Campo opcional **`origem`** ("onde vi" — livro/filme; datalist com as origens já usadas) vira um **chip
     clicável** na carta que filtra por aquela origem. Seed
-    `INGLES_SEED`/`ensureIngles` (flag `inglesSeeded`, ~120 palavras da Mari). Cor `COR_INGLES` `#3f7cac`.
+    `INGLES_SEED`/`ensureIngles` (flag `inglesSeeded`, ~120 palavras da Mari). Patch `ensureInglesDaffodils`
+    (flag `inglesDaffodils1`) marca `origem:'Daffodils (Wordsworth)'` nas 15 palavras que vêm do poema (só
+    onde a origem está vazia). Cor `COR_INGLES` `#3f7cac`.
   - FALTA (a Mari vai detalhar): card **Temas para estudar** e **registro do que aprendeu** por tema.
   - OBS: houve um card **Cursos online** (slice `cursos` + `CursosSection`), REMOVIDO a pedido da Mari
     (jun/2026 — "ainda não quero pensar nele"). Está no histórico do git se for reconstruir.

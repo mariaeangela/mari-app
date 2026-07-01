@@ -1295,8 +1295,18 @@ function ensureIngles(d) {
   return { ...d, inglesSeeded: true, ingles: [...(d.ingles || []), ...novos] };
 }
 
+// Patch: marca a origem "Daffodils (Wordsworth)" nas palavras que vêm do poema
+// (só onde a origem está vazia — não sobrescreve o que a Mari editou).
+function ensureInglesDaffodils(d) {
+  if (d.inglesDaffodils1) return d;
+  const doPoema = new Set(['Daffodils', 'Wander', 'Host', 'Milky way', 'Twinkle', 'Bay', 'Tossing', 'Sprightly', 'Out-did', 'Glee', 'Jocund and gay', 'To gaze / gazed', 'Inward eye', 'Bliss', 'Pensive']);
+  const origem = 'Daffodils (Wordsworth)';
+  const ingles = (d.ingles || []).map(e => (doPoema.has(e.termo) && !e.origem) ? { ...e, origem } : e);
+  return { ...d, inglesDaffodils1: true, ingles };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
