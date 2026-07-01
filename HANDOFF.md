@@ -240,7 +240,8 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Fantasias e Coisas a comprar (prefixados "Fantasia:" / "Comprar:" porque o checklist é plano, sem grupo).
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
-  **Salários** / **Gastos**.
+  **Salários** / **Gastos**. **Escondida atrás de um toque** (estado `revelado`, começa oculta com 🔒
+  "Toque para mostrar"; early-return DEPOIS de todos os hooks; reseta ao sair), igual à Amorosa.
   - Carteira: `financas.snapshots = [{ id, mes, usdRate, holdings:[{nome,categoria,
     finalidade,valor,moeda:'BRL'|'USD',externo}] }]`. `valorBRL(h,rate)` converte USD pela
     `usdRate` do mês (travada; `rateOf(snap)`; `fetchUsdRate(mes)` = AwesomeAPI, atual no mês
@@ -382,7 +383,9 @@ Quem você viu / Saúde (placeholder `EmBreve`).
   'relacao',data,fim?,pessoa?,local?,nota?}]` (CRUD `saveAmorosa`/`deleteAmorosa`; ids `am-`). **Escondida
   atrás de um toque** (estado `revelado`, começa oculta com 🔒; reseta ao sair). Revelada: `useAnoSel`/
   `AnoChips`, **stats por tipo** no ano (`TIPOS_AM`, com emoji), **"quem apareceu mais"** (ranking de
-  `pessoa`) e timeline dos registros (toque edita). Form: chips de tipo (relação mostra `fim`), pessoa
+  `pessoa`) e timeline dos registros (toque edita). Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),
+  Date, Beijo, Caso (`relacao`) — labels mudaram mas os **ids internos seguem** `transa`/`relacao`. Form:
+  chips de tipo (caso mostra `fim`), pessoa
   (datalist), local, nota. ATENÇÃO: `saveAmorosa` põe `id` DEPOIS do spread (`{...a, id:uid('am')}`) porque
   o form manda `id:undefined` ao adicionar — senão a entrada fica sem id (quebra o `key`).
 - **Corridas** (`CorridasRetro`/`PaceChart`): provas (`corrida_prova`, + legado `corrida`) com

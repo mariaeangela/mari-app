@@ -1349,10 +1349,10 @@ function GastoItemForm({ editing, categoria, onClose }) {
 // ---- Card: Amorosa (privada — escondida atrás de um toque) ----
 const COR_AMOR = '#c2548f';
 const TIPOS_AM = [
-  { id: 'transa', label: 'Transa', plural: 'transas', emoji: '🔥' },
-  { id: 'date', label: 'Date', plural: 'dates', emoji: '🍷' },
-  { id: 'beijo', label: 'Beijo', plural: 'beijos', emoji: '💋' },
-  { id: 'relacao', label: 'Relação', plural: 'relações', emoji: '❤️' },
+  { id: 'transa', label: 'Sexo', plural: 'sexo' },
+  { id: 'date', label: 'Date', plural: 'dates' },
+  { id: 'beijo', label: 'Beijo', plural: 'beijos' },
+  { id: 'relacao', label: 'Caso', plural: 'casos' },
 ];
 const tipoAm = (id) => TIPOS_AM.find(t => t.id === id) || TIPOS_AM[0];
 
@@ -1388,14 +1388,14 @@ function AmorosaRetro({ onBack, isWide }) {
           <button onClick={() => setRevelado(true)} style={{ border: 'none', borderRadius: 20, background: COR_AMOR, color: '#fff', cursor: 'pointer', padding: '10px 22px', fontSize: 13.5, fontWeight: 700 }}>Toque para mostrar</button>
         </div>
       ) : todos.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma transa, date, beijo ou relação.</p>
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar sexo, date, beijo ou caso.</p>
       ) : <div>
         <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_AMOR} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginBottom: 18 }}>
           {TIPOS_AM.map(t => { const n = countTipo(t.id); return (
             <div key={t.id}>
               <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: n ? '#111' : '#ccc' }}>{n}</span>
-              <span style={{ fontSize: 12.5, color: '#999' }}> {t.emoji} {n === 1 ? t.label.toLowerCase() : t.plural}</span>
+              <span style={{ fontSize: 12.5, color: '#999' }}> {n === 1 ? t.label.toLowerCase() : t.plural}</span>
             </div>
           ); })}
         </div>
@@ -1419,7 +1419,7 @@ function AmorosaRetro({ onBack, isWide }) {
                 <span style={{ position: 'absolute', left: -23, top: 12, width: 9, height: 9, borderRadius: '50%', background: COR_AMOR, border: '2px solid #fafafa' }} />
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{fmtDiaMes(a.data)}</span>
-                  <span style={{ fontSize: 12, color: '#777' }}>{T.emoji} {T.label}</span>
+                  <span style={{ fontSize: 12, color: '#777' }}>{T.label}</span>
                   {a.pessoa && <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>· {a.pessoa}</span>}
                   {a.tipo === 'relacao' && a.fim && <span style={{ fontSize: 11.5, color: '#aaa' }}>até {fmtDiaMes(a.fim)}</span>}
                 </div>
@@ -1460,7 +1460,7 @@ function AmorosaForm({ editing, onClose }) {
         <label style={labelStyle}>Tipo</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {TIPOS_AM.map(t => (
-            <button key={t.id} onClick={() => setTipo(t.id)} style={{ border: '1px solid ' + (tipo === t.id ? COR_AMOR : '#e2e2e2'), borderRadius: 20, background: tipo === t.id ? COR_AMOR : '#fff', color: tipo === t.id ? '#fff' : '#777', cursor: 'pointer', padding: '7px 13px', fontSize: 12.5, fontWeight: 700 }}>{t.emoji} {t.label}</button>
+            <button key={t.id} onClick={() => setTipo(t.id)} style={{ border: '1px solid ' + (tipo === t.id ? COR_AMOR : '#e2e2e2'), borderRadius: 20, background: tipo === t.id ? COR_AMOR : '#fff', color: tipo === t.id ? '#fff' : '#777', cursor: 'pointer', padding: '7px 13px', fontSize: 12.5, fontWeight: 700 }}>{t.label}</button>
           ))}
         </div>
         <label style={labelStyle}>{tipo === 'relacao' ? 'Início' : 'Quando'}</label>

@@ -1528,6 +1528,7 @@ function FinancasSection({ onBack }) {
   const [rate, setRate] = useState('');
   const [buscando, setBuscando] = useState(false);
   const [sub, setSub] = useState('carteira');
+  const [revelado, setRevelado] = useState(false);
 
   const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
   const atualTemUSD = (atual?.holdings || []).some(h => h.moeda === 'USD');
@@ -1572,6 +1573,21 @@ function FinancasSection({ onBack }) {
       flex: 1, padding: '9px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700,
       background: view === id ? COR_FIN : '#eee', color: view === id ? '#fff' : '#888',
     }}>{txt}</button>
+  );
+
+  if (!revelado) return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 640, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Vida Financeira</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>carteira, salários e gastos</p>
+      <div style={{ marginTop: 16, padding: '44px 24px', borderRadius: 16, background: COR_FIN + '0e', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
+        <div style={{ fontSize: 30 }}>🔒</div>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15.5, color: '#555', margin: '10px 0 3px' }}>Conteúdo privado</p>
+        <p style={{ fontSize: 12.5, color: '#aaa', marginBottom: 18 }}>fica oculto até você mostrar</p>
+        <button onClick={() => setRevelado(true)} style={{ border: 'none', borderRadius: 20, background: COR_FIN, color: '#fff', cursor: 'pointer', padding: '10px 22px', fontSize: 13.5, fontWeight: 700 }}>Toque para mostrar</button>
+      </div>
+    </div>
   );
 
   return (
