@@ -389,7 +389,9 @@ Quem você viu / Saúde (placeholder `EmBreve`).
   **`valor`** = quanto gastou (número; form aceita vírgula) — mostra na linha do registro e soma um total
   **"gastou R$ X em {ano}"** (`gastoAno`, `fmtBRLam`). **Cadeado no topo** (componente `Cadeado`; estado
   `oculto` começa `true`): borra o conteúdo (`filter: blur` + `pointerEvents:none`) — **nomes e valores
-  ocultos**; `AnoChips` e o `+` ficam FORA do borrão; toque no 🔒 revela. `useAnoSel`/
+  ocultos**; `AnoChips` e o `+` ficam FORA do borrão; toque no 🔒 revela. Campo **`soAno`** (bool): quando
+  só se sabe o ano, `data` fica `YYYY-01-01` e a timeline mostra só o ano (não "1 jan"). Seed
+  `ensureAmorosaSeed` (flag `amorosaSeed1`, ids `am-seed-*`) com os registros da Mari. `useAnoSel`/
   `AnoChips`, **stats por tipo** no ano, **"quem apareceu mais"** (ranking de
   `pessoa`) e timeline dos registros (toque edita). Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),
   Date, Beijo, Caso (`relacao`) — labels mudaram mas os **ids internos seguem** `transa`/`relacao`. Form:

@@ -1305,8 +1305,34 @@ function ensureInglesDaffodils(d) {
   return { ...d, inglesDaffodils1: true, ingles };
 }
 
+// Seed da Retrospectiva Amorosa (dados da Mari). `soAno` = só o ano (sem dia certo).
+function ensureAmorosaSeed(d) {
+  if (d.amorosaSeed1) return d;
+  const s = (id, o) => ({ id: 'am-seed-' + id, tipo: 'transa', ...o });
+  const novos = [
+    s(1, { data: '2016-01-01', soAno: true, pessoa: 'Luiz Klein', local: 'drive-in, Butantã' }),
+    s(2, { data: '2019-01-01', soAno: true, pessoa: 'Nalu', local: 'casa dela' }),
+    s(3, { data: '2022-01-01', soAno: true, pessoa: 'Matheus Prado', local: 'casa dele' }),
+    s(4, { data: '2022-01-01', soAno: true, pessoa: 'Matheus Nistal', local: 'motel' }),
+    s(5, { data: '2023-01-01', soAno: true, pessoa: 'Alice', local: 'casa dela' }),
+    s(6, { data: '2024-01-01', soAno: true, pessoa: 'Bruno', local: 'Airbnb dele', nota: 'primo do Diego' }),
+    s(7, { data: '2024-01-01', soAno: true, pessoa: 'Odilson', local: 'minha casa' }),
+    s(8, { data: '2024-01-01', soAno: true, pessoa: 'Pedro Rufato', nota: 'incontáveis vezes' }),
+    s(9, { data: '2025-01-01', soAno: true, pessoa: 'Pedro Rufato', nota: 'incontáveis vezes' }),
+    s(10, { data: '2025-07-24', pessoa: 'Hugo' }),
+    s(11, { data: '2025-11-24', pessoa: 'Pedro Cantisano', local: 'casa dele', nota: 'conheci no Fachada' }),
+    s(12, { data: '2026-01-10', pessoa: 'Diego Armando', local: 'minha casa' }),
+    s(13, { data: '2026-02-26', pessoa: 'Thiago', local: 'casa dele' }),
+    s(14, { data: '2026-04-16', pessoa: 'Thiago', local: 'minha casa' }),
+    s(15, { data: '2026-06-04', pessoa: 'Thiago', local: 'minha casa' }),
+    s(16, { data: '2026-06-30', pessoa: 'Matheus Nistal', local: 'minha casa' }),
+  ];
+  const have = new Set((d.amorosa || []).map(x => x.id));
+  return { ...d, amorosaSeed1: true, amorosa: [...(d.amorosa || []), ...novos.filter(x => !have.has(x.id))] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

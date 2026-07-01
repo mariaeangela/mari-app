@@ -1428,7 +1428,7 @@ function AmorosaRetro({ onBack, isWide }) {
               <div key={a.id} onClick={() => setForm({ editing: a })} style={{ position: 'relative', padding: '8px 0 12px', cursor: 'pointer' }}>
                 <span style={{ position: 'absolute', left: -23, top: 12, width: 9, height: 9, borderRadius: '50%', background: COR_AMOR, border: '2px solid #fafafa' }} />
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{fmtDiaMes(a.data)}</span>
+                  <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{a.soAno ? (a.data || '').slice(0, 4) : fmtDiaMes(a.data)}</span>
                   <span style={{ fontSize: 12, color: '#777' }}>{T.label}</span>
                   {a.pessoa && <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>· {a.pessoa}</span>}
                   {a.valor > 0 && <span style={{ fontSize: 11.5, color: COR_AMOR, fontWeight: 700 }}>{fmtBRLam(a.valor)}</span>}
