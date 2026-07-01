@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1165,8 +1165,138 @@ function ensurePlanosViagem(d) {
   return { ...d, planosViagemSeeded: true, planosViagem: [...(d.planosViagem || []), ...grupos] };
 }
 
+// Dicionário de inglês da Mari (termo → definição; grafia dos termos corrigida,
+// explicações dela preservadas). Editável/expansível pela própria UI.
+const INGLES_SEED = [
+  ["Acquaintance", "a person one knows slightly, but who is not a close friend"],
+  ["Athwart", "across"],
+  ["By trial and error", "por tentativa e erro"],
+  ["Branches / boughs", "galhos de árvore"],
+  ["Mirth", "happiness, alegria — não necessariamente genuína; alegria do momento"],
+  ["Mighty", "powerful"],
+  ["Pry into (verb)", "enquire too inquisitively into a person's private affairs; bisbilhotar"],
+  ["Speak in jest", "dizer de brincadeira, quando não era sério"],
+  ["Strike / struck / stricken", "to hit, to beat"],
+  ["Stirs", "move a little bit (quando alguém dorme, ou ao cozinhar)"],
+  ["Thus", "therefore; in this way; assim, portanto"],
+  ["Upbringing", "criação (teve criações diferentes)"],
+  ["Fret", "reclamar, estar aborrecido; 'don't fret' = não se preocupe"],
+  ["Hermits", "religious person who lives in isolation, meditating; eremita"],
+  ["Cells", "prison/monastery: small rooms; celas"],
+  ["Pensive", "related to thinking; pensativo"],
+  ["Citadels", "walled cities; cidadelas"],
+  ["Wheel", "roda"],
+  ["Maids at the wheel", "a roda (de fiar) usada para fazer roupas"],
+  ["Weaver", "fiar; fiandeiro / tecelão"],
+  ["Loom", "machine used to weave; tear"],
+  ["Mumbling", "complaining; resmungar"],
+  ["Murmur", "just the sound; murmúrio"],
+  ["Blithe", "synonym for happy"],
+  ["Soar", "related to flying high; sense of freedom"],
+  ["Bloom", "synonym for flower; florescer"],
+  ["Foxglove", "a flower; dedaleira"],
+  ["Doom", "related to destiny; fatalidade, perdição"],
+  ["Prison into which we devote ourselves", "prisão à qual nos entregamos (frase)"],
+  ["Hence", "assim, portanto"],
+  ["Sundry", "various, diverse"],
+  ["To bind", "atar, prender"],
+  ["Bound", "to be limited; preso"],
+  ["Scanty", "limited, small; escasso"],
+  ["Pastime", "passatempo"],
+  ["Solace", "consolation, comfort"],
+  ["Should", "modal verb (também usado como passado de 'shall')"],
+  ["There needs must be", "needs to be"],
+  ["Stammer", "gaguejar"],
+  ["Requiem", "the funeral mass / the funeral mass music"],
+  ["Healing swaying", "related to the catharsis of a requiem"],
+  ["Limbs", "members of the body; membros"],
+  ["Quivering", "to tremble"],
+  ["Flush", "dar descarga; fazer um líquido escoar; corar; make something come out of hiding"],
+  ["Spell", "feitiço; soletrar; a period of something"],
+  ["Cool heart", "even tempered (sem altos e baixos de sentimento)"],
+  ["Sink", "afundar"],
+  ["Pool", "any body of still water"],
+  ["Fading colors", "cores desbotadas"],
+  ["Subaqueous", "sub-aquatic"],
+  ["To sink in the unconscious", "afundar no inconsciente"],
+  ["Daffodils", "flor narciso (pron. 'défodils')"],
+  ["Wonder", "viajar na imaginação; maravilhar-se"],
+  ["Wander", "vagar, andar sem rumo"],
+  ["Host", "to host a party; também 'host' = army (dá origem a 'hostile')"],
+  ["Milky way", "via láctea"],
+  ["Twinkle", "brilhar (brilha brilha estrelinha)"],
+  ["Bay", "baía"],
+  ["Tossing", "lançar, jogar"],
+  ["Sprightly", "lively, animated, excited"],
+  ["Out-did", "to do it better/more; superar"],
+  ["Glee", "happiness, joy"],
+  ["Jocund and gay", "means happy"],
+  ["To gaze / gazed", "to look at something intently, staring"],
+  ["Inward eye", "mente; olho interno da imaginação"],
+  ["Bliss", "happiness, great pleasure; deleite"],
+  ["Bliss of heaven", "joy of heaven"],
+  ["Up to speed", "a par, atualizado"],
+  ["Summon", "invocar"],
+  ["Summon forth", "to bring it up, from the back of your mind"],
+  ["Instilled", "to infuse; instilar; becomes part of your memories"],
+  ["Infill", "to fill in"],
+  ["Embrace", "hug"],
+  ["Motif", "tema, lema (like 'tantantan')"],
+  ["Still heart", "stagnant"],
+  ["Bows", "to bow; se curvar, se dobrar"],
+  ["Vicissitude", "percalços; as contingências das situações"],
+  ["Scorned", "desprezado, zombado, ridicularizado"],
+  ["Spurned", "to kick; rejection; rejeitar"],
+  ["Spat", "past of spit"],
+  ["Spite", "desprezo, malícia, rancor; 'out of spite' = por rancor"],
+  ["Spate", "flood; 'in spate' = abundant"],
+  ["Skewed", "to bend; entortar, desviar"],
+  ["Sight", "the vision itself, the view"],
+  ["Fancy", "from fantasy/imagination; 'you fancy someone' = like a crush"],
+  ["To long for", "desejar algo, ansiar ('I do long…')"],
+  ["In stills", "still pictures of movies, scenes"],
+  ["Ladder", "escada (móvel, não fixa)"],
+  ["Sticking", "apoiada, pendurada (o fim passando pela árvore)"],
+  ["Barrel", "barril"],
+  ["Bough", "tree branch (pron. 'báu')"],
+  ["Drowsing", "to fall asleep; 'drowsing off' = cochilando"],
+  ["Scent", "smell, perfume"],
+  ["Enchanted / bewitched", "enfeitiçado, encantado"],
+  ["Pane of glass", "painel de vidro"],
+  ["Skimmed", "passar de leve pela superfície; skimmed milk = leite desnatado"],
+  ["Abdominal cramps", "cólica"],
+  ["Period cramps", "cólica menstrual"],
+  ["Choking", "engasgar"],
+  ["Castle", "o 't' é mudo (ca-sle)"],
+  ["Muscle", "o 'c' é mudo (mu-sle)"],
+  ["Touch and go", "something fragile/uncertain"],
+  ["Pupil", "pupila / aluno (pron. 'piúpou')"],
+  ["Seldom", "rarely"],
+  ["Loved", "o 'e' do -ed só é pronunciado depois de t ou d (não depois de v)"],
+  ["Buckle up", "get ready"],
+  ["Buckle down", "go for it"],
+  ["Swamped", "atolado de coisas"],
+  ["Might", "poder (força; ou modal de possibilidade)"],
+  ["Sorry my French", "desculpa o palavrão; 'a pain in the ass' = um saco"],
+  ["Happy", "full of 'hap', full of good chance"],
+  ["Hap", "related to luck/chance"],
+  ["Happen", "o que acontece é o que a probabilidade vinga; like chance"],
+  ["Perhaps", "like maybe, by chance"],
+  ["Haphazard", "happened by chance ('azard' ~ azar/chance)"],
+  ["To dart", "to move fast; disparar"],
+  ["Thrusts in", "avançar para frente rápido, como um ataque"],
+  ["Needle", "agulha"],
+  ["Bill", "bico (of the bird)"],
+  ["Hummingbird", "beija-flor"],
+];
+function ensureIngles(d) {
+  if (d.inglesSeeded) return d;
+  const novos = INGLES_SEED.map(([termo, definicao], i) => ({ id: 'en-' + (i + 1), termo, definicao }));
+  return { ...d, inglesSeeded: true, ingles: [...(d.ingles || []), ...novos] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -1421,6 +1551,13 @@ export function LifeProvider({ children }) {
   const savePVItemTexto = (gid, iid, texto) => setPlanosViagem(planosViagem.map(g => g.id === gid ? { ...g, itens: (g.itens || []).map(x => x.id === iid ? { ...x, texto } : x) } : g));
   const deletePVItem = (gid, iid) => setPlanosViagem(planosViagem.map(g => g.id === gid ? { ...g, itens: (g.itens || []).filter(x => x.id !== iid) } : g));
 
+  // ---- Estudos › Inglês (dicionário: termo → definição) ----
+  const ingles = data.ingles || [];
+  const saveInglesEntry = (e) => persist({ ...data, ingles: e.id && ingles.some(x => x.id === e.id)
+    ? ingles.map(x => x.id === e.id ? { ...x, ...e } : x)
+    : [...ingles, { id: uid('en'), ...e }] });
+  const deleteInglesEntry = (id) => persist({ ...data, ingles: ingles.filter(x => x.id !== id) });
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1564,6 +1701,7 @@ export function LifeProvider({ children }) {
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
     viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, deleteQueroItem, addQueroNota, saveQueroNotaTexto, deleteQueroNota,
     planosViagem, addPVGrupo, renamePVGrupo, deletePVGrupo, movePVGrupo, addPVItem, savePVItemTexto, deletePVItem,
+    ingles, saveInglesEntry, deleteInglesEntry,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;

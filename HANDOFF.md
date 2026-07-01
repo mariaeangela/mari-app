@@ -302,6 +302,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
     `normTxt` normaliza acento/caixa). Seed **Anna Kariênina** (`ensureAnnaKarenina`/flag
     `annaKareninaSeeded`, id `al-anna-karenina`, Tolstói/1877/Rússia, `inicio:'2026-06-25'`, com o guia
     verificado embutido) em `runLifeSeeds`. Pra outro livro com guia: novo `ensure*` no mesmo molde.
+  - **Inglês** (`InglesSection`/`InglesForm`) — dicionário pessoal (termo → definição). Slice
+    `ingles:[{id,termo,definicao}]` no `lifeStore` (CRUD `saveInglesEntry`/`deleteInglesEntry`; ids `en-`).
+    Lista ordenada A–Z, **busca** (termo + significado, sem acento), toque edita, + adiciona. Seed
+    `INGLES_SEED`/`ensureIngles` (flag `inglesSeeded`, ~120 palavras da Mari). Cor `COR_INGLES` `#3f7cac`.
   - FALTA (a Mari vai detalhar): card **Temas para estudar** e **registro do que aprendeu** por tema.
   - OBS: houve um card **Cursos online** (slice `cursos` + `CursosSection`), REMOVIDO a pedido da Mari
     (jun/2026 — "ainda não quero pensar nele"). Está no histórico do git se for reconstruir.

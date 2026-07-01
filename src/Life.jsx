@@ -3636,8 +3636,10 @@ function EstudosPage({ onBack }) {
   const life = useLife();
   const [sec, setSec] = useState(null);
   if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
+  if (sec === 'ingles') return <InglesSection onBack={() => setSec(null)} />;
   const cards = [
     { id: 'acomp', label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: COR_ACOMP, n: (life.acompLeituras || []).length, sufixo: 'leitura' },
+    { id: 'ingles', label: 'Inglês', desc: 'dicionário de palavras', cor: COR_INGLES, n: (life.ingles || []).length, sufixo: 'palavra' },
   ];
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3654,6 +3656,79 @@ function EstudosPage({ onBack }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ===== Estudos › Inglês (dicionário: termo → definição, com busca) =====
+const COR_INGLES = '#3f7cac';
+
+function InglesForm({ editing, onClose }) {
+  const life = useLife();
+  const [termo, setTermo] = useState(editing?.termo || '');
+  const [definicao, setDefinicao] = useState(editing?.definicao || '');
+  const podeSalvar = termo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const obj = { termo: termo.trim(), definicao: definicao.trim() };
+    life.saveInglesEntry(editing?.id ? { ...obj, id: editing.id } : obj);
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar palavra' : 'Nova palavra'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Palavra / expressão</label>
+        <input value={termo} autoFocus onChange={e => setTermo(e.target.value)} placeholder="ex.: Mirth" style={inputStyle} />
+        <label style={labelStyle}>Significado</label>
+        <textarea value={definicao} onChange={e => setDefinicao(e.target.value)} rows={4} placeholder="definição / tradução…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          {editing && <button onClick={() => { if (window.confirm('Apagar esta palavra?')) { life.deleteInglesEntry(editing.id); onClose(); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 11, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '12px 16px', fontSize: 13, fontWeight: 700 }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, border: 'none', borderRadius: 11, background: podeSalvar ? '#111' : '#ccc', color: '#fff', cursor: podeSalvar ? 'pointer' : 'default', padding: '12px 0', fontSize: 14, fontWeight: 700 }}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InglesSection({ onBack }) {
+  const life = useLife();
+  const [q, setQ] = useState('');
+  const [form, setForm] = useState(null); // null | {editing?}
+  const entries = life.ingles || [];
+  const norm = (s) => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const nq = norm(q.trim());
+  const filtrados = entries.filter(e => !nq || norm(e.termo).includes(nq) || norm(e.definicao).includes(nq));
+  const lista = [...filtrados].sort((a, b) => (a.termo || '').localeCompare(b.termo || '', 'en', { sensitivity: 'base' }));
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Estudos</button>
+      <div style={{ width: 36, height: 4, background: COR_INGLES, borderRadius: 4, marginBottom: 12 }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Inglês</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>seu dicionário · {entries.length} {entries.length === 1 ? 'palavra' : 'palavras'}</p>
+        </div>
+        <button onClick={() => setForm({})} title="nova palavra" style={{ flexShrink: 0, border: 'none', borderRadius: 20, background: '#111', color: '#fff', cursor: 'pointer', padding: '8px 14px', fontSize: 18, lineHeight: 1 }}>+</button>
+      </div>
+
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="buscar palavra ou significado…" style={{ ...inputStyle, marginBottom: 14 }} />
+
+      {lista.length === 0 ? (
+        <div style={{ padding: 22, borderRadius: 14, background: COR_INGLES + '0e', border: '1px dashed ' + COR_INGLES + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14.5, color: '#666', margin: 0 }}>{entries.length === 0 ? 'Nenhuma palavra ainda.' : 'Nada encontrado.'}</p>
+        </div>
+      ) : lista.map(e => (
+        <div key={e.id} onClick={() => setForm({ editing: e })} style={{ borderBottom: '1px solid #f0f0f0', padding: '11px 2px', cursor: 'pointer' }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, color: '#1a1a1a', fontWeight: 700 }}>{e.termo}</div>
+          {e.definicao && <div style={{ fontSize: 13.5, color: '#555', lineHeight: 1.5, marginTop: 2, whiteSpace: 'pre-wrap' }}>{e.definicao}</div>}
+        </div>
+      ))}
+
+      {form && <InglesForm editing={form.editing} onClose={() => setForm(null)} />}
     </div>
   );
 }
