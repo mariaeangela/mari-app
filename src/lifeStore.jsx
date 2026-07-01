@@ -1166,7 +1166,7 @@ function ensurePlanosViagem(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, rolarComprasVencidas, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -1184,6 +1184,20 @@ function rolarComprasVencidas(d) {
     return i;
   });
   return changed ? { ...d, compras: { ...compras, itens } } : d;
+}
+
+// Itens de checklist de Planos com prazo vencido (e não feitos) puxam pra hoje —
+// mesmo comportamento das compras/tarefas, pra não sumirem da capa de Hoje.
+function rolarPlanosVencidos(d) {
+  const planos = d.planos;
+  if (!planos || !planos.itens) return d;
+  const hk = hojeISO();
+  let changed = false;
+  const itens = planos.itens.map(i => {
+    if (i.prazo && !i.feito && i.prazo < hk) { changed = true; return { ...i, prazo: hk }; }
+    return i;
+  });
+  return changed ? { ...d, planos: { ...planos, itens } } : d;
 }
 
 // Modo Viagem: viagem "ativa" hoje = hoje entre a VÉSPERA do início e o fim (inclusive).

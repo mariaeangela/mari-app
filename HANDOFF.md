@@ -22,7 +22,9 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   LendoAgora · **HojeAgenda · PlanosProximos** (hoje primeiro, depois próximos dias). `HojeAgenda` passa
   `life.planos` ao `itemsForDay`, então **itens de plano com `prazo`==hoje aparecem no bloco "Hoje"**
   (checkbox `togglePlanoCheck` + nome do plano); e `PlanosProximos` agora filtra `prazo > hoje` (amanhã→+15
-  dias) pra não duplicar.
+  dias) pra não duplicar. **`rolarPlanosVencidos`** (em `runLifeSeeds`, roda todo load, sem flag): item do
+  checklist de Planos com `prazo` vencido e não-feito **puxa pra hoje** (igual compras/tarefas) — sem isso
+  o item ficava preso no dia passado e sumia da capa de Hoje.
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema
