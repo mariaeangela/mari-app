@@ -48,7 +48,7 @@ const CARDS = [
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
-  { id: 'amorosa', label: 'Amorosa', desc: 'dates e afins', cor: '#c2548f' },
+  { id: 'amorosa', label: 'Amorosa', desc: 'dates, beijos e afins', cor: '#c2548f', pronto: true },
 ];
 
 export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) {
@@ -62,6 +62,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -1338,6 +1339,145 @@ function GastoItemForm({ editing, categoria, onClose }) {
         <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 533,70" style={inputStyle} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteGastoItem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Card: Amorosa (privada — escondida atrás de um toque) ----
+const COR_AMOR = '#c2548f';
+const TIPOS_AM = [
+  { id: 'transa', label: 'Transa', plural: 'transas', emoji: '🔥' },
+  { id: 'date', label: 'Date', plural: 'dates', emoji: '🍷' },
+  { id: 'beijo', label: 'Beijo', plural: 'beijos', emoji: '💋' },
+  { id: 'relacao', label: 'Relação', plural: 'relações', emoji: '❤️' },
+];
+const tipoAm = (id) => TIPOS_AM.find(t => t.id === id) || TIPOS_AM[0];
+
+function AmorosaRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [revelado, setRevelado] = useState(false);
+  const [form, setForm] = useState(null);
+  const todos = life.amorosa || [];
+  const { anos, anoSel, setAnoSel } = useAnoSel(todos.map(a => a.data));
+  const doAno = todos.filter(a => (a.data || '').slice(0, 4) === anoSel).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const countTipo = (t) => doAno.filter(a => (a.tipo || 'transa') === t).length;
+  const pessoaCount = {};
+  doAno.forEach(a => { const p = (a.pessoa || '').trim(); if (p) pessoaCount[p] = (pessoaCount[p] || 0) + 1; });
+  const pessoas = Object.entries(pessoaCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_AMOR, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Amorosa</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>só seu · dates, beijos e afins</p>
+        </div>
+        {revelado && <button onClick={() => setForm({})} title="registrar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>}
+      </div>
+
+      {!revelado ? (
+        <div style={{ marginTop: 16, padding: '44px 24px', borderRadius: 16, background: COR_AMOR + '0e', border: '1px dashed ' + COR_AMOR + '55', textAlign: 'center' }}>
+          <div style={{ fontSize: 30 }}>🔒</div>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15.5, color: '#555', margin: '10px 0 3px' }}>Conteúdo privado</p>
+          <p style={{ fontSize: 12.5, color: '#aaa', marginBottom: 18 }}>fica oculto até você mostrar</p>
+          <button onClick={() => setRevelado(true)} style={{ border: 'none', borderRadius: 20, background: COR_AMOR, color: '#fff', cursor: 'pointer', padding: '10px 22px', fontSize: 13.5, fontWeight: 700 }}>Toque para mostrar</button>
+        </div>
+      ) : todos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma transa, date, beijo ou relação.</p>
+      ) : <div>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_AMOR} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginBottom: 18 }}>
+          {TIPOS_AM.map(t => { const n = countTipo(t.id); return (
+            <div key={t.id}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: n ? '#111' : '#ccc' }}>{n}</span>
+              <span style={{ fontSize: 12.5, color: '#999' }}> {t.emoji} {n === 1 ? t.label.toLowerCase() : t.plural}</span>
+            </div>
+          ); })}
+        </div>
+
+        {pessoas.length > 0 && <div>
+          <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>quem apareceu mais</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 22 }}>
+            {pessoas.map(([nome, n]) => (
+              <span key={nome} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, background: COR_AMOR + '12', border: '1px solid ' + COR_AMOR + '33', fontSize: 12.5, color: '#8a2f63', fontWeight: 600 }}>
+                {nome}{n > 1 && <span style={{ color: COR_AMOR, fontWeight: 700 }}>{n}</span>}
+              </span>
+            ))}
+          </div>
+        </div>}
+
+        <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>no ano</div>
+        {doAno.length === 0 ? <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '6px 0' }}>Nada registrado em {anoSel}.</p> : (
+          <div style={{ borderLeft: '2px solid ' + COR_AMOR + '33', marginLeft: 5, paddingLeft: 16 }}>
+            {doAno.map(a => { const T = tipoAm(a.tipo); return (
+              <div key={a.id} onClick={() => setForm({ editing: a })} style={{ position: 'relative', padding: '8px 0 12px', cursor: 'pointer' }}>
+                <span style={{ position: 'absolute', left: -23, top: 12, width: 9, height: 9, borderRadius: '50%', background: COR_AMOR, border: '2px solid #fafafa' }} />
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{fmtDiaMes(a.data)}</span>
+                  <span style={{ fontSize: 12, color: '#777' }}>{T.emoji} {T.label}</span>
+                  {a.pessoa && <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>· {a.pessoa}</span>}
+                  {a.tipo === 'relacao' && a.fim && <span style={{ fontSize: 11.5, color: '#aaa' }}>até {fmtDiaMes(a.fim)}</span>}
+                </div>
+                {(a.local || a.nota) && <div style={{ fontSize: 13, color: '#888', lineHeight: 1.45, marginTop: 3 }}>{[a.local, a.nota].filter(Boolean).join(' · ')}</div>}
+              </div>
+            ); })}
+          </div>
+        )}
+      </div>}
+
+      {form && <AmorosaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+function AmorosaForm({ editing, onClose }) {
+  const life = useLife();
+  const [tipo, setTipo] = useState(editing?.tipo || 'transa');
+  const [data, setData] = useState(editing?.data || '');
+  const [fim, setFim] = useState(editing?.fim || '');
+  const [pessoa, setPessoa] = useState(editing?.pessoa || '');
+  const [local, setLocal] = useState(editing?.local || '');
+  const [nota, setNota] = useState(editing?.nota || '');
+  const pessoas = [...new Set((life.amorosa || []).map(a => a.pessoa).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const podeSalvar = !!data;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveAmorosa({ id: editing?.id, tipo, data, fim: (tipo === 'relacao' && fim) ? fim : undefined, pessoa: pessoa.trim() || undefined, local: local.trim() || undefined, nota: nota.trim() || undefined });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} registro</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Tipo</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {TIPOS_AM.map(t => (
+            <button key={t.id} onClick={() => setTipo(t.id)} style={{ border: '1px solid ' + (tipo === t.id ? COR_AMOR : '#e2e2e2'), borderRadius: 20, background: tipo === t.id ? COR_AMOR : '#fff', color: tipo === t.id ? '#fff' : '#777', cursor: 'pointer', padding: '7px 13px', fontSize: 12.5, fontWeight: 700 }}>{t.emoji} {t.label}</button>
+          ))}
+        </div>
+        <label style={labelStyle}>{tipo === 'relacao' ? 'Início' : 'Quando'}</label>
+        <input type="date" value={data} onChange={e => setData(e.target.value)} style={inputStyle} />
+        {tipo === 'relacao' && <>
+          <label style={labelStyle}>Fim (opcional)</label>
+          <input type="date" value={fim} onChange={e => setFim(e.target.value)} style={inputStyle} />
+        </>}
+        <label style={labelStyle}>Com quem (opcional)</label>
+        <input value={pessoa} onChange={e => setPessoa(e.target.value)} list="amor-pessoas" placeholder="nome ou apelido" style={inputStyle} />
+        <datalist id="amor-pessoas">{pessoas.map(p => <option key={p} value={p} />)}</datalist>
+        <label style={labelStyle}>Onde (opcional)</label>
+        <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: bar, casa dele…" style={inputStyle} />
+        <label style={labelStyle}>Nota (opcional)</label>
+        <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="como foi, o que rolou…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteAmorosa(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>

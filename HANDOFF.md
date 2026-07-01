@@ -377,7 +377,14 @@ do sticky do Header, só aparece com viagem ativa) em App.jsx. Datas vêm da via
 Virou **aba própria** (tab `retrospectiva`, ao lado de Life). Hub: **"ano em números"** (cultura+
 exercícios do calendário, por ano, sem futuros) com cada número **clicável** (drill-down → lista os
 itens) + grade de **cards** que abrem sub-páginas: **Compras**, **Música** e **Corridas** (prontos) e
-Quem você viu / Viagens / Saúde / Amorosa (placeholder `EmBreve`).
+Quem você viu / Saúde (placeholder `EmBreve`).
+- **Amorosa** (`AmorosaRetro`/`AmorosaForm`) — **privada**. Slice `amorosa:[{id,tipo:'transa'|'date'|'beijo'|
+  'relacao',data,fim?,pessoa?,local?,nota?}]` (CRUD `saveAmorosa`/`deleteAmorosa`; ids `am-`). **Escondida
+  atrás de um toque** (estado `revelado`, começa oculta com 🔒; reseta ao sair). Revelada: `useAnoSel`/
+  `AnoChips`, **stats por tipo** no ano (`TIPOS_AM`, com emoji), **"quem apareceu mais"** (ranking de
+  `pessoa`) e timeline dos registros (toque edita). Form: chips de tipo (relação mostra `fim`), pessoa
+  (datalist), local, nota. ATENÇÃO: `saveAmorosa` põe `id` DEPOIS do spread (`{...a, id:uid('am')}`) porque
+  o form manda `id:undefined` ao adicionar — senão a entrada fica sem id (quebra o `key`).
 - **Corridas** (`CorridasRetro`/`PaceChart`): provas (`corrida_prova`, + legado `corrida`) com
   meta × executado — tempo real, pace real e pace meta (via helpers de calendarConfig), delta
   "bateu/acima da meta", totais (nº provas, km, melhor pace) e **gráfico de evolução do pace**

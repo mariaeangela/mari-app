@@ -35,7 +35,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1568,6 +1568,14 @@ export function LifeProvider({ children }) {
     : [...ingles, { id: uid('en'), ...e }] });
   const deleteInglesEntry = (id) => persist({ ...data, ingles: ingles.filter(x => x.id !== id) });
 
+  // ---- Retrospectiva › Amorosa (privada: transas, dates, beijos, relações) ----
+  // entrada = { id, tipo:'transa'|'date'|'beijo'|'relacao', data, fim?, pessoa?, local?, nota? }
+  const amorosa = data.amorosa || [];
+  const saveAmorosa = (a) => persist({ ...data, amorosa: a.id && amorosa.some(x => x.id === a.id)
+    ? amorosa.map(x => x.id === a.id ? { ...x, ...a } : x)
+    : [...amorosa, { ...a, id: uid('am') }] });
+  const deleteAmorosa = (id) => persist({ ...data, amorosa: amorosa.filter(x => x.id !== id) });
+
   // ---- Eventos recorrentes (opções pra "o que fazer" quando bate a dúvida) ----
   // recorrente = { id, nome, tipo, cidade?, local?, quando?, preco?, link?, nota? }
   const recorrentes = data.recorrentes || DEFAULT.recorrentes;
@@ -1712,6 +1720,7 @@ export function LifeProvider({ children }) {
     viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, deleteQueroItem, addQueroNota, saveQueroNotaTexto, deleteQueroNota,
     planosViagem, addPVGrupo, renamePVGrupo, deletePVGrupo, movePVGrupo, addPVItem, savePVItemTexto, deletePVItem,
     ingles, saveInglesEntry, deleteInglesEntry,
+    amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
