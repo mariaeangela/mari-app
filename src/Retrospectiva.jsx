@@ -1356,10 +1356,19 @@ const TIPOS_AM = [
 ];
 const tipoAm = (id) => TIPOS_AM.find(t => t.id === id) || TIPOS_AM[0];
 const fmtBRLam = (n) => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+// Cadeado: fica no topo; oculto=true borra os valores (toque revela).
+function Cadeado({ oculto, setOculto, cor }) {
+  return (
+    <button onClick={() => setOculto(o => !o)} title={oculto ? 'mostrar valores' : 'ocultar valores'} style={{
+      flexShrink: 0, border: '1px solid ' + (oculto ? cor + '66' : '#e2e2e2'), borderRadius: 12,
+      background: oculto ? cor + '14' : '#fff', cursor: 'pointer', width: 42, height: 42, fontSize: 18, lineHeight: 1,
+    }}>{oculto ? '🔒' : '🔓'}</button>
+  );
+}
 
 function AmorosaRetro({ onBack, isWide }) {
   const life = useLife();
-  const [revelado, setRevelado] = useState(false);
+  const [oculto, setOculto] = useState(true);
   const [form, setForm] = useState(null);
   const todos = life.amorosa || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(todos.map(a => a.data));
@@ -1379,20 +1388,17 @@ function AmorosaRetro({ onBack, isWide }) {
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Amorosa</h2>
           <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>só seu · dates, beijos e afins</p>
         </div>
-        {revelado && <button onClick={() => setForm({})} title="registrar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>}
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <Cadeado oculto={oculto} setOculto={setOculto} cor={COR_AMOR} />
+          <button onClick={() => setForm({})} title="registrar" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1 }}>+</button>
+        </div>
       </div>
 
-      {!revelado ? (
-        <div style={{ marginTop: 16, padding: '44px 24px', borderRadius: 16, background: COR_AMOR + '0e', border: '1px dashed ' + COR_AMOR + '55', textAlign: 'center' }}>
-          <div style={{ fontSize: 30 }}>🔒</div>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 15.5, color: '#555', margin: '10px 0 3px' }}>Conteúdo privado</p>
-          <p style={{ fontSize: 12.5, color: '#aaa', marginBottom: 18 }}>fica oculto até você mostrar</p>
-          <button onClick={() => setRevelado(true)} style={{ border: 'none', borderRadius: 20, background: COR_AMOR, color: '#fff', cursor: 'pointer', padding: '10px 22px', fontSize: 13.5, fontWeight: 700 }}>Toque para mostrar</button>
-        </div>
-      ) : todos.length === 0 ? (
+      {todos.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar sexo, date, beijo ou caso.</p>
       ) : <div>
         <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_AMOR} />
+        <div style={{ filter: oculto ? 'blur(7px)' : 'none', transition: 'filter .2s', userSelect: oculto ? 'none' : 'auto', pointerEvents: oculto ? 'none' : 'auto' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginBottom: 18 }}>
           {TIPOS_AM.map(t => { const n = countTipo(t.id); return (
             <div key={t.id}>
@@ -1433,6 +1439,7 @@ function AmorosaRetro({ onBack, isWide }) {
             ); })}
           </div>
         )}
+        </div>
       </div>}
 
       {form && <AmorosaForm editing={form.editing} onClose={() => setForm(null)} />}

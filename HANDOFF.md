@@ -240,8 +240,10 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Fantasias e Coisas a comprar (prefixados "Fantasia:" / "Comprar:" porque o checklist é plano, sem grupo).
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
-  **Salários** / **Gastos**. **Escondida atrás de um toque** (estado `revelado`, começa oculta com 🔒
-  "Toque para mostrar"; early-return DEPOIS de todos os hooks; reseta ao sair), igual à Amorosa.
+  **Salários** / **Gastos**. **Cadeado no topo** (`oculto`, começa `true`): um botão 🔒/🔓 ao lado do título
+  **borra os valores** (`filter: blur` + `pointerEvents:none`) sem cobrir a tela — dá pra trocar de aba
+  (Carteira/Salários/Gastos ficam FORA do borrão) e tocar no cadeado revela. O `<FinancasForm>` (modal) fica
+  FORA do wrapper borrado pra não quebrar. Mesmo padrão da Amorosa (`Cadeado` em Retrospectiva).
   - Carteira: `financas.snapshots = [{ id, mes, usdRate, holdings:[{nome,categoria,
     finalidade,valor,moeda:'BRL'|'USD',externo}] }]`. `valorBRL(h,rate)` converte USD pela
     `usdRate` do mês (travada; `rateOf(snap)`; `fetchUsdRate(mes)` = AwesomeAPI, atual no mês
@@ -382,9 +384,10 @@ Quem você viu / Saúde (placeholder `EmBreve`).
 - **Amorosa** (`AmorosaRetro`/`AmorosaForm`) — **privada**. Slice `amorosa:[{id,tipo:'transa'|'date'|'beijo'|
   'relacao',data,fim?,pessoa?,local?,valor?,nota?}]` (CRUD `saveAmorosa`/`deleteAmorosa`; ids `am-`). Campo
   **`valor`** = quanto gastou (número; form aceita vírgula) — mostra na linha do registro e soma um total
-  **"gastou R$ X em {ano}"** (`gastoAno`, `fmtBRLam`). **Escondida
-  atrás de um toque** (estado `revelado`, começa oculta com 🔒; reseta ao sair). Revelada: `useAnoSel`/
-  `AnoChips`, **stats por tipo** no ano (`TIPOS_AM`, com emoji), **"quem apareceu mais"** (ranking de
+  **"gastou R$ X em {ano}"** (`gastoAno`, `fmtBRLam`). **Cadeado no topo** (componente `Cadeado`; estado
+  `oculto` começa `true`): borra o conteúdo (`filter: blur` + `pointerEvents:none`) — **nomes e valores
+  ocultos**; `AnoChips` e o `+` ficam FORA do borrão; toque no 🔒 revela. `useAnoSel`/
+  `AnoChips`, **stats por tipo** no ano, **"quem apareceu mais"** (ranking de
   `pessoa`) e timeline dos registros (toque edita). Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),
   Date, Beijo, Caso (`relacao`) — labels mudaram mas os **ids internos seguem** `transa`/`relacao`. Form:
   chips de tipo (caso mostra `fim`), pessoa
