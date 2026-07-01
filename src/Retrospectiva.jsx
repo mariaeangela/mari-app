@@ -1370,14 +1370,13 @@ function AmorosaRetro({ onBack, isWide }) {
   const life = useLife();
   const [oculto, setOculto] = useState(true);
   const [form, setForm] = useState(null);
+  const [verTudo, setVerTudo] = useState(false);
   const todos = life.amorosa || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(todos.map(a => a.data));
-  const doAno = todos.filter(a => (a.data || '').slice(0, 4) === anoSel).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
-  const countTipo = (t) => doAno.filter(a => (a.tipo || 'transa') === t).length;
-  const pessoaCount = {};
-  doAno.forEach(a => { const p = (a.pessoa || '').trim(); if (p) pessoaCount[p] = (pessoaCount[p] || 0) + 1; });
-  const pessoas = Object.entries(pessoaCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const gastoAno = doAno.reduce((s, a) => s + (Number(a.valor) || 0), 0);
+  const registros = (verTudo ? [...todos] : todos.filter(a => (a.data || '').slice(0, 4) === anoSel)).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const countTipo = (t) => registros.filter(a => (a.tipo || 'transa') === t).length;
+  const gastoTotal = registros.reduce((s, a) => s + (Number(a.valor) || 0), 0);
+  const dataLabel = (a) => a.soAno ? (a.data || '').slice(0, 4) : (verTudo ? `${fmtDiaMes(a.data)} ${(a.data || '').slice(0, 4)}` : fmtDiaMes(a.data));
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
@@ -1397,7 +1396,12 @@ function AmorosaRetro({ onBack, isWide }) {
       {todos.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar sexo, date, beijo ou caso.</p>
       ) : <div>
-        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_AMOR} />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 4 }}>
+          <button onClick={() => setVerTudo(true)} style={{ flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (verTudo ? COR_AMOR : '#e2e2e2'), background: verTudo ? COR_AMOR + '1c' : '#fff', color: verTudo ? '#333' : '#999' }}>Total</button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <AnoChips anos={anos} anoSel={verTudo ? null : anoSel} setAnoSel={(a) => { setAnoSel(a); setVerTudo(false); }} cor={COR_AMOR} />
+          </div>
+        </div>
         <div style={{ filter: oculto ? 'blur(7px)' : 'none', transition: 'filter .2s', userSelect: oculto ? 'none' : 'auto', pointerEvents: oculto ? 'none' : 'auto' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginBottom: 18 }}>
           {TIPOS_AM.map(t => { const n = countTipo(t.id); return (
@@ -1408,27 +1412,16 @@ function AmorosaRetro({ onBack, isWide }) {
           ); })}
         </div>
 
-        {gastoAno > 0 && <p style={{ fontSize: 12.5, color: '#999', margin: '-6px 0 18px' }}>gastou <strong style={{ color: COR_AMOR }}>{fmtBRLam(gastoAno)}</strong> em {anoSel}</p>}
+        {gastoTotal > 0 && <p style={{ fontSize: 12.5, color: '#999', margin: '-6px 0 18px' }}>gastou <strong style={{ color: COR_AMOR }}>{fmtBRLam(gastoTotal)}</strong> {verTudo ? 'no total' : 'em ' + anoSel}</p>}
 
-        {pessoas.length > 0 && <div>
-          <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>quem apareceu mais</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 22 }}>
-            {pessoas.map(([nome, n]) => (
-              <span key={nome} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, background: COR_AMOR + '12', border: '1px solid ' + COR_AMOR + '33', fontSize: 12.5, color: '#8a2f63', fontWeight: 600 }}>
-                {nome}{n > 1 && <span style={{ color: COR_AMOR, fontWeight: 700 }}>{n}</span>}
-              </span>
-            ))}
-          </div>
-        </div>}
-
-        <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>no ano</div>
-        {doAno.length === 0 ? <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '6px 0' }}>Nada registrado em {anoSel}.</p> : (
+        <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{verTudo ? 'linha do tempo' : 'no ano'}</div>
+        {registros.length === 0 ? <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '6px 0' }}>Nada registrado{verTudo ? '.' : ' em ' + anoSel + '.'}</p> : (
           <div style={{ borderLeft: '2px solid ' + COR_AMOR + '33', marginLeft: 5, paddingLeft: 16 }}>
-            {doAno.map(a => { const T = tipoAm(a.tipo); return (
+            {registros.map(a => { const T = tipoAm(a.tipo); return (
               <div key={a.id} onClick={() => setForm({ editing: a })} style={{ position: 'relative', padding: '8px 0 12px', cursor: 'pointer' }}>
                 <span style={{ position: 'absolute', left: -23, top: 12, width: 9, height: 9, borderRadius: '50%', background: COR_AMOR, border: '2px solid #fafafa' }} />
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{a.soAno ? (a.data || '').slice(0, 4) : fmtDiaMes(a.data)}</span>
+                  <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{dataLabel(a)}</span>
                   <span style={{ fontSize: 12, color: '#777' }}>{T.label}</span>
                   {a.pessoa && <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>· {a.pessoa}</span>}
                   {a.valor > 0 && <span style={{ fontSize: 11.5, color: COR_AMOR, fontWeight: 700 }}>{fmtBRLam(a.valor)}</span>}

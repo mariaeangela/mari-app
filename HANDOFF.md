@@ -392,8 +392,10 @@ Quem você viu / Saúde (placeholder `EmBreve`).
   ocultos**; `AnoChips` e o `+` ficam FORA do borrão; toque no 🔒 revela. Campo **`soAno`** (bool): quando
   só se sabe o ano, `data` fica `YYYY-01-01` e a timeline mostra só o ano (não "1 jan"). Seed
   `ensureAmorosaSeed` (flag `amorosaSeed1`, ids `am-seed-*`) com os registros da Mari. `useAnoSel`/
-  `AnoChips`, **stats por tipo** no ano, **"quem apareceu mais"** (ranking de
-  `pessoa`) e timeline dos registros (toque edita). Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),
+  `AnoChips` + botão **"Total"** (`verTudo`): Total mostra a **linha do tempo inteira** (todos os anos, datas
+  com ano; `soAno` → só o ano) e os stats somados; ano selecionado mostra só aquele ano. **stats por tipo**
+  + timeline dos registros (toque edita). (O "quem apareceu mais" existiu e foi REMOVIDO a pedido.)
+  Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),
   Date, Beijo, Caso (`relacao`) — labels mudaram mas os **ids internos seguem** `transa`/`relacao`. Form:
   chips de tipo (caso mostra `fim`), pessoa
   (datalist), local, nota. ATENÇÃO: `saveAmorosa` põe `id` DEPOIS do spread (`{...a, id:uid('am')}`) porque
