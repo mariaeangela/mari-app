@@ -70,8 +70,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
 - 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
 - ✅ **Viagens** — timeline por ano + países com bandeiras + barras por ano (jovem→2026). Editável.
-- ✅ **Amorosa** *(privada)* — transas/dates/beijos/relações por ano, com nome opcional e "quem apareceu
-  mais"; escondida atrás de um toque. FUTURO possível: PIN próprio, correlações com humor.
+- ✅ **Amorosa** *(privada)* — sexo/dates/beijos/casos por ano + botão **Total** (linha do tempo inteira);
+  cada registro com pessoa/onde/quanto gastou/comentário; **cadeado** no topo borra nomes+valores.
+  Já semeados os registros da Mari. FUTURO possível: PIN próprio, correlações com humor.
 - 🟡 **Corridas: trajeto** da prova desenhado (print/GPS do Strava) — meta × executado, pace e
   evolução já estão prontos; falta só o desenho do trajeto.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
