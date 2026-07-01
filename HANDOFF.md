@@ -240,10 +240,13 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   Fantasias e Coisas a comprar (prefixados "Fantasia:" / "Comprar:" porque o checklist é plano, sem grupo).
 
 - **Vida Financeira** (`FinancasSection`) — 3 sub-abas (estado `sub`): **Carteira** /
-  **Salários** / **Gastos**. **Cadeado no topo** (`oculto`, começa `true`): um botão 🔒/🔓 ao lado do título
-  **borra os valores** (`filter: blur` + `pointerEvents:none`) sem cobrir a tela — dá pra trocar de aba
-  (Carteira/Salários/Gastos ficam FORA do borrão) e tocar no cadeado revela. O `<FinancasForm>` (modal) fica
-  FORA do wrapper borrado pra não quebrar. Mesmo padrão da Amorosa (`Cadeado` em Retrospectiva).
+  **Salários** / **Gastos**. **Cadeado no topo** (`oculto`, começa `true`): botão 🔒/🔓 ao lado do título.
+  Borra **apenas os valores** (R$), não a aba toda: via **`PrivacyCtx`** (Provider envolve o conteúdo da
+  `FinancasSection`) + o wrapper **`<V>`** (span que borra só seu conteúdo quando `useContext(PrivacyCtx)`).
+  Cada valor renderizado (`fmtBRL`/`fmtBRLcurto`) fica dentro de `<V>`; rótulos/categorias/meses ficam
+  legíveis. Gráficos SVG (`EvolucaoFin`/`BarrasSalario`/`LinhasGastos`) consomem o contexto e borram só os
+  `<text>` de valor (`style={{filter:blur}}`), mantendo as barras/linhas. Formulários usam string crua (sem
+  `<V>`), então nunca borram. Pra adicionar novo valor no futuro: envolver em `<V>…</V>`.
   - Carteira: `financas.snapshots = [{ id, mes, usdRate, holdings:[{nome,categoria,
     finalidade,valor,moeda:'BRL'|'USD',externo}] }]`. `valorBRL(h,rate)` converte USD pela
     `usdRate` do mês (travada; `rateOf(snap)`; `fetchUsdRate(mes)` = AwesomeAPI, atual no mês

@@ -1,6 +1,6 @@
 // Aba "Life": hub pessoal. Seção "Listas de compras" funcional; demais seções
 // ainda em placeholder (vamos desenhar uma a uma).
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
@@ -37,6 +37,14 @@ const fmtBRLcurto = (n) => { const v = Number(n) || 0; if (v >= 1e6) return 'R$ 
 const fmtMes = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]}/${y.slice(2)}`; };
 const fmtMesLongo = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]} de ${y}`; };
 const fmtUSD = (n) => 'US$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Privacidade da Vida Financeira: quando `oculto`, só os VALORES (dentro de <V>)
+// ficam borrados; rótulos/categorias seguem legíveis. Provider na FinancasSection;
+// os sub-componentes/gráficos consomem via useContext(PrivacyCtx).
+const PrivacyCtx = createContext(false);
+function V({ children, style }) {
+  const o = useContext(PrivacyCtx);
+  return <span style={{ filter: o ? 'blur(6px)' : 'none', transition: 'filter .15s', display: 'inline-block', userSelect: o ? 'none' : 'auto', ...style }}>{children}</span>;
+}
 // Valor de um ativo em R$ (converte de USD pela cotação `rate` quando moeda === 'USD').
 const valorBRL = (h, rate) => (h.moeda === 'USD' ? (Number(h.valor) || 0) * (Number(rate) || 0) : (Number(h.valor) || 0));
 // Avalia o campo de valor: aceita conta simples (ex.: "1000+2500,50"). Vírgula vira
@@ -1196,6 +1204,7 @@ function EvolucaoFin({ pontos }) {
   const linha = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.total).toFixed(1)}`).join(' ');
   const pulado = n > 6;
   const [hi, setHi] = useState(null);
+  const oculto = useContext(PrivacyCtx);
   const rw = 90, rh = 28;
   const tip = hi != null && pontos[hi] ? (() => {
     const px = x(hi), py = y(pontos[hi].total);
@@ -1219,7 +1228,7 @@ function EvolucaoFin({ pontos }) {
         <g pointerEvents="none">
           <rect x={tip.tx - rw / 2} y={tip.ry} width={rw} height={rh} rx="5" fill="#111" opacity="0.92" />
           <text x={tip.tx} y={tip.ry + 11} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(tip.p.mes)}</text>
-          <text x={tip.tx} y={tip.ry + 22} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtBRL(tip.p.total)}</text>
+          <text x={tip.tx} y={tip.ry + 22} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff" style={{ filter: oculto ? 'blur(4px)' : 'none' }}>{fmtBRL(tip.p.total)}</text>
         </g>
       )}
     </svg>
@@ -1236,7 +1245,7 @@ function LinhaAtivo({ h, denom, rate, pctLabel, hideFin }) {
         <div style={{ color: '#222', fontWeight: 600 }}>{h.nome}</div>
         {sub && <div style={{ fontSize: 11, color: '#aaa', marginTop: 1 }}>{sub}</div>}
       </td>
-      <td style={{ padding: '10px 6px', textAlign: 'right', color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)}</td>
+      <td style={{ padding: '10px 6px', textAlign: 'right', color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V></td>
       <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999', whiteSpace: 'nowrap' }} title={pctLabel}>{pct.toFixed(1)}%</td>
     </tr>
   );
@@ -1309,7 +1318,7 @@ function FinTabela({ holdings, rate }) {
           <tfoot>
             <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
               <td style={{ padding: '10px 6px', color: '#111' }}>Total da carteira</td>
-              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#1a7a4f', whiteSpace: 'nowrap' }}>{fmtBRL(total)}</td>
+              <td style={{ padding: '10px 6px', textAlign: 'right', color: '#1a7a4f', whiteSpace: 'nowrap' }}><V>{fmtBRL(total)}</V></td>
               <td style={{ padding: '10px 6px', textAlign: 'right', color: '#999' }}>100%</td>
             </tr>
           </tfoot>
@@ -1350,7 +1359,7 @@ function FinPizza({ fatias, total }) {
             <span style={{ width: 12, height: 12, borderRadius: 3, background: f.cor, flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: '#333', flex: 1, fontWeight: hover === i ? 700 : 400 }}>{f.label}</span>
             <span style={{ fontSize: 12.5, color: '#999', width: 46, textAlign: 'right' }}>{(f.valor / total * 100).toFixed(1)}%</span>
-            <span style={{ fontSize: 12.5, color: '#555', width: 92, textAlign: 'right' }}>{fmtBRLcurto(f.valor)}</span>
+            <V style={{ fontSize: 12.5, color: '#555', width: 92, textAlign: 'right' }}>{fmtBRLcurto(f.valor)}</V>
           </div>
         ))}
       </div>
@@ -1411,7 +1420,7 @@ function FinEvolucao({ snaps }) {
               return (
                 <div key={p.mes} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <span style={{ fontSize: 13, color: '#444', width: 70, textTransform: 'capitalize' }}>{fmtMes(p.mes)}</span>
-                  <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600, flex: 1 }}>{fmtBRL(p.total)}</span>
+                  <V style={{ fontSize: 13.5, color: '#222', fontWeight: 600, flex: 1 }}>{fmtBRL(p.total)}</V>
                   {pct != null && <span style={{ fontSize: 12.5, fontWeight: 700, color: up ? '#1a7a4f' : '#c0392b' }}>{up ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%</span>}
                 </div>
               );
@@ -1589,7 +1598,7 @@ function FinancasSection({ onBack }) {
         ))}
       </div>
 
-      <div style={{ filter: oculto ? 'blur(8px)' : 'none', transition: 'filter .2s', userSelect: oculto ? 'none' : 'auto', pointerEvents: oculto ? 'none' : 'auto' }}>
+      <PrivacyCtx.Provider value={oculto}>
       {sub === 'salarios' && <SalariosVida />}
       {sub === 'gastos' && <GastosVida />}
 
@@ -1618,7 +1627,7 @@ function FinancasSection({ onBack }) {
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>total</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a7a4f' }}>{fmtBRL(total)}</div>
+              <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a7a4f' }}>{fmtBRL(total)}</V>
             </div>
           </div>
 
@@ -1660,7 +1669,7 @@ function FinancasSection({ onBack }) {
       )}
 
       </>)}
-      </div>
+      </PrivacyCtx.Provider>
       {form && <FinancasForm editing={form.editing} snaps={snaps} onClose={() => setForm(null)} />}
     </div>
   );
@@ -1671,6 +1680,7 @@ const SAL_MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set'
 function BarrasSalario({ barras, fmt }) {
   const fmtV = fmt || fmtBRL;
   const [hi, setHi] = useState(null);
+  const oculto = useContext(PrivacyCtx);
   const W = 320, H = 110, padTop = 12, padBot = 18;
   const n = barras.length;
   const gap = n > 14 ? 2 : 5;
@@ -1698,7 +1708,7 @@ function BarrasSalario({ barras, fmt }) {
           <g pointerEvents="none">
             <rect x={tx - rw / 2} y={ry} width={rw} height={rh} rx="5" fill="#111" opacity="0.92" />
             <text x={tx} y={ry + 11} textAnchor="middle" fontSize="8" fill="#bbb">{tip.full}</text>
-            <text x={tx} y={ry + 21} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff">{fmtV(tip.valor)}</text>
+            <text x={tx} y={ry + 21} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff" style={{ filter: oculto ? 'blur(4px)' : 'none' }}>{fmtV(tip.valor)}</text>
           </g>
         );
       })()}
@@ -1764,12 +1774,12 @@ function SalariosVida() {
       {modo === 'ganhos' ? (
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            {destaque('ganhei em ' + (cy.ano || ''), fmtBRLcurto(cy.total || 0))}
+            {destaque('ganhei em ' + (cy.ano || ''), <V>{fmtBRLcurto(cy.total || 0)}</V>)}
             {destaque('poupei em ' + (cy.ano || ''), poupouAno.toFixed(0) + '%')}
-            {metaPL > 0 && destaque('meta de PL', fmtBRLcurto(metaPL), metaProg.toFixed(0) + '% atingido', '#1a7a4f', metaProg)}
+            {metaPL > 0 && destaque('meta de PL', <V>{fmtBRLcurto(metaPL)}</V>, metaProg.toFixed(0) + '% atingido', '#1a7a4f', metaProg)}
           </div>
           <BarrasSalario barras={barrasGanhos} />
-          <p style={{ fontSize: 12, color: '#999', textAlign: 'center', margin: '8px 0 0' }}>ganho na vida <b style={{ color: '#555' }}>{fmtBRL(vidaTotal)}</b> · {anos.length} anos</p>
+          <p style={{ fontSize: 12, color: '#999', textAlign: 'center', margin: '8px 0 0' }}>ganho na vida <b style={{ color: '#555' }}><V>{fmtBRL(vidaTotal)}</V></b> · {anos.length} anos</p>
           <div style={{ marginTop: 18 }}>
             {[...anos].reverse().map(a => {
               const exp = aberto === a.ano;
@@ -1783,13 +1793,13 @@ function SalariosVida() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{a.cargo}</div>
-                      <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>média {fmtBRLcurto(a.media)}/mês{sav != null ? ` · poupou ${sav.toFixed(0)}%` : ''}</div>
+                      <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>média <V>{fmtBRLcurto(a.media)}</V>/mês{sav != null ? ` · poupou ${sav.toFixed(0)}%` : ''}</div>
                       <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 6, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: (a.total / maxTotal * 100) + '%', background: '#111', borderRadius: 4 }} />
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}>{fmtBRLcurto(a.total)}</div>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}><V>{fmtBRLcurto(a.total)}</V></div>
                       {a.yoyCalc != null && <div style={{ fontSize: 11.5, fontWeight: 700, color: a.yoyCalc >= 0 ? '#1a7a4f' : '#c0392b' }}>{a.yoyCalc >= 0 ? '▲' : '▼'} {Math.abs(a.yoyCalc).toFixed(0)}%</div>}
                     </div>
                   </div>
@@ -1798,16 +1808,16 @@ function SalariosVida() {
                       <div style={{ marginTop: 8 }}>
                         {a.meses.map((v, mi) => (
                           <div key={mi} style={{ ...rowMes, color: v ? '#444' : '#ccc' }}>
-                            <span style={{ textTransform: 'capitalize' }}>{SAL_MESES[mi]}</span><span>{v ? fmtBRL(v) : '—'}</span>
+                            <span style={{ textTransform: 'capitalize' }}>{SAL_MESES[mi]}</span><V>{v ? fmtBRL(v) : '—'}</V>
                           </div>
                         ))}
-                        {a.extra > 0 && <div style={{ ...rowMes, color: '#444' }}><span>extra</span><span>{fmtBRL(a.extra)}</span></div>}
-                        {a.bonus > 0 && <div style={{ ...rowMes, color: '#444' }}><span>bônus</span><span>{fmtBRL(a.bonus)}</span></div>}
+                        {a.extra > 0 && <div style={{ ...rowMes, color: '#444' }}><span>extra</span><V>{fmtBRL(a.extra)}</V></div>}
+                        {a.bonus > 0 && <div style={{ ...rowMes, color: '#444' }}><span>bônus</span><V>{fmtBRL(a.bonus)}</V></div>}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1px solid #eee', fontSize: 13, fontWeight: 700, color: '#111' }}>
-                        <span>Total do ano</span><span>{fmtBRL(a.total)}</span>
+                        <span>Total do ano</span><V>{fmtBRL(a.total)}</V>
                       </div>
-                      {a.pl != null && <div style={{ fontSize: 11.5, color: '#999', marginTop: 6 }}>patrimônio no fim do ano: {fmtBRL(a.pl)}</div>}
+                      {a.pl != null && <div style={{ fontSize: 11.5, color: '#999', marginTop: 6 }}>patrimônio no fim do ano: <V>{fmtBRL(a.pl)}</V></div>}
                       <button onClick={() => setForm({ editing: a })} style={{ marginTop: 12, background: 'none', border: '1px solid #ddd', borderRadius: 9, padding: '8px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {a.ano}</button>
                     </div>
                   )}
@@ -1837,7 +1847,7 @@ function SalariosVida() {
                     </div>
                     <div style={{ flex: 1 }} />
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}>{fmtBRL(p.valor)}</div>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: '#111', whiteSpace: 'nowrap' }}><V>{fmtBRL(p.valor)}</V></div>
                       {pct != null && <div style={{ fontSize: 11.5, fontWeight: 700, color: pct >= 0 ? '#1a7a4f' : '#c0392b' }}>{pct >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(0)}%</div>}
                     </div>
                   </div>
@@ -1852,7 +1862,7 @@ function SalariosVida() {
                               <span style={{ textTransform: 'capitalize' }}>{fmtMes(m.mes)}</span>
                               <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 {dpct != null && <span style={{ fontSize: 11, fontWeight: 700, color: dpct >= 0 ? '#1a7a4f' : '#c0392b' }}>{dpct >= 0 ? '▲' : '▼'} {Math.abs(dpct).toFixed(1)}%</span>}
-                                <b>{fmtBRL(m.valor)}</b>
+                                <b><V>{fmtBRL(m.valor)}</V></b>
                               </span>
                             </div>
                           );
@@ -1951,14 +1961,14 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
           {cats.map(c => (
             <tr key={c} style={{ borderTop: '1px solid #f5f5f5' }}>
               <td style={{ ...cell, ...stick, color: '#333', fontWeight: 600 }}>{c}</td>
-              {cols.map(m => { const v = valor(m, c); return <td key={m.mes} style={{ ...cell, color: v ? '#444' : '#ddd' }}>{v ? fmtBRLcurto(v) : '—'}</td>; })}
+              {cols.map(m => { const v = valor(m, c); return <td key={m.mes} style={{ ...cell, color: v ? '#444' : '#ddd' }}><V>{v ? fmtBRLcurto(v) : '—'}</V></td>; })}
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
             <td style={{ ...cell, ...stick, color: '#111' }}>Total</td>
-            {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}>{fmtBRLcurto(totalDe(m))}</td>)}
+            {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}><V>{fmtBRLcurto(totalDe(m))}</V></td>)}
           </tr>
         </tfoot>
       </table>
@@ -1968,6 +1978,8 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
 
 function LinhasGastos({ meses, cats, valor }) {
   const [sel, setSel] = useState(null);
+  const oculto = useContext(PrivacyCtx);
+  const blurTxt = oculto ? { filter: 'blur(3.5px)' } : null;
   const W = 320, H = 162, padTop = 12, padBot = 20, padLeft = 40, padRight = 10;
   const n = meses.length;
   const vals = (c) => meses.map(m => valor(m, c));
@@ -1984,7 +1996,7 @@ function LinhasGastos({ meses, cats, valor }) {
         {ticks.map((t, i) => (
           <g key={'t' + i}>
             <line x1={padLeft} y1={y(t)} x2={W - padRight} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
-            <text x={padLeft - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{fmtBRLcurto(t)}</text>
+            <text x={padLeft - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb" style={blurTxt}>{fmtBRLcurto(t)}</text>
           </g>
         ))}
         {meses.map((m, i) => (
@@ -1999,7 +2011,7 @@ function LinhasGastos({ meses, cats, valor }) {
           return (
             <g key={m.mes}>
               <circle cx={x(i)} cy={y(v)} r="2.8" fill={corDe(sel)} />
-              <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111">{fmtBRLcurto(v)}</text>
+              <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111" style={blurTxt}>{fmtBRLcurto(v)}</text>
             </g>
           );
         })}
@@ -2067,8 +2079,8 @@ function GastosVida() {
             </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</div>
-              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>sem viagem, fixos e mercado: <b style={{ color: '#555' }}>{fmtBRL(totalCorrente)}</b> · {pctCorrente}%</div>
+              <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</V>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>sem viagem, fixos e mercado: <b style={{ color: '#555' }}><V>{fmtBRL(totalCorrente)}</V></b> · {pctCorrente}%</div>
             </div>
           </div>
 
@@ -2082,7 +2094,7 @@ function GastosVida() {
                 <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                     <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}<span onClick={() => nav.goRetro('gastos', c.categoria)} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver ›</span></span>
-                    <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}>{fmtBRL(v)} <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
+                    <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V> <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
                   </div>
                   <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: (v / maxCat * 100) + '%', background: '#111', borderRadius: 4 }} />
@@ -2091,10 +2103,10 @@ function GastosVida() {
               );
             })}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
-              <span>Total do mês</span><span>{fmtBRL(total)}</span>
+              <span>Total do mês</span><V>{fmtBRL(total)}</V>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12.5, color: '#888' }}>
-              <span>Sem viagem, fixos e mercado</span><span>{fmtBRL(totalCorrente)} · {pctCorrente}%</span>
+              <span>Sem viagem, fixos e mercado</span><span><V>{fmtBRL(totalCorrente)}</V> · {pctCorrente}%</span>
             </div>
           </div>
 
