@@ -1339,8 +1339,25 @@ function ensureAmorosaDate1(d) {
   return { ...d, amorosaDate1: true, amorosa: have ? d.amorosa : [...(d.amorosa || []), nova] };
 }
 
+// Patch: mais dates que a Mari lembrou (2026).
+function ensureAmorosaDate2(d) {
+  if (d.amorosaDate2) return d;
+  const dt = (id, data, pessoa, local) => ({ id: 'am-seed-d' + id, tipo: 'date', data, pessoa, local });
+  const novos = [
+    dt(2, '2026-06-26', 'Matheus Bumble', 'Tamashii'),
+    dt(3, '2026-06-18', 'Matheus Bumble', 'Guarita'),
+    dt(4, '2026-03-17', 'Bruno Pasini', 'Caso Bar'),
+    dt(5, '2026-06-04', 'Thiago', 'Singelo Bar'),
+    dt(6, '2026-06-16', 'Thiago', 'Boca de Oro'),
+    dt(7, '2026-02-26', 'Thiago', 'Santana Bar'),
+    dt(8, '2026-01-10', 'Diego Armando', 'Guarita'),
+  ];
+  const have = new Set((d.amorosa || []).map(x => x.id));
+  return { ...d, amorosaDate2: true, amorosa: [...(d.amorosa || []), ...novos.filter(x => !have.has(x.id))] };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
