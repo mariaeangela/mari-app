@@ -380,7 +380,9 @@ exercícios do calendário, por ano, sem futuros) com cada número **clicável**
 itens) + grade de **cards** que abrem sub-páginas: **Compras**, **Música** e **Corridas** (prontos) e
 Quem você viu / Saúde (placeholder `EmBreve`).
 - **Amorosa** (`AmorosaRetro`/`AmorosaForm`) — **privada**. Slice `amorosa:[{id,tipo:'transa'|'date'|'beijo'|
-  'relacao',data,fim?,pessoa?,local?,nota?}]` (CRUD `saveAmorosa`/`deleteAmorosa`; ids `am-`). **Escondida
+  'relacao',data,fim?,pessoa?,local?,valor?,nota?}]` (CRUD `saveAmorosa`/`deleteAmorosa`; ids `am-`). Campo
+  **`valor`** = quanto gastou (número; form aceita vírgula) — mostra na linha do registro e soma um total
+  **"gastou R$ X em {ano}"** (`gastoAno`, `fmtBRLam`). **Escondida
   atrás de um toque** (estado `revelado`, começa oculta com 🔒; reseta ao sair). Revelada: `useAnoSel`/
   `AnoChips`, **stats por tipo** no ano (`TIPOS_AM`, com emoji), **"quem apareceu mais"** (ranking de
   `pessoa`) e timeline dos registros (toque edita). Tipos (`TIPOS_AM`, **sem emoji**): Sexo (`transa`),

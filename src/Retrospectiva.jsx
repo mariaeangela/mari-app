@@ -1355,6 +1355,7 @@ const TIPOS_AM = [
   { id: 'relacao', label: 'Caso', plural: 'casos' },
 ];
 const tipoAm = (id) => TIPOS_AM.find(t => t.id === id) || TIPOS_AM[0];
+const fmtBRLam = (n) => 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 function AmorosaRetro({ onBack, isWide }) {
   const life = useLife();
@@ -1367,6 +1368,7 @@ function AmorosaRetro({ onBack, isWide }) {
   const pessoaCount = {};
   doAno.forEach(a => { const p = (a.pessoa || '').trim(); if (p) pessoaCount[p] = (pessoaCount[p] || 0) + 1; });
   const pessoas = Object.entries(pessoaCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const gastoAno = doAno.reduce((s, a) => s + (Number(a.valor) || 0), 0);
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
@@ -1400,6 +1402,8 @@ function AmorosaRetro({ onBack, isWide }) {
           ); })}
         </div>
 
+        {gastoAno > 0 && <p style={{ fontSize: 12.5, color: '#999', margin: '-6px 0 18px' }}>gastou <strong style={{ color: COR_AMOR }}>{fmtBRLam(gastoAno)}</strong> em {anoSel}</p>}
+
         {pessoas.length > 0 && <div>
           <div style={{ fontSize: 11, color: COR_AMOR, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>quem apareceu mais</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 22 }}>
@@ -1421,6 +1425,7 @@ function AmorosaRetro({ onBack, isWide }) {
                   <span style={{ fontSize: 11, color: COR_AMOR, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>{fmtDiaMes(a.data)}</span>
                   <span style={{ fontSize: 12, color: '#777' }}>{T.label}</span>
                   {a.pessoa && <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>· {a.pessoa}</span>}
+                  {a.valor > 0 && <span style={{ fontSize: 11.5, color: COR_AMOR, fontWeight: 700 }}>{fmtBRLam(a.valor)}</span>}
                   {a.tipo === 'relacao' && a.fim && <span style={{ fontSize: 11.5, color: '#aaa' }}>até {fmtDiaMes(a.fim)}</span>}
                 </div>
                 {(a.local || a.nota) && <div style={{ fontSize: 13, color: '#888', lineHeight: 1.45, marginTop: 3 }}>{[a.local, a.nota].filter(Boolean).join(' · ')}</div>}
@@ -1442,12 +1447,14 @@ function AmorosaForm({ editing, onClose }) {
   const [fim, setFim] = useState(editing?.fim || '');
   const [pessoa, setPessoa] = useState(editing?.pessoa || '');
   const [local, setLocal] = useState(editing?.local || '');
+  const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
   const [nota, setNota] = useState(editing?.nota || '');
   const pessoas = [...new Set((life.amorosa || []).map(a => a.pessoa).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
   const podeSalvar = !!data;
   const salvar = () => {
     if (!podeSalvar) return;
-    life.saveAmorosa({ id: editing?.id, tipo, data, fim: (tipo === 'relacao' && fim) ? fim : undefined, pessoa: pessoa.trim() || undefined, local: local.trim() || undefined, nota: nota.trim() || undefined });
+    const v = parseFloat((valor || '').replace(',', '.'));
+    life.saveAmorosa({ id: editing?.id, tipo, data, fim: (tipo === 'relacao' && fim) ? fim : undefined, pessoa: pessoa.trim() || undefined, local: local.trim() || undefined, valor: isFinite(v) && v > 0 ? v : undefined, nota: nota.trim() || undefined });
     onClose();
   };
   return (
@@ -1474,7 +1481,9 @@ function AmorosaForm({ editing, onClose }) {
         <datalist id="amor-pessoas">{pessoas.map(p => <option key={p} value={p} />)}</datalist>
         <label style={labelStyle}>Onde (opcional)</label>
         <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: bar, casa dele…" style={inputStyle} />
-        <label style={labelStyle}>Nota (opcional)</label>
+        <label style={labelStyle}>Quanto gastei — R$ (opcional)</label>
+        <input value={valor} onChange={e => setValor(e.target.value)} inputMode="decimal" placeholder="ex.: 120" style={inputStyle} />
+        <label style={labelStyle}>Comentário (opcional)</label>
         <textarea value={nota} onChange={e => setNota(e.target.value)} rows={2} placeholder="como foi, o que rolou…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteAmorosa(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
