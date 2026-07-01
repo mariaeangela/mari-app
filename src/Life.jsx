@@ -3667,10 +3667,12 @@ function InglesForm({ editing, onClose }) {
   const life = useLife();
   const [termo, setTermo] = useState(editing?.termo || '');
   const [definicao, setDefinicao] = useState(editing?.definicao || '');
+  const [origem, setOrigem] = useState(editing?.origem || '');
+  const origens = [...new Set((life.ingles || []).map(e => e.origem).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
   const podeSalvar = termo.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
-    const obj = { termo: termo.trim(), definicao: definicao.trim() };
+    const obj = { termo: termo.trim(), definicao: definicao.trim(), origem: origem.trim() || undefined };
     life.saveInglesEntry(editing?.id ? { ...obj, id: editing.id } : obj);
     onClose();
   };
@@ -3685,6 +3687,9 @@ function InglesForm({ editing, onClose }) {
         <input value={termo} autoFocus onChange={e => setTermo(e.target.value)} placeholder="ex.: Mirth" style={inputStyle} />
         <label style={labelStyle}>Significado</label>
         <textarea value={definicao} onChange={e => setDefinicao(e.target.value)} rows={4} placeholder="definição / tradução…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }} />
+        <label style={labelStyle}>Onde vi (opcional)</label>
+        <input value={origem} onChange={e => setOrigem(e.target.value)} list="ingles-origens" placeholder="ex.: Anna Kariênina, Daffodils (poema)…" style={inputStyle} />
+        <datalist id="ingles-origens">{origens.map(o => <option key={o} value={o} />)}</datalist>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { if (window.confirm('Apagar esta palavra?')) { life.deleteInglesEntry(editing.id); onClose(); } }} style={{ border: '1px solid #f0c0c0', borderRadius: 11, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '12px 16px', fontSize: 13, fontWeight: 700 }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, border: 'none', borderRadius: 11, background: podeSalvar ? '#111' : '#ccc', color: '#fff', cursor: podeSalvar ? 'pointer' : 'default', padding: '12px 0', fontSize: 14, fontWeight: 700 }}>Salvar</button>
@@ -3701,7 +3706,7 @@ function InglesSection({ onBack }) {
   const entries = life.ingles || [];
   const norm = (s) => (s || '').toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const nq = norm(q.trim());
-  const filtrados = entries.filter(e => !nq || norm(e.termo).includes(nq) || norm(e.definicao).includes(nq));
+  const filtrados = entries.filter(e => !nq || norm(e.termo).includes(nq) || norm(e.definicao).includes(nq) || norm(e.origem).includes(nq));
   const lista = [...filtrados].sort((a, b) => (a.termo || '').localeCompare(b.termo || '', 'en', { sensitivity: 'base' }));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3725,6 +3730,7 @@ function InglesSection({ onBack }) {
         <div key={e.id} onClick={() => setForm({ editing: e })} style={{ borderBottom: '1px solid #f0f0f0', padding: '11px 2px', cursor: 'pointer' }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, color: '#1a1a1a', fontWeight: 700 }}>{e.termo}</div>
           {e.definicao && <div style={{ fontSize: 13.5, color: '#555', lineHeight: 1.5, marginTop: 2, whiteSpace: 'pre-wrap' }}>{e.definicao}</div>}
+          {e.origem && <span onClick={ev => { ev.stopPropagation(); setQ(e.origem); }} title="filtrar por esta origem" style={{ display: 'inline-block', marginTop: 6, fontSize: 11, color: COR_INGLES, background: COR_INGLES + '15', borderRadius: 6, padding: '2px 8px' }}>{e.origem}</span>}
         </div>
       ))}
 
