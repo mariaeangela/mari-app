@@ -295,12 +295,57 @@ function InfoForm({ planoId, editing, onClose }) {
   );
 }
 
+// Editor de um item de checklist de Planos — reutilizado na Hoje, no Calendário
+// e no próprio Planos. Permite editar o texto, mudar o prazo, marcar/desmarcar
+// e apagar, sem precisar ir até Life › Planos.
+export function PlanoCheckSheet({ item, onClose }) {
+  const life = useLife();
+  // lê o item AO VIVO do store (pra toggle/prazo refletirem na hora); cai no
+  // snapshot recebido se o item já tiver sido apagado.
+  const live = (life.planos?.itens || []).find(x => x.id === item.id) || item;
+  const [texto, setTexto] = useState(live.texto || '');
+  const nome = (life.planos?.lista || []).find(p => p.id === live.planoId)?.nome;
+  const podeSalvar = !!texto.trim();
+  const salvar = () => { if (podeSalvar) { if (texto.trim() !== live.texto) life.setPlanoCheckTexto(live.id, texto.trim()); onClose(); } };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Editar item</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        {nome && <p style={{ fontSize: 12, color: COR_PLANOS, fontWeight: 700, margin: '0 0 6px' }}>{nome}</p>}
+
+        <div onClick={() => life.togglePlanoCheck(live.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 0' }}>
+          <span style={{ fontSize: 22, color: live.feito ? '#54c08a' : '#ccc' }}>{live.feito ? '☑' : '☐'}</span>
+          <span style={{ fontSize: 13.5, color: '#555' }}>{live.feito ? 'Concluído (tocar pra desmarcar)' : 'Marcar como concluído'}</span>
+        </div>
+
+        <label style={labelStyle}>Texto</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={3} autoFocus style={{ ...inputStyle, resize: 'vertical' }} />
+
+        <label style={labelStyle}>Prazo (opcional)</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="date" value={live.prazo || ''} onChange={e => life.setPlanoCheckPrazo(live.id, e.target.value)} style={{ ...inputStyle, width: 'auto' }} />
+          {live.prazo && <button onClick={() => life.setPlanoCheckPrazo(live.id, '')} style={{ background: 'none', border: 'none', color: '#999', fontSize: 12.5, cursor: 'pointer' }}>limpar</button>}
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <button onClick={() => { life.deletePlanoCheck(live.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PlanoView({ plano, onBack }) {
   const life = useLife();
   const [aba, setAba] = useState('check');
   const [infoForm, setInfoForm] = useState(null);
   const [infoAberta, setInfoAberta] = useState(null);
   const [novoCheck, setNovoCheck] = useState('');
+  const [editCheck, setEditCheck] = useState(null);
   const infos = life.planos.infos.filter(i => i.planoId === plano.id);
   // Ordem: feitos por último; entre os pendentes, por prazo (mais próximo primeiro),
   // e os sem prazo depois dos com prazo.
@@ -364,7 +409,7 @@ function PlanoView({ plano, onBack }) {
             return (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
               <span onClick={() => life.togglePlanoCheck(c.id)} style={{ fontSize: 19, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{c.feito ? '☑' : '☐'}</span>
-              <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
+              <span onClick={() => setEditCheck(c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'pointer' }}>{c.texto}</span>
               <label title="data máxima (opcional)" style={{ position: 'relative', cursor: 'pointer', fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, opacity: c.feito ? 0.5 : 1, color: c.prazo ? (vencido ? '#d05050' : COR_PLANOS) : '#cfcfcf' }}>
                 {c.prazo ? fmtData(c.prazo) : '+ prazo'}
                 <input type="date" value={c.prazo || ''} onChange={e => life.setPlanoCheckPrazo(c.id, e.target.value)} style={{ position: 'absolute', inset: 0, width: '100%', opacity: 0, cursor: 'pointer' }} />
@@ -377,6 +422,7 @@ function PlanoView({ plano, onBack }) {
       )}
 
       {infoForm && <InfoForm planoId={plano.id} editing={infoForm.editing} onClose={() => setInfoForm(null)} />}
+      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
     </div>
   );
 }

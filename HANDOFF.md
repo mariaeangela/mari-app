@@ -25,6 +25,15 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   dias) pra não duplicar. **`rolarPlanosVencidos`** (em `runLifeSeeds`, roda todo load, sem flag): item do
   checklist de Planos com `prazo` vencido e não-feito **puxa pra hoje** (igual compras/tarefas) — sem isso
   o item ficava preso no dia passado e sumia da capa de Hoje.
+- **`PlanoCheckSheet` (exportado de `Life.jsx`) — editor de item de checklist reutilizável.** Tocar no
+  **texto** de um item de Planos abre um sheet pra **editar o texto, mudar o prazo, marcar/desmarcar e
+  apagar**, sem ir até Life › Planos. Ligado em 4 lugares: **Hoje** (`HojeAgenda` e `PlanosProximos` em
+  App.jsx), **Calendário** (seção "Planos do mês" e o `DayModal`), e o próprio **`PlanoView`** (Life).
+  O checkbox continua marcando na hora; o clique-pra-editar é só no texto. Store ganhou
+  `setPlanoCheckTexto(id, texto)`. O sheet lê o item AO VIVO do store (toggle/prazo refletem na hora) e
+  salva o texto só no botão Salvar. **Obs.: `Calendario.jsx` importa `PlanoCheckSheet` de `Life.jsx`, e
+  `Life.jsx` importa `eventOccursOn` de `Calendario.jsx` → dependência circular, mas segura em runtime
+  (ambos só usados em render/call, nunca no topo do módulo).**
 - `src/ContentCard.jsx` — card; imagem multi-fonte (Met/Cleveland/Wikimedia),
   lightbox ao clicar na imagem, bloco "Da fonte" (`content.fonteOficial`).
 - `src/contentLibrary.js` — todo o conteúdo: CONTENT_LIBRARY (arrays por tema

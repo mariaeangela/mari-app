@@ -4,6 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda } from './lifeStore.jsx';
+import { PlanoCheckSheet } from './Life.jsx';
 import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
@@ -409,6 +410,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
 function DayModal({ date, onClose, onAdd, onEdit }) {
   const cal = useCalendar();
   const life = useLife();
+  const [editCheck, setEditCheck] = useState(null);
   const key = ymd(date);
   const todayKey = ymd(hoje());
   const { events, exercicios, tasks, roles, cultura, planoItens } = itemsForDay(cal.data, date, life.planos);
@@ -476,7 +478,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
             {planoItens.map(i => (
               <div key={i.id} style={{ ...rowBtn, cursor: 'default' }}>
                 <span onClick={(e) => { e.stopPropagation(); life.togglePlanoCheck(i.id); }} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
-                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{i._titulo}</span>
+                <span onClick={() => setEditCheck(i)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{i._titulo}</span>
                 <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700 }}>{i._planoNome}</span>
               </div>
             ))}
@@ -485,6 +487,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
 
         <button onClick={() => onAdd(key)} style={dashedBtn}>+ adicionar neste dia</button>
       </div>
+      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
     </div>
   );
 }
@@ -772,6 +775,7 @@ export default function Calendario({ isWide }) {
   const [addSheet, setAddSheet] = useState(null);
   const [bilheteAberto, setBilheteAberto] = useState(false);
   const [compraAberta, setCompraAberta] = useState(null);
+  const [editCheck, setEditCheck] = useState(null);
   const [verFeitas, setVerFeitas] = useState(false);
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
@@ -912,7 +916,7 @@ export default function Calendario({ isWide }) {
                 <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '9px 12px', marginBottom: 6 }}>
                   <span onClick={() => life.togglePlanoCheck(i.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
                   <span style={{ fontSize: 12, color: '#6b7a99', fontWeight: 700, minWidth: 40 }}>{dm(i.prazo)}</span>
-                  <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{i.texto}</span>
+                  <span onClick={() => setEditCheck(i)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{i.texto}</span>
                 </div>
               ))}
             </div>
@@ -959,6 +963,7 @@ export default function Calendario({ isWide }) {
 
       {dayModal && <DayModal date={dayModal} onClose={() => setDayModal(null)} onAdd={(k) => { setDayModal(null); setAddSheet({ date: k }); }} onEdit={(it) => { setDayModal(null); setAddSheet({ editing: it }); }} />}
       {addSheet && <AddSheet initialDate={addSheet.date} editing={addSheet.editing} onClose={() => setAddSheet(null)} />}
+      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
     </div>
   );
 }

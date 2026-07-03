@@ -7,7 +7,7 @@ import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
-import LifePage, { CulturalSection, AssistirSection, LeiturasSection } from './Life.jsx';
+import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
 import { getLastSyncError } from './cloud';
@@ -245,6 +245,7 @@ function HojeAgenda() {
   const cal = useCalendar();
   const life = useLife();
   const [editing, setEditing] = useState(null);
+  const [editCheck, setEditCheck] = useState(null);
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   // passa life.planos → itens do checklist com prazo == hoje entram aqui (não em "próximos")
   const items = itemsForDay(cal.data, hoje, life.planos).all;
@@ -259,13 +260,14 @@ function HojeAgenda() {
             : it._tipo === 'plano'
               ? <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer', flexShrink: 0 }}>☐</span>
               : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
-          <span onClick={() => it._tipo === 'plano' ? life.togglePlanoCheck(it.id) : setEditing(it)} style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
+          <span onClick={() => it._tipo === 'plano' ? setEditCheck(it) : setEditing(it)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
           {it._tipo === 'plano' && <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700, flexShrink: 0 }}>{it._planoNome}</span>}
           {it.trabalho && <span style={trabTag}>trabalho</span>}
           {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
         </div>
       ))}
       {editing && <AddSheet editing={editing} onClose={() => setEditing(null)} />}
+      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
     </div>
   );
 }
@@ -294,6 +296,7 @@ function MetasHoje() {
 // os que vencem HOJE aparecem na seção "Hoje" via HojeAgenda). Toque marca como feito.
 function PlanosProximos() {
   const life = useLife();
+  const [editCheck, setEditCheck] = useState(null);
   const today = hojeMid();
   const tk = ymd(today);
   const limite = new Date(today); limite.setDate(today.getDate() + 15);
@@ -309,11 +312,12 @@ function PlanosProximos() {
       {itens.map(i => (
         <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
           <span onClick={() => life.togglePlanoCheck(i.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer', flexShrink: 0 }}>☐</span>
-          <span style={{ flex: 1, fontSize: 14, color: '#333' }}>{i.texto}</span>
+          <span onClick={() => setEditCheck(i)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', cursor: 'pointer' }}>{i.texto}</span>
           <span style={{ fontSize: 11.5, color: '#6b7a99', fontWeight: 700, flexShrink: 0 }}>{nomeDe(i.planoId)}</span>
           <span style={{ fontSize: 12, color: '#999', flexShrink: 0 }}>{i.prazo.slice(8, 10)}/{i.prazo.slice(5, 7)}</span>
         </div>
       ))}
+      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
     </div>
   );
 }
