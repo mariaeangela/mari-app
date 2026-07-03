@@ -10,6 +10,7 @@ import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import { NavContext } from './nav.jsx';
+import { getLastSyncError } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -458,6 +459,7 @@ function SalvarFAB() {
   const cal = useCalendar();
   const saved = useSaved();
   const [msg, setMsg] = useState(null); // null | 'salvando' | 'ok' | 'erro'
+  const [detalhe, setDetalhe] = useState(''); // motivo do erro (código HTTP etc.)
   const salvar = async () => {
     setMsg('salvando');
     let ok = false;
@@ -465,17 +467,24 @@ function SalvarFAB() {
       const rs = await Promise.all([life.salvarAgora(), cal.salvarAgora(), saved.salvarAgora()]);
       ok = rs.every(Boolean);
     } catch { ok = false; }
+    if (!ok) setDetalhe(getLastSyncError() || 'erro desconhecido');
     setMsg(ok ? 'ok' : 'erro');
     if (ok) setTimeout(() => setMsg(m => (m === 'ok' ? null : m)), 2500);
   };
   const label = msg === 'salvando' ? 'Salvando…' : msg === 'ok' ? 'Salvo ✓' : msg === 'erro' ? '⚠ Erro — tocar de novo' : '💾 Salvar';
   const bg = msg === 'ok' ? '#2e9e6b' : msg === 'erro' ? '#d05050' : '#111';
   return (
-    <button onClick={salvar} disabled={msg === 'salvando'} title="salvar tudo agora na nuvem" style={{
-      position: 'fixed', right: 16, bottom: 20, zIndex: 150, border: 'none', borderRadius: 24,
-      background: bg, color: '#fff', fontSize: 13.5, fontWeight: 700, padding: '11px 18px',
-      cursor: msg === 'salvando' ? 'default' : 'pointer', boxShadow: '0 3px 14px rgba(0,0,0,0.22)',
-    }}>{label}</button>
+    <div style={{ position: 'fixed', right: 16, bottom: 20, zIndex: 150, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {msg === 'erro' && detalhe && (
+        <div style={{ maxWidth: 240, background: '#fff', border: '1px solid #d05050', color: '#a03030', fontSize: 11, lineHeight: 1.4, padding: '6px 9px', borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.15)', wordBreak: 'break-word' }}>
+          {detalhe}
+        </div>
+      )}
+      <button onClick={salvar} disabled={msg === 'salvando'} title="salvar tudo agora na nuvem" style={{
+        border: 'none', borderRadius: 24, background: bg, color: '#fff', fontSize: 13.5, fontWeight: 700,
+        padding: '11px 18px', cursor: msg === 'salvando' ? 'default' : 'pointer', boxShadow: '0 3px 14px rgba(0,0,0,0.22)',
+      }}>{label}</button>
+    </div>
   );
 }
 

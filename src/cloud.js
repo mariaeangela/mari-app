@@ -8,6 +8,11 @@ const listeners = new Set();
 export function onSyncStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 function emit(s) { listeners.forEach(fn => { try { fn(s); } catch { /* ignora */ } }); }
 
+// Guarda o detalhe do último erro de POST (código HTTP / mensagem), pra
+// diagnóstico: o botão Salvar mostra isso quando falha.
+let lastError = null;
+export function getLastSyncError() { return lastError; }
+
 // POST awaitable que reporta o status. Devolve true/false.
 async function doPost(payload) {
   emit('saving');
@@ -17,9 +22,17 @@ async function doPost(payload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    emit(res.ok ? 'saved' : 'error');
-    return res.ok;
-  } catch {
+    if (!res.ok) {
+      const corpo = await res.text().catch(() => '');
+      lastError = `HTTP ${res.status}` + (corpo ? ` · ${corpo.slice(0, 140)}` : '');
+      emit('error');
+      return false;
+    }
+    lastError = null;
+    emit('saved');
+    return true;
+  } catch (e) {
+    lastError = 'rede/offline · ' + String((e && e.message) || e).slice(0, 120);
     emit('error');
     return false;
   }
