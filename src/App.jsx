@@ -462,12 +462,22 @@ function SalvarFAB() {
   const [detalhe, setDetalhe] = useState(''); // motivo do erro (código HTTP etc.)
   const salvar = async () => {
     setMsg('salvando');
-    let ok = false;
-    try {
-      const rs = await Promise.all([life.salvarAgora(), cal.salvarAgora(), saved.salvarAgora()]);
-      ok = rs.every(Boolean);
-    } catch { ok = false; }
-    if (!ok) setDetalhe(getLastSyncError() || 'erro desconhecido');
+    // Isola cada seção: se uma função nem existir (bundle velho) ou lançar
+    // exceção, registra QUAL e o porquê, em vez de virar "erro desconhecido".
+    const motivos = [];
+    const uma = async (fn, nome) => {
+      try {
+        if (typeof fn !== 'function') { motivos.push(`${nome}: função ausente (recarregue o app)`); return false; }
+        const r = await fn();
+        if (!r) motivos.push(`${nome}: ${getLastSyncError() || 'falhou'}`);
+        return !!r;
+      } catch (e) { motivos.push(`${nome}: ${(e && e.message) || e}`); return false; }
+    };
+    const r1 = await uma(life.salvarAgora, 'Life');
+    const r2 = await uma(cal.salvarAgora, 'Calendário');
+    const r3 = await uma(saved.salvarAgora, 'Salvos');
+    const ok = r1 && r2 && r3;
+    if (!ok) setDetalhe(motivos.join(' · ') || getLastSyncError() || 'erro desconhecido');
     setMsg(ok ? 'ok' : 'erro');
     if (ok) setTimeout(() => setMsg(m => (m === 'ok' ? null : m)), 2500);
   };
