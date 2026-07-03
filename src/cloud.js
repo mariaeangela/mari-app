@@ -4,90 +4,74 @@
 // segue usando o cache do localStorage.
 const ENDPOINT = '/api/data';
 
+async function getDoc() {
+  try {
+    const res = await fetch(ENDPOINT, { method: 'GET' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 // Busca os salvos da nuvem. Devolve um array, ou null se a nuvem estiver
 // inacessível (para o chamador saber distinguir "vazio" de "offline").
 export async function fetchSaved() {
-  try {
-    const res = await fetch(ENDPOINT, { method: 'GET' });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data && data.saved) ? data.saved : [];
-  } catch {
-    return null;
-  }
+  const data = await getDoc();
+  if (data == null) return null;
+  return Array.isArray(data.saved) ? data.saved : [];
 }
-
-// Envia a lista inteira de salvos para a nuvem, com debounce para não disparar
-// um request a cada clique rápido. Mescla no servidor (não apaga projetos).
-let timer = null;
-let pending = null;
-export function pushSaved(saved) {
-  pending = saved;
-  if (timer) clearTimeout(timer);
-  timer = setTimeout(() => {
-    const body = JSON.stringify({ saved: pending });
-    timer = null;
-    fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    }).catch(() => {});
-  }, 400);
-}
-
-// Busca o objeto do calendário da nuvem. Devolve o objeto, ou null se a nuvem
-// estiver inacessível OU ainda não houver calendário salvo (primeira vez).
+// Objeto do calendário (ou null se inacessível/inexistente).
 export async function fetchCalendario() {
-  try {
-    const res = await fetch(ENDPOINT, { method: 'GET' });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (data && typeof data.calendario === 'object' && data.calendario) || null;
-  } catch {
-    return null;
-  }
+  const data = await getDoc();
+  return (data && typeof data.calendario === 'object' && data.calendario) || null;
 }
-
-// Envia o objeto do calendário (mescla no servidor; não apaga saved/projetos).
-let ctimer = null;
-let cpending = null;
-export function pushCalendario(cal) {
-  cpending = cal;
-  if (ctimer) clearTimeout(ctimer);
-  ctimer = setTimeout(() => {
-    const body = JSON.stringify({ calendario: cpending });
-    ctimer = null;
-    fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    }).catch(() => {});
-  }, 500);
-}
-
-// Aba Life (listas de compras etc.) — mesmo padrão.
+// Aba Life (ou null se inacessível/inexistente).
 export async function fetchLife() {
-  try {
-    const res = await fetch(ENDPOINT, { method: 'GET' });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (data && typeof data.life === 'object' && data.life) || null;
-  } catch {
-    return null;
-  }
+  const data = await getDoc();
+  return (data && typeof data.life === 'object' && data.life) || null;
 }
-let ltimer = null;
-let lpending = null;
-export function pushLife(life) {
-  lpending = life;
-  if (ltimer) clearTimeout(ltimer);
-  ltimer = setTimeout(() => {
-    const body = JSON.stringify({ life: lpending });
-    ltimer = null;
+
+// ---- Envios (debounce por seção + flush ao ocultar/sair) ----
+// Cada seção manda só o SEU campo (o servidor grava em registro próprio, então
+// a gravação é pequena e não estoura o limite de request do Upstash).
+// No mobile, ao trocar de app o setTimeout pode não disparar e o save se perde —
+// por isso, quando a página é ocultada/descarregada, mandamos o pendente na hora.
+const DEBOUNCE = 350;
+const q = {
+  saved: { t: null, p: null },
+  calendario: { t: null, p: null },
+  life: { t: null, p: null },
+};
+function post(field, value) {
+  try {
     fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body,
+      body: JSON.stringify({ [field]: value }),
     }).catch(() => {});
-  }, 500);
+  } catch { /* ignora */ }
 }
+function schedule(field, value) {
+  const s = q[field];
+  s.p = value;
+  if (s.t) clearTimeout(s.t);
+  s.t = setTimeout(() => { s.t = null; if (s.p != null) { post(field, s.p); s.p = null; } }, DEBOUNCE);
+}
+function flushAll() {
+  for (const field of Object.keys(q)) {
+    const s = q[field];
+    if (s.p == null) continue;
+    if (s.t) { clearTimeout(s.t); s.t = null; }
+    post(field, s.p);   // dispara já (foreground fetch costuma completar mesmo ao ocultar)
+    s.p = null;
+  }
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); });
+  window.addEventListener('pagehide', flushAll);
+}
+
+export function pushSaved(saved) { schedule('saved', saved); }
+export function pushCalendario(cal) { schedule('calendario', cal); }
+export function pushLife(life) { schedule('life', life); }

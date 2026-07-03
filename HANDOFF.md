@@ -67,10 +67,18 @@ Os "Salvos" agora são permanentes e sincronizam entre aparelhos (antes só
 localStorage, que o iOS apagava). Camada:
 - `api/data.js` — função serverless da Vercel. GET/POST em Redis (Upstash for
   Redis, criado no painel Vercel → Storage → conectado ao projeto mari-app; envs
-  `KV_REST_API_URL`/`KV_REST_API_TOKEN` injetadas automaticamente). POST faz
-  MERGE raso (chave `diagonal:data`), então já comporta `projetos` no futuro.
+  `KV_REST_API_URL`/`KV_REST_API_TOKEN` injetadas automaticamente).
   `pickEnv()` casa as envs por sufixo, tolerando qualquer prefixo da Vercel.
-- `src/cloud.js` — cliente GET/POST best-effort (debounce no POST).
+  **CADA SEÇÃO NO SEU PRÓPRIO REGISTRO** (`diagonal:life`/`diagonal:saved`/
+  `diagonal:calendario`/`diagonal:projetos`) — o POST grava só o campo enviado, então
+  cada `redis.set` é pequeno. (Antes tudo ia num único `diagonal:data`; quando o doc
+  passou de ~1MB, o `redis.set` estourava o limite do Upstash e **edições manuais paravam
+  de salvar silenciosamente** — seeds mascaravam porque reaplicam a cada load.) O GET junta
+  o `diagonal:data` LEGADO + os por-seção (estes têm prioridade), então dados antigos migram
+  sozinhos ao serem salvos.
+- `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (350ms)** +
+  **flush imediato** no `visibilitychange`(hidden)/`pagehide` (no mobile, trocar de app pode
+  matar o `setTimeout` e perder o save — o flush manda o pendente na hora).
 - Anti-corrida (ambos os stores): um `dirty` ref impede que a resposta TARDIA
   da nuvem sobrescreva uma ação que o usuário acabou de fazer (corrigia o "X dos
   Salvos não remove" quando clicado antes do fetch da nuvem terminar).
