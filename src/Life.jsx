@@ -3922,29 +3922,6 @@ function SubPlaceholder({ secao, onBack }) {
   );
 }
 
-// Botão flutuante "Salvar" — grava na nuvem AGORA e AGUARDA a confirmação.
-// Sempre visível na aba Life (a Mari pediu; garante que nada se perde ao fechar).
-function SalvarFAB() {
-  const life = useLife();
-  const [msg, setMsg] = useState(null); // null | 'salvando' | 'ok' | 'erro'
-  const salvar = async () => {
-    setMsg('salvando');
-    let ok = false;
-    try { ok = await life.salvarAgora(); } catch { ok = false; }
-    setMsg(ok ? 'ok' : 'erro');
-    if (ok) setTimeout(() => setMsg(m => (m === 'ok' ? null : m)), 2500);
-  };
-  const label = msg === 'salvando' ? 'Salvando…' : msg === 'ok' ? 'Salvo ✓' : msg === 'erro' ? '⚠ Erro — tocar de novo' : '💾 Salvar';
-  const bg = msg === 'ok' ? '#2e9e6b' : msg === 'erro' ? '#d05050' : '#111';
-  return (
-    <button onClick={salvar} disabled={msg === 'salvando'} title="salvar agora na nuvem" style={{
-      position: 'fixed', right: 16, bottom: 20, zIndex: 150, border: 'none', borderRadius: 24,
-      background: bg, color: '#fff', fontSize: 13.5, fontWeight: 700, padding: '11px 18px',
-      cursor: msg === 'salvando' ? 'default' : 'pointer', boxShadow: '0 3px 14px rgba(0,0,0,0.22)',
-    }}>{label}</button>
-  );
-}
-
 export default function LifePage({ isWide }) {
   const [sec, setSec] = useState(null);
   let content;
@@ -3974,5 +3951,5 @@ export default function LifePage({ isWide }) {
       </div>
     </div>
   );
-  return (<>{content}<SalvarFAB /></>);
+  return content;
 }

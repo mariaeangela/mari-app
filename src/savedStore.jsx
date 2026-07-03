@@ -6,7 +6,7 @@
 // Fluxo: ao abrir, mostra o cache local na hora e, em paralelo, busca a nuvem
 // e reconcilia. Toda mudança grava no local (já) e empurra para a nuvem (logo).
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchSaved, pushSaved } from './cloud';
+import { fetchSaved, pushSaved, saveSavedNow } from './cloud';
 
 const KEY = 'diagonal_saved';
 const SavedContext = createContext(null);
@@ -28,6 +28,7 @@ export function SavedProvider({ children }) {
   // Se o usuário já mexeu (salvou/removeu) antes da nuvem responder, NÃO deixa
   // a resposta tardia da nuvem sobrescrever a ação dele (corrigia o "X não remove").
   const dirty = useRef(false);
+  const itemsRef = useRef(items); itemsRef.current = items; // pro salvar manual
 
   // Carrega da nuvem uma vez e reconcilia com o cache local.
   useEffect(() => {
@@ -60,9 +61,11 @@ export function SavedProvider({ children }) {
   const remove = (id) => persist(items.filter(i => i.id !== id));
   const toggle = (item) =>
     isSaved(item.id) ? remove(item.id) : persist([item, ...items]);
+  // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
+  const salvarAgora = async () => { dirty.current = true; return await saveSavedNow(itemsRef.current); };
 
   return (
-    <SavedContext.Provider value={{ items, isSaved, toggle, remove }}>
+    <SavedContext.Provider value={{ items, isSaved, toggle, remove, salvarAgora }}>
       {children}
     </SavedContext.Provider>
   );

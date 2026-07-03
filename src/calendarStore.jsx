@@ -13,7 +13,7 @@
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchCalendario, pushCalendario } from './cloud';
+import { fetchCalendario, pushCalendario, saveCalendarioNow } from './cloud';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {} };
@@ -94,6 +94,7 @@ function writeLocal(d) {
 export function CalendarProvider({ children }) {
   const [data, setData] = useState(() => runSeeds(readLocal()));
   const dirty = useRef(false); // não deixa a nuvem tardia sobrescrever ação local
+  const dataRef = useRef(data); dataRef.current = data; // pro salvar manual pegar o estado atual
 
   useEffect(() => {
     let alive = true;
@@ -126,6 +127,8 @@ export function CalendarProvider({ children }) {
 
   const persist = (next) => { dirty.current = true; setData(next); writeLocal(next); pushCalendario(next); };
   const patch = (part) => persist({ ...data, ...part });
+  // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
+  const salvarAgora = async () => { dirty.current = true; return await saveCalendarioNow(dataRef.current); };
 
   // ---- Eventos ----
   const saveEvent = (ev) => {
@@ -221,7 +224,7 @@ export function CalendarProvider({ children }) {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, deleteMeta,
+    addMeta, toggleMeta, deleteMeta, salvarAgora,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

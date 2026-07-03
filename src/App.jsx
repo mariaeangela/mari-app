@@ -450,6 +450,35 @@ function SavedPage({ isWide }) {
   );
 }
 
+// Botão flutuante "Salvar" GLOBAL — grava Life + Calendário + Salvos na nuvem
+// AGORA e AGUARDA a confirmação. Fica em TODAS as abas (a Mari pediu garantia de
+// que nada se perde ao fechar; o autosync já roda sozinho, isto é o reforço manual).
+function SalvarFAB() {
+  const life = useLife();
+  const cal = useCalendar();
+  const saved = useSaved();
+  const [msg, setMsg] = useState(null); // null | 'salvando' | 'ok' | 'erro'
+  const salvar = async () => {
+    setMsg('salvando');
+    let ok = false;
+    try {
+      const rs = await Promise.all([life.salvarAgora(), cal.salvarAgora(), saved.salvarAgora()]);
+      ok = rs.every(Boolean);
+    } catch { ok = false; }
+    setMsg(ok ? 'ok' : 'erro');
+    if (ok) setTimeout(() => setMsg(m => (m === 'ok' ? null : m)), 2500);
+  };
+  const label = msg === 'salvando' ? 'Salvando…' : msg === 'ok' ? 'Salvo ✓' : msg === 'erro' ? '⚠ Erro — tocar de novo' : '💾 Salvar';
+  const bg = msg === 'ok' ? '#2e9e6b' : msg === 'erro' ? '#d05050' : '#111';
+  return (
+    <button onClick={salvar} disabled={msg === 'salvando'} title="salvar tudo agora na nuvem" style={{
+      position: 'fixed', right: 16, bottom: 20, zIndex: 150, border: 'none', borderRadius: 24,
+      background: bg, color: '#fff', fontSize: 13.5, fontWeight: 700, padding: '11px 18px',
+      cursor: msg === 'salvando' ? 'default' : 'pointer', boxShadow: '0 3px 14px rgba(0,0,0,0.22)',
+    }}>{label}</button>
+  );
+}
+
 export default function App() {
   // Não memoriza o login: a senha é pedida sempre que o app abre/recarrega.
   const [loggedIn, setLoggedIn] = useState(false);
@@ -484,6 +513,7 @@ export default function App() {
             {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} />}
             {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
+          <SalvarFAB />
           </NavContext.Provider>
         </LifeProvider>
       </CalendarProvider>

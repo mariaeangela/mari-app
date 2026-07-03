@@ -82,12 +82,14 @@ localStorage, que o iOS apagava). Camada:
   Também expõe **`saveLifeNow/saveCalendarioNow/saveSavedNow`** (POST aguardável que devolve
   true/false) e **`onSyncStatus(fn)`** — emite `'saving'|'saved'|'error'` a cada POST, pro
   botão/indicador de salvar.
-- **Botão "💾 Salvar" (SalvarFAB em `Life.jsx`)** — flutuante fixo, aparece em TODAS as
-  sub-seções de Life. Chama `life.salvarAgora()` (→ `saveLifeNow(dataRef.current)`), mostra
-  `Salvando…` → `Salvo ✓` (verde) ou `⚠ Erro — tocar de novo` (vermelho). Garantia manual +
-  **feedback visível** de sucesso/falha (antes a falha era silenciosa). `lifeStore` expõe
-  `salvarAgora` e `syncStatus`. No `npm run dev` local não há `/api` → o botão mostra "Erro"
-  (esperado); o teste real é no app publicado.
+- **Botão "💾 Salvar" GLOBAL (`SalvarFAB` em `App.jsx`, renderizado dentro dos providers)** —
+  flutuante fixo, aparece em **TODAS as abas** (Hoje/Explorar/Salvos/Calendário/Life/Retro).
+  Salva **tudo de uma vez**: `Promise.all([life.salvarAgora(), cal.salvarAgora(), saved.salvarAgora()])`
+  e só mostra sucesso se os três voltarem `true`. Estados: `Salvando…` → `Salvo ✓` (verde) ou
+  `⚠ Erro — tocar de novo` (vermelho). Garantia manual + **feedback visível** (antes a falha era
+  silenciosa). Cada store expõe `salvarAgora` (lifeStore/calendarStore/savedStore, via
+  `saveLifeNow/saveCalendarioNow/saveSavedNow` + um `*Ref` pro estado atual). No `npm run dev`
+  local não há `/api` → o botão mostra "Erro" (esperado); o teste real é no app publicado.
 - Anti-corrida (ambos os stores): um `dirty` ref impede que a resposta TARDIA
   da nuvem sobrescreva uma ação que o usuário acabou de fazer (corrigia o "X dos
   Salvos não remove" quando clicado antes do fetch da nuvem terminar).
