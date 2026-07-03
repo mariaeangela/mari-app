@@ -167,7 +167,9 @@ Hub `LifePage` com cards (SECOES). `lifeStore` = mesma estrutura dos Salvos (cac
 `gastos` (DEFAULT_GASTOS), `saude`. Seeds históricos (salários/gastos/pesos) **persistem ao
 1º salvar** (`{...DEFAULT, ...atual, [tipo]: next}`). `useLife()` expõe os CRUDs.
 **Planos**: hub tem botão ⚙ ("Gerenciar planos") para **reordenar** (↑↓ via `movePlano`) e apagar —
-mesmo padrão do ⚙ de Aprendizados/Compras.
+mesmo padrão do ⚙ de Aprendizados/Compras. O **checklist do detalhe** é ordenado por: **feitos por
+último**; entre os pendentes, por **`prazo` ascendente** (mais próximo no topo) e os **sem prazo depois**
+dos com prazo (sort em `PlanoDetail`: `(a.feito?1:0)-(b.feito?1:0) || (a.prazo||'￿').localeCompare(...)`).
 **Compras**: itens têm campo opcional **`grupo`** (sublista) — `ComprasSection` renderiza agrupado
 (sem-grupo primeiro, depois cada grupo c/ header); `ComprasForm` tem campo "Sublista / grupo" (datalist).
 Dentro de cada grupo, itens ordenados por **data limite** (`porData`: mais próxima primeiro, sem data
