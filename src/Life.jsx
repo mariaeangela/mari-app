@@ -2083,6 +2083,7 @@ function GastosVida() {
   const [selMes, setSelMes] = useState(null);
   const [vista, setVista] = useState('mes');
   const [form, setForm] = useState(null);
+  const [catExp, setCatExp] = useState(null); // categoria com itens abertos (drill-down)
   const meses = [...life.gastos].sort((a, b) => a.mes.localeCompare(b.mes));
   const totalDe = (m) => (m?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
   const atual = meses.find(m => m.mes === selMes) || meses[meses.length - 1] || null;
@@ -2139,15 +2140,38 @@ function GastosVida() {
           <div style={{ marginTop: 18 }}>
             {cats.map((c, i) => {
               const v = Number(c.valor) || 0;
+              const itens = (life.gastosItens || []).filter(x => x.mes === atual.mes && x.categoria === c.categoria).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
+              const temItens = itens.length > 0;
+              const aberto = catExp === c.categoria;
+              const resto = Math.round((v - itens.reduce((s, it) => s + (Number(it.valor) || 0), 0)) * 100) / 100;
               return (
                 <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ fontSize: 13.5, color: '#222', fontWeight: 600 }}>{c.categoria}<span onClick={() => nav.goRetro('gastos', c.categoria)} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver ›</span></span>
+                    <span onClick={() => temItens && setCatExp(aberto ? null : c.categoria)} style={{ fontSize: 13.5, color: '#222', fontWeight: 600, cursor: temItens ? 'pointer' : 'default' }}>
+                      {temItens && <span style={{ color: COR_FIN, fontWeight: 700, marginRight: 5, fontSize: 11 }}>{aberto ? '▾' : '▸'}</span>}
+                      {c.categoria}
+                      <span onClick={(e) => { e.stopPropagation(); nav.goRetro('gastos', c.categoria); }} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver ›</span>
+                    </span>
                     <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V> <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
                   </div>
                   <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: (v / maxCat * 100) + '%', background: '#111', borderRadius: 4 }} />
                   </div>
+                  {aberto && (
+                    <div style={{ margin: '8px 0 2px', paddingLeft: 16 }}>
+                      {itens.map((it, j) => (
+                        <div key={it.id || j} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#666' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nome}</span>
+                          <span style={{ whiteSpace: 'nowrap', color: '#444' }}><V>{fmtBRL(Number(it.valor) || 0)}</V></span>
+                        </div>
+                      ))}
+                      {Math.abs(resto) > 0.01 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#aaa', fontStyle: 'italic' }}>
+                          <span>outros</span><span><V>{fmtBRL(resto)}</V></span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

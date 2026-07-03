@@ -8,6 +8,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
+import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -87,15 +88,8 @@ export const DEFAULT_SALARIOS = [
 ];
 
 // Gastos por mês (seed; vira editável e sincroniza após a 1ª edição). itens = [{ categoria, valor }].
-const G = (categoria, valor) => ({ categoria, valor });
-export const DEFAULT_GASTOS = [
-  { mes: '2026-01', itens: [G('Fixos', 5737.75), G('Mercado', 1246.58), G('Uber', 582.23), G('Trabalho', 247.31), G('Mãe', 221.98), G('Saúde', 768.25), G('Viagem', 3194.94), G('Coisas', 207.30), G('Roupa', 569.90), G('Skin care', 1378.50), G('Bobeira', 558.16), G('Rolês', 1580.01), G('Presentes', 1014.57)] },
-  { mes: '2026-02', itens: [G('Fixos', 6196.58), G('Mercado', 422.76), G('Uber', 707.07), G('Trabalho', 165.56), G('Mãe', 328.26), G('Saúde', 776.70), G('Viagem', 8939.44), G('Coisas', 6671.41), G('Roupa', 837.60), G('Bobeira', 36.85), G('Rolês', 1173.78), G('Presentes', 40.00)] },
-  { mes: '2026-03', itens: [G('Fixos', 5651.88), G('Mercado', 1458.74), G('Uber', 845.11), G('Trabalho', 938.30), G('Mãe', 457.65), G('Saúde', 265.91), G('Viagem', 2727.06), G('Coisas', 1663.82), G('Roupa', 4333.68), G('Skin care', 300.61), G('Bobeira', 69.80), G('Rolês', 1654.81), G('Presentes', 278.00)] },
-  { mes: '2026-04', itens: [G('Fixos', 5577.82), G('Mercado', 1390.67), G('Uber', 519.88), G('Trabalho', 248.78), G('Mãe', 629.58), G('Saúde', 2763.86), G('Viagem', 13249.03), G('Coisas', 1180.34), G('Roupa', 80.00), G('Skin care', 199.90), G('Bobeira', 140.88), G('Rolês', 584.54)] },
-  { mes: '2026-05', itens: [G('Fixos', 5564.89), G('Mercado', 178.84), G('Uber', 494.56), G('Trabalho', 90.81), G('Mãe', 137.41), G('Saúde', 2700.00), G('Viagem', 8753.61), G('Coisas', 171.10), G('Skin care', 132.19), G('Bobeira', 140.61), G('Rolês', 507.75)] },
-  { mes: '2026-06', itens: [G('Fixos', 6255.26), G('Mercado', 1565.27), G('Uber', 600.09), G('Trabalho', 194.33), G('Mãe', 293.50), G('Saúde', 2446.01), G('Viagem', 894.50), G('Coisas', 150.79), G('Skin care', 105.00), G('Bobeira', 68.88), G('Rolês', 996.04), G('Presentes', 533.70)] },
-];
+// Totais 2026 (jan–jul) importados de D:\vida financeira.xlsx — ver src/gastosSeed.js.
+export const DEFAULT_GASTOS = GASTOS_TOTAIS_2026;
 
 // Aprendizados: tópicos (assuntos) + notas organizadas por tópico (seed; vira editável e
 // sincroniza após a 1ª edição). nota = { id, topicoId, titulo, itens: [string] }.
@@ -1049,6 +1043,21 @@ function ensureFixosJunhoFix(d) {
   return { ...d, fixosFix2: true, gastos: d.gastos.map(g => corr[g.mes] == null ? g : { ...g, itens: (g.itens || []).map(it => it.categoria === 'Fixos' ? { ...it, valor: corr[g.mes] } : it) }) };
 }
 
+// Importa do Excel (jan–jul/2026) a quebra itemizada COMPLETA das 13 categorias e
+// refresca os totais do mês pra bater com o arquivo. Supera os seeds parciais antigos
+// (gi-pres-/gi-fix-) e preserva itens que a Mari adicionou à mão. Ver src/gastosSeed.js.
+function ensureGastos2026Detalhe(d) {
+  if (d.gastos2026ImpV1) return d;
+  const semSeed = (d.gastosItens || []).filter(x => !/^gi-(pres|fix|imp)-/.test(x.id || ''));
+  const novos = GASTOS_ITENS_2026.map((r, i) => ({ id: 'gi-imp-' + i, mes: r[0], categoria: r[1], nome: r[2], valor: r[3] }));
+  const out = { ...d, gastos2026ImpV1: true, gastosItens: [...semSeed, ...novos] };
+  if (d.gastos) { // já congelado na nuvem → refresca só os meses importados
+    const imp = new Set(GASTOS_TOTAIS_2026.map(g => g.mes));
+    out.gastos = [...d.gastos.filter(g => !imp.has(g.mes)), ...GASTOS_TOTAIS_2026].sort((a, b) => a.mes.localeCompare(b.mes));
+  }
+  return out;
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 // Primeiro livro do Acompanhamento de leituras: Anna Kariênina (começou em 25/06/2026).
 // O GUIA é texto curado/verificado por mim (Wikipédia PT/EN), SEM NENHUM SPOILER do enredo:
@@ -1364,7 +1373,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

@@ -1,0 +1,2404 @@
+{
+ "jan26": [
+  {
+   "categoria": "fixos",
+   "total": 5737.75,
+   "itens": [
+    [
+     "netflix",
+     44.9
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "piaui",
+     24.9
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney plus",
+     44.5
+    ],
+    [
+     "apple",
+     39.9
+    ],
+    [
+     "TIM",
+     59.87
+    ],
+    [
+     "google",
+     14.99
+    ],
+    [
+     "apple tv",
+     29.9
+    ],
+    [
+     "matheus",
+     740.0
+    ],
+    [
+     "convenio mae",
+     1080.0
+    ],
+    [
+     "aluguel",
+     3155.93
+    ],
+    [
+     "internet",
+     137.34
+    ],
+    [
+     "conta de luz",
+     49.05
+    ],
+    [
+     "faxina",
+     250.0
+    ],
+    [
+     "gás",
+     12.12
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 1246.58,
+   "itens": [
+    [
+     "quitanda",
+     130.0
+    ],
+    [
+     "granola",
+     59.99
+    ],
+    [
+     "chocotone",
+     77.94
+    ],
+    [
+     "mercado",
+     397.94
+    ],
+    [
+     "livup",
+     548.71
+    ],
+    [
+     "quitando",
+     32.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 582.23,
+   "itens": [
+    [
+     "uber",
+     556.32
+    ],
+    [
+     "uber casa",
+     25.91
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 247.31,
+   "itens": [
+    [
+     "jantar banco",
+     79.81
+    ],
+    [
+     "izakaya almoço",
+     105.84
+    ],
+    [
+     "xicó",
+     61.66
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 221.98,
+   "itens": [
+    [
+     "esfirra mãe",
+     88.0
+    ],
+    [
+     "almoço mãe",
+     133.98
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 768.25,
+   "itens": [
+    [
+     "salvador",
+     8.0
+    ],
+    [
+     "farmácia",
+     354.11
+    ],
+    [
+     "psiquiatra",
+     60.0
+    ],
+    [
+     "remédio raia",
+     346.14
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 3194.94,
+   "itens": [
+    [
+     "salvador",
+     795.9
+    ],
+    [
+     "passagem BH",
+     1125.1
+    ],
+    [
+     "onibus rio",
+     621.16
+    ],
+    [
+     "roupa carnaval",
+     90.0
+    ],
+    [
+     "hostel rio",
+     562.78
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 207.3,
+   "itens": [
+    [
+     "vinil cicero",
+     150.0
+    ],
+    [
+     "livro vegetariana",
+     57.3
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 569.9,
+   "itens": [
+    [
+     "bolsa",
+     510.0
+    ],
+    [
+     "faixa corrida",
+     59.9
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 1378.5,
+   "itens": [
+    [
+     "cabelo",
+     1278.5
+    ],
+    [
+     "salvador",
+     100.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 558.16,
+   "itens": [
+    [
+     "mega da virada",
+     60.0
+    ],
+    [
+     "nutricar",
+     110.38
+    ],
+    [
+     "sorvete",
+     73.7
+    ],
+    [
+     "aeroporto",
+     29.9
+    ],
+    [
+     "ifood",
+     60.88
+    ],
+    [
+     "agua",
+     5.0
+    ],
+    [
+     "camisinha",
+     16.19
+    ],
+    [
+     "raw hamburguer",
+     66.67
+    ],
+    [
+     "tostado",
+     42.0
+    ],
+    [
+     "sorvete bacio",
+     33.95
+    ],
+    [
+     "água",
+     4.49
+    ],
+    [
+     "milkshake",
+     24.0
+    ],
+    [
+     "jantar momu",
+     31.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 1580.01,
+   "itens": [
+    [
+     "samba do rosa",
+     50.0
+    ],
+    [
+     "show cicero",
+     154.26
+    ],
+    [
+     "gabs cinema",
+     10.58
+    ],
+    [
+     "bacio",
+     45.9
+    ],
+    [
+     "sorvete lucy",
+     263.96
+    ],
+    [
+     "sylvester",
+     85.58
+    ],
+    [
+     "pirajá",
+     98.31
+    ],
+    [
+     "bar sexta",
+     158.0
+    ],
+    [
+     "sesc pompeia",
+     40.0
+    ],
+    [
+     "matiz",
+     262.44
+    ],
+    [
+     "bar alto",
+     33.0
+    ],
+    [
+     "cinema gabs",
+     50.5
+    ],
+    [
+     "cinesala",
+     36.0
+    ],
+    [
+     "tamashi lucy",
+     116.48
+    ],
+    [
+     "julinho",
+     110.0
+    ],
+    [
+     "samba rosa",
+     65.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 1014.57,
+   "itens": [
+    [
+     "doação",
+     10.0
+    ],
+    [
+     "estac mãe",
+     60.0
+    ],
+    [
+     "assador mãe",
+     712.47
+    ],
+    [
+     "café mãe",
+     71.6
+    ],
+    [
+     "pedágio",
+     38.7
+    ],
+    [
+     "posto praia",
+     121.8
+    ]
+   ],
+   "residual": 0.0
+  }
+ ],
+ "Fev26": [
+  {
+   "categoria": "fixos",
+   "total": 6196.58,
+   "itens": [
+    [
+     "internet",
+     133.89
+    ],
+    [
+     "personal",
+     740.0
+    ],
+    [
+     "aluguel",
+     3380.0
+    ],
+    [
+     "Enel",
+     71.98
+    ],
+    [
+     "gás",
+     15.32
+    ],
+    [
+     "ilka",
+     270.0
+    ],
+    [
+     "netflix",
+     44.9
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "piaui",
+     24.9
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney",
+     44.5
+    ],
+    [
+     "runna",
+     39.9
+    ],
+    [
+     "TIM",
+     65.39
+    ],
+    [
+     "icloud",
+     19.9
+    ],
+    [
+     "(ajuste)",
+     5.95
+    ],
+    [
+     "apple tv",
+     29.9
+    ],
+    [
+     "convenio mãe",
+     1105.71
+    ],
+    [
+     "wellhub",
+     149.99
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 422.76,
+   "itens": [
+    [
+     "Mercado",
+     78.0
+    ],
+    [
+     "fini",
+     48.59
+    ],
+    [
+     "mercado",
+     216.27
+    ],
+    [
+     "nutricar",
+     79.9
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 707.07,
+   "itens": [
+    [
+     "uber",
+     707.07
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 165.56,
+   "itens": [
+    [
+     "olgz ri",
+     84.68
+    ],
+    [
+     "restaurante",
+     49.89
+    ],
+    [
+     "almoço banco",
+     30.99
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 328.26,
+   "itens": [
+    [
+     "café mãe",
+     137.86
+    ],
+    [
+     "jantar mãe",
+     190.4
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 776.7,
+   "itens": [
+    [
+     "remédio",
+     258.17
+    ],
+    [
+     "droga raia",
+     288.53
+    ],
+    [
+     "podologia",
+     230.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 8939.44,
+   "itens": [
+    [
+     "trilha",
+     451.41
+    ],
+    [
+     "carnaval bh",
+     76.95
+    ],
+    [
+     "Mc Donald bh",
+     44.39
+    ],
+    [
+     "carnaval BH",
+     2173.84
+    ],
+    [
+     "carnaval rio 1",
+     1399.64
+    ],
+    [
+     "carnaval rio 2",
+     1521.13
+    ],
+    [
+     "madrid",
+     3272.08
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 6671.41,
+   "itens": [
+    [
+     "livro insustentável",
+     37.9
+    ],
+    [
+     "potes cabelo",
+     17.9
+    ],
+    [
+     "blindagem",
+     19.0
+    ],
+    [
+     "óculos de sol",
+     251.1
+    ],
+    [
+     "mercado livre",
+     59.97
+    ],
+    [
+     "cabelo",
+     57.75
+    ],
+    [
+     "havaianas",
+     44.99
+    ],
+    [
+     "óculos",
+     6182.8
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 837.6,
+   "itens": [
+    [
+     "roupas carnaval",
+     837.6
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 36.85,
+   "itens": [
+    [
+     "agua",
+     4.0
+    ],
+    [
+     "chocolate",
+     6.95
+    ],
+    [
+     "sorvete",
+     25.9
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 1173.78,
+   "itens": [
+    [
+     "carnaval sp",
+     159.8
+    ],
+    [
+     "nilo",
+     39.6
+    ],
+    [
+     "show harry",
+     781.56
+    ],
+    [
+     "boca a boca",
+     192.82
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 40.0,
+   "itens": [
+    [
+     "Laços",
+     40.0
+    ]
+   ],
+   "residual": 0.0
+  }
+ ],
+ "Mar26": [
+  {
+   "categoria": "fixos",
+   "total": 5651.88,
+   "itens": [
+    [
+     "convenio mãe",
+     1079.79
+    ],
+    [
+     "bilhete único",
+     50.0
+    ],
+    [
+     "conta de luz",
+     61.26
+    ],
+    [
+     "internet",
+     133.89
+    ],
+    [
+     "aluguel",
+     3319.35
+    ],
+    [
+     "gás",
+     12.71
+    ],
+    [
+     "personal",
+     400.0
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "piaui",
+     24.9
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney plus",
+     44.5
+    ],
+    [
+     "apple tv",
+     29.9
+    ],
+    [
+     "TIM",
+     65.39
+    ],
+    [
+     "google one",
+     14.99
+    ],
+    [
+     "icloud",
+     19.9
+    ],
+    [
+     "ifood",
+     5.95
+    ],
+    [
+     "faxina",
+     270.0
+    ],
+    [
+     "velocity",
+     65.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 1458.74,
+   "itens": [
+    [
+     "nutricar",
+     30.96
+    ],
+    [
+     "quitanda",
+     29.0
+    ],
+    [
+     "cozinha atleta",
+     325.2
+    ],
+    [
+     "essencia baunilha",
+     42.9
+    ],
+    [
+     "mercado",
+     1003.34
+    ],
+    [
+     "pimenta",
+     27.34
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 845.11,
+   "itens": [
+    [
+     "uber",
+     845.11
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 938.3,
+   "itens": [
+    [
+     "jantar banco",
+     74.5
+    ],
+    [
+     "bolo Leo",
+     30.0
+    ],
+    [
+     "bolo gaspa",
+     67.25
+    ],
+    [
+     "jantar",
+     75.2
+    ],
+    [
+     "empanada chilena",
+     37.83
+    ],
+    [
+     "hamburguer trabalho",
+     40.98
+    ],
+    [
+     "almoço banco",
+     50.9
+    ],
+    [
+     "xicó",
+     67.35
+    ],
+    [
+     "nutricar",
+     49.86
+    ],
+    [
+     "eat",
+     77.84
+    ],
+    [
+     "bauducco",
+     23.9
+    ],
+    [
+     "almoço trabalho",
+     305.89
+    ],
+    [
+     "trabalho",
+     36.8
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 457.65,
+   "itens": [
+    [
+     "la mordida mãe",
+     457.65
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 265.91,
+   "itens": [
+    [
+     "farmácia antibióticos",
+     143.47
+    ],
+    [
+     "farmácia",
+     122.44
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 2727.06,
+   "itens": [
+    [
+     "trilha saia da zona",
+     480.0
+    ],
+    [
+     "budapeste",
+     2247.06
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 1663.82,
+   "itens": [
+    [
+     "ceagesp",
+     65.35
+    ],
+    [
+     "capa tablet",
+     31.6
+    ],
+    [
+     "kalunga",
+     68.7
+    ],
+    [
+     "faixa cabelo",
+     20.99
+    ],
+    [
+     "camera",
+     110.0
+    ],
+    [
+     "zerezes",
+     1195.0
+    ],
+    [
+     "filme",
+     120.0
+    ],
+    [
+     "adaptador SD",
+     19.89
+    ],
+    [
+     "livro",
+     32.29
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 4333.68,
+   "itens": [
+    [
+     "roupas Ana",
+     140.0
+    ],
+    [
+     "jaqueta galapagos",
+     899.0
+    ],
+    [
+     "riachuelo",
+     189.98
+    ],
+    [
+     "roupa tess",
+     2961.0
+    ],
+    [
+     "roupas",
+     143.7
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 300.61,
+   "itens": [
+    [
+     "cabelo tinta",
+     195.61
+    ],
+    [
+     "cabelo",
+     105.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 69.8,
+   "itens": [
+    [
+     "sorvete",
+     26.0
+    ],
+    [
+     "nostos",
+     43.8
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 1654.81,
+   "itens": [
+    [
+     "festa bagatela",
+     66.0
+    ],
+    [
+     "lolla",
+     85.0
+    ],
+    [
+     "matilda lanches",
+     65.54
+    ],
+    [
+     "santana",
+     81.36
+    ],
+    [
+     "tan tan",
+     62.15
+    ],
+    [
+     "thai e san",
+     84.0
+    ],
+    [
+     "aniversário",
+     418.11
+    ],
+    [
+     "festa boca boca",
+     53.0
+    ],
+    [
+     "bar fechado",
+     152.32
+    ],
+    [
+     "opera malando",
+     128.0
+    ],
+    [
+     "copan",
+     88.0
+    ],
+    [
+     "bebida festa",
+     4.0
+    ],
+    [
+     "sorvete nostos",
+     47.8
+    ],
+    [
+     "bella paulista",
+     15.0
+    ],
+    [
+     "sorvete diego",
+     20.0
+    ],
+    [
+     "almoço diego",
+     87.97
+    ],
+    [
+     "feijoada cricricru",
+     60.0
+    ],
+    [
+     "bolo sodie",
+     136.56
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 278.0,
+   "itens": [
+    [
+     "laços",
+     80.0
+    ],
+    [
+     "milena",
+     150.0
+    ],
+    [
+     "sorvete raul",
+     48.0
+    ]
+   ],
+   "residual": 0.0
+  }
+ ],
+ "Abr26": [
+  {
+   "categoria": "fixos",
+   "total": 5577.8,
+   "itens": [
+    [
+     "personal",
+     400.0
+    ],
+    [
+     "internet",
+     133.89
+    ],
+    [
+     "bilhete único",
+     50.0
+    ],
+    [
+     "conta de luz",
+     58.89
+    ],
+    [
+     "aluguel",
+     3319.0
+    ],
+    [
+     "conta de gas",
+     12.4
+    ],
+    [
+     "total pass",
+     119.9
+    ],
+    [
+     "Netflix",
+     44.9
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney plus",
+     44.5
+    ],
+    [
+     "apple tv",
+     29.9
+    ],
+    [
+     "tim",
+     65.39
+    ],
+    [
+     "google",
+     14.99
+    ],
+    [
+     "apple",
+     19.9
+    ],
+    [
+     "claude",
+     110.0
+    ],
+    [
+     "convenio mãe",
+     1079.79
+    ],
+    [
+     "bilhete unico",
+     20.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 1390.67,
+   "itens": [
+    [
+     "pão de açúcar",
+     289.9
+    ],
+    [
+     "mercado",
+     430.29
+    ],
+    [
+     "barras proteína",
+     198.0
+    ],
+    [
+     "pastorinho",
+     320.48
+    ],
+    [
+     "maratona coisas",
+     55.0
+    ],
+    [
+     "quitanda",
+     97.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 519.88,
+   "itens": [
+    [
+     "uber",
+     519.88
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 248.78,
+   "itens": [
+    [
+     "jantar banco",
+     54.89
+    ],
+    [
+     "nutricar",
+     4.99
+    ],
+    [
+     "almoço elvis",
+     188.9
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 629.58,
+   "itens": [
+    [
+     "gympass mãe",
+     149.99
+    ],
+    [
+     "(ajuste)",
+     -50.0
+    ],
+    [
+     "café da manhã",
+     92.4
+    ],
+    [
+     "mica",
+     74.0
+    ],
+    [
+     "rascal",
+     173.99
+    ],
+    [
+     "mobi",
+     189.2
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 2763.86,
+   "itens": [
+    [
+     "consulta gastro",
+     800.0
+    ],
+    [
+     "(ajuste)",
+     -430.0
+    ],
+    [
+     "limpeza dente",
+     550.0
+    ],
+    [
+     "velocity",
+     65.0
+    ],
+    [
+     "radiografia",
+     260.0
+    ],
+    [
+     "remédios",
+     48.75
+    ],
+    [
+     "dentista",
+     1200.0
+    ],
+    [
+     "escova e pasta",
+     20.78
+    ],
+    [
+     "remédioss",
+     249.33
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 13249.03,
+   "itens": [
+    [
+     "saco de dormir",
+     260.9
+    ],
+    [
+     "isolante",
+     49.23
+    ],
+    [
+     "trilha",
+     76.9
+    ],
+    [
+     "café da manha trilha",
+     43.0
+    ],
+    [
+     "apito trilha",
+     20.98
+    ],
+    [
+     "talher amazon",
+     21.83
+    ],
+    [
+     "trilha declathon",
+     330.06
+    ],
+    [
+     "hotel europa",
+     74.98
+    ],
+    [
+     "hotel olinda",
+     870.0
+    ],
+    [
+     "viagem",
+     11501.15
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 1180.34,
+   "itens": [
+    [
+     "estante",
+     74.17
+    ],
+    [
+     "ceagesp",
+     139.67
+    ],
+    [
+     "banco planta",
+     160.0
+    ],
+    [
+     "fotos",
+     147.5
+    ],
+    [
+     "relógio",
+     100.0
+    ],
+    [
+     "câmera",
+     380.0
+    ],
+    [
+     "fiilme camera",
+     149.0
+    ],
+    [
+     "sapateeiro",
+     30.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 80.0,
+   "itens": [
+    [
+     "roupas ana",
+     80.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 199.9,
+   "itens": [
+    [
+     "protetor solar",
+     139.9
+    ],
+    [
+     "cabelo",
+     60.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 140.88,
+   "itens": [
+    [
+     "sorvete",
+     51.8
+    ],
+    [
+     "nilo esfiras",
+     32.59
+    ],
+    [
+     "mica",
+     32.0
+    ],
+    [
+     "cookies",
+     18.0
+    ],
+    [
+     "nutricar",
+     6.49
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 584.54,
+   "itens": [
+    [
+     "santo grão",
+     64.41
+    ],
+    [
+     "ingressos são pedro",
+     124.0
+    ],
+    [
+     "lovesongs",
+     209.68
+    ],
+    [
+     "boca de outro",
+     186.45
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  }
+ ],
+ "Mai26": [
+  {
+   "categoria": "fixos",
+   "total": 5564.89,
+   "itens": [
+    [
+     "netflix",
+     44.9
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "icloud",
+     39.9
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney plus",
+     44.5
+    ],
+    [
+     "TIM",
+     65.39
+    ],
+    [
+     "google one",
+     29.98
+    ],
+    [
+     "apple",
+     19.9
+    ],
+    [
+     "ifood",
+     7.95
+    ],
+    [
+     "Mateus",
+     400.0
+    ],
+    [
+     "Bilhete único",
+     150.0
+    ],
+    [
+     "Aluguel",
+     3268.0
+    ],
+    [
+     "Gas",
+     15.02
+    ],
+    [
+     "internet",
+     133.89
+    ],
+    [
+     "luz",
+     68.74
+    ],
+    [
+     "total pass",
+     119.9
+    ],
+    [
+     "Convénio mãe",
+     1102.47
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 178.84,
+   "itens": [
+    [
+     "mercado",
+     178.84
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 494.56,
+   "itens": [
+    [
+     "uber",
+     494.56
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 90.81,
+   "itens": [
+    [
+     "almoço",
+     45.89
+    ],
+    [
+     "poke",
+     44.92
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 137.41,
+   "itens": [
+    [
+     "ecully",
+     137.41
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 2700.0,
+   "itens": [
+    [
+     "Dentista",
+     2000.0
+    ],
+    [
+     "teste respiratório",
+     700.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 8753.61,
+   "itens": [
+    [
+     "viagem",
+     8658.66
+    ],
+    [
+     "Trilha Itatiaia",
+     94.95
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 171.1,
+   "itens": [
+    [
+     "livro tamara",
+     111.1
+    ],
+    [
+     "bolsa",
+     60.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 132.19,
+   "itens": [
+    [
+     "tinta cabelo",
+     132.19
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 140.61,
+   "itens": [
+    [
+     "kopenhagen",
+     11.9
+    ],
+    [
+     "nutricar",
+     9.99
+    ],
+    [
+     "sophia",
+     46.29
+    ],
+    [
+     "patties",
+     43.48
+    ],
+    [
+     "bacio",
+     28.95
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 507.75,
+   "itens": [
+    [
+     "aniversário julha",
+     221.57
+    ],
+    [
+     "laços",
+     40.0
+    ],
+    [
+     "corrida",
+     111.18
+    ],
+    [
+     "contact mercado livre",
+     19.0
+    ],
+    [
+     "plantação je",
+     50.0
+    ],
+    [
+     "jantar thales",
+     22.0
+    ],
+    [
+     "jantar lucy",
+     44.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  }
+ ],
+ "Jun26": [
+  {
+   "categoria": "fixos",
+   "total": 6255.26,
+   "itens": [
+    [
+     "bilhete único",
+     150.0
+    ],
+    [
+     "personal",
+     400.0
+    ],
+    [
+     "Conta de internet",
+     148.62
+    ],
+    [
+     "Ilka",
+     270.0
+    ],
+    [
+     "conta de luz",
+     48.31
+    ],
+    [
+     "netflix",
+     44.9
+    ],
+    [
+     "hbo",
+     22.45
+    ],
+    [
+     "spotify",
+     31.9
+    ],
+    [
+     "disney",
+     44.5
+    ],
+    [
+     "apple",
+     59.8
+    ],
+    [
+     "tim",
+     65.39
+    ],
+    [
+     "ifood",
+     7.95
+    ],
+    [
+     "claude",
+     601.17
+    ],
+    [
+     "aluguel",
+     3268.08
+    ],
+    [
+     "gás",
+     12.4
+    ],
+    [
+     "convenio mãe",
+     1079.79
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 1808.13,
+   "itens": [
+    [
+     "Liv up",
+     449.73
+    ],
+    [
+     "mercado",
+     976.04
+    ],
+    [
+     "gel carboidrato",
+     146.98
+    ],
+    [
+     "agua",
+     19.96
+    ],
+    [
+     "barra nutri",
+     215.42
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 906.45,
+   "itens": [
+    [
+     "uber",
+     906.45
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 522.3,
+   "itens": [
+    [
+     "almoço poke",
+     68.88
+    ],
+    [
+     "poke almoço",
+     185.34
+    ],
+    [
+     "barakah",
+     73.4
+    ],
+    [
+     "almoço trabalho",
+     150.87
+    ],
+    [
+     "restaurante",
+     43.81
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 430.86,
+   "itens": [
+    [
+     "café mãe",
+     84.75
+    ],
+    [
+     "café manhã mãe",
+     101.75
+    ],
+    [
+     "moqueca mãe",
+     107.0
+    ],
+    [
+     "almoço mãe",
+     137.36
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 2446.01,
+   "itens": [
+    [
+     "taciana",
+     240.0
+    ],
+    [
+     "dentista",
+     1400.0
+    ],
+    [
+     "remédios",
+     745.01
+    ],
+    [
+     "terapia",
+     45.0
+    ],
+    [
+     "academia +1",
+     16.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 894.5,
+   "itens": [
+    [
+     "passagem olinda",
+     344.5
+    ],
+    [
+     "pico dos marins",
+     550.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 886.78,
+   "itens": [
+    [
+     "filme camera",
+     92.36
+    ],
+    [
+     "mosquetão",
+     58.43
+    ],
+    [
+     "escova modeladora",
+     148.9
+    ],
+    [
+     "discos europa",
+     443.41
+    ],
+    [
+     "coisas papelaria",
+     63.88
+    ],
+    [
+     "roupas BZ",
+     79.8
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 499.87,
+   "itens": [
+    [
+     "cabelo",
+     105.0
+    ],
+    [
+     "cremes farmácia",
+     132.22
+    ],
+    [
+     "podologia",
+     230.0
+    ],
+    [
+     "protetor termico",
+     32.65
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 261.11,
+   "itens": [
+    [
+     "nostos",
+     25.9
+    ],
+    [
+     "albero",
+     26.0
+    ],
+    [
+     "nutricar",
+     68.23
+    ],
+    [
+     "água",
+     9.99
+    ],
+    [
+     "momu",
+     26.0
+    ],
+    [
+     "não sei aaa",
+     51.0
+    ],
+    [
+     "doce",
+     10.0
+    ],
+    [
+     "bobeira",
+     9.99
+    ],
+    [
+     "guardachuva",
+     34.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 1605.19,
+   "itens": [
+    [
+     "Carreta furacão",
+     100.0
+    ],
+    [
+     "gandaya",
+     67.2
+    ],
+    [
+     "funilaria",
+     20.0
+    ],
+    [
+     "rolê",
+     131.91
+    ],
+    [
+     "por amor",
+     33.0
+    ],
+    [
+     "bar diego",
+     42.56
+    ],
+    [
+     "indie food",
+     54.5
+    ],
+    [
+     "dois dois",
+     82.0
+    ],
+    [
+     "show rubel",
+     183.42
+    ],
+    [
+     "churras saia da zona",
+     85.0
+    ],
+    [
+     "bebida rolê",
+     50.12
+    ],
+    [
+     "niver josi",
+     46.33
+    ],
+    [
+     "singelo line",
+     100.0
+    ],
+    [
+     "15km NB",
+     182.32
+    ],
+    [
+     "esfirras",
+     46.2
+    ],
+    [
+     "almoço c padre",
+     84.8
+    ],
+    [
+     "consenso bar",
+     30.51
+    ],
+    [
+     "ingressos sala sp",
+     90.0
+    ],
+    [
+     "coisas papelaria",
+     -63.88
+    ],
+    [
+     "dança",
+     28.75
+    ],
+    [
+     "show kid abelha",
+     166.25
+    ],
+    [
+     "cervejaria",
+     44.2
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 533.7,
+   "itens": [
+    [
+     "westwing",
+     533.7
+    ]
+   ],
+   "residual": 0.0
+  }
+ ],
+ "Jul26": [
+  {
+   "categoria": "fixos",
+   "total": 4510.13,
+   "itens": [
+    [
+     "personal",
+     400.0
+    ],
+    [
+     "internet",
+     145.89
+    ],
+    [
+     "conta de luz",
+     56.84
+    ],
+    [
+     "HBO",
+     22.45
+    ],
+    [
+     "google",
+     14.99
+    ],
+    [
+     "ifood",
+     7.95
+    ],
+    [
+     "claude",
+     581.53
+    ],
+    [
+     "conta de gás",
+     12.4
+    ],
+    [
+     "aluguel",
+     3268.08
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mercado",
+   "total": 257.61,
+   "itens": [
+    [
+     "mercado",
+     257.61
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "uber",
+   "total": 116.85,
+   "itens": [
+    [
+     "uber show",
+     37.4
+    ],
+    [
+     "uber",
+     79.45
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "trabalho",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "mãe",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "saúde",
+   "total": 566.0,
+   "itens": [
+    [
+     "dentista",
+     550.0
+    ],
+    [
+     "academia",
+     16.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "viagem",
+   "total": 1111.66,
+   "itens": [
+    [
+     "passagem rio",
+     687.03
+    ],
+    [
+     "passagens flip",
+     424.63
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "coisas",
+   "total": 20.89,
+   "itens": [
+    [
+     "livro coma",
+     20.89
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "roupa",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  },
+  {
+   "categoria": "skin care",
+   "total": 280.33,
+   "itens": [
+    [
+     "água oxigenada",
+     16.5
+    ],
+    [
+     "drogasil",
+     242.72
+    ],
+    [
+     "tonalizante cabelo",
+     21.11
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "bobeira",
+   "total": 134.8,
+   "itens": [
+    [
+     "bolão copa",
+     25.0
+    ],
+    [
+     "chocolate",
+     109.8
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "rolês",
+   "total": 572.15,
+   "itens": [
+    [
+     "tamashii",
+     92.4
+    ],
+    [
+     "festa junina",
+     209.0
+    ],
+    [
+     "churras raissa",
+     65.0
+    ],
+    [
+     "cerveja show kid abelha",
+     25.0
+    ],
+    [
+     "bagatella",
+     70.0
+    ],
+    [
+     "pitico date",
+     39.55
+    ],
+    [
+     "date nistal",
+     46.2
+    ],
+    [
+     "exposição",
+     25.0
+    ]
+   ],
+   "residual": 0.0
+  },
+  {
+   "categoria": "presentes",
+   "total": 0.0,
+   "itens": [],
+   "residual": 0.0
+  }
+ ]
+}
