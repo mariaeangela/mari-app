@@ -38,8 +38,11 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      // lê cada registro isolado: se um falhar (ex.: legado muito grande), os
+      // outros ainda voltam — o load nunca quebra por causa de uma seção só.
+      const safeGet = async (k) => { try { return await redis.get(k); } catch { return null; } };
       const [legacy, saved, calendario, life, projetos] = await Promise.all([
-        redis.get(LEGACY), redis.get(K.saved), redis.get(K.calendario), redis.get(K.life), redis.get(K.projetos),
+        safeGet(LEGACY), safeGet(K.saved), safeGet(K.calendario), safeGet(K.life), safeGet(K.projetos),
       ]);
       const out = { ...(legacy || {}) };            // base: registro antigo (se houver)
       if (saved != null) out.saved = saved;         // por-seção sobrepõe o legado

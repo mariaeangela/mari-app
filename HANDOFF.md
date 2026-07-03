@@ -76,9 +76,18 @@ localStorage, que o iOS apagava). Camada:
   de salvar silenciosamente** — seeds mascaravam porque reaplicam a cada load.) O GET junta
   o `diagonal:data` LEGADO + os por-seção (estes têm prioridade), então dados antigos migram
   sozinhos ao serem salvos.
-- `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (350ms)** +
+- `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +
   **flush imediato** no `visibilitychange`(hidden)/`pagehide` (no mobile, trocar de app pode
   matar o `setTimeout` e perder o save — o flush manda o pendente na hora).
+  Também expõe **`saveLifeNow/saveCalendarioNow/saveSavedNow`** (POST aguardável que devolve
+  true/false) e **`onSyncStatus(fn)`** — emite `'saving'|'saved'|'error'` a cada POST, pro
+  botão/indicador de salvar.
+- **Botão "💾 Salvar" (SalvarFAB em `Life.jsx`)** — flutuante fixo, aparece em TODAS as
+  sub-seções de Life. Chama `life.salvarAgora()` (→ `saveLifeNow(dataRef.current)`), mostra
+  `Salvando…` → `Salvo ✓` (verde) ou `⚠ Erro — tocar de novo` (vermelho). Garantia manual +
+  **feedback visível** de sucesso/falha (antes a falha era silenciosa). `lifeStore` expõe
+  `salvarAgora` e `syncStatus`. No `npm run dev` local não há `/api` → o botão mostra "Erro"
+  (esperado); o teste real é no app publicado.
 - Anti-corrida (ambos os stores): um `dirty` ref impede que a resposta TARDIA
   da nuvem sobrescreva uma ação que o usuário acabou de fazer (corrigia o "X dos
   Salvos não remove" quando clicado antes do fetch da nuvem terminar).

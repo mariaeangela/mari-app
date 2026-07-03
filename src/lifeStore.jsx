@@ -6,7 +6,7 @@
 //     itens:  [{ id, titulo, listaId, dataLimite?, orcamento?, links: [], comprado }]
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchLife, pushLife } from './cloud';
+import { fetchLife, pushLife, saveLifeNow, onSyncStatus } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 
 const KEY = 'diagonal_life';
@@ -1425,6 +1425,10 @@ function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } c
 export function LifeProvider({ children }) {
   const [data, setData] = useState(() => runLifeSeeds(readLocal()));
   const dirty = useRef(false);
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle | saving | saved | error
+  useEffect(() => onSyncStatus(setSyncStatus), []);
 
   useEffect(() => {
     let alive = true;
@@ -1447,6 +1451,8 @@ export function LifeProvider({ children }) {
   }, []);
 
   const persist = (next) => { dirty.current = true; setData(next); writeLocal(next); pushLife(next); };
+  // Salvar AGORA (botão manual): grava na nuvem e AGUARDA a confirmação. Devolve true/false.
+  const salvarAgora = async () => { dirty.current = true; return await saveLifeNow(dataRef.current); };
 
   // ---- Compras ----
   const compras = data.compras || DEFAULT.compras;
@@ -1755,7 +1761,7 @@ export function LifeProvider({ children }) {
   const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
 
   const value = {
-    data, compras,
+    data, compras, salvarAgora, syncStatus,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista, moveComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, movePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, deletePlanoCheck,
     cultural, saveCulturalItem, deleteCulturalItem,
