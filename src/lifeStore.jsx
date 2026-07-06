@@ -1046,6 +1046,43 @@ function ensureExpos2026(d) {
   return { ...d, expos2026Seeded: true, cultural: { ...cultural, itens: [...(cultural.itens || []), ...novos] } };
 }
 
+// Lote 2 (jul/2026) — lista grande enviada pela Mari, verificada nos sites oficiais pelos
+// pesquisadores. `local` = instituição · endereço curto; `dias` = dias abertos (0=Dom..6=Sáb).
+// Corrigidos alguns títulos aproximados (A.R., Damián Ortega: matéria e energia, Shiro: uma
+// escala de nuances, Estrelas escolhidas/Zerbini, das–vindas—i/Pedro Torres, nem mais nem
+// menos/Zilio). Deixados de fora: "Coletiva" (Vermelho, já saiu de cartaz) e "Terra e Tempo"
+// (galeria não localizada). Flag própria (expos2026Lote2Seeded) pra somar aos já semeados.
+const EXPOS_SEED2 = [
+  // Galeria Vermelho (R. Minas Gerais, 350, Higienópolis) — em cartaz até 25/jul
+  { id: 'exp-vermelho-paciente', nome: 'O Paciente Circular 0.6 — Carlito Contini', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Vermelho · R. Minas Gerais, 350, Higienópolis', dataMax: '2026-07-25', preco: 'grátis', link: 'https://galeriavermelho.com.br/exposicoes/o-paciente-circular-0-6/', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+  { id: 'exp-vermelho-comunismo', nome: 'Comunismo Concreto — Dora Longo Bahia', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Vermelho · R. Minas Gerais, 350, Higienópolis', dataMax: '2026-07-25', preco: 'grátis', link: 'https://galeriavermelho.com.br/exposicoes/comunismo-concreto/', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+  { id: 'exp-vermelho-jamac', nome: 'Ocupação JAMAC', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Vermelho · R. Minas Gerais, 350, Higienópolis', dataMax: '2026-07-25', preco: 'grátis', link: 'https://galeriavermelho.com.br/exposicoes/ocupacao-jamac/', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+  // Outras galerias / museus / teatros
+  { id: 'exp-oma-ar', nome: 'A.R. — Ana Kawajiri', tipo: 'exposicao', cidade: 'São Paulo', local: 'OMA Galeria · R. França Pinto, 1100, Vila Mariana', dataMax: '2026-07-25', preco: 'grátis', link: 'https://omagaleria.com/EXPOSICOES', funcionamento: { dias: [3, 4, 5, 6] } },
+  { id: 'exp-teatrovivo-historias', nome: 'Histórias Lindas de Morrer (teatro)', tipo: 'teatro', cidade: 'São Paulo', local: 'Teatro Vivo · Av. Dr. Chucri Zaidan, 2460', dataMax: '2026-10-01', preco: 'R$ 90 · meia R$ 45', link: 'https://vivo.com.br/a-vivo/a-empresa/patrocinios/cultura/teatro-vivo/programacao', funcionamento: { dias: [3, 4], abre: '20:00' } },
+  { id: 'exp-masp-ortega', nome: 'Damián Ortega: matéria e energia', tipo: 'exposicao', cidade: 'São Paulo', local: 'MASP · Av. Paulista, 1578', dataMax: '2026-09-13', preco: 'R$ 85 · meia R$ 42 · ter grátis', link: 'https://masp.org.br/exposicoes/damian-ortega-materia-e-energia', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-japanhouse-shiro', nome: 'Shiro: uma escala de nuances', tipo: 'exposicao', cidade: 'São Paulo', local: 'Japan House · Av. Paulista, 52', dataMax: '2026-10-25', preco: 'grátis', link: 'https://japanhousesp.com.br/', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-maluf-fluxos', nome: 'Fluxos — Janet Vollebregt', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Luis Maluf (Barra Funda) · R. Brigadeiro Galvão, 996', dataMax: '2026-08-08', preco: 'grátis', link: 'https://luismaluf.com/', funcionamento: { dias: [1, 2, 3, 4, 5, 6] } },
+  { id: 'exp-oca-edorocha', nome: 'Arte e Arquitetura — Edo Rocha', tipo: 'exposicao', cidade: 'São Paulo', local: 'Oca do Ibirapuera · Parque Ibirapuera', dataMax: '2026-07-19', link: 'https://www.parquedoibirapuera.org/', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-contempo-cortejo', nome: 'Cortejo de um cão da lua — Sandra Lapage', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Contempo · Al. Gabriel Monteiro da Silva, 1644', dataMax: '2026-07-18', preco: 'grátis', link: 'https://www.galeriacontempo.com.br/exposicoes', funcionamento: { dias: [1, 2, 3, 4, 5, 6] } },
+  { id: 'exp-mis-azul', nome: 'Quando o sonho encontra o azul — Daniela Dib', tipo: 'exposicao', cidade: 'São Paulo', local: 'MIS-SP · Av. Europa, 158', dataMax: '2026-08-02', preco: 'grátis', link: 'https://mis-sp.org.br/exposicao/quando-o-sonho-encontra-o-azul-nova-fotografia-2026/', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-sesc-lorena', nome: 'O Caso Lorena (teatro)', tipo: 'teatro', cidade: 'São Paulo', local: 'Sesc Ipiranga · R. Bom Pastor, 822', dataMax: '2026-07-25', link: 'https://www.sescsp.org.br/programacao/o-caso-lorena/', funcionamento: { dias: [5, 6, 0] } },
+  { id: 'exp-wg-plenoacaso', nome: 'Pleno acaso — Renata Laguardia', tipo: 'exposicao', cidade: 'São Paulo', local: 'WG Galeria · R. Araújo, 154, República', dataMax: '2026-08-01', preco: 'grátis', link: 'https://wggaleria.com.br/', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+  { id: 'exp-macusp-beijo', nome: 'Beijo de Língua — Nelson Felix', tipo: 'exposicao', cidade: 'São Paulo', local: 'MAC USP · Av. Pedro Álvares Cabral, 1301', dataMax: '2026-09-20', preco: 'grátis', link: 'https://www.mac.usp.br/mac/expos/2026/beijo-lingua/index.html', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-tomie-estrelas', nome: 'Estrelas escolhidas — Luiz Zerbini', tipo: 'exposicao', cidade: 'São Paulo', local: 'Instituto Tomie Ohtake · R. Coropés, 88, Pinheiros', dataMax: '2026-08-16', preco: 'grátis', link: 'https://www.institutotomieohtake.org.br/', funcionamento: { dias: [2, 3, 4, 5, 6, 0] } },
+  { id: 'exp-marli-catarata', nome: 'Catarata — Gabriella Barbosa', tipo: 'exposicao', cidade: 'São Paulo', local: 'Marli Matsumoto · R. João Alberto Moreira, 128, V. Madalena', dataMax: '2026-07-25', preco: 'grátis', link: 'https://marlimatsumoto.com.br/exposicoes/catarata/', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+  { id: 'exp-arnaud-zilio', nome: 'nem mais nem menos — Carlos Zilio', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Raquel Arnaud · R. Fidalga, 125, V. Madalena', dataMax: '2026-08-22', preco: 'grátis', link: 'https://raquelarnaud.com/exposicoes/nem-mais-nem-menos-pinturas-recentes_-carlos-zilio/', funcionamento: { dias: [1, 2, 3, 4, 5, 6] } },
+  { id: 'exp-aura-voceemtudo', nome: 'Você em Tudo — Roberto Vivo', tipo: 'exposicao', cidade: 'São Paulo', local: 'Aura Galeria · R. da Consolação, 2767', dataMax: '2026-07-25', preco: 'grátis', link: 'https://aura.art.br/exposicoes-aura/toca-obra-928rm/voce-em-tudo', funcionamento: { dias: [1, 2, 3, 4, 5, 6] } },
+  { id: 'exp-zielinsky-dasvindas', nome: 'das–vindas—i — Pedro Torres', tipo: 'exposicao', cidade: 'São Paulo', local: 'Galeria Zielinsky · Tv. Dona Paula, 33', dataMax: '2026-08-01', preco: 'grátis', link: 'https://www.zielinskyart.com/pedro-torres-das-vindas-i', funcionamento: { dias: [2, 3, 4, 5, 6] } },
+];
+function ensureExpos2026Lote2(d) {
+  if (d.expos2026Lote2Seeded) return d;
+  const have = new Set((d.cultural?.itens || []).map(i => i.id));
+  const novos = EXPOS_SEED2.filter(e => !have.has(e.id));
+  const cultural = d.cultural || { itens: [] };
+  return { ...d, expos2026Lote2Seeded: true, cultural: { ...cultural, itens: [...(cultural.itens || []), ...novos] } };
+}
+
 // Quebra itemizada de Fixos (jan–jun/2026), padronizada. Personal/Faxina/Conta de luz unificados.
 const GASTOS_FIXOS_SEED = [
   ['2026-01', 'Personal', 740], ['2026-01', 'Convênio mãe', 1080], ['2026-01', 'Aluguel', 3155.93], ['2026-01', 'Internet', 137.34], ['2026-01', 'Conta de luz', 49.05], ['2026-01', 'Faxina', 250], ['2026-01', 'Gás', 12.12], ['2026-01', 'Streaming', 313.31],
@@ -1400,7 +1437,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
