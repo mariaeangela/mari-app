@@ -1019,6 +1019,33 @@ function ensureLimparVazados(d) {
   return { ...d, limparVazados1: true, comprasFeitas: (d.comprasFeitas || []).filter(c => !nomes.has((c.titulo || '').trim())) };
 }
 
+// Exposições que a Mari quer ver (calendário cultural). Dados verificados nos sites oficiais
+// das galerias (jul/2026). `dias` = dias abertos (0=Dom..6=Sáb); horário varia por dia,
+// então não fixo abre/fecha pra não passar info errada. Ids estáveis + flag (não duplica; se
+// ela editar/apagar, não volta). Só semeia os que confirmei — Vermelho e CasaGaleria ficaram
+// de fora até fechar nome/data direitinho.
+const EXPOS_SEED = [
+  {
+    id: 'exp-maluf-acesa', nome: 'Sempre Acesa — Guilherme Santos da Silva', tipo: 'exposicao',
+    cidade: 'São Paulo', local: 'Galeria Luis Maluf (Jardins) · R. Peixoto Gomide, 1887',
+    dataMax: '2026-09-16', preco: 'grátis', link: 'https://luismaluf.com/',
+    funcionamento: { dias: [1, 2, 3, 4, 5, 6] },
+  },
+  {
+    id: 'exp-lbrito-inverno', nome: 'Inverno dentro do bosque (coletiva)', tipo: 'exposicao',
+    cidade: 'São Paulo', local: 'Luciana Brito Galeria (Jardins) · Av. Nove de Julho, 5.162',
+    dataMax: '2026-08-08', preco: 'grátis', link: 'https://lucianabritogaleria.com.br/',
+    funcionamento: { dias: [1, 2, 3, 4, 5, 6] },
+  },
+];
+function ensureExpos2026(d) {
+  if (d.expos2026Seeded) return d;
+  const have = new Set((d.cultural?.itens || []).map(i => i.id));
+  const novos = EXPOS_SEED.filter(e => !have.has(e.id));
+  const cultural = d.cultural || { itens: [] };
+  return { ...d, expos2026Seeded: true, cultural: { ...cultural, itens: [...(cultural.itens || []), ...novos] } };
+}
+
 // Quebra itemizada de Fixos (jan–jun/2026), padronizada. Personal/Faxina/Conta de luz unificados.
 const GASTOS_FIXOS_SEED = [
   ['2026-01', 'Personal', 740], ['2026-01', 'Convênio mãe', 1080], ['2026-01', 'Aluguel', 3155.93], ['2026-01', 'Internet', 137.34], ['2026-01', 'Conta de luz', 49.05], ['2026-01', 'Faxina', 250], ['2026-01', 'Gás', 12.12], ['2026-01', 'Streaming', 313.31],
@@ -1373,7 +1400,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
