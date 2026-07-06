@@ -1463,6 +1463,21 @@ export function LifeProvider({ children }) {
   // Salvar AGORA (botão manual): grava na nuvem e AGUARDA a confirmação. Devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveLifeNow(dataRef.current); };
 
+  // Re-roda o "puxar vencidos pra hoje" CONTINUAMENTE (não só no login): ao voltar
+  // pro app e a cada minuto. Sem isso, se o app ficar aberto e o dia virar, o item
+  // de checklist vencido e não-feito não se move sozinho até um reload.
+  useEffect(() => {
+    const roll = () => setData(prev => {
+      const next = rolarPlanosVencidos(rolarComprasVencidas(prev));
+      if (next !== prev) { writeLocal(next); pushLife(next); }  // muda -> persiste (local + nuvem)
+      return next;
+    });
+    const onVis = () => { if (document.visibilityState === 'visible') roll(); };
+    document.addEventListener('visibilitychange', onVis);
+    const id = setInterval(roll, 60000);
+    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(id); };
+  }, []);
+
   // ---- Compras ----
   const compras = data.compras || DEFAULT.compras;
   const setCompras = (next) => persist({ ...data, compras: next });

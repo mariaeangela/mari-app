@@ -24,7 +24,11 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
   (checkbox `togglePlanoCheck` + nome do plano); e `PlanosProximos` agora filtra `prazo > hoje` (amanhã→+15
   dias) pra não duplicar. **`rolarPlanosVencidos`** (em `runLifeSeeds`, roda todo load, sem flag): item do
   checklist de Planos com `prazo` vencido e não-feito **puxa pra hoje** (igual compras/tarefas) — sem isso
-  o item ficava preso no dia passado e sumia da capa de Hoje.
+  o item ficava preso no dia passado e sumia da capa de Hoje. **Além do login, o rolamento roda
+  CONTINUAMENTE** (efeito no `LifeProvider`: `visibilitychange`→visível + `setInterval` de 60s chamando
+  `rolarPlanosVencidos`+`rolarComprasVencidas` sobre o estado atual e persistindo se mudou) — assim, se o
+  app fica aberto e o dia vira, o item vencido se move sozinho sem precisar recarregar. OBS.: só afeta itens
+  QUE TÊM `prazo`; item sem data não tem o que rolar.
 - **`PlanoCheckSheet` (exportado de `Life.jsx`) — editor de item de checklist reutilizável.** Tocar no
   **texto** de um item de Planos abre um sheet pra **editar o texto, mudar o prazo, marcar/desmarcar e
   apagar**, sem ir até Life › Planos. Ligado em 4 lugares: **Hoje** (`HojeAgenda` e `PlanosProximos` em
