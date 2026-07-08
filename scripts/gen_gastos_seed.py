@@ -48,6 +48,15 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Bobeira: Comida doces / Comida salgado / Água / Coisas (default). (Nutricar sai via RECLASSIFY.)
+    'Bobeira': {
+        'default': 'Coisas',
+        'grupos': {
+            'Comida doces': ['sorvete', 'bacio', 'kopenhagen', 'chocolate', 'cookies', 'doce', 'milkshake'],
+            'Comida salgado': ['hamburguer', 'tostado', 'esfira', 'nilo', 'nostos', 'momu', 'albero', 'sophia', 'mica', 'jantar', 'aeroporto', 'ifood', 'patties'],
+            'Água': ['água', 'agua'],
+        },
+    },
     # Skin care: Cabelo / Pele / Outros. (Podologia sai daqui via RECLASSIFY -> Saúde.)
     'Skin care': {
         'default': 'Outros',
@@ -88,14 +97,16 @@ def consolidate(cat, nome, mes=None):
 RECLASSIFY = [
     # Podologia estava em Skin care no Excel; a Mari quer em Saúde/Estética.
     {'de': 'Skin care', 'match': ['podologia'], 'para': 'Saúde', 'nome': 'Estética'},
+    # Nutricar (de qualquer categoria) vai pra Trabalho/Nutricar. 'de':'*' = qualquer origem.
+    {'de': '*', 'match': ['nutricar'], 'para': 'Trabalho', 'nome': 'Nutricar'},
 ]
 
 def reclassify(cat, nome):
     low = nome.strip().lower()
     for r in RECLASSIFY:
-        if r['de'] == cat and any(a in low for a in r['match']):
-            return r['para'], r['nome']
-    return cat, nome
+        if (r['de'] == '*' or r['de'] == cat) and any(a in low for a in r['match']):
+            return r['para'], r['nome'], True
+    return cat, nome, False
 
 def jsstr(s):
     return "'" + s.replace('\\','\\\\').replace("'","\\'") + "'"
@@ -123,8 +134,8 @@ for mkey, cats in d.items():
 # aplica consolidação + reclassificação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
 for mes, cat, nome, val in itens:
-    rcat, rnome = reclassify(cat, nome)          # 1º move de categoria (usa o nome cru)
-    canon = consolidate(rcat, rnome, mes)        # 2º consolida dentro da categoria final
+    rcat, rnome, moved = reclassify(cat, nome)   # 1º move de categoria (usa o nome cru)
+    canon = rnome if moved else consolidate(rcat, rnome, mes)  # move ja define o balde final
     key = (mes, rcat, canon)
     if key not in _agg: _agg[key] = 0.0; _order.append(key)
     _agg[key] += val
