@@ -75,6 +75,20 @@ def consolidate(cat, nome, mes=None):
                 return canonical
     return rule['default'] if rule.get('default') is not None else nome
 
+# Reclassificação ENTRE categorias (mover item de uma categoria pra outra, curadoria da Mari).
+# Aplicada depois da consolidação; os totais das categorias são recomputados a partir dos itens.
+RECLASSIFY = [
+    # Podologia estava em Skin care no Excel; a Mari quer em Saúde/Estética.
+    {'de': 'Skin care', 'match': ['podologia'], 'para': 'Saúde', 'nome': 'Estética'},
+]
+
+def reclassify(cat, nome):
+    low = nome.strip().lower()
+    for r in RECLASSIFY:
+        if r['de'] == cat and any(a in low for a in r['match']):
+            return r['para'], r['nome']
+    return cat, nome
+
 def jsstr(s):
     return "'" + s.replace('\\','\\\\').replace("'","\\'") + "'"
 
@@ -98,14 +112,23 @@ for mkey, cats in d.items():
                 warn.append(f'{mes} {cat}: item genérico {nome} {val}')
             itens.append([mes, cat, cap(nome), round(val, 2)])
 
-# aplica consolidação e re-agrega por (mes, categoria, nome canônico)
+# aplica consolidação + reclassificação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
 for mes, cat, nome, val in itens:
     canon = consolidate(cat, nome, mes)
-    key = (mes, cat, canon)
+    ncat, ncanon = reclassify(cat, canon)
+    key = (mes, ncat, ncanon)
     if key not in _agg: _agg[key] = 0.0; _order.append(key)
     _agg[key] += val
 itens = [[m, c, n, round(_agg[(m, c, n)], 2)] for (m, c, n) in _order]
+
+# recomputa os totais por (mes, categoria) a partir dos itens finais (reflete as reclassificações)
+_tacc = {}
+for m, c, n, v in itens:
+    _tacc[(m, c)] = _tacc.get((m, c), 0.0) + v
+totais = {}
+for (m, c), v in _tacc.items():
+    totais.setdefault(m, {})[c] = round(v, 2)
 
 # ordem canônica de categorias
 ORDER = ['Fixos','Mercado','Uber','Trabalho','Mãe','Saúde','Viagem','Coisas','Roupa','Skin care','Bobeira','Rolês','Presentes']
