@@ -102,8 +102,8 @@ export const GASTOS_ITENS_2026 = [
   ['2026-02', 'Coisas', 'Óculos de sol', 251.1],
   ['2026-02', 'Coisas', 'Mercado livre', 59.97],
   ['2026-02', 'Coisas', 'Cabelo', 57.75],
-  ['2026-02', 'Coisas', 'Havaianas', 44.99],
   ['2026-02', 'Coisas', 'Óculos', 6182.8],
+  ['2026-02', 'Roupa', 'Sapatos', 44.99],
   ['2026-02', 'Roupa', 'Fantasias', 837.6],
   ['2026-02', 'Bobeira', 'Água', 4.0],
   ['2026-02', 'Bobeira', 'Comida doces', 32.85],
@@ -369,7 +369,7 @@ export const GASTOS_ITENS_2026 = [
 
 export const GASTOS_TOTAIS_2026 = [
   { mes: '2026-01', itens: [{ categoria: 'Fixos', valor: 5737.75 }, { categoria: 'Mercado', valor: 1356.96 }, { categoria: 'Uber', valor: 582.23 }, { categoria: 'Trabalho', valor: 247.31 }, { categoria: 'Mãe', valor: 1066.05 }, { categoria: 'Saúde', valor: 768.25 }, { categoria: 'Viagem', valor: 3194.94 }, { categoria: 'Coisas', valor: 207.3 }, { categoria: 'Roupa', valor: 569.9 }, { categoria: 'Skin care', valor: 1378.5 }, { categoria: 'Bobeira', valor: 447.78 }, { categoria: 'Rolês', valor: 1580.01 }, { categoria: 'Presentes', valor: 170.5 }] },
-  { mes: '2026-02', itens: [{ categoria: 'Fixos', valor: 6196.58 }, { categoria: 'Mercado', valor: 422.76 }, { categoria: 'Uber', valor: 707.07 }, { categoria: 'Trabalho', valor: 165.56 }, { categoria: 'Mãe', valor: 328.26 }, { categoria: 'Saúde', valor: 776.7 }, { categoria: 'Viagem', valor: 8939.44 }, { categoria: 'Coisas', valor: 6671.41 }, { categoria: 'Roupa', valor: 837.6 }, { categoria: 'Bobeira', valor: 36.85 }, { categoria: 'Rolês', valor: 1173.78 }, { categoria: 'Presentes', valor: 40.0 }] },
+  { mes: '2026-02', itens: [{ categoria: 'Fixos', valor: 6196.58 }, { categoria: 'Mercado', valor: 422.76 }, { categoria: 'Uber', valor: 707.07 }, { categoria: 'Trabalho', valor: 165.56 }, { categoria: 'Mãe', valor: 328.26 }, { categoria: 'Saúde', valor: 776.7 }, { categoria: 'Viagem', valor: 8939.44 }, { categoria: 'Coisas', valor: 6626.42 }, { categoria: 'Roupa', valor: 882.59 }, { categoria: 'Bobeira', valor: 36.85 }, { categoria: 'Rolês', valor: 1173.78 }, { categoria: 'Presentes', valor: 40.0 }] },
   { mes: '2026-03', itens: [{ categoria: 'Fixos', valor: 5651.88 }, { categoria: 'Mercado', valor: 1508.6 }, { categoria: 'Uber', valor: 845.11 }, { categoria: 'Trabalho', valor: 888.44 }, { categoria: 'Mãe', valor: 457.65 }, { categoria: 'Saúde', valor: 265.91 }, { categoria: 'Viagem', valor: 2727.06 }, { categoria: 'Coisas', valor: 1663.82 }, { categoria: 'Roupa', valor: 4333.68 }, { categoria: 'Skin care', valor: 300.61 }, { categoria: 'Bobeira', valor: 69.8 }, { categoria: 'Rolês', valor: 1654.81 }, { categoria: 'Presentes', valor: 278.0 }] },
   { mes: '2026-04', itens: [{ categoria: 'Fixos', valor: 5577.8 }, { categoria: 'Mercado', valor: 1402.15 }, { categoria: 'Uber', valor: 519.88 }, { categoria: 'Trabalho', valor: 243.79 }, { categoria: 'Mãe', valor: 629.58 }, { categoria: 'Saúde', valor: 2763.86 }, { categoria: 'Viagem', valor: 13249.03 }, { categoria: 'Coisas', valor: 1180.34 }, { categoria: 'Roupa', valor: 80.0 }, { categoria: 'Skin care', valor: 199.9 }, { categoria: 'Bobeira', valor: 134.39 }, { categoria: 'Rolês', valor: 584.54 }] },
   { mes: '2026-05', itens: [{ categoria: 'Fixos', valor: 5564.89 }, { categoria: 'Mercado', valor: 188.83 }, { categoria: 'Uber', valor: 494.56 }, { categoria: 'Trabalho', valor: 90.81 }, { categoria: 'Mãe', valor: 137.41 }, { categoria: 'Saúde', valor: 2700.0 }, { categoria: 'Viagem', valor: 8753.61 }, { categoria: 'Coisas', valor: 171.1 }, { categoria: 'Skin care', valor: 132.19 }, { categoria: 'Bobeira', valor: 130.62 }, { categoria: 'Rolês', valor: 507.75 }] },

@@ -65,6 +65,7 @@ CONSOLIDA = {
             'Fantasias': ['carnaval', 'fantasia'],
             'Bolsas': ['bolsa'],
             'Esporte/corrida': ['faixa', 'corrida', 'esporte'],
+            'Sapatos': ['sapato', 'tênis', 'tenis', 'sandália', 'sandalia', 'sapatilha', 'bota', 'chinelo', 'scarpin', 'mule', 'melissa', 'havaiana', 'crocs', 'papete'],
         },
     },
     # Skin care: Cabelo / Pele / Outros. (Podologia sai daqui via RECLASSIFY -> Saúde.)
@@ -111,6 +112,8 @@ RECLASSIFY = [
     {'de': '*', 'match': ['nutricar'], 'para': 'Mercado', 'nome': 'Nutricar'},
     # Gastos com a mãe que estavam em Presentes vão pra categoria Mãe (que é unificada).
     {'de': 'Presentes', 'match': ['assador mãe', 'café mãe', 'cafe mãe', 'estac mãe', 'estacionamento mãe'], 'para': 'Mãe', 'nome': 'Mãe'},
+    # Havaianas (calçado) estava em Coisas; vai pra Roupa/Sapatos.
+    {'de': 'Coisas', 'match': ['havaiana'], 'para': 'Roupa', 'nome': 'Sapatos'},
 ]
 
 def reclassify(cat, nome):
