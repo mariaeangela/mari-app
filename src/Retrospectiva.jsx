@@ -346,13 +346,13 @@ function ComprasRetro({ onBack, isWide, backLabel = 'Retrospectiva' }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Compras</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{backLabel === 'Gastos' ? 'Compras caras' : 'Compras'}</h2>
           <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu histórico de compras feitas</p>
         </div>
         <button onClick={() => setForm({})} title="registrar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      <button onClick={() => setVerCaras(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid #ff8a3d55', background: '#fff8f2', color: '#7a3d12', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🏷️ Coisas caras — quando comprei e quanto duram ›</button>
+      <button onClick={() => setVerCaras(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid #ff8a3d55', background: '#fff8f2', color: '#7a3d12', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🏷️ Compras caras — quando comprei e quanto duram ›</button>
 
       {todas.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra que você fez.</p>
@@ -410,7 +410,7 @@ function CoisasCarasView({ onBack, isWide }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Coisas caras</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Compras caras</h2>
           <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>quando comprei e quanto duram</p>
         </div>
         <button onClick={() => setForm({})} title="adicionar coisa cara" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
@@ -1308,7 +1308,7 @@ function GastosRetro({ onBack, isWide, catInicial }) {
             return (
               <button key={c} onClick={() => setCatSel(c)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left' }}>
                 <div style={{ width: 22, height: 4, background: cor, borderRadius: 4, marginBottom: 10 }} />
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c}</div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c === 'Coisas' ? 'Compras caras' : c}</div>
                 <div style={{ fontSize: 13, color: '#444', marginTop: 5, fontWeight: 700 }}>{fmtBRLr(catTotals[c])}</div>
                 <div style={{ fontSize: 10.5, color: '#aaa', marginTop: 2 }}>{c === 'Coisas' ? 'compras' : (totalAno ? (catTotals[c] / totalAno * 100).toFixed(0) + '% do ano' : '')}</div>
               </button>
