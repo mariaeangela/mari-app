@@ -48,6 +48,20 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Viagem: por destino/tema. Carnaval BH ≠ Carnaval rio (esse vai pra Rio). Europa junta Madrid/Budapeste/genéricos.
+    'Viagem': {
+        'default': None,
+        'grupos': {
+            'Trilhas': ['trilha', 'saco de dormir', 'isolante', 'apito', 'talher', 'pico dos marins', 'marins'],
+            'NY': ['passagem ny'],
+            'FLIP': ['flip'],
+            'Salvador': ['salvador'],
+            'Olinda': ['olinda'],
+            'Carnaval BH': ['carnaval bh', 'mc donald', 'passagem bh'],
+            'Rio': ['rio'],
+            'Europa': ['madrid', 'budapest', 'budapeste', 'europa', 'iberia', 'viagem'],
+        },
+    },
     # Coisas: baldes da Mari; default 'Outros' recolhe o resto (Mosquetão, Capa tablet, Mercado livre).
     'Coisas': {
         'default': 'Outros',
@@ -133,6 +147,8 @@ RECLASSIFY = [
     {'de': 'Coisas', 'match': ['roupas bz'], 'para': 'Roupa', 'nome': 'Roupas'},
     # Blindagem sai de Coisas pra Skin care, num balde novo Maquiagem.
     {'de': 'Coisas', 'match': ['blindagem'], 'para': 'Skin care', 'nome': 'Maquiagem'},
+    # Roupa carnaval estava em Viagem; vai pra Roupa/Fantasias.
+    {'de': 'Viagem', 'match': ['roupa carnaval'], 'para': 'Roupa', 'nome': 'Fantasias'},
 ]
 
 def reclassify(cat, nome):
@@ -164,6 +180,23 @@ for mkey, cats in d.items():
             elif nome.startswith('('):
                 warn.append(f'{mes} {cat}: item genérico {nome} {val}')
             itens.append([mes, cat, cap(nome), round(val, 2)])
+
+# Itens que a Mari auditou e quer incluir, mas que NÃO estavam em nenhuma categoria no Excel
+# (ficaram fora das fórmulas). Divergem de propósito do Excel. [mes, categoria, nome, valor].
+ADICIONAIS = [
+    ('2026-02', 'Viagem', 'Passagem NY', 818.02),  # passagem NY em 4x (fev-mai), nunca categorizada
+    ('2026-03', 'Viagem', 'Passagem NY', 818.02),
+    ('2026-04', 'Viagem', 'Passagem NY', 818.02),
+    ('2026-05', 'Viagem', 'Passagem NY', 818.02),
+    ('2026-06', 'Viagem', 'Iberia', 105.92),        # -> Europa
+    ('2026-07', 'Viagem', 'Iberia', 105.92),
+    ('2026-05', 'Viagem', 'Viagem pago', -1825.76), # -> Europa (abatimento)
+    ('2026-07', 'Viagem', 'Airbnb rio', 138.00),    # -> Rio
+    ('2026-02', 'Mercado', 'Mercado', 35.00),
+    ('2026-06', 'Coisas', 'Amazon', 10.00),         # -> Outros
+]
+for mes, cat, nome, val in ADICIONAIS:
+    itens.append([mes, cat, nome, round(val, 2)])
 
 # aplica consolidação + reclassificação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
