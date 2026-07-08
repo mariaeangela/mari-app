@@ -48,6 +48,18 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Fixos: baldes da Mari. default None (não deveria sobrar nada; o Ajuste foi excluído).
+    'Fixos': {
+        'default': None,
+        'grupos': {
+            'Aluguel': ['aluguel'],
+            'Contas casa': ['internet', 'luz', 'enel', 'gás', 'gas', 'faxina', 'ilka'],
+            'Academia/personal': ['personal', 'matheus', 'mateus', 'wellhub', 'total pass', 'totalpass', 'velocity', 'gympass', 'academia'],
+            'Mãe': ['convenio', 'convénio'],
+            'Transporte': ['bilhete'],
+            'Streaming assinaturas': ['netflix', 'hbo', 'piaui', 'spotify', 'disney', 'apple', 'icloud', 'google', 'tim', 'claude', 'ifood', 'runna'],
+        },
+    },
     # Viagem: por destino/tema. Carnaval BH ≠ Carnaval rio (esse vai pra Rio). Europa junta Madrid/Budapeste/genéricos.
     'Viagem': {
         'default': None,
@@ -194,9 +206,19 @@ ADICIONAIS = [
     ('2026-07', 'Viagem', 'Airbnb rio', 138.00),    # -> Rio
     ('2026-02', 'Mercado', 'Mercado', 35.00),
     ('2026-06', 'Coisas', 'Amazon', 10.00),         # -> Outros
+    # academia/gym que vazou (fora de categoria no Excel) -> Fixos/Academia-personal
+    ('2026-01', 'Fixos', 'Gympass', 149.99),
+    ('2026-01', 'Fixos', 'Total pass', 119.90),
+    ('2026-02', 'Fixos', 'Total pass', 119.00),
+    ('2026-03', 'Fixos', 'Total pass', 119.90),
+    ('2026-06', 'Fixos', 'Academia', 119.90),
 ]
 for mes, cat, nome, val in ADICIONAIS:
     itens.append([mes, cat, nome, round(val, 2)])
+
+# Itens que a Mari pediu pra deixar de FORA (pouca coisa, não vale um balde).
+EXCLUIR = [('Fixos', 'ajuste')]
+itens = [it for it in itens if not any(c == it[1] and a in it[2].strip().lower() for c, a in EXCLUIR)]
 
 # aplica consolidação + reclassificação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
