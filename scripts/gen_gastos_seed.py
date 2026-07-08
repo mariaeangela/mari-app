@@ -48,6 +48,14 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Skin care: Cabelo / Pele / Outros. (Podologia sai daqui via RECLASSIFY -> Saúde.)
+    'Skin care': {
+        'default': 'Outros',
+        'grupos': {
+            'Cabelo': ['cabelo', 'tinta', 'tonalizante', 'oxigenada', 'protetor termico', 'protetor térmico'],
+            'Pele': ['protetor solar', 'creme', 'drogasil', 'sérum', 'serum', 'hidratante', 'pele'],
+        },
+    },
     # Saúde: baldes definidos pela Mari. default 'Outros' recolhe o que não se encaixa.
     'Saúde': {
         'default': 'Outros',
@@ -115,9 +123,9 @@ for mkey, cats in d.items():
 # aplica consolidação + reclassificação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
 for mes, cat, nome, val in itens:
-    canon = consolidate(cat, nome, mes)
-    ncat, ncanon = reclassify(cat, canon)
-    key = (mes, ncat, ncanon)
+    rcat, rnome = reclassify(cat, nome)          # 1º move de categoria (usa o nome cru)
+    canon = consolidate(rcat, rnome, mes)        # 2º consolida dentro da categoria final
+    key = (mes, rcat, canon)
     if key not in _agg: _agg[key] = 0.0; _order.append(key)
     _agg[key] += val
 itens = [[m, c, n, round(_agg[(m, c, n)], 2)] for (m, c, n) in _order]
