@@ -799,19 +799,29 @@ function MusicaForm({ editing, onClose }) {
 // ---- Card: Corridas (provas — meta × executado, pace e evolução) ----
 const COR_CORRIDA = '#ef6c4d';
 // Mini-gráfico de evolução do pace (mais rápido = mais alto). pts em ordem cronológica.
+// Cada ponto mostra o pace (em cima) e a data (embaixo).
 function PaceChart({ pts }) {
   if (pts.length < 2) return null;
-  const W = 320, H = 110, pad = 16;
+  const W = 320, H = 150, padX = 20, padTop = 26, padBottom = 30;
   const paces = pts.map(p => p.pace);
   const min = Math.min(...paces), max = Math.max(...paces);
   const range = (max - min) || 1;
-  const x = (i) => pad + (W - 2 * pad) * (i / (pts.length - 1));
-  const y = (p) => pad + (H - 2 * pad) * ((p - min) / range); // pace menor (mais rápido) no topo
+  const x = (i) => padX + (W - 2 * padX) * (i / (pts.length - 1));
+  const y = (p) => padTop + (H - padTop - padBottom) * ((p - min) / range); // pace menor (mais rápido) no topo
   const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.pace).toFixed(1)}`).join(' ');
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
       <path d={d} fill="none" stroke={COR_CORRIDA} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {pts.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.pace)} r="3.5" fill={COR_CORRIDA} />)}
+      {pts.map((p, i) => {
+        const anchor = i === 0 ? 'start' : i === pts.length - 1 ? 'end' : 'middle';
+        return (
+          <g key={i}>
+            <circle cx={x(i)} cy={y(p.pace)} r="3.5" fill={COR_CORRIDA} />
+            <text x={x(i)} y={y(p.pace) - 9} textAnchor={anchor} fontSize="10.5" fontWeight="700" fill={COR_CORRIDA}>{fmtPace(p.pace)}</text>
+            {p.data && <text x={x(i)} y={H - 10} textAnchor={anchor} fontSize="9.5" fill="#999">{fmtDM(p.data)}</text>}
+          </g>
+        );
+      })}
     </svg>
   );
 }
@@ -837,7 +847,7 @@ function CorridasRetro({ onBack, isWide }) {
   const comTempo = provas.filter(p => p.tempo);
   const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0) * 10) / 10;
   const melhorPace = comTempo.map(p => p.pReal).filter(Boolean).length ? Math.min(...comTempo.map(p => p.pReal).filter(Boolean)) : null;
-  const evo = comTempo.filter(p => p.pReal).slice().sort((a, b) => (a.data || '').localeCompare(b.data || '')).map(p => ({ pace: p.pReal }));
+  const evo = comTempo.filter(p => p.pReal).slice().sort((a, b) => (a.data || '').localeCompare(b.data || '')).map(p => ({ pace: p.pReal, data: p.data, nome: p.nome }));
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
