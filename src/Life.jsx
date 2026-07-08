@@ -3176,13 +3176,24 @@ function ViagemDetail({ trip, onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);     // editar a viagem
   const [mesaForm, setMesaForm] = useState(null); // {mesa} editar link da mesa
+  const [progForm, setProgForm] = useState(null); // null | {} novo | {item} editar item da programação
+  const [secaoForm, setSecaoForm] = useState(false); // criar tópico livre
   const [novoLevar, setNovoLevar] = useState('');
   const [novoComprar, setNovoComprar] = useState('');
+  const [novoSecItem, setNovoSecItem] = useState({}); // texto do "adicionar" por seção (chave = id da seção)
   const st = statusViagem(trip);
   const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
   const addItem = (campo, texto, limpar) => { const t = texto.trim(); if (!t) return; salvar({ [campo]: [...(trip[campo] || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); limpar(''); };
   const toggleItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).map(c => c.id === id ? { ...c, feito: !c.feito } : c) });
   const delItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).filter(c => c.id !== id) });
+  // ---- Tópicos livres (secoes): cada um é "nota" (texto solto) ou "lista" (checklist) ----
+  const setSecoes = (fn) => salvar({ secoes: fn(trip.secoes || []) });
+  const delSecao = (id) => setSecoes(ss => ss.filter(s => s.id !== id));
+  const renameSecao = (id, titulo) => setSecoes(ss => ss.map(s => s.id === id ? { ...s, titulo } : s));
+  const setSecaoTexto = (id, texto) => setSecoes(ss => ss.map(s => s.id === id ? { ...s, texto } : s));
+  const secaoAddItem = (id) => { const t = (novoSecItem[id] || '').trim(); if (!t) return; setSecoes(ss => ss.map(s => s.id === id ? { ...s, itens: [...(s.itens || []), { id: 'sk' + Date.now().toString(36), texto: t, feito: false }] } : s)); setNovoSecItem(v => ({ ...v, [id]: '' })); };
+  const secaoToggle = (id, itemId) => setSecoes(ss => ss.map(s => s.id === id ? { ...s, itens: (s.itens || []).map(c => c.id === itemId ? { ...c, feito: !c.feito } : c) } : s));
+  const secaoDel = (id, itemId) => setSecoes(ss => ss.map(s => s.id === id ? { ...s, itens: (s.itens || []).filter(c => c.id !== itemId) } : s));
 
   const bloco = (titulo, conteudo) => (
     <div style={{ marginTop: 22 }}>
@@ -3240,20 +3251,20 @@ function ViagemDetail({ trip, onBack }) {
         </div>
       ))}
 
-      {dias.length > 0 && bloco('Programação', (
+      {bloco('Programação', (
         <div>
           {dias.map(dia => {
             const dt = new Date(dia + 'T00:00:00');
             const wd = DIAS_LONGOS[dt.getDay()];
             const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
-            const ms = (trip.mesas || []).filter(m => m.dia === dia).sort((a, b) => (a.n || 0) - (b.n || 0));
+            const ms = (trip.mesas || []).filter(m => m.dia === dia).sort((a, b) => (a.hora || '').localeCompare(b.hora || '') || (a.n || 0) - (b.n || 0));
             return (
               <div key={dia} style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
                 {ms.map(m => (
-                  <div key={m.id} onClick={() => setMesaForm({ mesa: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer' }}>
+                  <div key={m.id} onClick={() => setProgForm({ item: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>
+                      {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
                       <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic' }}>{m.titulo}</span>
                       {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
                     </div>
@@ -3264,15 +3275,121 @@ function ViagemDetail({ trip, onBack }) {
               </div>
             );
           })}
-          <p style={{ fontSize: 11.5, color: '#bbb', fontStyle: 'italic', marginTop: 2 }}>Toque numa mesa pra colar o link dela quando sair no site.</p>
+          {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>vazio — toque em + adicionar pra montar o roteiro por dia.</div>}
+          <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
         </div>
       ))}
 
       {bloco('O que levar', listaCheck('levar', novoLevar, setNovoLevar))}
       {bloco('O que comprar', listaCheck('comprar', novoComprar, setNovoComprar))}
 
+      {/* Tópicos livres criados pela Mari (ex.: "fantasias pra fazer", "dicas gerais") */}
+      {(trip.secoes || []).map(s => (
+        <div key={s.id} style={{ marginTop: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div style={{ flex: 1, fontSize: 11, color: COR_VIAGEM, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700 }}>{s.titulo}</div>
+            <button onClick={() => { const t = window.prompt('Renomear tópico:', s.titulo); if (t && t.trim()) renameSecao(s.id, t.trim()); }} title="renomear" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13 }}>✎</button>
+            <button onClick={() => { if (window.confirm(`Apagar o tópico "${s.titulo}"?`)) delSecao(s.id); }} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</button>
+          </div>
+          {s.tipo === 'lista' ? (
+            <div>
+              {(s.itens || []).map(c => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+                  <span onClick={() => secaoToggle(s.id, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
+                  <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
+                  <button onClick={() => secaoDel(s.id, c.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <input value={novoSecItem[s.id] || ''} onChange={e => setNovoSecItem(v => ({ ...v, [s.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && secaoAddItem(s.id)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+                <button onClick={() => secaoAddItem(s.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+              </div>
+            </div>
+          ) : (
+            <textarea value={s.texto || ''} onChange={e => setSecaoTexto(s.id, e.target.value)} rows={3} placeholder="escreva aqui…" style={{ ...inputStyle, resize: 'vertical', width: '100%' }} />
+          )}
+        </div>
+      ))}
+
+      <div style={{ marginTop: 24 }}>
+        <button onClick={() => setSecaoForm(true)} style={{ width: '100%', padding: '11px 0', borderRadius: 11, border: '1px dashed #ccc', background: '#fff', color: '#777', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      </div>
+
       {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
       {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
+      {progForm && <ProgItemForm trip={trip} item={progForm.item} onSave={salvar} onClose={() => setProgForm(null)} />}
+      {secaoForm && <SecaoForm onSave={(sec) => setSecoes(ss => [...ss, sec])} onClose={() => setSecaoForm(false)} />}
+    </div>
+  );
+}
+
+// Item da programação (roteiro por dia): dia + hora + atividade + nota + link.
+function ProgItemForm({ trip, item, onSave, onClose }) {
+  const [dia, setDia] = useState(item?.dia || trip.inicio || '');
+  const [hora, setHora] = useState(item?.hora || '');
+  const [titulo, setTitulo] = useState(item?.titulo || '');
+  const [desc, setDesc] = useState(item?.desc || '');
+  const [link, setLink] = useState(item?.link || '');
+  const podeSalvar = titulo.trim().length > 0 && !!dia;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia, hora: hora.trim() || undefined, titulo: titulo.trim(), desc: desc.trim() || undefined, link: link.trim() || undefined };
+    const mesas = trip.mesas || [];
+    onSave({ mesas: item ? mesas.map(x => x.id === item.id ? obj : x) : [...mesas, obj] });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{item ? 'Editar atividade' : 'Nova atividade'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Dia</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
+          <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label><input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} /></div>
+        </div>
+        <label style={labelStyle}>Atividade</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: desfile no Alto da Sé" style={inputStyle} />
+        <label style={labelStyle}>Nota (opcional)</label>
+        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="detalhes, endereço, quem vai…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <label style={labelStyle}>Link (opcional)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {item && <button onClick={() => { onSave({ mesas: (trip.mesas || []).filter(x => x.id !== item.id) }); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{item ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Tópico livre novo: título + tipo (lista de itens OU nota livre).
+function SecaoForm({ onSave, onClose }) {
+  const [titulo, setTitulo] = useState('');
+  const [tipo, setTipo] = useState('lista');
+  const podeSalvar = titulo.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    onSave({ id: 'sec' + Date.now().toString(36), titulo: titulo.trim(), tipo, texto: '', itens: [] });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Novo tópico</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Título</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Fantasias pra fazer · Dicas gerais" style={inputStyle} autoFocus />
+        <label style={labelStyle}>Formato</label>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          <option value="lista">Lista de itens (com ☑ pra marcar)</option>
+          <option value="nota">Nota livre (texto)</option>
+        </select>
+        <button onClick={salvar} disabled={!podeSalvar} style={{ width: '100%', marginTop: 22, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Criar</button>
+      </div>
     </div>
   );
 }
