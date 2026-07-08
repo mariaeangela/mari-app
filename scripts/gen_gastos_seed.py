@@ -48,6 +48,19 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Saúde: baldes definidos pela Mari. default None = itens sem match ficam com o nome cru.
+    'Saúde': {
+        'default': None,
+        'grupos': {
+            'Farmácia/remédios': ['farmác', 'remédi', 'remedi', 'droga'],
+            'Dentista': ['dentista', 'dente', 'escova'],
+            'Psiquiatria': ['psiquiatr', 'terapia', 'taciana'],
+            'Exames': ['exame', 'radiografia', 'teste'],
+            'Consultas': ['consulta'],
+            'Estética': ['podologia', 'estética', 'estetica', 'depila', 'manicure', 'sobrancelha'],
+            'Academia': ['academia', 'velocity', 'gym', 'wellhub'],
+        },
+    },
 }
 
 def consolidate(cat, nome, mes=None):
@@ -60,7 +73,7 @@ def consolidate(cat, nome, mes=None):
         for canonical, aliases in rule['grupos'].items():
             if any(a in low for a in aliases):
                 return canonical
-    return rule['default']
+    return rule['default'] if rule.get('default') is not None else nome
 
 def jsstr(s):
     return "'" + s.replace('\\','\\\\').replace("'","\\'") + "'"
