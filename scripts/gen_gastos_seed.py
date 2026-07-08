@@ -99,6 +99,8 @@ RECLASSIFY = [
     {'de': 'Skin care', 'match': ['podologia'], 'para': 'Saúde', 'nome': 'Estética'},
     # Nutricar (de qualquer categoria) fica em Mercado/Nutricar. 'de':'*' = qualquer origem.
     {'de': '*', 'match': ['nutricar'], 'para': 'Mercado', 'nome': 'Nutricar'},
+    # Gastos com a mãe que estavam em Presentes vão pra categoria Mãe (que é unificada).
+    {'de': 'Presentes', 'match': ['assador mãe', 'café mãe', 'cafe mãe', 'estac mãe', 'estacionamento mãe'], 'para': 'Mãe', 'nome': 'Mãe'},
 ]
 
 def reclassify(cat, nome):
