@@ -26,6 +26,13 @@ CONSOLIDA = {
             'Livup': ['livup', 'liv up'],
         },
     },
+    # Uber: tudo vira "Uber vida", exceto o que a Mari marcar com "trabalho" (a partir de jul/2026).
+    'Uber': {
+        'default': 'Uber vida',
+        'grupos': {
+            'Uber trabalho': ['trabalho', 'trab'],
+        },
+    },
 }
 
 def consolidate(cat, nome):
