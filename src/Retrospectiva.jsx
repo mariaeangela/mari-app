@@ -802,7 +802,7 @@ const COR_CORRIDA = '#ef6c4d';
 // Cada ponto mostra o pace (em cima) e a data (embaixo).
 function PaceChart({ pts }) {
   if (pts.length < 2) return null;
-  const W = 320, H = 150, padX = 20, padTop = 26, padBottom = 30;
+  const W = 320, H = 150, padX = 30, padTop = 28, padBottom = 30;
   const paces = pts.map(p => p.pace);
   const min = Math.min(...paces), max = Math.max(...paces);
   const range = (max - min) || 1;
@@ -812,16 +812,13 @@ function PaceChart({ pts }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
       <path d={d} fill="none" stroke={COR_CORRIDA} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {pts.map((p, i) => {
-        const anchor = i === 0 ? 'start' : i === pts.length - 1 ? 'end' : 'middle';
-        return (
-          <g key={i}>
-            <circle cx={x(i)} cy={y(p.pace)} r="3.5" fill={COR_CORRIDA} />
-            <text x={x(i)} y={y(p.pace) - 9} textAnchor={anchor} fontSize="10.5" fontWeight="700" fill={COR_CORRIDA}>{fmtPace(p.pace)}</text>
-            {p.data && <text x={x(i)} y={H - 10} textAnchor={anchor} fontSize="9.5" fill="#999">{fmtDM(p.data)}</text>}
-          </g>
-        );
-      })}
+      {pts.map((p, i) => (
+        <g key={i}>
+          <circle cx={x(i)} cy={y(p.pace)} r="3.5" fill={COR_CORRIDA} />
+          <text x={x(i)} y={y(p.pace) - 10} textAnchor="middle" fontSize="10.5" fontWeight="700" fill={COR_CORRIDA}>{fmtPace(p.pace)}</text>
+          {p.data && <text x={x(i)} y={H - 10} textAnchor="middle" fontSize="9.5" fill="#999">{fmtDM(p.data)}</text>}
+        </g>
+      ))}
     </svg>
   );
 }
