@@ -33,16 +33,28 @@ CONSOLIDA = {
             'Uber trabalho': ['trabalho', 'trab'],
         },
     },
+    # Trabalho: Almoço/Jantar/Outros. Ate jul/2026 tudo = Almoço; a divisao vale a partir de ago/2026
+    # (quando a Mari comeca a marcar). 'desde' desliga os grupos nos meses anteriores.
+    'Trabalho': {
+        'default': 'Almoço',
+        'desde': '2026-08',
+        'grupos': {
+            'Jantar': ['jantar'],
+            'Outros': ['outro'],
+        },
+    },
 }
 
-def consolidate(cat, nome):
+def consolidate(cat, nome, mes=None):
     rule = CONSOLIDA.get(cat)
     if not rule:
         return nome
     low = nome.strip().lower()
-    for canonical, aliases in rule['grupos'].items():
-        if any(a in low for a in aliases):
-            return canonical
+    desde = rule.get('desde')
+    if not (desde and mes and mes < desde):  # aplica os grupos, salvo antes do 'desde'
+        for canonical, aliases in rule['grupos'].items():
+            if any(a in low for a in aliases):
+                return canonical
     return rule['default']
 
 def jsstr(s):
@@ -71,7 +83,7 @@ for mkey, cats in d.items():
 # aplica consolidação e re-agrega por (mes, categoria, nome canônico)
 _agg, _order = {}, []
 for mes, cat, nome, val in itens:
-    canon = consolidate(cat, nome)
+    canon = consolidate(cat, nome, mes)
     key = (mes, cat, canon)
     if key not in _agg: _agg[key] = 0.0; _order.append(key)
     _agg[key] += val
