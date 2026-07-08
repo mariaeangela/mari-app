@@ -2255,7 +2255,7 @@ const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${Strin
 
 function PesoLinha({ pontos }) {
   if (pontos.length < 2) return null;
-  const W = 320, H = 120, padTop = 14, padBot = 20, padLeft = 36, padRight = 10;
+  const W = 320, H = 152, padTop = 14, padBot = 46, padLeft = 36, padRight = 10;
   const n = pontos.length;
   const vs = pontos.map(p => p.valor);
   const min = Math.min(...vs), max = Math.max(...vs);
@@ -2264,7 +2264,7 @@ function PesoLinha({ pontos }) {
   const x = (i) => n === 1 ? W / 2 : padLeft + i * (W - padLeft - padRight) / (n - 1);
   const y = (v) => (H - padBot) - ((v - lo) / span) * (H - padTop - padBot);
   const path = pontos.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.valor).toFixed(1)}`).join(' ');
-  const pulado = n > 8;
+  const yLbl = H - padBot + 6; // topo da coluna de datas (giradas 270°, descem daqui)
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', marginBottom: 6 }}>
       <text x={padLeft - 4} y={y(max) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{max.toLocaleString('pt-BR')}</text>
@@ -2273,7 +2273,7 @@ function PesoLinha({ pontos }) {
       {pontos.map((p, i) => (
         <g key={i}>
           <circle cx={x(i)} cy={y(p.valor)} r="2.4" fill="#111" stroke="#fafafa" strokeWidth="1" />
-          {(!pulado || i % 2 === 0 || i === n - 1) && <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="7.5" fill="#bbb">{fmtData(p.data)}</text>}
+          <text x={x(i)} y={yLbl} textAnchor="end" fontSize="7" fill="#bbb" transform={`rotate(270 ${x(i)} ${yLbl})`}>{fmtData(p.data)}</text>
         </g>
       ))}
     </svg>
