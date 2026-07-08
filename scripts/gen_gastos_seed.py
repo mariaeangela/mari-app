@@ -114,6 +114,9 @@ RECLASSIFY = [
     {'de': 'Presentes', 'match': ['assador mãe', 'café mãe', 'cafe mãe', 'estac mãe', 'estacionamento mãe'], 'para': 'Mãe', 'nome': 'Mãe'},
     # Havaianas (calçado) estava em Coisas; vai pra Roupa/Sapatos.
     {'de': 'Coisas', 'match': ['havaiana'], 'para': 'Roupa', 'nome': 'Sapatos'},
+    # Itens de Coisas que são roupa: Bolsa -> Roupa/Bolsas; Roupas BZ -> Roupa/Roupas.
+    {'de': 'Coisas', 'match': ['bolsa'], 'para': 'Roupa', 'nome': 'Bolsas'},
+    {'de': 'Coisas', 'match': ['roupas bz'], 'para': 'Roupa', 'nome': 'Roupas'},
 ]
 
 def reclassify(cat, nome):
