@@ -43,6 +43,11 @@ CONSOLIDA = {
             'Outros': ['outro'],
         },
     },
+    # Mãe: tudo numa categoria só.
+    'Mãe': {
+        'default': 'Mãe',
+        'grupos': {},
+    },
 }
 
 def consolidate(cat, nome, mes=None):
