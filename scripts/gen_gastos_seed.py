@@ -57,6 +57,16 @@ CONSOLIDA = {
             'Água': ['água', 'agua'],
         },
     },
+    # Roupa: Roupas (default) / Bolsas / Esporte-corrida / Fantasias (carnaval) / Ajustes (Ana = costureira).
+    'Roupa': {
+        'default': 'Roupas',
+        'grupos': {
+            'Ajustes': ['ana'],
+            'Fantasias': ['carnaval', 'fantasia'],
+            'Bolsas': ['bolsa'],
+            'Esporte/corrida': ['faixa', 'corrida', 'esporte'],
+        },
+    },
     # Skin care: Cabelo / Pele / Outros. (Podologia sai daqui via RECLASSIFY -> Saúde.)
     'Skin care': {
         'default': 'Outros',
