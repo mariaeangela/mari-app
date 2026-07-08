@@ -97,8 +97,8 @@ def consolidate(cat, nome, mes=None):
 RECLASSIFY = [
     # Podologia estava em Skin care no Excel; a Mari quer em Saúde/Estética.
     {'de': 'Skin care', 'match': ['podologia'], 'para': 'Saúde', 'nome': 'Estética'},
-    # Nutricar (de qualquer categoria) vai pra Trabalho/Nutricar. 'de':'*' = qualquer origem.
-    {'de': '*', 'match': ['nutricar'], 'para': 'Trabalho', 'nome': 'Nutricar'},
+    # Nutricar (de qualquer categoria) fica em Mercado/Nutricar. 'de':'*' = qualquer origem.
+    {'de': '*', 'match': ['nutricar'], 'para': 'Mercado', 'nome': 'Nutricar'},
 ]
 
 def reclassify(cat, nome):
