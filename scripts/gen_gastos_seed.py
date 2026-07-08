@@ -48,9 +48,9 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
-    # Saúde: baldes definidos pela Mari. default None = itens sem match ficam com o nome cru.
+    # Saúde: baldes definidos pela Mari. default 'Outros' recolhe o que não se encaixa.
     'Saúde': {
-        'default': None,
+        'default': 'Outros',
         'grupos': {
             'Farmácia/remédios': ['farmác', 'remédi', 'remedi', 'droga'],
             'Dentista': ['dentista', 'dente', 'escova'],
