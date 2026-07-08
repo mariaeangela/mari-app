@@ -48,15 +48,18 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
-    # Coisas: baldes iniciais da Mari; default None = o resto fica com o nome cru (baldeia depois).
+    # Coisas: baldes da Mari; default 'Outros' recolhe o resto (Mosquetão, Capa tablet, Mercado livre).
     'Coisas': {
-        'default': None,
+        'default': 'Outros',
         'grupos': {
             'Óculos': ['óculos', 'oculos', 'zerezes'],
             'Câmera/foto': ['câmera', 'camera', 'filme', 'foto', 'adaptador sd'],
             'Livros': ['livro'],
-            'Casa': ['estante', 'banco planta', 'planta', 'sapateeiro'],
+            'Casa': ['estante', 'banco planta', 'planta', 'sapateeiro', 'ceagesp'],
             'Cabelo': ['cabelo', 'escova'],
+            'Arte': ['disco', 'vinil'],
+            'Papelaria': ['kalunga', 'papelaria'],
+            'Acessórios': ['relógio', 'relogio'],
         },
     },
     # Bobeira: Comida doces / Comida salgado / Água / Coisas (default). (Nutricar sai via RECLASSIFY.)
@@ -128,6 +131,8 @@ RECLASSIFY = [
     # Itens de Coisas que são roupa: Bolsa -> Roupa/Bolsas; Roupas BZ -> Roupa/Roupas.
     {'de': 'Coisas', 'match': ['bolsa'], 'para': 'Roupa', 'nome': 'Bolsas'},
     {'de': 'Coisas', 'match': ['roupas bz'], 'para': 'Roupa', 'nome': 'Roupas'},
+    # Blindagem sai de Coisas pra Skin care, num balde novo Maquiagem.
+    {'de': 'Coisas', 'match': ['blindagem'], 'para': 'Skin care', 'nome': 'Maquiagem'},
 ]
 
 def reclassify(cat, nome):
