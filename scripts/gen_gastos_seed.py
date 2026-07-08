@@ -14,6 +14,30 @@ def cap(s):
     s = s.strip()
     return s[:1].upper() + s[1:] if s else s
 
+# Consolidação de itens por categoria (regra da Mari): reduz nomes crus a poucos rótulos.
+# Para cada categoria aqui, um item cujo nome contém um alias vira o rótulo; o resto vira 'default'.
+# Ordem dos grupos importa (do mais específico pro mais geral).
+CONSOLIDA = {
+    'Mercado': {
+        'default': 'Mercado',
+        'grupos': {
+            'Nutricar': ['nutricar'],
+            'Cozinha de atleta': ['cozinha atleta', 'cozinha de atleta'],
+            'Livup': ['livup', 'liv up'],
+        },
+    },
+}
+
+def consolidate(cat, nome):
+    rule = CONSOLIDA.get(cat)
+    if not rule:
+        return nome
+    low = nome.strip().lower()
+    for canonical, aliases in rule['grupos'].items():
+        if any(a in low for a in aliases):
+            return canonical
+    return rule['default']
+
 def jsstr(s):
     return "'" + s.replace('\\','\\\\').replace("'","\\'") + "'"
 
@@ -36,6 +60,15 @@ for mkey, cats in d.items():
             elif nome.startswith('('):
                 warn.append(f'{mes} {cat}: item genérico {nome} {val}')
             itens.append([mes, cat, cap(nome), round(val, 2)])
+
+# aplica consolidação e re-agrega por (mes, categoria, nome canônico)
+_agg, _order = {}, []
+for mes, cat, nome, val in itens:
+    canon = consolidate(cat, nome)
+    key = (mes, cat, canon)
+    if key not in _agg: _agg[key] = 0.0; _order.append(key)
+    _agg[key] += val
+itens = [[m, c, n, round(_agg[(m, c, n)], 2)] for (m, c, n) in _order]
 
 # ordem canônica de categorias
 ORDER = ['Fixos','Mercado','Uber','Trabalho','Mãe','Saúde','Viagem','Coisas','Roupa','Skin care','Bobeira','Rolês','Presentes']
