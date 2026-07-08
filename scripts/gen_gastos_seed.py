@@ -48,6 +48,17 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Coisas: baldes iniciais da Mari; default None = o resto fica com o nome cru (baldeia depois).
+    'Coisas': {
+        'default': None,
+        'grupos': {
+            'Óculos': ['óculos', 'oculos', 'zerezes'],
+            'Câmera/foto': ['câmera', 'camera', 'filme', 'foto', 'adaptador sd'],
+            'Livros': ['livro'],
+            'Casa': ['estante', 'banco planta', 'planta', 'sapateeiro'],
+            'Cabelo': ['cabelo', 'escova'],
+        },
+    },
     # Bobeira: Comida doces / Comida salgado / Água / Coisas (default). (Nutricar sai via RECLASSIFY.)
     'Bobeira': {
         'default': 'Coisas',
