@@ -869,6 +869,94 @@ function ensureFlipDetalhes(d) {
   return { ...d, flipDetalhes1: true, viagensFuturas: viagens };
 }
 
+// ---- Viagem Nova York & Chicago 2026 (roteiro da Mari, 13–26/09) ----
+// Cada lugar vira um item da programação, com descrição, dias/horário de abertura,
+// preço de entrada e link do Google Maps (pra chegar). Preços/horários confirmados por
+// pesquisa em jul/2026 — a Mari pode editar tudo no app. Dias 20–24: Chicago (a definir).
+const gmap = (q) => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+const NYC_ROTEIRO = [
+  // Dom 13/09 — Chegada leve (Upper West Side + Frick)
+  { d: '2026-09-13', t: 'Barney Greengrass', desc: 'Deli judaico clássico do Upper West Side (1908), famoso pelo salmão e sturgeon defumados. Brunch sem pressa.', ab: 'Ter–Dom, 8h30–16h (fecha seg) · só dinheiro', pr: 'Brunch ~US$ 25–40' },
+  { d: '2026-09-13', t: 'Central Park (borda oeste)', desc: 'Caminhada leve pela borda oeste do parque pra se ambientar. Volte quantas vezes quiser.', ab: 'Todos os dias, 6h–1h', pr: 'Grátis', mq: 'Central Park West New York' },
+  { d: '2026-09-13', t: 'The Frick Collection', desc: 'Mansão-museu com acervo europeu (Vermeer, Rembrandt, Bellini) e pátio-jardim; reabriu a mansão reformada em 2025. Reserve horário, ~2h.', ab: 'Qua–Dom (fecha seg/ter) · dom 11h–18h', pr: 'US$ 30 (qua 14h–18h: pague quanto quiser)', link: 'https://www.frick.org' },
+  { d: '2026-09-13', t: 'Times Square (opcional à noite)', desc: 'O cartão-postal iluminado. Sem horário.', ab: '24h', pr: 'Grátis' },
+  { d: '2026-09-13', t: 'Top of the Rock (opcional)', desc: 'Mirante do Rockefeller com vista do Empire State e do Central Park; aberto até meia-noite se sobrar pique.', ab: 'Todos os dias, 8h–24h (última entrada 23h10)', pr: 'US$ 47–60 (varia por demanda)', link: 'https://www.rockefellercenter.com/attractions/top-of-the-rock-observation-deck/' },
+  { d: '2026-09-13', t: 'Giants x Cowboys (opcional NFL)', desc: 'Jogão da NFL no MetLife Stadium (NJ). Puxado no dia de chegada.', ab: 'Domingo, 20h20', pr: 'Ingressos a partir de ~US$ 150', mq: 'MetLife Stadium East Rutherford NJ', hora: '20:20' },
+  // Seg 14/09 — Upper East Side, MET e Central Park + jazz
+  { d: '2026-09-14', t: 'The Met', desc: 'O maior museu dos EUA: do Egito a Velázquez, arte europeia, armaria e rooftop com vista do parque. Reserve ~3h; suba no rooftop e passe na loja.', ab: 'Dom–Qui 10h–17h, Sex–Sáb 10h–21h (fecha qua) · abre segunda', pr: 'US$ 30 (residentes de NY: pague quanto quiser)', link: 'https://www.metmuseum.org' },
+  { d: '2026-09-14', t: 'Central Park (atrás do MET)', desc: 'Tarde no ritmo lento: Bethesda Terrace, The Mall, Bow Bridge.', ab: 'Todos os dias, 6h–1h', pr: 'Grátis', mq: 'Bethesda Terrace Central Park New York' },
+  { d: '2026-09-14', t: 'Bemelmans Bar', desc: 'Bar do hotel Carlyle com murais de Ludwig Bemelmans (Madeline); alta coquetelaria clássica.', ab: 'Todos os dias, ~12h–0h30', pr: 'Drinks ~US$ 25–35 (couvert de música à noite)' },
+  { d: '2026-09-14', t: 'Village Vanguard (jazz)', desc: 'Clube de jazz lendário (1935) no West Village. Segunda = Vanguard Jazz Orchestra (big band), sets 20h e 22h. Alternativas: Smalls / Mezzrow.', ab: 'Shows todos os dias · portas ~19h30', pr: '~US$ 40 (couvert) + consumação', link: 'https://villagevanguard.com' },
+  // Ter 15/09 — Villages + SoHo (dia cinematográfico) + off-Broadway
+  { d: '2026-09-15', t: 'Strand Book Store', desc: 'Livraria icônica (1927), as "18 milhas de livros". Comece perto da Union Square.', ab: 'Todos os dias, 10h–20h (dom até 21h)', pr: 'Grátis (entrada)', link: 'https://www.strandbooks.com' },
+  { d: '2026-09-15', t: 'Washington Square Park', desc: 'Arco, chafariz, música e jazz de rua; o coração de Greenwich Village.', ab: 'Todos os dias, 6h–0h', pr: 'Grátis' },
+  { d: '2026-09-15', t: 'Caffe Reggio', desc: 'Café de 1927, o 1º cappuccino dos EUA; apareceu em O Poderoso Chefão II.', ab: 'Todos os dias, ~11h–3h', pr: 'Café ~US$ 5–10' },
+  { d: '2026-09-15', t: '66 Perry St (casa da Carrie)', desc: 'A fachada de Sex and the City + as brownstones do West Village.', ab: 'Rua (só por fora)', pr: 'Grátis', mq: '66 Perry Street New York' },
+  { d: '2026-09-15', t: 'Housing Works Bookstore Cafe', desc: 'Livraria-café beneficente no SoHo, em prédio cast-iron; renda vai pra causas de HIV e moradia.', ab: 'Seg–Sex 10h–21h · fim de semana 10h–17h', pr: 'Grátis (entrada)' },
+  { d: '2026-09-15', t: 'ICP — Int. Center of Photography', desc: 'Principal museu de fotografia de NY (84 Ludlow St). ⚠️ Costuma FECHAR às terças — confirme antes de contar com ele.', ab: 'Qua–Seg (fecha TER) — confirmar', pr: '~US$ 16 (qui à noite: pague quanto quiser)', link: 'https://www.icp.org' },
+  { d: '2026-09-15', t: 'Teatro alternativo (noite)', desc: 'Off-Broadway: The Public Theater e Joe’s Pub no mesmo prédio. Alternativas: SoHo Playhouse.', ab: 'Confira a programação', pr: 'Varia por espetáculo', link: 'https://publictheater.org' },
+  { d: '2026-09-15', t: 'Attaboy (speakeasy)', desc: 'Speakeasy sem menu — os bartenders criam pro seu gosto (Lower East Side). Alternativas: PDT, Employees Only.', ab: 'Todos os dias, ~18h–2h · sem reserva (fila)', pr: 'Drinks ~US$ 20' },
+  // Qua 16/09 — Bate-e-volta a Filadélfia
+  { d: '2026-09-16', t: 'Amtrak → Filadélfia', desc: 'Trem da Penn Station à 30th Street Station (~1h15–1h30). Compre com antecedência (quanto antes, mais barato).', ab: 'Vários horários por dia', pr: '~US$ 30–90', link: 'https://www.amtrak.com', mq: 'Moynihan Train Hall New York' },
+  { d: '2026-09-16', t: 'Independence Hall', desc: 'Onde foram assinadas a Declaração de Independência e a Constituição dos EUA. Ingresso grátis com horário (recreation.gov) — reserve antes.', ab: 'Todos os dias, ~9h–17h · entrada com horário', pr: 'Grátis (taxa US$ 1 de reserva)', link: 'https://www.nps.gov/inde/index.htm', mq: 'Independence Hall Philadelphia' },
+  { d: '2026-09-16', t: 'Liberty Bell', desc: 'O sino rachado, símbolo da liberdade americana. Sem ingresso.', ab: 'Todos os dias, ~9h–17h', pr: 'Grátis', mq: 'Liberty Bell Center Philadelphia' },
+  { d: '2026-09-16', t: 'Old City (Filadélfia)', desc: 'Ruas históricas de tijolinho, Elfreth’s Alley, cafés e livrarias; a área dos museus fica por perto. Volte a NY sem apertar.', ab: 'Passeio a pé', pr: 'Grátis', mq: 'Old City Philadelphia' },
+  // Qui 17/09 — Woodbury Common (outlets)
+  { d: '2026-09-17', t: 'Woodbury Common Premium Outlets', desc: 'Dia inteiro de compras: 250+ lojas de grife com desconto (~1h de NY). Ônibus direto da Port Authority. Chegue cedo pra render.', ab: 'Todos os dias, ~10h–21h', pr: 'Grátis (entrada) · ônibus ~US$ 45 ida/volta', link: 'https://www.premiumoutlets.com/outlet/woodbury-common', mq: 'Woodbury Common Premium Outlets Central Valley NY' },
+  // Sex 18/09 — Chelsea / Meatpacking / Hudson Yards + Broadway #1
+  { d: '2026-09-18', t: 'Whitney Museum', desc: 'Arte americana dos séc. XX–XXI (Hopper, O’Keeffe, Warhol), com terraços sobre o Hudson. Sextas 17h–22h a entrada é grátis.', ab: 'Fecha ter · sex 10h30–22h', pr: 'US$ 30 (sex 17h–22h grátis, com ingresso)', link: 'https://whitney.org' },
+  { d: '2026-09-18', t: 'Little Island', desc: 'Parque flutuante sobre o Hudson, apoiado em "tulipas" de concreto; coladinho no Whitney.', ab: 'Todos os dias, ~6h–23h', pr: 'Grátis', link: 'https://littleisland.org' },
+  { d: '2026-09-18', t: 'Chelsea Market', desc: 'Mercado gastronômico num antigo prédio da Nabisco (onde nasceu o Oreo). Almoço.', ab: 'Todos os dias, ~7h–21h', pr: 'Grátis (entrada)' },
+  { d: '2026-09-18', t: 'The High Line', desc: 'Parque linear sobre uma antiga ferrovia elevada; caminhe rumo ao norte, com jardins e vistas + galerias de Chelsea.', ab: 'Todos os dias, ~7h–22h', pr: 'Grátis', link: 'https://www.thehighline.org' },
+  { d: '2026-09-18', t: 'Vessel / Hudson Yards', desc: 'Escultura em favo de mel na ponta norte da High Line; reabriu em 2024 (agora com ingresso).', ab: 'Todos os dias, ~10h–21h', pr: 'US$ 10 (US$ 15 online)', link: 'https://www.vesselnyc.com' },
+  { d: '2026-09-18', t: 'Musical da Broadway #1 (noite)', desc: 'Primeiro musical da viagem. Reserve com bastante antecedência.', ab: 'Sessão à noite (confira o horário)', pr: 'Varia (~US$ 80–250)', mq: 'Broadway Theatre District New York' },
+  // Sáb 19/09 — Midtown clássico + Broadway #2
+  { d: '2026-09-19', t: 'MoMA', desc: 'Arte moderna: Van Gogh (Noite Estrelada), Monet, Picasso, Warhol. Abre 10h30; comece fresco, ~2h30.', ab: 'Todos os dias 10h30–17h30 (sex até 20h30)', pr: 'US$ 30 (US$ 28 online)', link: 'https://www.moma.org' },
+  { d: '2026-09-19', t: 'Grand Central Terminal', desc: 'Estação de 1913 com teto celeste pintado; o Chrysler Building fica em frente (por fora).', ab: 'Todos os dias, ~5h30–2h', pr: 'Grátis', mq: 'Grand Central Terminal New York' },
+  { d: '2026-09-19', t: 'New York Public Library', desc: 'A biblioteca dos leões de mármore; a Rose Main Reading Room é deslumbrante. Fecha domingo.', ab: 'Fecha dom · sáb 10h–18h', pr: 'Grátis', link: 'https://www.nypl.org', mq: 'New York Public Library Stephen A Schwarzman Building' },
+  { d: '2026-09-19', t: 'Bryant Park', desc: 'Parque logo atrás da biblioteca: gramado, cafés e carrossel.', ab: 'Todos os dias, ~7h–22h', pr: 'Grátis' },
+  { d: '2026-09-19', t: 'The Morgan Library & Museum', desc: 'A biblioteca particular de J.P. Morgan: manuscritos, uma Bíblia de Gutenberg, teto renascentista. Fecha segunda.', ab: 'Fecha seg · sáb 10h30–17h', pr: 'US$ 22 (sex 17h–20h grátis)', link: 'https://www.themorgan.org' },
+  { d: '2026-09-19', t: 'Top of the Rock (pôr do sol)', desc: 'Mirante do Rockefeller ao pôr do sol; St. Patrick’s e o Rockefeller na base + Rizzoli Bookstore (NoMad) se der tempo. Reserve horário.', ab: 'Todos os dias, 8h–24h', pr: 'US$ 47–60 (varia por demanda)', link: 'https://www.rockefellercenter.com/attractions/top-of-the-rock-observation-deck/' },
+  { d: '2026-09-19', t: 'Musical da Broadway #2 (noite)', desc: 'Segundo musical. Timing: se for 19h, suba no Top of the Rock mais cedo; se for 20h, dá pra pegar o pôr do sol com folga.', ab: 'Sessão à noite (confira o horário)', pr: 'Varia (~US$ 80–250)', mq: 'Broadway Theatre District New York' },
+  // Dias 20–24/09 — Chicago (a definir)
+  { d: '2026-09-20', t: 'Chicago — roteiro a definir', desc: 'Me manda seu roteiro de Chicago (dias 20–24) e eu preencho cada lugar com descrição, horário, preço e Google Maps, igual fiz com Nova York. Confirme também o voo NY → Chicago.', ab: '', pr: '', mq: 'Chicago Illinois' },
+  // Sex 25/09 — Lower Manhattan + Brooklyn
+  { d: '2026-09-25', t: 'Charging Bull', desc: 'O touro de bronze de Wall Street, em Bowling Green.', ab: '24h', pr: 'Grátis', mq: 'Charging Bull Bowling Green New York' },
+  { d: '2026-09-25', t: 'Wall Street + Stone Street', desc: 'O coração financeiro; Stone Street é uma ruela de paralelepípedos cheia de bares e restaurantes.', ab: 'Passeio a pé', pr: 'Grátis', mq: 'Stone Street New York' },
+  { d: '2026-09-25', t: 'Oculus / One World Trade Center', desc: 'O Oculus de Calatrava (hub em forma de ave) + a torre mais alta do hemisfério; Brookfield Place ao lado.', ab: 'Oculus diário · Observatório One World ~9h–21h', pr: 'Oculus grátis · Observatório ~US$ 44', mq: 'Oculus World Trade Center New York' },
+  { d: '2026-09-25', t: 'Memorial do 11 de Setembro', desc: 'As duas piscinas nas pegadas das Torres Gêmeas, com os nomes das vítimas. Área externa gratuita.', ab: 'Todos os dias, ~8h–20h', pr: 'Memorial grátis (Museu ~US$ 33)', link: 'https://www.911memorial.org', mq: '9/11 Memorial New York' },
+  { d: '2026-09-25', t: 'Brooklyn Bridge (travessia a pé)', desc: 'Atravesse a pé rumo ao Brooklyn (~30 min) pela passarela de madeira suspensa.', ab: '24h', pr: 'Grátis', mq: 'Brooklyn Bridge New York' },
+  { d: '2026-09-25', t: 'DUMBO / Washington Street', desc: 'O enquadramento clássico da ponte entre os prédios + o Brooklyn Bridge Park à beira d’água.', ab: 'Passeio a pé', pr: 'Grátis', mq: 'Washington Street DUMBO Brooklyn' },
+  { d: '2026-09-25', t: 'Staten Island Ferry (pôr do sol)', desc: 'Balsa grátis; na ida, sente à direita pra ver a Estátua da Liberdade. Ótimo pôr do sol.', ab: '24h, a cada ~30 min', pr: 'Grátis', mq: 'Staten Island Ferry Whitehall Terminal New York' },
+  { d: '2026-09-25', t: 'Rooftop (noite)', desc: 'Drinks com vista: The Crown ou Harriet’s Rooftop.', ab: 'À noite', pr: 'Drinks ~US$ 20–30' },
+  // Sáb 26/09 — Chinatown, Essex Market e brechós (último dia)
+  { d: '2026-09-26', t: 'Chinatown + Doyers Street', desc: 'Doyers, a curva mais fotogênica da cidade; dim sum e mercados.', ab: 'Passeio a pé', pr: 'Grátis', mq: 'Doyers Street New York' },
+  { d: '2026-09-26', t: 'Essex Market', desc: 'Mercado histórico do Lower East Side (~15 min a pé); comidas do mundo todo.', ab: 'Aberto sábado, ~8h–20h', pr: 'Grátis (entrada)', link: 'https://www.essexmarket.nyc' },
+  { d: '2026-09-26', t: 'Brechós de fim de semana (opcional)', desc: 'Artists & Fleas em Williamsburg (metrô J/M/Z de Essex St) ou Chelsea Flea, em Manhattan. Pule se quiser um último dia mais leve.', ab: 'Fins de semana', pr: 'Grátis (entrada)', mq: 'Artists and Fleas Williamsburg Brooklyn' },
+  { d: '2026-09-26', t: 'Saída para o JFK', desc: 'Voo 20h30 → saída do hotel para o JFK ~17h30. Manhã e início de tarde livres; depois pegar as malas e seguir.', ab: '', pr: '', mq: 'John F Kennedy International Airport', hora: '17:30' },
+];
+function ensureNYChicago2026(d) {
+  if (d.nyChicago2026Seeded) return d;
+  const have = new Set((d.viagensFuturas || []).map(v => v.id));
+  if (have.has('vf-nychicago2026')) return { ...d, nyChicago2026Seeded: true };
+  const viagem = {
+    id: 'vf-nychicago2026', titulo: 'Nova York & Chicago', cidade: 'Nova York · Chicago',
+    inicio: '2026-09-13', fim: '2026-09-26',
+    link: 'https://www.nyctourism.com/',
+    hospedagem: 'Upper West Side — no dia 13 o check-in real é só ~15h (deixe as malas antes e comece devagar).',
+    passagens: 'Chegada ~7h40 no JFK (13/09). Volta: voo 20h30 (26/09), saída do hotel ~17h30. Trecho Nova York ↔ Chicago: a confirmar.',
+    notas: 'Reservar com antecedência: musicais da Broadway (18 e 19), Frick (13), Top of the Rock (19), Amtrak + Independence Hall (16) e Village Vanguard (14). Sem dia fixo: Central Park (volte quantas vezes quiser) e compras (Macy’s, brechós e lojinhas — o outlet do dia 17 cobre o grosso). Dias 20–24: Chicago (roteiro a definir).',
+    mesas: NYC_ROTEIRO.map((x, i) => ({
+      id: 'nyc-' + i, n: i, dia: x.d, hora: x.hora,
+      titulo: x.t, desc: x.desc,
+      abertura: x.ab || undefined, preco: x.pr || undefined,
+      maps: gmap(x.mq || (x.t + ' New York')), link: x.link,
+    })),
+    levar: [], comprar: [],
+  };
+  return { ...d, nyChicago2026Seeded: true, viagensFuturas: [...(d.viagensFuturas || []), viagem] };
+}
+
 // Livros já lidos (importados do Skoob) → slice `leituras` com lido:true. Idempotente.
 function ensureLeiturasLidos(d) {
   if (d.leiturasLidosSeeded) return d;
@@ -1437,7 +1525,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
