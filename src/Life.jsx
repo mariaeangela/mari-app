@@ -3186,6 +3186,8 @@ function ViagemDetail({ trip, onBack }) {
   const addItem = (campo, texto, limpar) => { const t = texto.trim(); if (!t) return; salvar({ [campo]: [...(trip[campo] || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); limpar(''); };
   const toggleItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).map(c => c.id === id ? { ...c, feito: !c.feito } : c) });
   const delItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).filter(c => c.id !== id) });
+  // Marca/desmarca um lugar da programação como visitado (☑ do roteiro).
+  const toggleVisitado = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, visitado: !m.visitado } : m) });
   // ---- Tópicos livres (secoes): cada um é "nota" (texto solto) ou "lista" (checklist) ----
   const setSecoes = (fn) => salvar({ secoes: fn(trip.secoes || []) });
   const delSecao = (id) => setSecoes(ss => ss.filter(s => s.id !== id));
@@ -3262,14 +3264,24 @@ function ViagemDetail({ trip, onBack }) {
               <div key={dia} style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
                 {ms.map(m => (
-                  <div key={m.id} onClick={() => setProgForm({ item: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
-                      <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic' }}>{m.titulo}</span>
-                      {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+                  <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+                    <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
+                    <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                        {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
+                        <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
+                        {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
+                        {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+                      </div>
+                      {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
+                      {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5 }}>{m.desc}</div>}
+                      {(m.abertura || m.preco) && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
+                          {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
+                          {m.preco && <span style={{ fontSize: 11.5, color: '#888' }}>💲 {m.preco}</span>}
+                        </div>
+                      )}
                     </div>
-                    {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
-                    {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5 }}>{m.desc}</div>}
                   </div>
                 ))}
               </div>
@@ -3323,17 +3335,22 @@ function ViagemDetail({ trip, onBack }) {
   );
 }
 
-// Item da programação (roteiro por dia): dia + hora + atividade + nota + link.
+// Item da programação (roteiro por dia = um lugar): dia + hora + lugar + descrição +
+// abertura (dias/horário) + entrada (preço) + Google Maps + site oficial. Trocar o "Dia"
+// já reagenda o lugar pra outra data da viagem (fica dentro do intervalo início–fim).
 function ProgItemForm({ trip, item, onSave, onClose }) {
   const [dia, setDia] = useState(item?.dia || trip.inicio || '');
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
   const [desc, setDesc] = useState(item?.desc || '');
+  const [abertura, setAbertura] = useState(item?.abertura || '');
+  const [preco, setPreco] = useState(item?.preco || '');
+  const [maps, setMaps] = useState(item?.maps || '');
   const [link, setLink] = useState(item?.link || '');
   const podeSalvar = titulo.trim().length > 0 && !!dia;
   const salvar = () => {
     if (!podeSalvar) return;
-    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia, hora: hora.trim() || undefined, titulo: titulo.trim(), desc: desc.trim() || undefined, link: link.trim() || undefined };
+    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia, hora: hora.trim() || undefined, titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
     const mesas = trip.mesas || [];
     onSave({ mesas: item ? mesas.map(x => x.id === item.id ? obj : x) : [...mesas, obj] });
     onClose();
@@ -3342,18 +3359,24 @@ function ProgItemForm({ trip, item, onSave, onClose }) {
     <div onClick={onClose} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={sheet}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{item ? 'Editar atividade' : 'Nova atividade'}</h3>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{item ? 'Editar lugar' : 'Novo lugar'}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Dia</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
           <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label><input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} /></div>
         </div>
-        <label style={labelStyle}>Atividade</label>
-        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: desfile no Alto da Sé" style={inputStyle} />
-        <label style={labelStyle}>Nota (opcional)</label>
-        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="detalhes, endereço, quem vai…" style={{ ...inputStyle, resize: 'vertical' }} />
-        <label style={labelStyle}>Link (opcional)</label>
+        <label style={labelStyle}>Lugar / atividade</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: The Met · Top of the Rock" style={inputStyle} />
+        <label style={labelStyle}>Descrição (o que é)</label>
+        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="uma linha sobre o lugar, o que ver…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Abertura (dias/horário)</label><input value={abertura} onChange={e => setAbertura(e.target.value)} placeholder="ex.: Ter–Dom, 10h–17h" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Entrada (preço)</label><input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: US$ 30 · grátis" style={inputStyle} /></div>
+        </div>
+        <label style={labelStyle}>Google Maps (link p/ chegar)</label>
+        <input value={maps} onChange={e => setMaps(e.target.value)} placeholder="https://maps.google.com/…" style={inputStyle} />
+        <label style={labelStyle}>Site oficial (opcional)</label>
         <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {item && <button onClick={() => { onSave({ mesas: (trip.mesas || []).filter(x => x.id !== item.id) }); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
