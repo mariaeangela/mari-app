@@ -48,6 +48,22 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Rolês: a Mari classificou item a item (mapa exato). Laços sai via RECLASSIFY -> Presentes.
+    'Rolês': {
+        'default': 'Rolês diversos',
+        'grupos': {},
+        'map': {
+            'show cicero': 'Shows', 'show harry': 'Shows', 'lolla': 'Shows', 'show rubel': 'Shows', 'show kid abelha': 'Shows', 'cerveja show kid abelha': 'Shows',
+            'sylvester': 'Bares', 'pirajá': 'Bares', 'bar sexta': 'Bares', 'matiz': 'Bares', 'bar alto': 'Bares', 'santana': 'Bares', 'tan tan': 'Bares', 'bar fechado': 'Bares', 'boca de outro': 'Bares', 'rolê': 'Bares', 'por amor': 'Bares', 'bar diego': 'Bares', 'bebida rolê': 'Bares', 'singelo line': 'Bares', 'consenso bar': 'Bares', 'cervejaria': 'Bares',
+            'bacio': 'Restaurante', 'sorvete lucy': 'Restaurante', 'tamashi lucy': 'Restaurante', 'nilo': 'Restaurante', 'matilda lanches': 'Restaurante', 'thai e san': 'Restaurante', 'sorvete nostos': 'Restaurante', 'bella paulista': 'Restaurante', 'sorvete diego': 'Restaurante', 'almoço diego': 'Restaurante', 'feijoada cricricru': 'Restaurante', 'santo grão': 'Restaurante', 'jantar thales': 'Restaurante', 'jantar lucy': 'Restaurante', 'indie food': 'Restaurante', 'esfirras': 'Restaurante', 'almoço c padre': 'Restaurante', 'tamashii': 'Restaurante', 'festa junina': 'Restaurante',
+            'aniversário': 'Aniversários', 'bolo sodie': 'Aniversários', 'aniversário julha': 'Aniversários', 'carreta furacão': 'Aniversários', 'niver josi': 'Aniversários',
+            'samba do rosa': 'Festas', 'julinho': 'Festas', 'samba rosa': 'Festas', 'carnaval sp': 'Festas', 'boca a boca': 'Festas', 'festa bagatela': 'Festas', 'festa boca boca': 'Festas', 'bebida festa': 'Festas', 'lovesongs': 'Festas', 'gandaya': 'Festas', 'funilaria': 'Festas', 'dois dois': 'Festas', 'bagatella': 'Festas',
+            'gabs cinema': 'Cultura', 'sesc pompeia': 'Cultura', 'cinema gabs': 'Cultura', 'cinesala': 'Cultura', 'opera malando': 'Cultura', 'copan': 'Cultura', 'ingressos são pedro': 'Cultura', 'ingressos sala sp': 'Cultura', 'dança': 'Cultura', 'exposição': 'Cultura',
+            'corrida': 'Corrida', '15km nb': 'Corrida',
+            'pitico date': 'Dates', 'date nistal': 'Dates',
+            'contact mercado livre': 'Rolês diversos', 'plantação je': 'Rolês diversos', 'churras saia da zona': 'Rolês diversos', 'coisas papelaria': 'Rolês diversos', 'churras raissa': 'Rolês diversos',
+        },
+    },
     # Fixos: baldes da Mari. default None (não deveria sobrar nada; o Ajuste foi excluído).
     'Fixos': {
         'default': None,
@@ -136,6 +152,8 @@ def consolidate(cat, nome, mes=None):
     if not rule:
         return nome
     low = nome.strip().lower()
+    if 'map' in rule and low in rule['map']:  # mapa exato nome->balde (ex.: Rolês)
+        return rule['map'][low]
     desde = rule.get('desde')
     if not (desde and mes and mes < desde):  # aplica os grupos, salvo antes do 'desde'
         for canonical, aliases in rule['grupos'].items():
@@ -161,6 +179,8 @@ RECLASSIFY = [
     {'de': 'Coisas', 'match': ['blindagem'], 'para': 'Skin care', 'nome': 'Maquiagem'},
     # Roupa carnaval estava em Viagem; vai pra Roupa/Fantasias.
     {'de': 'Viagem', 'match': ['roupa carnaval'], 'para': 'Roupa', 'nome': 'Fantasias'},
+    # Laços (de Rolês) vira Presentes/Doação.
+    {'de': 'Rolês', 'match': ['laços'], 'para': 'Presentes', 'nome': 'Doação'},
 ]
 
 def reclassify(cat, nome):
