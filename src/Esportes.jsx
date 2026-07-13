@@ -1,14 +1,90 @@
 import { useState } from 'react';
-import { ESPORTES, ESPORTES_AGORA, ESPORTES_ATUALIZADO } from './esportesSeed.js';
+import { ESPORTES, ESPORTES_AGENDA, ESPORTES_ATUALIZADO } from './esportesSeed.js';
 
 const COR = '#e2603a'; // laranja-esporte (acento da seção)
+const DIAS_SEM = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-// Bloco de referência dentro do card de um esporte (Regras / Torneios / Calendário).
+// 'YYYY-MM-DD' -> Date local à meia-noite (evita fuso bagunçar o dia).
+function parseData(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function meiaNoiteHoje() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+// Rótulo do dia: Hoje / Amanhã / "Sábado, 18/07".
+function rotuloDia(dataStr, hoje) {
+  const d = parseData(dataStr);
+  const diff = Math.round((d - hoje) / 86400000);
+  const dm = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  if (diff === 0) return { titulo: 'Hoje', sub: `${DIAS_SEM[d.getDay()]}, ${dm}` };
+  if (diff === 1) return { titulo: 'Amanhã', sub: `${DIAS_SEM[d.getDay()]}, ${dm}` };
+  return { titulo: DIAS_SEM[d.getDay()], sub: dm };
+}
+
+// Bloco de referência dentro do card de um esporte.
 function Bloco({ titulo, children }) {
   return (
     <div style={{ marginTop: 16 }}>
       <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>{titulo}</p>
       {children}
+    </div>
+  );
+}
+
+// Uma linha da agenda (um jogo/sessão).
+function LinhaEvento({ ev }) {
+  return (
+    <div style={{
+      display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 8,
+      background: ev.destaque ? COR + '10' : '#fff', border: '1px solid ' + (ev.destaque ? COR + '55' : '#eee'),
+      borderRadius: 14, padding: '12px 14px',
+    }}>
+      <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 42 }}>
+        <div style={{ fontSize: 20, lineHeight: 1 }}>{ev.emoji}</div>
+        <div style={{ fontSize: 12, fontWeight: 800, color: ev.hora ? '#333' : '#bbb', marginTop: 4 }}>{ev.hora || '—'}</div>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{ev.titulo}</div>
+        {ev.sub && <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{ev.sub}</div>}
+        {ev.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 4 }}>📺 {ev.assistir}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Aba Agenda: eventos de hoje em diante, agrupados por dia.
+function Agenda() {
+  const hoje = meiaNoiteHoje();
+  const futuros = ESPORTES_AGENDA
+    .filter(e => parseData(e.data) >= hoje)
+    .sort((a, b) => a.data.localeCompare(b.data) || (a.hora || '99').localeCompare(b.hora || '99'));
+
+  // agrupa por data mantendo a ordem
+  const dias = [];
+  for (const ev of futuros) {
+    let g = dias.find(d => d.data === ev.data);
+    if (!g) { g = { data: ev.data, eventos: [] }; dias.push(g); }
+    g.eventos.push(ev);
+  }
+
+  if (!dias.length) return (
+    <p style={{ fontSize: 13.5, color: '#999', lineHeight: 1.6, marginTop: 20 }}>
+      Sem jogos na agenda por enquanto. Me peça <b>“atualiza os esportes”</b> que eu preencho os próximos dias.
+    </p>
+  );
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <p style={{ fontSize: 11.5, color: '#bbb', marginBottom: 14 }}>horários de Brasília · atualizado {ESPORTES_ATUALIZADO}</p>
+      {dias.map(g => {
+        const r = rotuloDia(g.data, hoje);
+        return (
+          <div key={g.data} style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10, borderBottom: '2px solid #111', paddingBottom: 6 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 800, color: '#111' }}>{r.titulo}</span>
+              <span style={{ fontSize: 12, color: '#999', textTransform: 'lowercase' }}>{r.sub}</span>
+            </div>
+            {g.eventos.map((ev, i) => <LinhaEvento key={i} ev={ev} />)}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -52,54 +128,45 @@ function EsporteDetail({ esp, onBack }) {
 }
 
 export default function EsportesSection({ onBack, backLabel = 'Explorar' }) {
+  const [aba, setAba] = useState('agenda'); // 'agenda' | 'esportes'
   const [selId, setSelId] = useState(null);
   const sel = ESPORTES.find(e => e.id === selId);
   if (sel) return <EsporteDetail esp={sel} onBack={() => setSelId(null)} />;
-
-  const nomeDe = (id) => ESPORTES.find(e => e.id === id)?.nome || '';
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
       <div style={{ width: 36, height: 4, background: COR, borderRadius: 4, marginBottom: 10 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Esportes</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>regras, torneios e calendário — e o que dá pra ver agora</p>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '4px 0 0' }}>a agenda dia a dia — e as regras, torneios e onde assistir</p>
 
-      {/* Acontecendo agora */}
-      <div style={{ marginTop: 22 }}>
-        <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>
-          acontecendo agora <span style={{ color: '#ccc', textTransform: 'none', letterSpacing: 0 }}>· atualizado {ESPORTES_ATUALIZADO}</span>
-        </p>
-        {ESPORTES_AGORA.map((a, i) => (
-          <div key={i} onClick={() => setSelId(a.esporte)} title="ver o esporte" style={{
-            display: 'flex', gap: 12, alignItems: 'flex-start', cursor: 'pointer', marginBottom: 8,
-            background: a.destaque ? COR + '10' : '#fff', border: '1px solid ' + (a.destaque ? COR + '55' : '#eee'),
-            borderRadius: 14, padding: '13px 15px',
-          }}>
-            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{a.emoji}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{a.titulo}</div>
-              <div style={{ fontSize: 12.5, color: a.destaque ? '#b6482a' : '#777', fontWeight: 700, marginTop: 4 }}>📅 {a.quando}</div>
-              {a.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 4 }}>📺 {a.assistir}</div>}
-              {a.nota && <div style={{ fontSize: 12.5, color: '#888', marginTop: 4, lineHeight: 1.45 }}>{a.nota}</div>}
-            </div>
+      {/* Abas */}
+      <div style={{ display: 'flex', gap: 6, margin: '16px 0 4px' }}>
+        {[['agenda', 'Agenda'], ['esportes', 'Esportes']].map(([id, label]) => (
+          <button key={id} onClick={() => setAba(id)} style={{
+            flex: 1, padding: '9px 2px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            border: '1px solid ' + (aba === id ? COR : '#e2e2e2'),
+            background: aba === id ? COR + '1c' : '#fff', color: aba === id ? '#b6482a' : '#999',
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {aba === 'agenda' ? <Agenda /> : (
+        <>
+          <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', margin: '18px 0 10px' }}>esportes que acompanho</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {ESPORTES.map(e => (
+              <button key={e.id} onClick={() => setSelId(e.id)} style={{
+                background: e.cor + '12', border: '1px solid ' + e.cor + '33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left',
+              }}>
+                <div style={{ fontSize: 24, marginBottom: 8, lineHeight: 1 }}>{e.emoji}</div>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{e.nome}</div>
+                <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{e.escopo}</div>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {/* Esportes que acompanho */}
-      <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', margin: '24px 0 10px' }}>esportes que acompanho</p>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        {ESPORTES.map(e => (
-          <button key={e.id} onClick={() => setSelId(e.id)} style={{
-            background: e.cor + '12', border: '1px solid ' + e.cor + '33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left',
-          }}>
-            <div style={{ fontSize: 24, marginBottom: 8, lineHeight: 1 }}>{e.emoji}</div>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{e.nome}</div>
-            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{e.escopo}</div>
-          </button>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 }

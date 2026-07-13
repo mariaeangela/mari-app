@@ -131,38 +131,52 @@ export const ESPORTES = [
   },
 ];
 
-// "Acontecendo agora" — o que dá pra assistir nesta semana (13 jul 2026).
-// Peça "atualiza os esportes" que eu revejo esta lista.
-export const ESPORTES_AGORA = [
-  {
-    esporte: 'futebol', emoji: '⚽', titulo: 'Copa do Mundo 2026 — reta final',
-    destaque: true,
-    quando: 'FINAL: dom 19/jul, 17h (Brasília) · MetLife Stadium, Nova Jersey',
-    assistir: 'Globo, SporTV, SBT e CazéTV (grátis no YouTube)',
-    nota: 'Semifinais nesta semana; é a decisão do maior torneio do mundo.',
-  },
-  {
-    esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — Las Vegas',
-    quando: '9 a 19/jul · rolando agora',
-    assistir: 'ESPN e Disney+',
-    nota: 'A vitrine dos calouros e jovens da NBA durante o offseason.',
-  },
-  {
-    esporte: 'volei', emoji: '🏐', titulo: 'Liga das Nações (VNL) — rumo às finais',
-    quando: 'Final fem.: Macau, 22–26/jul · masc.: Ningbo, 29/jul–2/ago',
-    assistir: 'SporTV, GE TV e VBTV',
-    nota: 'Fase preliminar fechando agora; o Brasil costuma brigar pelo título.',
-  },
-  {
-    esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans',
-    quando: '24 a 26/jul',
-    assistir: 'ESPN e Disney+',
-    nota: 'Depois vem a SLS Rio (9/ago, no Maracanãzinho) com a Rayssa Leal.',
-  },
-  {
-    esporte: 'tenis', emoji: '🎾', titulo: 'Pós-Wimbledon → série americana',
-    quando: 'Próximo Slam: US Open, 31/ago a 13/set',
-    assistir: 'ESPN e Disney+',
-    nota: 'Acabou a grama (Wimbledon fechou 12/jul); agora é quadra dura rumo ao US Open.',
-  },
+// AGENDA dia a dia — cada jogo/sessão com data, horário (Brasília) e onde assistir.
+// É isto que aparece no topo agrupado em Hoje / Amanhã / dia da semana.
+// Peça "atualiza os esportes" que eu revejo os jogos dos próximos dias.
+// (Datas de referência: 13 jul 2026. Confrontos da Copa já definidos até as semis;
+//  final e 3º lugar dependem dos vencedores das semifinais.)
+export const ESPORTES_AGENDA = [
+  // Segunda 13/jul
+  { data: '2026-07-13', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — rodada do dia', sub: 'Vários jogos · Las Vegas', assistir: 'ESPN e Disney+' },
+
+  // Terça 14/jul
+  { data: '2026-07-14', hora: '16:00', esporte: 'futebol', emoji: '⚽', titulo: 'França × Espanha', sub: 'Semifinal da Copa do Mundo · Dallas', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
+  { data: '2026-07-14', hora: '20:00', esporte: 'basquete', emoji: '🏀', titulo: 'Utah Jazz × Golden State Warriors', sub: 'NBA Summer League · Las Vegas', assistir: 'ESPN' },
+  { data: '2026-07-14', hora: '21:00', esporte: 'basquete', emoji: '🏀', titulo: 'Chicago Bulls × Washington Wizards', sub: 'NBA Summer League · Las Vegas', assistir: 'Prime Video' },
+
+  // Quarta 15/jul
+  { data: '2026-07-15', hora: '16:00', esporte: 'futebol', emoji: '⚽', titulo: 'Inglaterra × Argentina', sub: 'Semifinal da Copa do Mundo · Atlanta', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
+
+  // Quinta 16/jul
+  { data: '2026-07-16', hora: '21:00', esporte: 'basquete', emoji: '🏀', titulo: 'Utah Jazz × Atlanta Hawks', sub: 'NBA Summer League · Las Vegas', assistir: 'Prime Video' },
+  { data: '2026-07-16', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'Chicago Bulls × San Antonio Spurs', sub: 'NBA Summer League · Las Vegas', assistir: 'ESPN' },
+
+  // Sexta 17/jul
+  { data: '2026-07-17', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — rodada do dia', sub: 'Fase de classificação · Las Vegas', assistir: 'ESPN e Disney+' },
+
+  // Sábado 18/jul
+  { data: '2026-07-18', hora: '18:00', esporte: 'futebol', emoji: '⚽', titulo: 'Disputa de 3º lugar', sub: 'Copa do Mundo · Hard Rock, Miami', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
+
+  // Domingo 19/jul
+  { data: '2026-07-19', hora: '16:00', esporte: 'futebol', emoji: '⚽', titulo: 'FINAL da Copa do Mundo 2026', sub: 'MetLife Stadium, Nova Jersey', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
+  { data: '2026-07-19', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — FINAL', sub: 'Las Vegas', assistir: 'ESPN e Disney+' },
+
+  // Quarta 22/jul
+  { data: '2026-07-22', hora: '08:30', esporte: 'volei', emoji: '🏐', titulo: 'Brasil × Japão', sub: 'Quartas da VNL feminina · Macau', assistir: 'SporTV, GE TV e VBTV', destaque: true },
+  { data: '2026-07-22', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'EUA × China · Turquia × Canadá', sub: 'Quartas da VNL feminina · Macau', assistir: 'SporTV, GE TV e VBTV' },
+
+  // Quinta 23/jul
+  { data: '2026-07-23', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'Quartas de final (restantes)', sub: 'VNL feminina · Macau', assistir: 'SporTV, GE TV e VBTV' },
+
+  // Sexta 24/jul
+  { data: '2026-07-24', hora: '', esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans — dia 1', sub: 'Street e park', assistir: 'ESPN e Disney+' },
+
+  // Sábado 25/jul
+  { data: '2026-07-25', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'Semifinais da VNL feminina', sub: 'Macau', assistir: 'SporTV, GE TV e VBTV' },
+  { data: '2026-07-25', hora: '', esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans — dia 2', sub: 'Street e park', assistir: 'ESPN e Disney+' },
+
+  // Domingo 26/jul
+  { data: '2026-07-26', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'FINAL da VNL feminina + 3º lugar', sub: 'Macau', assistir: 'SporTV, GE TV e VBTV', destaque: true },
+  { data: '2026-07-26', hora: '', esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans — finais', sub: 'Street e park', assistir: 'ESPN e Disney+' },
 ];
