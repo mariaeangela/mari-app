@@ -18,6 +18,20 @@ function rotuloDia(dataStr, hoje) {
   return { titulo: DIAS_SEM[d.getDay()], sub: dm };
 }
 
+// Selo de gênero: feminino / masculino / fem + masc.
+const GENERO = {
+  fem: { label: 'Feminino', cor: '#c2548f', bg: '#c2548f18' },
+  masc: { label: 'Masculino', cor: '#3f6fb0', bg: '#3f6fb018' },
+  misto: { label: 'Fem + Masc', cor: '#7a7a7a', bg: '#7a7a7a18' },
+};
+function GeneroTag({ genero }) {
+  const g = GENERO[genero];
+  if (!g) return null;
+  return (
+    <span style={{ display: 'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing: '.4px', color: g.cor, background: g.bg, border: '1px solid ' + g.cor + '44', borderRadius: 999, padding: '1px 8px' }}>{g.label}</span>
+  );
+}
+
 // Bloco de referência dentro do card de um esporte.
 function Bloco({ titulo, children }) {
   return (
@@ -41,7 +55,10 @@ function LinhaEvento({ ev }) {
         <div style={{ fontSize: 12, fontWeight: 800, color: ev.hora ? '#333' : '#bbb', marginTop: 4 }}>{ev.hora || '—'}</div>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{ev.titulo}</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{ev.titulo}</span>
+          <GeneroTag genero={ev.genero} />
+        </div>
         {ev.sub && <div style={{ fontSize: 12.5, color: '#888', marginTop: 3 }}>{ev.sub}</div>}
         {ev.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 4 }}>📺 {ev.assistir}</div>}
       </div>
@@ -94,7 +111,10 @@ function Agenda() {
             <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 8, background: '#fafafa', border: '1px solid #eee', borderRadius: 14, padding: '11px 14px' }}>
               <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{p.emoji}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#222', lineHeight: 1.3 }}>{p.evento}</div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#222', lineHeight: 1.3 }}>{p.evento}</span>
+                  <GeneroTag genero={p.genero} />
+                </div>
                 <div style={{ fontSize: 12.5, color: '#333', fontWeight: 700, marginTop: 3 }}>📅 {p.quando}</div>
                 {p.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 3 }}>📺 {p.assistir}</div>}
               </div>
@@ -127,7 +147,10 @@ function EsporteDetail({ esp, onBack }) {
       <Bloco titulo="Competições · quando e onde assistir">
         {esp.competicoes.map((c, i) => (
           <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 14px', marginBottom: 8 }}>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{c.nome}</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{c.nome}</span>
+              <GeneroTag genero={c.genero} />
+            </div>
             {c.oque && <div style={{ fontSize: 12.5, color: '#777', marginTop: 4, lineHeight: 1.5 }}>{c.oque}</div>}
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>📅</span>
