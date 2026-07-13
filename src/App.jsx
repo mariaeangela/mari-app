@@ -9,6 +9,7 @@ import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID }
 import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
+import EsportesSection from './Esportes.jsx';
 import { NavContext } from './nav.jsx';
 import { getLastSyncError } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
@@ -361,6 +362,11 @@ function ExplorePage({ isWide }) {
       <LeiturasSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
     </div>
   );
+  if (selectedType === 'esportes') return (
+    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <EsportesSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
+    </div>
+  );
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
@@ -388,6 +394,10 @@ function ExplorePage({ isWide }) {
             <button key="leituras" onClick={() => setSelectedType('leituras')} style={{ background: '#7a5c9e12', border: '1px solid #7a5c9e33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
               <div style={{ width: 24, height: 4, background: '#7a5c9e', borderRadius: 4, marginBottom: 12 }} />
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Próximas leituras</div>
+            </button>
+            <button key="esportes" onClick={() => setSelectedType('esportes')} style={{ background: '#e2603a12', border: '1px solid #e2603a33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 24, height: 4, background: '#e2603a', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Esportes</div>
             </button>
           </div>
         </>
