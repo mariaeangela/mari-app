@@ -13,7 +13,7 @@ function Bloco({ titulo, children }) {
   );
 }
 
-// Detalhe de um esporte: regras, torneios e calendário.
+// Detalhe de um esporte: regras + competições (o que é, quando e onde assistir).
 function EsporteDetail({ esp, onBack }) {
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -31,18 +31,20 @@ function EsporteDetail({ esp, onBack }) {
         ))}
       </Bloco>
 
-      <Bloco titulo="Principais torneios">
-        {esp.torneios.map((t, i) => (
-          <div key={i} style={{ padding: '9px 0', borderBottom: '1px solid #f4f4f4' }}>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#111' }}>{t.nome}</div>
-            {t.nota && <div style={{ fontSize: 12.5, color: '#888', marginTop: 2 }}>{t.nota}</div>}
+      <Bloco titulo="Competições · quando e onde assistir">
+        {esp.competicoes.map((c, i) => (
+          <div key={i} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 14px', marginBottom: 8 }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{c.nome}</div>
+            {c.oque && <div style={{ fontSize: 12.5, color: '#777', marginTop: 4, lineHeight: 1.5 }}>{c.oque}</div>}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>📅</span>
+              <span style={{ fontSize: 12.5, color: '#333', fontWeight: 700, lineHeight: 1.4 }}>{c.quando}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 5 }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>📺</span>
+              <span style={{ fontSize: 12.5, color: esp.cor, fontWeight: 700, lineHeight: 1.4 }}>{c.assistir}</span>
+            </div>
           </div>
-        ))}
-      </Bloco>
-
-      <Bloco titulo="Calendário">
-        {esp.calendario.map((c, i) => (
-          <p key={i} style={{ fontSize: 13.5, color: '#444', lineHeight: 1.55, margin: '0 0 8px' }}>{c}</p>
         ))}
       </Bloco>
     </div>
@@ -77,7 +79,8 @@ export default function EsportesSection({ onBack, backLabel = 'Explorar' }) {
             <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{a.emoji}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#111', lineHeight: 1.25 }}>{a.titulo}</div>
-              <div style={{ fontSize: 12.5, color: a.destaque ? '#b6482a' : '#777', fontWeight: 700, marginTop: 4 }}>{a.quando}</div>
+              <div style={{ fontSize: 12.5, color: a.destaque ? '#b6482a' : '#777', fontWeight: 700, marginTop: 4 }}>📅 {a.quando}</div>
+              {a.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 4 }}>📺 {a.assistir}</div>}
               {a.nota && <div style={{ fontSize: 12.5, color: '#888', marginTop: 4, lineHeight: 1.45 }}>{a.nota}</div>}
             </div>
           </div>
