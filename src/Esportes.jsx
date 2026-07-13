@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ESPORTES, ESPORTES_AGENDA, ESPORTES_ATUALIZADO } from './esportesSeed.js';
+import { ESPORTES, ESPORTES_AGENDA, ESPORTES_PROXIMOS, ESPORTES_ATUALIZADO } from './esportesSeed.js';
 
 const COR = '#e2603a'; // laranja-esporte (acento da seção)
 const DIAS_SEM = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
@@ -85,6 +85,23 @@ function Agenda() {
           </div>
         );
       })}
+
+      {/* Mais pra frente — próxima data de cada esporte fora da janela dos próximos dias */}
+      {ESPORTES_PROXIMOS.length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>mais pra frente</p>
+          {ESPORTES_PROXIMOS.map((p, i) => (
+            <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 8, background: '#fafafa', border: '1px solid #eee', borderRadius: 14, padding: '11px 14px' }}>
+              <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>{p.emoji}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#222', lineHeight: 1.3 }}>{p.evento}</div>
+                <div style={{ fontSize: 12.5, color: '#333', fontWeight: 700, marginTop: 3 }}>📅 {p.quando}</div>
+                {p.assistir && <div style={{ fontSize: 12.5, color: COR, fontWeight: 700, marginTop: 3 }}>📺 {p.assistir}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

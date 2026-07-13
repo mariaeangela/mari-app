@@ -139,6 +139,7 @@ export const ESPORTES = [
 export const ESPORTES_AGENDA = [
   // Segunda 13/jul
   { data: '2026-07-13', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — rodada do dia', sub: 'Vários jogos · Las Vegas', assistir: 'ESPN e Disney+' },
+  { data: '2026-07-13', hora: '', esporte: 'tenis', emoji: '🎾', titulo: 'ATP 250: Gstaad, Båstad e Umag', sub: 'Circuito no saibro (pós-Wimbledon) · a semana toda', assistir: 'ESPN e Disney+' },
 
   // Terça 14/jul
   { data: '2026-07-14', hora: '16:00', esporte: 'futebol', emoji: '⚽', titulo: 'França × Espanha', sub: 'Semifinal da Copa do Mundo · Dallas', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
@@ -151,6 +152,7 @@ export const ESPORTES_AGENDA = [
   // Quinta 16/jul
   { data: '2026-07-16', hora: '21:00', esporte: 'basquete', emoji: '🏀', titulo: 'Utah Jazz × Atlanta Hawks', sub: 'NBA Summer League · Las Vegas', assistir: 'Prime Video' },
   { data: '2026-07-16', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'Chicago Bulls × San Antonio Spurs', sub: 'NBA Summer League · Las Vegas', assistir: 'ESPN' },
+  { data: '2026-07-16', hora: '', esporte: 'tenis', emoji: '🎾', titulo: 'Ultimate Tennis Showdown — Rio', sub: 'Exibição em quadra dura · Rio de Janeiro', assistir: 'a confirmar' },
 
   // Sexta 17/jul
   { data: '2026-07-17', hora: '', esporte: 'basquete', emoji: '🏀', titulo: 'NBA Summer League — rodada do dia', sub: 'Fase de classificação · Las Vegas', assistir: 'ESPN e Disney+' },
@@ -176,7 +178,25 @@ export const ESPORTES_AGENDA = [
   { data: '2026-07-25', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'Semifinais da VNL feminina', sub: 'Macau', assistir: 'SporTV, GE TV e VBTV' },
   { data: '2026-07-25', hora: '', esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans — dia 2', sub: 'Street e park', assistir: 'ESPN e Disney+' },
 
+  // Segunda 20/jul
+  { data: '2026-07-20', hora: '', esporte: 'tenis', emoji: '🎾', titulo: 'ATP 500 de Hamburgo + Kitzbühel e Estoril', sub: 'Circuito no saibro · a semana toda', assistir: 'ESPN e Disney+' },
+
   // Domingo 26/jul
   { data: '2026-07-26', hora: '', esporte: 'volei', emoji: '🏐', titulo: 'FINAL da VNL feminina + 3º lugar', sub: 'Macau', assistir: 'SporTV, GE TV e VBTV', destaque: true },
   { data: '2026-07-26', hora: '', esporte: 'skate', emoji: '🛹', titulo: 'X Games New Orleans — finais', sub: 'Street e park', assistir: 'ESPN e Disney+' },
+
+  // Segunda 27/jul
+  { data: '2026-07-27', hora: '', esporte: 'tenis', emoji: '🎾', titulo: 'ATP 500 de Washington', sub: 'Quadra dura (EUA) · início da série rumo ao US Open', assistir: 'ESPN e Disney+' },
+];
+
+// "Mais pra frente" — a próxima data marcante de CADA esporte que não tem jogo
+// nos próximos dias, pra nenhum ficar de fora. Peça "atualiza os esportes".
+export const ESPORTES_PROXIMOS = [
+  { esporte: 'futebol', emoji: '⚽', evento: 'Brasileirão volta após a Copa; Libertadores no mata-mata', quando: 'Fim de julho em diante', assistir: 'Premiere, Prime Video, Globo e CazéTV' },
+  { esporte: 'volei', emoji: '🏐', evento: 'Finais da VNL masculina (Brasil na briga)', quando: '29/jul a 2/ago · Ningbo (China)', assistir: 'SporTV, GE TV e VBTV' },
+  { esporte: 'skate', emoji: '🛹', evento: 'SLS Rio, com Rayssa Leal e Kelvin Hoefler', quando: '9/ago · Maracanãzinho (Rio)', assistir: 'Rumble (grátis) e SporTV' },
+  { esporte: 'tenis', emoji: '🎾', evento: 'Masters do Canadá → Cincinnati → US Open', quando: 'Canadá 2/ago · Cincinnati 13/ago · US Open 31/ago', assistir: 'ESPN e Disney+' },
+  { esporte: 'ginastica', emoji: '🤸', evento: 'Mundial de Ginástica Rítmica', quando: '12 a 16/ago · Frankfurt (Alemanha)', assistir: 'SporTV e Globoplay' },
+  { esporte: 'basquete', emoji: '🏀', evento: 'Início da nova temporada da NBA (2026/27)', quando: 'A partir de outubro', assistir: 'ESPN, Disney+ e Prime Video' },
+  { esporte: 'natacao', emoji: '🏊', evento: 'Mundial de piscina curta (25 m)', quando: '1 a 6/dez · Pequim (Water Cube)', assistir: 'SporTV e Globoplay' },
 ];
