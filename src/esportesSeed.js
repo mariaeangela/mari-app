@@ -6,7 +6,7 @@
 //
 // A Mari pede "atualiza os esportes" quando quiser: revejo a agenda dos próximos dias,
 // as datas e a constante ESPORTES_ATUALIZADO.
-export const ESPORTES_ATUALIZADO = '13 jul 2026';
+export const ESPORTES_ATUALIZADO = '14 jul 2026';
 
 export const ESPORTES = [
   {
@@ -164,21 +164,36 @@ export const ESPORTES = [
       { nome: 'WSL Finals (Pipeline)', genero: 'misto', oque: 'A decisão do título mundial, no Havaí, com os melhores do ranking.', quando: 'Fim da temporada 2026', assistir: 'SporTV, Globoplay e WSL' },
     ],
   },
+  {
+    id: 'atletismo', nome: 'Atletismo', emoji: '🏃', cor: '#8a5cc4',
+    escopo: 'pista e campo · masculino e feminino',
+    regras: [
+      'Três grandes grupos: corridas (pista), saltos e lançamentos (campo).',
+      'Corridas: vence quem cruza a linha primeiro; queima da largada desclassifica.',
+      'Saltos (distância, altura, triplo, vara) e lançamentos (peso, disco, dardo, martelo): vale a melhor marca entre as tentativas.',
+      'Há provas com barreiras e com obstáculos (110 m/400 m com barreiras, 3000 m steeplechase).',
+      'Combinadas: decatlo (masc.) e heptatlo (fem.) somam pontos de várias provas.',
+      'Revezamentos 4×100 m e 4×400 m; o bastão tem de ser passado dentro da zona.',
+    ],
+    competicoes: [
+      { nome: 'Wanda Diamond League', genero: 'misto', oque: 'O principal circuito mundial de etapas (corridas, saltos e lançamentos), masc. e fem. Destaque brasileiro: Alison dos Santos (Piu), nos 400 m com barreiras.', quando: 'Maio a set/2026 · final 4–5/set (Bruxelas)', assistir: 'SporTV e Xsports' },
+      { nome: 'Etapa de Londres (Diamond League)', genero: 'misto', oque: 'Uma das etapas mais fortes do circuito, no estádio olímpico de Londres.', quando: '18/jul/2026', assistir: 'SporTV e Xsports' },
+      { nome: 'Mundial de Atletismo (World Athletics)', genero: 'misto', oque: 'O Mundial de pista e campo — o maior torneio da modalidade fora as Olimpíadas.', quando: 'Próxima edição em 2027', assistir: 'SporTV e Globoplay' },
+      { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'O ápice do atletismo, de 4 em 4 anos.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
+    ],
+  },
 ];
 
 // AGENDA dia a dia — cada jogo/sessão com data, horário (Brasília), gênero e onde assistir.
 // Peça "atualiza os esportes" que eu revejo os próximos dias.
 export const ESPORTES_AGENDA = [
-  // Segunda 13/jul
-  { data: '2026-07-13', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'masc', titulo: 'NBA Summer League — rodada do dia', sub: 'Vários jogos · Las Vegas', assistir: 'ESPN e Disney+' },
-  { data: '2026-07-13', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — rodada do dia', sub: 'Temporada regular · vários jogos', assistir: 'ESPN, Disney+ e Prime Video' },
-  { data: '2026-07-13', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'masc', titulo: 'ATP 250: Gstaad, Båstad e Umag', sub: 'Circuito no saibro (pós-Wimbledon) · a semana toda', assistir: 'ESPN e Disney+' },
-  { data: '2026-07-13', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'fem', titulo: 'WTA 250 de Iași', sub: 'Circuito feminino no saibro · a semana toda', assistir: 'ESPN e Disney+' },
-
-  // Terça 14/jul
+  // Terça 14/jul (hoje)
   { data: '2026-07-14', hora: '16:00', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'França × Espanha', sub: 'Semifinal da Copa do Mundo · Dallas', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
   { data: '2026-07-14', hora: '20:00', esporte: 'basquete', emoji: '🏀', genero: 'masc', titulo: 'Utah Jazz × Golden State Warriors', sub: 'NBA Summer League · Las Vegas', assistir: 'ESPN' },
   { data: '2026-07-14', hora: '21:00', esporte: 'basquete', emoji: '🏀', genero: 'masc', titulo: 'Chicago Bulls × Washington Wizards', sub: 'NBA Summer League · Las Vegas', assistir: 'Prime Video' },
+  { data: '2026-07-14', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — rodada do dia', sub: 'Temporada regular · vários jogos', assistir: 'ESPN, Disney+ e Prime Video' },
+  { data: '2026-07-14', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'masc', titulo: 'ATP 250: Gstaad, Båstad e Umag', sub: 'Circuito no saibro (pós-Wimbledon) · até 19/jul', assistir: 'ESPN e Disney+' },
+  { data: '2026-07-14', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'fem', titulo: 'WTA 250 de Iași', sub: 'Circuito feminino no saibro · até 19/jul', assistir: 'ESPN e Disney+' },
 
   // Quarta 15/jul
   { data: '2026-07-15', hora: '16:00', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Inglaterra × Argentina', sub: 'Semifinal da Copa do Mundo · Atlanta', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
@@ -193,6 +208,7 @@ export const ESPORTES_AGENDA = [
 
   // Sábado 18/jul
   { data: '2026-07-18', hora: '18:00', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Disputa de 3º lugar', sub: 'Copa do Mundo · Hard Rock, Miami', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
+  { data: '2026-07-18', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League — etapa de Londres', sub: 'Pista e campo (masc. e fem.), com Alison dos Santos', assistir: 'SporTV e Xsports' },
 
   // Domingo 19/jul
   { data: '2026-07-19', hora: '16:00', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'FINAL da Copa do Mundo 2026', sub: 'MetLife Stadium, Nova Jersey', assistir: 'Globo, SporTV, SBT e CazéTV', destaque: true },
@@ -232,6 +248,7 @@ export const ESPORTES_PROXIMOS = [
   { esporte: 'skate', emoji: '🛹', genero: 'misto', evento: 'SLS Rio, com Rayssa Leal e Kelvin Hoefler', quando: '9/ago · Maracanãzinho (Rio)', assistir: 'Rumble (grátis) e SporTV' },
   { esporte: 'surfe', emoji: '🏄', genero: 'misto', evento: 'WSL — etapa de Teahupo’o (Taiti)', quando: '8 a 18/ago · masc. e fem.', assistir: 'SporTV, Globoplay e WSL' },
   { esporte: 'ginastica', emoji: '🤸', genero: 'fem', evento: 'Mundial de Ginástica Rítmica', quando: '12 a 16/ago · Frankfurt (Alemanha)', assistir: 'SporTV e Globoplay' },
+  { esporte: 'atletismo', emoji: '🏃', genero: 'misto', evento: 'Diamond League segue até a final em Bruxelas', quando: 'Etapas pelo ano · final 4–5/set (Bélgica)', assistir: 'SporTV e Xsports' },
   { esporte: 'tenis', emoji: '🎾', genero: 'misto', evento: 'Masters do Canadá → Cincinnati → US Open', quando: 'Canadá 2/ago · Cincinnati 13/ago · US Open 31/ago', assistir: 'ESPN e Disney+' },
   { esporte: 'formula1', emoji: '🏎️', genero: 'masc', evento: 'F1 volta do recesso; depois GP de São Paulo', quando: 'Volta 21/ago · GP de São Paulo 6–8/nov', assistir: 'Band, BandSports e F1 TV' },
   { esporte: 'basquete', emoji: '🏀', genero: 'masc', evento: 'Início da nova temporada da NBA (2026/27)', quando: 'A partir de outubro', assistir: 'ESPN, Disney+ e Prime Video' },
