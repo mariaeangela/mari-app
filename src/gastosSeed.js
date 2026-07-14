@@ -70,7 +70,7 @@ export const GASTOS_ITENS_2026 = [
   ['2026-02', 'Rolês', 'Festas', 352.62],
   ['2026-02', 'Rolês', 'Restaurante', 39.6],
   ['2026-02', 'Rolês', 'Shows', 781.56],
-  ['2026-02', 'Presentes', 'Laços', 40.0],
+  ['2026-02', 'Presentes', 'Doação', 40.0],
   // 2026-03
   ['2026-03', 'Fixos', 'Mãe', 1079.79],
   ['2026-03', 'Fixos', 'Transporte', 50.0],
@@ -106,7 +106,7 @@ export const GASTOS_ITENS_2026 = [
   ['2026-03', 'Rolês', 'Bares', 295.83],
   ['2026-03', 'Rolês', 'Aniversários', 554.67],
   ['2026-03', 'Rolês', 'Cultura', 216.0],
-  ['2026-03', 'Presentes', 'Laços', 80.0],
+  ['2026-03', 'Presentes', 'Doação', 80.0],
   ['2026-03', 'Presentes', 'Milena', 150.0],
   ['2026-03', 'Presentes', 'Sorvete raul', 48.0],
   // 2026-04

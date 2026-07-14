@@ -48,6 +48,13 @@ CONSOLIDA = {
         'default': 'Mãe',
         'grupos': {},
     },
+    # Presentes: mantém os tópicos crus (default None); só junta Laços em Doação.
+    'Presentes': {
+        'default': None,
+        'grupos': {
+            'Doação': ['doação', 'doacao', 'laços', 'lacos'],
+        },
+    },
     # Rolês: a Mari classificou item a item (mapa exato). Laços sai via RECLASSIFY -> Presentes.
     'Rolês': {
         'default': 'Rolês diversos',
