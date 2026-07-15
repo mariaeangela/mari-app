@@ -3192,6 +3192,8 @@ function ViagemDetail({ trip, onBack }) {
   // Filtros da programação (só aparecem quando há programação paralela, ex.: FLIP).
   const [fTipo, setFTipo] = useState('todas'); // todas | principal | paralela
   const [fCasa, setFCasa] = useState('');       // '' = todas as casas
+  const [fDia, setFDia] = useState('');         // '' = todos os dias (senão data ISO)
+  const [fPeriodo, setFPeriodo] = useState('todos'); // todos | manha | tarde | noite
   const [fBusca, setFBusca] = useState('');
   const st = statusViagem(trip);
   const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
@@ -3237,20 +3239,27 @@ function ViagemDetail({ trip, onBack }) {
     );
   };
 
-  // ---- Programação: filtros por tipo (principal/paralela), casa e busca ----
+  // ---- Programação: filtros por tipo (principal/paralela), casa, dia, período e busca ----
   const todasMesas = trip.mesas || [];
   const temParalela = todasMesas.some(m => m.tipo === 'paralela');
   const casasList = [...new Set(todasMesas.map(m => m.casa).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  // Dias disponíveis (p/ o seletor de dia), com rótulo curto "Qui, 23/07".
+  const diasDisp = [...new Set(todasMesas.map(m => m.dia).filter(Boolean))].sort();
+  const rotuloDia = (iso) => { const dt = new Date(iso + 'T00:00:00'); return `${DIAS_SEM[dt.getDay()]}, ${iso.split('-')[2]}/${iso.split('-')[1]}`; };
+  // Período do dia pelo horário: manhã (<12h), tarde (12h–18h), noite (≥18h).
+  const periodoDe = (m) => { const h = flipHoraMin(m); return h < 720 ? 'manha' : h < 1080 ? 'tarde' : 'noite'; };
   const normf = (s) => (s || '').toString().toLowerCase();
   const qBusca = normf(fBusca.trim());
   const mesasFiltradas = todasMesas.filter(m => {
     if (fTipo !== 'todas' && (m.tipo || 'principal') !== fTipo) return false;
     if (fCasa && m.casa !== fCasa) return false;
+    if (fDia && m.dia !== fDia) return false;
+    if (fPeriodo !== 'todos' && periodoDe(m) !== fPeriodo) return false;
     if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
     return true;
   });
   const dias = [...new Set(mesasFiltradas.map(m => m.dia))].sort();
-  const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!qBusca;
+  const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || !!qBusca;
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3287,7 +3296,16 @@ function ViagemDetail({ trip, onBack }) {
                   <button key={v} onClick={() => setFTipo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fTipo === v ? COR_VIAGEM : '#e2e2e2'), background: fTipo === v ? COR_VIAGEM : '#fff', color: fTipo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
                 ))}
               </div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {[['todos', 'Dia todo'], ['manha', 'Manhã'], ['tarde', 'Tarde'], ['noite', 'Noite']].map(([v, lbl]) => (
+                  <button key={v} onClick={() => setFPeriodo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fPeriodo === v ? COR_VIAGEM : '#e2e2e2'), background: fPeriodo === v ? COR_VIAGEM : '#fff', color: fPeriodo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
+                ))}
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
+                <select value={fDia} onChange={e => setFDia(e.target.value)} style={{ ...inputStyle, width: 128, marginBottom: 0 }}>
+                  <option value="">Todos os dias</option>
+                  {diasDisp.map(d => <option key={d} value={d}>{rotuloDia(d)}</option>)}
+                </select>
                 <select value={fCasa} onChange={e => setFCasa(e.target.value)} style={{ ...inputStyle, flex: 1, marginBottom: 0 }}>
                   <option value="">Todas as casas ({casasList.length})</option>
                   {casasList.map(c => <option key={c} value={c}>{c}</option>)}
@@ -3295,7 +3313,7 @@ function ViagemDetail({ trip, onBack }) {
               </div>
               <input value={fBusca} onChange={e => setFBusca(e.target.value)} placeholder="buscar por título, autor ou casa…" style={{ ...inputStyle, marginTop: 8, marginBottom: 0 }} />
               <div style={{ fontSize: 11.5, color: '#999', marginTop: 8 }}>
-                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
+                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFDia(''); setFPeriodo('todos'); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
               </div>
             </div>
           )}
