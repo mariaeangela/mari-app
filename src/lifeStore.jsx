@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
+import { FLIP_PARALELA } from './flipParalelaSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -868,6 +869,31 @@ function ensureFlipDetalhes(d) {
   });
   return { ...d, flipDetalhes1: true, viagensFuturas: viagens };
 }
+// Patch único: marca as 21 mesas oficiais já semeadas como tipo:'principal' (as que ainda
+// não têm tipo). Assim o selo principal/paralela e os filtros funcionam. Flag nova.
+function ensureFlipTipoPrincipal(d) {
+  if (d.flipTipoPrincipal1) return d;
+  const viagens = (d.viagensFuturas || []).map(v => v.id !== 'vf-flip2026' ? v
+    : { ...v, mesas: (v.mesas || []).map(m => m.tipo ? m : { ...m, tipo: 'principal' }) });
+  return { ...d, flipTipoPrincipal1: true, viagensFuturas: viagens };
+}
+// Patch único: injeta a programação PARALELA da FLIP (todas as casas/espaços, ~946 sessões,
+// gerada do Excel da @tatianyleite) como itens da programação com tipo:'paralela', casa (local),
+// endereço e link do Google Maps p/ chegar. Idempotente: pula ids já presentes. Flag nova.
+function ensureFlipParalela(d) {
+  if (d.flipParalela1) return d;
+  const viagens = (d.viagensFuturas || []).map(v => {
+    if (v.id !== 'vf-flip2026') return v;
+    const have = new Set((v.mesas || []).map(m => m.id));
+    const novos = FLIP_PARALELA.filter(p => !have.has(p.id)).map(p => ({
+      id: p.id, tipo: 'paralela', casa: p.casa, dia: p.dia, hora: p.hora, horaMin: p.horaMin,
+      titulo: p.titulo, autores: p.autores || undefined, endereco: p.endereco || undefined,
+      maps: p.endereco ? gmap(p.endereco + ', Paraty - RJ') : (p.casa ? gmap(p.casa + ', Paraty - RJ') : undefined),
+    }));
+    return { ...v, mesas: [...(v.mesas || []), ...novos] };
+  });
+  return { ...d, flipParalela1: true, viagensFuturas: viagens };
+}
 
 // ---- Viagem Nova York & Chicago 2026 (roteiro da Mari, 13–26/09) ----
 // Cada lugar vira um item da programação, com descrição, dias/horário de abertura,
@@ -1525,7 +1551,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipParalela, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

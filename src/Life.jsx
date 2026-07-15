@@ -3172,6 +3172,14 @@ function QueroViajarView({ onBack }) {
   );
 }
 
+// Minutos desde a meia-noite p/ ordenar a programação por horário ("9h30" → 570).
+// Usa horaMin quando existe (seed da paralela); senão parseia a string "hora".
+function flipHoraMin(m) {
+  if (typeof m.horaMin === 'number') return m.horaMin;
+  const x = /(\d{1,2})\s*h\s*(\d{2})?/.exec(m.hora || '');
+  return x ? (+x[1]) * 60 + (x[2] ? +x[2] : 0) : 9999;
+}
+
 function ViagemDetail({ trip, onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);     // editar a viagem
@@ -3181,6 +3189,10 @@ function ViagemDetail({ trip, onBack }) {
   const [novoLevar, setNovoLevar] = useState('');
   const [novoComprar, setNovoComprar] = useState('');
   const [novoSecItem, setNovoSecItem] = useState({}); // texto do "adicionar" por seção (chave = id da seção)
+  // Filtros da programação (só aparecem quando há programação paralela, ex.: FLIP).
+  const [fTipo, setFTipo] = useState('todas'); // todas | principal | paralela
+  const [fCasa, setFCasa] = useState('');       // '' = todas as casas
+  const [fBusca, setFBusca] = useState('');
   const st = statusViagem(trip);
   const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
   const addItem = (campo, texto, limpar) => { const t = texto.trim(); if (!t) return; salvar({ [campo]: [...(trip[campo] || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); limpar(''); };
@@ -3225,7 +3237,20 @@ function ViagemDetail({ trip, onBack }) {
     );
   };
 
-  const dias = [...new Set((trip.mesas || []).map(m => m.dia))].sort();
+  // ---- Programação: filtros por tipo (principal/paralela), casa e busca ----
+  const todasMesas = trip.mesas || [];
+  const temParalela = todasMesas.some(m => m.tipo === 'paralela');
+  const casasList = [...new Set(todasMesas.map(m => m.casa).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const normf = (s) => (s || '').toString().toLowerCase();
+  const qBusca = normf(fBusca.trim());
+  const mesasFiltradas = todasMesas.filter(m => {
+    if (fTipo !== 'todas' && (m.tipo || 'principal') !== fTipo) return false;
+    if (fCasa && m.casa !== fCasa) return false;
+    if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
+    return true;
+  });
+  const dias = [...new Set(mesasFiltradas.map(m => m.dia))].sort();
+  const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!qBusca;
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3255,11 +3280,30 @@ function ViagemDetail({ trip, onBack }) {
 
       {bloco('Programação', (
         <div>
+          {temParalela && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {[['todas', 'Todas'], ['principal', 'Principais'], ['paralela', 'Paralelas']].map(([v, lbl]) => (
+                  <button key={v} onClick={() => setFTipo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fTipo === v ? COR_VIAGEM : '#e2e2e2'), background: fTipo === v ? COR_VIAGEM : '#fff', color: fTipo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select value={fCasa} onChange={e => setFCasa(e.target.value)} style={{ ...inputStyle, flex: 1, marginBottom: 0 }}>
+                  <option value="">Todas as casas ({casasList.length})</option>
+                  {casasList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <input value={fBusca} onChange={e => setFBusca(e.target.value)} placeholder="buscar por título, autor ou casa…" style={{ ...inputStyle, marginTop: 8, marginBottom: 0 }} />
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 8 }}>
+                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
+              </div>
+            </div>
+          )}
           {dias.map(dia => {
             const dt = new Date(dia + 'T00:00:00');
             const wd = DIAS_LONGOS[dt.getDay()];
             const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
-            const ms = (trip.mesas || []).filter(m => m.dia === dia).sort((a, b) => (a.hora || '').localeCompare(b.hora || '') || (a.n || 0) - (b.n || 0));
+            const ms = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
             return (
               <div key={dia} style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
@@ -3267,6 +3311,12 @@ function ViagemDetail({ trip, onBack }) {
                   <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
                     <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
                     <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
+                      {temParalela && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, ...(m.tipo === 'paralela' ? { background: '#f0ecf7', color: '#8a6fb0' } : { background: COR_VIAGEM, color: '#fff' }) }}>{m.tipo === 'paralela' ? 'paralela' : 'principal'}</span>
+                          {m.casa && <span style={{ fontSize: 11.5, color: '#888', fontWeight: 600 }}>{m.casa}</span>}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                         {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
                         <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
@@ -3287,7 +3337,7 @@ function ViagemDetail({ trip, onBack }) {
               </div>
             );
           })}
-          {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>vazio — toque em + adicionar pra montar o roteiro por dia.</div>}
+          {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
           <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
         </div>
       ))}
@@ -3329,7 +3379,7 @@ function ViagemDetail({ trip, onBack }) {
 
       {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
       {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
-      {progForm && <ProgItemForm trip={trip} item={progForm.item} onSave={salvar} onClose={() => setProgForm(null)} />}
+      {progForm && <ProgItemForm trip={trip} item={progForm.item} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
       {secaoForm && <SecaoForm onSave={(sec) => setSecoes(ss => [...ss, sec])} onClose={() => setSecaoForm(false)} />}
     </div>
   );
@@ -3338,10 +3388,12 @@ function ViagemDetail({ trip, onBack }) {
 // Item da programação (roteiro por dia = um lugar): dia + hora + lugar + descrição +
 // abertura (dias/horário) + entrada (preço) + Google Maps + site oficial. Trocar o "Dia"
 // já reagenda o lugar pra outra data da viagem (fica dentro do intervalo início–fim).
-function ProgItemForm({ trip, item, onSave, onClose }) {
+function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose }) {
   const [dia, setDia] = useState(item?.dia || trip.inicio || '');
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
+  const [tipo, setTipo] = useState(item?.tipo || (mostrarTipo ? 'paralela' : ''));
+  const [casa, setCasa] = useState(item?.casa || '');
   const [desc, setDesc] = useState(item?.desc || '');
   const [abertura, setAbertura] = useState(item?.abertura || '');
   const [preco, setPreco] = useState(item?.preco || '');
@@ -3350,7 +3402,14 @@ function ProgItemForm({ trip, item, onSave, onClose }) {
   const podeSalvar = titulo.trim().length > 0 && !!dia;
   const salvar = () => {
     if (!podeSalvar) return;
+    // horaMin recalculado a partir da hora digitada, p/ manter a ordenação por horário.
+    const hx = /(\d{1,2})\s*h\s*(\d{2})?/.exec(hora.trim()) || /(\d{1,2}):(\d{2})/.exec(hora.trim());
     const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia, hora: hora.trim() || undefined, titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
+    if (mostrarTipo) {
+      obj.tipo = tipo || 'paralela';
+      obj.casa = casa.trim() || undefined;
+      obj.horaMin = hx ? (+hx[1]) * 60 + (hx[2] ? +hx[2] : 0) : 9999;
+    }
     const mesas = trip.mesas || [];
     onSave({ mesas: item ? mesas.map(x => x.id === item.id ? obj : x) : [...mesas, obj] });
     onClose();
@@ -3364,10 +3423,24 @@ function ProgItemForm({ trip, item, onSave, onClose }) {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
-          <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label><input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} /></div>
+          <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label>{mostrarTipo ? <input value={hora} onChange={e => setHora(e.target.value)} placeholder="ex.: 16h" style={inputStyle} /> : <input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} />}</div>
         </div>
-        <label style={labelStyle}>Lugar / atividade</label>
-        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: The Met · Top of the Rock" style={inputStyle} />
+        {mostrarTipo && (
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ width: 140 }}><label style={labelStyle}>Tipo</label>
+              <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+                <option value="paralela">Paralela</option>
+                <option value="principal">Principal</option>
+              </select>
+            </div>
+            <div style={{ flex: 1 }}><label style={labelStyle}>Casa / local</label>
+              <input value={casa} onChange={e => setCasa(e.target.value)} placeholder="ex.: Casa Sesc" list="flip-casas" style={inputStyle} />
+              <datalist id="flip-casas">{casasList.map(c => <option key={c} value={c} />)}</datalist>
+            </div>
+          </div>
+        )}
+        <label style={labelStyle}>{mostrarTipo ? 'Título da sessão' : 'Lugar / atividade'}</label>
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={mostrarTipo ? 'ex.: Lançamento: …' : 'ex.: The Met · Top of the Rock'} style={inputStyle} />
         <label style={labelStyle}>Descrição (o que é)</label>
         <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="uma linha sobre o lugar, o que ver…" style={{ ...inputStyle, resize: 'vertical' }} />
         <div style={{ display: 'flex', gap: 10 }}>
