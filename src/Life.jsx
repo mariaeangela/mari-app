@@ -3194,6 +3194,7 @@ function ViagemDetail({ trip, onBack }) {
   const [fCasa, setFCasa] = useState('');       // '' = todas as casas
   const [fDia, setFDia] = useState('');         // '' = todos os dias (senão data ISO)
   const [fPeriodo, setFPeriodo] = useState('todos'); // todos | manha | tarde | noite
+  const [fFav, setFFav] = useState(false);      // true = só favoritos (★)
   const [fBusca, setFBusca] = useState('');
   const st = statusViagem(trip);
   const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
@@ -3202,6 +3203,8 @@ function ViagemDetail({ trip, onBack }) {
   const delItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).filter(c => c.id !== id) });
   // Marca/desmarca um lugar da programação como visitado (☑ do roteiro).
   const toggleVisitado = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, visitado: !m.visitado } : m) });
+  // Favorita/desfavorita uma sessão (★). Alimenta o filtro "só favoritos".
+  const toggleFavorito = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, favorito: !m.favorito } : m) });
   // ---- Tópicos livres (secoes): cada um é "nota" (texto solto) ou "lista" (checklist) ----
   const setSecoes = (fn) => salvar({ secoes: fn(trip.secoes || []) });
   const delSecao = (id) => setSecoes(ss => ss.filter(s => s.id !== id));
@@ -3255,11 +3258,13 @@ function ViagemDetail({ trip, onBack }) {
     if (fCasa && m.casa !== fCasa) return false;
     if (fDia && m.dia !== fDia) return false;
     if (fPeriodo !== 'todos' && periodoDe(m) !== fPeriodo) return false;
+    if (fFav && !m.favorito) return false;
     if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
     return true;
   });
   const dias = [...new Set(mesasFiltradas.map(m => m.dia))].sort();
-  const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || !!qBusca;
+  const totalFav = todasMesas.filter(m => m.favorito).length;
+  const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || fFav || !!qBusca;
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -3312,10 +3317,14 @@ function ViagemDetail({ trip, onBack }) {
                 </select>
               </div>
               <input value={fBusca} onChange={e => setFBusca(e.target.value)} placeholder="buscar por título, autor ou casa…" style={{ ...inputStyle, marginTop: 8, marginBottom: 0 }} />
+              <button onClick={() => setFFav(v => !v)} style={{ width: '100%', marginTop: 8, padding: '8px 0', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★' : '☆'} Só favoritos{totalFav > 0 ? ` (${totalFav})` : ''}</button>
               <div style={{ fontSize: 11.5, color: '#999', marginTop: 8 }}>
-                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFDia(''); setFPeriodo('todos'); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
+                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFDia(''); setFPeriodo('todos'); setFFav(false); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
               </div>
             </div>
+          )}
+          {!temParalela && totalFav > 0 && (
+            <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
           )}
           {dias.map(dia => {
             const dt = new Date(dia + 'T00:00:00');
@@ -3350,6 +3359,7 @@ function ViagemDetail({ trip, onBack }) {
                         </div>
                       )}
                     </div>
+                    <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
                   </div>
                 ))}
               </div>
