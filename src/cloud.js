@@ -65,21 +65,37 @@ export async function fetchCalendario() { const d = await getDoc(); if (d === UN
 export async function fetchLife() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.life === 'object' && d.life) || null; }
 
 // ---- Envio automático (debounce curto por seção + flush ao ocultar/sair) ----
+// `p` = valor pendente ainda não confirmado na nuvem. Ele SÓ é limpo quando o
+// POST volta OK; se falhar, mantém e re-tenta — assim um save que caiu na rede
+// não é perdido em silêncio (antes o pendente era zerado antes do POST).
 const DEBOUNCE = 200;
-const q = { saved: { t: null, p: null }, calendario: { t: null, p: null }, life: { t: null, p: null } };
+const RETRY = 4000;
+const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
+function runPush(field) {
+  const s = q[field];
+  s.t = null;
+  if (s.sending || s.p == null) return;   // um envio de cada vez por seção
+  const v = s.p;
+  s.sending = true;
+  doPost({ [field]: v }).then(ok => {
+    s.sending = false;
+    // Se um valor MAIS NOVO chegou durante o envio, `s.p` já é outro: envia esse.
+    if (ok && s.p === v) s.p = null;        // confirmado e nada novo -> limpa
+    if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), ok ? 0 : RETRY);
+  });
+}
 function schedule(field, value) {
   const s = q[field];
-  s.p = value;
+  s.p = value;                              // sobrescreve o pendente (é o estado atual inteiro)
   if (s.t) clearTimeout(s.t);
-  s.t = setTimeout(() => { s.t = null; const v = s.p; s.p = null; doPost({ [field]: v }); }, DEBOUNCE);
+  s.t = setTimeout(() => runPush(field), DEBOUNCE);
 }
 function flushAll() {
   for (const field of Object.keys(q)) {
     const s = q[field];
     if (s.p == null) continue;
     if (s.t) { clearTimeout(s.t); s.t = null; }
-    const v = s.p; s.p = null;
-    doPost({ [field]: v });   // dispara já (foreground fetch costuma completar mesmo ao ocultar)
+    runPush(field);   // dispara já (foreground fetch costuma completar mesmo ao ocultar)
   }
 }
 if (typeof document !== 'undefined') {
@@ -92,6 +108,16 @@ export function pushCalendario(cal) { schedule('calendario', cal); }
 export function pushLife(life) { schedule('life', life); }
 
 // ---- Salvar AGORA (aguardável) — pro botão manual; garante entrega + confirmação ----
-export async function saveLifeNow(life) { const s = q.life; if (s.t) { clearTimeout(s.t); s.t = null; } s.p = null; return doPost({ life }); }
-export async function saveCalendarioNow(cal) { const s = q.calendario; if (s.t) { clearTimeout(s.t); s.t = null; } s.p = null; return doPost({ calendario: cal }); }
-export async function saveSavedNow(saved) { const s = q.saved; if (s.t) { clearTimeout(s.t); s.t = null; } s.p = null; return doPost({ saved }); }
+// Se FALHAR, deixa o valor no pendente pra o retry automático continuar tentando
+// (o botão mostra erro, mas o dado não é abandonado).
+async function saveNow(field, value) {
+  const s = q[field];
+  if (s.t) { clearTimeout(s.t); s.t = null; }
+  const ok = await doPost({ [field]: value });
+  if (ok) { if (s.p === value) s.p = null; }
+  else { s.p = value; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY); }
+  return ok;
+}
+export async function saveLifeNow(life) { return saveNow('life', life); }
+export async function saveCalendarioNow(cal) { return saveNow('calendario', cal); }
+export async function saveSavedNow(saved) { return saveNow('saved', saved); }
