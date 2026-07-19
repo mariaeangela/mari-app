@@ -125,6 +125,16 @@ export function CalendarProvider({ children }) {
       }
       const merged0 = { ...DEFAULT, ...cloud };
       const merged = runSeeds(merged0);
+      // Anti-perda: se o LOCAL for mais novo que a nuvem (ex.: uma edição que não
+      // chegou a subir antes de fechar o app), mantém o local e sobe pra nuvem —
+      // nunca descarta a versão mais recente em favor de uma nuvem mais velha.
+      if ((local._rev || 0) > (merged._rev || 0)) {
+        const seededLocal = runSeeds(local);
+        const r = rolarAtrasadas(seededLocal.tasks, hojeKey());
+        const f = r.changed ? { ...seededLocal, tasks: r.next } : seededLocal;
+        writeLocal(f); setData(f); pushCalendario(f);
+        return;
+      }
       const { next, changed } = rolarAtrasadas(merged.tasks, hojeKey());
       const final = changed ? { ...merged, tasks: next } : merged;
       writeLocal(final);
@@ -134,7 +144,9 @@ export function CalendarProvider({ children }) {
     return () => { alive = false; };
   }, []);
 
-  const persist = (next) => { dirty.current = true; setData(next); writeLocal(next); pushCalendario(next); };
+  // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
+  const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
+  const persist = (next) => { const s = stampRev(next); dirty.current = true; setData(s); writeLocal(s); pushCalendario(s); };
   const patch = (part) => persist({ ...data, ...part });
   // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveCalendarioNow(dataRef.current); };

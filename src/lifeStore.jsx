@@ -1638,6 +1638,13 @@ export function LifeProvider({ children }) {
         return;
       }
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
+      // Anti-perda: se o LOCAL for mais novo que a nuvem (edição que não subiu antes
+      // de fechar), mantém o local e sobe pra nuvem — nunca descarta o mais recente.
+      if ((local._rev || 0) > (merged._rev || 0)) {
+        const nx = runLifeSeeds(local);
+        writeLocal(nx); setData(nx); pushLife(nx);
+        return;
+      }
       const next = runLifeSeeds(merged);
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
@@ -1645,7 +1652,9 @@ export function LifeProvider({ children }) {
     return () => { alive = false; };
   }, []);
 
-  const persist = (next) => { dirty.current = true; setData(next); writeLocal(next); pushLife(next); };
+  // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
+  const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
+  const persist = (next) => { const s = stampRev(next); dirty.current = true; setData(s); writeLocal(s); pushLife(s); };
   // Salvar AGORA (botão manual): grava na nuvem e AGUARDA a confirmação. Devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveLifeNow(dataRef.current); };
 
@@ -1654,8 +1663,10 @@ export function LifeProvider({ children }) {
   // de checklist vencido e não-feito não se move sozinho até um reload.
   useEffect(() => {
     const roll = () => setData(prev => {
-      const next = rolarPlanosVencidos(rolarComprasVencidas(prev));
-      if (next !== prev) { writeLocal(next); pushLife(next); }  // muda -> persiste (local + nuvem)
+      const rolled = rolarPlanosVencidos(rolarComprasVencidas(prev));
+      if (rolled === prev) return prev;
+      const next = stampRev(rolled);                 // mudou -> carimba e persiste (local + nuvem)
+      writeLocal(next); pushLife(next);
       return next;
     });
     const onVis = () => { if (document.visibilityState === 'visible') roll(); };
