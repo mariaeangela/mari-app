@@ -43,9 +43,12 @@ export const TAREFA_COR = '#6b7280';    // cinza-ardósia
 
 // --- Subtipos de CULTURA (alimentam a futura aba Projetos). ---
 // 'lendo' = livro em andamento (aparece fixo no fim da página); 'lido' = livro concluído.
+// 'ouvindo'/'ouvido' = mesma ideia para audiobooks.
 export const CULTURA_SUBTIPOS = [
   { id: 'lendo',      label: 'Lendo' },
   { id: 'lido',       label: 'Lido' },
+  { id: 'ouvindo',    label: 'Ouvindo' },
+  { id: 'ouvido',     label: 'Ouvido' },
   { id: 'filme',      label: 'Filme' },
   { id: 'serie',      label: 'Série' },
   { id: 'exposicao',  label: 'Exposição' },

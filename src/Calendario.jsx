@@ -75,9 +75,9 @@ export function itemsForDay(data, date, planos) {
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: t.trabalho ? '#4f7cff' : TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
   const roles = data.roles.filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo + (r.local ? ' · ' + r.local : '') }));
-  // 'lendo' não entra no dia/calendário — só aparece na seção "Lendo no momento"
-  // (e volta para o calendário como 'lido' quando concluído).
-  const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo')
+  // 'lendo'/'ouvindo' não entram no dia/calendário — só aparecem nas seções fixas
+  // "Lendo/Ouvindo no momento" (e voltam ao calendário como 'lido'/'ouvido' ao concluir).
+  const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo' && c.subtipo !== 'ouvindo')
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
   let planoItens = [];
   if (planos) {
@@ -819,6 +819,7 @@ export default function Calendario({ isWide }) {
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
+  const ouvindo = cal.data.cultura.filter(c => c.subtipo === 'ouvindo');
   const bilheteHoje = cal.data.bilhetes[ymd(today)];
   // Tarefas sem data: pendentes (visíveis) e concluídas (escondidas atrás de um botão).
   const tarefasPendentes = cal.data.tasks.filter(t => !t.data && !t.feita);
@@ -911,6 +912,22 @@ export default function Calendario({ isWide }) {
               <span style={{ width: 9, height: 9, borderRadius: '50%', background: CULTURA_COR, flexShrink: 0 }} />
               <span onClick={() => setAddSheet({ editing: { ...c, _tipo: 'cultura' } })} style={{ flex: 1, fontSize: 14, color: '#222', fontStyle: 'italic', cursor: 'pointer' }}>{c.titulo}</span>
               <button onClick={() => cal.saveCultura({ ...c, subtipo: 'lido', data: ymd(today) })}
+                style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid ' + CULTURA_COR + '66', background: '#fff', color: CULTURA_COR, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                concluído
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* Ouvindo no momento (audiobooks) — só na visão Mês */}
+      {view === 'mes' && ouvindo.length > 0 && (
+        <div style={{ marginTop: 26, borderTop: '1px solid #eee', paddingTop: 16 }}>
+          <div style={{ fontSize: 11, color: CULTURA_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Ouvindo no momento</div>
+          {ouvindo.map(c => (
+            <div key={c.id} style={rowBtn}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: CULTURA_COR, flexShrink: 0 }} />
+              <span onClick={() => setAddSheet({ editing: { ...c, _tipo: 'cultura' } })} style={{ flex: 1, fontSize: 14, color: '#222', fontStyle: 'italic', cursor: 'pointer' }}>{c.titulo}</span>
+              <button onClick={() => cal.saveCultura({ ...c, subtipo: 'ouvido', data: ymd(today) })}
                 style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid ' + CULTURA_COR + '66', background: '#fff', color: CULTURA_COR, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 concluído
               </button>

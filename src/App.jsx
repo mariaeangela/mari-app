@@ -224,6 +224,19 @@ function LendoAgora() {
   );
 }
 
+// Ouvindo no momento (audiobooks) — igual ao Lendo, logo abaixo dele.
+function OuvindoAgora() {
+  const cal = useCalendar();
+  const ouvindo = cal.data.cultura.filter(c => c.subtipo === 'ouvindo');
+  if (!ouvindo.length) return null;
+  return (
+    <p style={{ fontSize: 13, color: '#777', marginBottom: 22 }}>
+      <span style={{ fontWeight: 700, color: '#999' }}>Ouvindo: </span>
+      <span style={{ fontStyle: 'italic' }}>{ouvindo.map(c => c.titulo).join(', ')}</span>
+    </p>
+  );
+}
+
 // "Neste dia, em XXXX..." — fato histórico (movido do calendário para a Hoje).
 function NesteDiaFato() {
   const [fato, setFato] = useState(null);
@@ -276,8 +289,8 @@ function HojeAgenda() {
 function Feed({ isWide }) {
   // Capa (Hoje) — enxuta, a pedido da Mari: saudação · neste dia · seu dia
   // (humor + diário) · antecipação (viagem/prova/compra + cultura acabando) ·
-  // lendo · agenda do dia (hoje). Metas do mês, planos próximos e os cards de
-  // conteúdo saíram daqui (metas/planos ficam no Calendário; conteúdo, no Explorar).
+  // lendo · ouvindo · agenda do dia (hoje). Metas do mês, planos próximos e os
+  // cards de conteúdo saíram daqui (metas/planos ficam no Calendário; conteúdo, no Explorar).
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{ padding: '20px 20px 0' }}>
@@ -286,6 +299,7 @@ function Feed({ isWide }) {
         <SeuDia />
         <Antecipacao />
         <LendoAgora />
+        <OuvindoAgora />
         <HojeAgenda />
       </div>
     </div>
