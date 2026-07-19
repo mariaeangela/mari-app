@@ -3,6 +3,14 @@
 // sem internet), falha em silêncio e o app segue no localStorage.
 const ENDPOINT = '/api/data';
 
+// Sentinela para "não consegui LER a nuvem" (offline, erro HTTP, timeout do
+// serverless frio). É DIFERENTE de "a nuvem respondeu e a seção está vazia".
+// Distinguir os dois é CRÍTICO: se o app trata uma falha de leitura como
+// "nuvem vazia", ele empurra o local por cima da nuvem e APAGA dados bons de
+// outro aparelho. Quem lê a nuvem no boot deve, ao ver UNREACHABLE, manter o
+// local e NÃO empurrar nada pra cima.
+export const UNREACHABLE = Symbol('cloud-unreachable');
+
 // ---- Status de sincronização (pro indicador/botão "Salvar") ----
 const listeners = new Set();
 export function onSyncStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); }
@@ -38,18 +46,23 @@ async function doPost(payload) {
   }
 }
 
+// Devolve o doc da nuvem, ou UNREACHABLE se não deu pra ler (offline/erro/timeout).
+// NUNCA devolve null por falha — null/[] são reservados para "leu, mas vazio".
 async function getDoc() {
   try {
     const res = await fetch(ENDPOINT, { method: 'GET' });
-    if (!res.ok) return null;
+    if (!res.ok) return UNREACHABLE;
     return await res.json();
   } catch {
-    return null;
+    return UNREACHABLE;
   }
 }
-export async function fetchSaved() { const d = await getDoc(); if (d == null) return null; return Array.isArray(d.saved) ? d.saved : []; }
-export async function fetchCalendario() { const d = await getDoc(); return (d && typeof d.calendario === 'object' && d.calendario) || null; }
-export async function fetchLife() { const d = await getDoc(); return (d && typeof d.life === 'object' && d.life) || null; }
+// Cada fetch devolve UNREACHABLE (não leu) OU o valor da seção (lido; pode ser
+// [] / null = vazio). O chamador DEVE tratar UNREACHABLE como "mantém o local,
+// não empurra nada", e só migrar o local pra cima quando a nuvem leu e veio vazia.
+export async function fetchSaved() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return Array.isArray(d && d.saved) ? d.saved : []; }
+export async function fetchCalendario() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.calendario === 'object' && d.calendario) || null; }
+export async function fetchLife() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.life === 'object' && d.life) || null; }
 
 // ---- Envio automático (debounce curto por seção + flush ao ocultar/sair) ----
 const DEBOUNCE = 200;

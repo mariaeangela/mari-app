@@ -13,7 +13,7 @@
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchCalendario, pushCalendario, saveCalendarioNow } from './cloud';
+import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE } from './cloud';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {} };
@@ -102,8 +102,17 @@ export function CalendarProvider({ children }) {
       const local = readLocal();
       const cloud = await fetchCalendario();
       if (!alive || dirty.current) return;
+      if (cloud === UNREACHABLE) {
+        // NÃO deu pra ler a nuvem (offline/erro/timeout): trabalha só com o local
+        // e NUNCA empurra pra cima — senão apaga dados bons de outro aparelho.
+        const seeded = runSeeds(local);
+        const { next, changed } = rolarAtrasadas(seeded.tasks, hojeKey());
+        const f = changed ? { ...seeded, tasks: next } : seeded;
+        if (changed || seeded !== local) { writeLocal(f); setData(f); }
+        return;
+      }
       if (!cloud) {
-        // nuvem vazia/offline: se já há algo local, empurra pra cima (migração)
+        // nuvem LIDA e vazia: se já há algo local, empurra pra cima (migração 1ª vez)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
           local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length;
         const seeded = runSeeds(local);

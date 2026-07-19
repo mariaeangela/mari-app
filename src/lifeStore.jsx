@@ -6,7 +6,7 @@
 //     itens:  [{ id, titulo, listaId, dataLimite?, orcamento?, links: [], comprado }]
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchLife, pushLife, saveLifeNow, onSyncStatus } from './cloud';
+import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
 import { FLIP_PARALELA } from './flipParalelaSeed.js';
@@ -1623,7 +1623,15 @@ export function LifeProvider({ children }) {
       const local = readLocal();
       const cloud = await fetchLife();
       if (!alive || dirty.current) return;
+      if (cloud === UNREACHABLE) {
+        // NÃO deu pra ler a nuvem (offline/erro/timeout): usa o local e NUNCA
+        // empurra pra cima — senão apaga dados bons de outro aparelho.
+        const next = runLifeSeeds(local);
+        if (next !== local) { writeLocal(next); setData(next); }
+        return;
+      }
       if (!cloud) {
+        // nuvem LIDA e vazia: migra o local pra cima (1ª vez)
         const next = runLifeSeeds(local);
         writeLocal(next); setData(next);
         if (next !== local || local.compras.itens.length || local.compras.listas.length) pushLife(next);
