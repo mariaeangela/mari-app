@@ -739,6 +739,44 @@ function ExSummary({ data }) {
   );
 }
 
+// ---------------- Lista de exercícios (todos, por data, editável) ----------------
+// Alternativa à visão de calendário: uma lista simples de todos os exercícios
+// agrupados por data (mais recente primeiro), pra editar rápido.
+function ExerciciosList({ data, onEdit }) {
+  const list = [...data.exercicios].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  if (!list.length) return <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhum exercício ainda. Toque no + para adicionar.</p>;
+  const grupos = [];
+  let atual = null;
+  for (const x of list) {
+    if (!atual || atual.data !== x.data) { atual = { data: x.data, itens: [] }; grupos.push(atual); }
+    atual.itens.push(x);
+  }
+  return (
+    <div>
+      {grupos.map(g => {
+        const d = g.data ? parseYmd(g.data) : null;
+        return (
+          <div key={g.data || 'sem'} style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, marginBottom: 6 }}>{d ? `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}` : 'Sem data'}</div>
+            {g.itens.map(x => {
+              const corrida = ehCorrida(x);
+              const cor = EXERCICIO_BY_ID[x.subtipo]?.cor || '#999';
+              return (
+                <button key={x.id} onClick={() => onEdit({ ...x, _tipo: 'exercicio' })} style={rowBtn}>
+                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: cor, flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{corrida ? corridaLabel(x) : exTitulo(x)}</span>
+                  {corrida && x.metaTempo != null && x.metaTempo !== '' && <span style={{ fontSize: 12, fontWeight: 700, color: cor, whiteSpace: 'nowrap', flexShrink: 0 }}>🎯 {metaLabel(x.metaTempo)}</span>}
+                  {x.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{x.horaInicio}</span>}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---------------- Metas do mês ----------------
 const META_COR = '#caa43a';
 function MetasMes({ mesKey, mesLabel }) {
@@ -777,6 +815,7 @@ export default function Calendario({ isWide }) {
   const [compraAberta, setCompraAberta] = useState(null);
   const [editCheck, setEditCheck] = useState(null);
   const [verFeitas, setVerFeitas] = useState(false);
+  const [exView, setExView] = useState('cal'); // dentro de Exercício: 'cal' (calendário) | 'lista'
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
   const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
@@ -837,7 +876,19 @@ export default function Calendario({ isWide }) {
 
       {view === 'agenda' && <AgendaView onEdit={(it) => setAddSheet({ editing: it })} />}
       {view === 'exercicio' && <ExSummary data={cal.data} />}
-      {(view === 'mes' || view === 'exercicio') && (
+      {/* Exercício: alterna entre calendário (pontinhos) e lista editável */}
+      {view === 'exercicio' && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          {[['cal', 'Calendário'], ['lista', 'Lista']].map(([id, label]) => (
+            <button key={id} onClick={() => setExView(id)} style={{
+              padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+              border: '1px solid ' + (exView === id ? '#111' : '#e2e2e2'), background: exView === id ? '#111' : '#fff', color: exView === id ? '#fff' : '#888',
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
+      {view === 'exercicio' && exView === 'lista' && <ExerciciosList data={cal.data} onEdit={(it) => setAddSheet({ editing: it })} />}
+      {(view === 'mes' || (view === 'exercicio' && exView === 'cal')) && (
         <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal}
           getDots={view === 'exercicio'
             ? (d) => itemsForDay(cal.data, d).exercicios
@@ -846,10 +897,10 @@ export default function Calendario({ isWide }) {
       {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
       {view === 'mes' && <Legenda items={LEGENDA} />}
       {view === 'mes' && <MetasMes mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} />}
-      {view === 'exercicio' && <Legenda items={EXERCICIO_LEGENDA} />}
+      {view === 'exercicio' && exView === 'cal' && <Legenda items={EXERCICIO_LEGENDA} />}
 
-      {/* Próximas corridas — só na visão Exercício */}
-      {view === 'exercicio' && <ProximasCorridas data={cal.data} today={today} onEdit={(it) => setAddSheet({ editing: it })} />}
+      {/* Próximas corridas — só na visão Exercício (calendário) */}
+      {view === 'exercicio' && exView === 'cal' && <ProximasCorridas data={cal.data} today={today} onEdit={(it) => setAddSheet({ editing: it })} />}
 
       {/* Lendo no momento — só na visão Mês */}
       {view === 'mes' && lendo.length > 0 && (
