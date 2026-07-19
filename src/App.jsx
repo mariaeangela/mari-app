@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CONTENT_TYPES, CARD_PALETTES, getCategoryDaily, getCategoryRandom, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
@@ -11,7 +11,7 @@ import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheck
 import RetrospectivaPage from './Retrospectiva.jsx';
 import EsportesSection from './Esportes.jsx';
 import { NavContext } from './nav.jsx';
-import { getLastSyncError } from './cloud';
+import { getLastSyncError, onSyncStatus } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -512,6 +512,26 @@ function SalvarFAB() {
   );
 }
 
+// Aviso PERSISTENTE de falha de sincronização (item G). O autosync já re-tenta
+// sozinho (a cada 4s), então só alarma quando o erro PERSISTE (~8s = 2 tentativas
+// falhas seguidas), e some assim que um save volta a dar certo. Serve pra você
+// saber NA HORA que algo não está subindo, sem depender de clicar em Salvar.
+function SyncAlerta() {
+  const [show, setShow] = useState(false);
+  const timer = useRef(null);
+  useEffect(() => onSyncStatus((s) => {
+    if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setShow(false); }
+    else if (s === 'error') { if (!timer.current && !show) timer.current = setTimeout(() => { timer.current = null; setShow(true); }, 8000); }
+  }), [show]);
+  if (!show) return null;
+  return (
+    <div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 200, maxWidth: 340, width: 'calc(100% - 24px)',
+      background: '#fff4f4', border: '1px solid #d05050', color: '#8a2a2a', fontSize: 12, lineHeight: 1.45, padding: '8px 12px', borderRadius: 12, boxShadow: '0 3px 16px rgba(0,0,0,0.18)' }}>
+      ⚠ <b>Não estou conseguindo salvar na nuvem.</b> Suas mudanças estão guardadas neste aparelho e vou continuar tentando. Evite abrir em outro aparelho até isto sumir.
+    </div>
+  );
+}
+
 export default function App() {
   // Não memoriza o login: a senha é pedida sempre que o app abre/recarrega.
   const [loggedIn, setLoggedIn] = useState(false);
@@ -547,6 +567,7 @@ export default function App() {
             {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
           <SalvarFAB />
+          <SyncAlerta />
           </NavContext.Provider>
         </LifeProvider>
       </CalendarProvider>
