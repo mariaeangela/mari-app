@@ -21,14 +21,24 @@ function emit(s) { listeners.forEach(fn => { try { fn(s); } catch { /* ignora */
 let lastError = null;
 export function getLastSyncError() { return lastError; }
 
+// Teto do `keepalive`/sendBeacon do navegador (~64KB). Só usamos keepalive
+// quando o corpo cabe — senão o fetch nem sai. (item C)
+const KEEPALIVE_MAX = 60000;
+
 // POST awaitable que reporta o status. Devolve true/false.
-async function doPost(payload) {
+// `keepalive`: no flush ao fechar/ocultar o app, o navegador pode matar um fetch
+// normal em andamento; keepalive garante a entrega — mas só vale pra corpo pequeno
+// (calendario/saved), então cai no fetch normal quando não cabe (life grande).
+async function doPost(payload, opts) {
   emit('saving');
+  const body = JSON.stringify(payload);
+  const keepalive = !!(opts && opts.keepalive) && body.length <= KEEPALIVE_MAX;
   try {
     const res = await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body,
+      ...(keepalive ? { keepalive: true } : {}),
     });
     if (!res.ok) {
       const corpo = await res.text().catch(() => '');
@@ -71,13 +81,13 @@ export async function fetchLife() { const d = await getDoc(); if (d === UNREACHA
 const DEBOUNCE = 200;
 const RETRY = 4000;
 const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
-function runPush(field) {
+function runPush(field, keepalive) {
   const s = q[field];
   s.t = null;
   if (s.sending || s.p == null) return;   // um envio de cada vez por seção
   const v = s.p;
   s.sending = true;
-  doPost({ [field]: v }).then(ok => {
+  doPost({ [field]: v }, { keepalive }).then(ok => {
     s.sending = false;
     // Se um valor MAIS NOVO chegou durante o envio, `s.p` já é outro: envia esse.
     if (ok && s.p === v) s.p = null;        // confirmado e nada novo -> limpa
@@ -95,7 +105,7 @@ function flushAll() {
     const s = q[field];
     if (s.p == null) continue;
     if (s.t) { clearTimeout(s.t); s.t = null; }
-    runPush(field);   // dispara já (foreground fetch costuma completar mesmo ao ocultar)
+    runPush(field, true);   // keepalive p/ garantir entrega ao fechar (só vale p/ corpo pequeno)
   }
 }
 if (typeof document !== 'undefined') {
