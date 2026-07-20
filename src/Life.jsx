@@ -1577,6 +1577,39 @@ function FinancasForm({ editing, snaps, onClose }) {
   );
 }
 
+// Seletor de mês em DROPDOWN (clica → abre a lista), no lugar da fila que rolava
+// pro lado (ruim no celular). options: [{key,label}]; selected=key; onSelect(key).
+function MesDropdown({ options, selected, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const cur = options.find(o => o.key === selected) || options[options.length - 1];
+  return (
+    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, width: '100%',
+        padding: '10px 14px', borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+        border: '1px solid ' + COR_FIN + '55', background: COR_FIN + '10', color: '#1a7a4f',
+      }}>
+        <span style={{ textTransform: 'capitalize', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cur ? cur.label : 'mês'}</span>
+        <span style={{ fontSize: 10, color: COR_FIN, flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 61, background: '#fff', border: '1px solid #e6e6e6', borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,0.14)', maxHeight: 280, overflowY: 'auto', padding: 4 }}>
+            {options.map(o => (
+              <button key={o.key} onClick={() => { onSelect(o.key); setOpen(false); }} style={{
+                display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: o.key === selected ? 700 : 500, textTransform: 'capitalize',
+                background: o.key === selected ? COR_FIN + '16' : 'transparent', color: o.key === selected ? '#1a7a4f' : '#555',
+              }}>{o.label}</button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function FinancasSection({ onBack }) {
   const life = useLife();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
@@ -1665,15 +1698,7 @@ function FinancasSection({ onBack }) {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
-              {[...snaps].reverse().map(s => (
-                <button key={s.id} onClick={() => setSelId(s.id)} style={{
-                  whiteSpace: 'nowrap', padding: '7px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-                  border: '1px solid ' + (atual.id === s.id ? COR_FIN : '#e2e2e2'),
-                  background: atual.id === s.id ? COR_FIN + '1c' : '#fff', color: atual.id === s.id ? '#1a7a4f' : '#888',
-                }}>{fmtMes(s.mes)}</button>
-              ))}
-            </div>
+            <MesDropdown options={[...snaps].reverse().map(s => ({ key: s.id, label: fmtMes(s.mes) }))} selected={atual.id} onSelect={setSelId} />
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>total</div>
               <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a7a4f' }}>{fmtBRL(total)}</V>
@@ -2122,11 +2147,7 @@ function GastosVida() {
       {vista === 'mes' && (
         <>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, paddingBottom: 4 }}>
-              {[...meses].reverse().map(m => (
-                <button key={m.mes} onClick={() => setSelMes(m.mes)} style={{ whiteSpace: 'nowrap', padding: '7px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (atual.mes === m.mes ? COR_FIN : '#e2e2e2'), background: atual.mes === m.mes ? COR_FIN + '1c' : '#fff', color: atual.mes === m.mes ? '#1a7a4f' : '#888' }}>{fmtMes(m.mes)}</button>
-              ))}
-            </div>
+            <MesDropdown options={[...meses].reverse().map(m => ({ key: m.mes, label: fmtMes(m.mes) }))} selected={atual.mes} onSelect={setSelMes} />
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
               <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</V>
