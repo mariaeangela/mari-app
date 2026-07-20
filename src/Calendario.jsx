@@ -739,12 +739,16 @@ function ExSummary({ data }) {
   );
 }
 
-// ---------------- Lista de exercícios (todos, por data, editável) ----------------
-// Alternativa à visão de calendário: uma lista simples de todos os exercícios
-// agrupados por data (mais recente primeiro), pra editar rápido.
+// ---------------- Lista de exercícios (por data, editável) ----------------
+// Alternativa à visão de calendário: lista simples agrupada por data (ordem
+// cronológica, mais antigo primeiro), pra editar rápido. Separada em Passado /
+// Próximos, igual à Agenda (padrão: Passado, que é onde ficam os já feitos).
 function ExerciciosList({ data, onEdit }) {
-  const list = [...data.exercicios].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
-  if (!list.length) return <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhum exercício ainda. Toque no + para adicionar.</p>;
+  const [modo, setModo] = useState('passado');
+  const tk = ymd(hoje());
+  const list = [...data.exercicios]
+    .filter(x => modo === 'proximos' ? (x.data || '') >= tk : (x.data || '') < tk)
+    .sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   const grupos = [];
   let atual = null;
   for (const x of list) {
@@ -753,6 +757,15 @@ function ExerciciosList({ data, onEdit }) {
   }
   return (
     <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[['passado', 'Passado'], ['proximos', 'Próximos']].map(([id, label]) => (
+          <button key={id} onClick={() => setModo(id)} style={{
+            padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            border: '1px solid ' + (modo === id ? '#111' : '#e2e2e2'), background: modo === id ? '#111' : '#fff', color: modo === id ? '#fff' : '#888',
+          }}>{label}</button>
+        ))}
+      </div>
+      {!list.length && <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>{modo === 'proximos' ? 'Nenhum exercício futuro marcado.' : 'Nenhum exercício no passado ainda.'}</p>}
       {grupos.map(g => {
         const d = g.data ? parseYmd(g.data) : null;
         return (
