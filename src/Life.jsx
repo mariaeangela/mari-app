@@ -2022,6 +2022,8 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
   const cols = [...meses].reverse(); // mês mais recente primeiro
   const cell = { padding: '6px 8px', fontSize: 11.5, whiteSpace: 'nowrap', textAlign: 'right' };
   const stick = { position: 'sticky', left: 0, background: '#fff', textAlign: 'left' };
+  const EXCLUI_2A = ['Viagem', 'Fixos', 'Mercado']; // 2ª linha de total: gasto recorrente
+  const correnteDe = (m) => cats.filter(c => !EXCLUI_2A.includes(c)).reduce((s, c) => s + (Number(valor(m, c)) || 0), 0);
   return (
     <div style={{ overflowX: 'auto', marginTop: 4, border: '1px solid #f0f0f0', borderRadius: 10 }}>
       <table style={{ borderCollapse: 'collapse', fontSize: 11.5, minWidth: '100%' }}>
@@ -2043,6 +2045,10 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
           <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
             <td style={{ ...cell, ...stick, color: '#111' }}>Total</td>
             {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}><V>{fmtBRLcurto(totalDe(m))}</V></td>)}
+          </tr>
+          <tr style={{ fontWeight: 600 }}>
+            <td style={{ ...cell, ...stick, color: '#999', fontSize: 10.5 }}>Sem viagem/fixos/mercado</td>
+            {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#999', fontSize: 10.5 }}><V>{fmtBRLcurto(correnteDe(m))}</V></td>)}
           </tr>
         </tfoot>
       </table>

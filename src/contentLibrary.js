@@ -4,6 +4,16 @@
 // ============================================================
 
 export const OPENING_QUOTES = [
+  { texto: "Liberdade é pouco. O que eu desejo ainda não tem nome.", obra: "Perto do Coração Selvagem", autor: "Clarice Lispector" },
+  { texto: "No meio do caminho tinha uma pedra.", obra: "No Meio do Caminho", autor: "Carlos Drummond de Andrade" },
+  { texto: "Tudo vale a pena se a alma não é pequena.", obra: "Mensagem", autor: "Fernando Pessoa" },
+  { texto: "Se as coisas são inatingíveis... ora! Não é motivo para não querê-las.", obra: "Das Utopias", autor: "Mario Quintana" },
+  { texto: "O olho vê, a lembrança revê, e a imaginação transvê.", obra: "Memórias Inventadas", autor: "Manoel de Barros" },
+  { texto: "A vida só é possível reinventada.", obra: "Canção", autor: "Cecília Meireles" },
+  { texto: "Mestre não é quem sempre ensina, mas quem de repente aprende.", obra: "Grande Sertão: Veredas", autor: "Guimarães Rosa" },
+  { texto: "A vida é a arte do encontro, embora haja tanto desencontro pela vida.", obra: "Samba da Bênção", autor: "Vinicius de Moraes" },
+  { texto: "Gente é pra brilhar, não pra morrer de fome.", obra: "Gente", autor: "Caetano Veloso" },
+  { texto: "You're on your own, kid — you always have been.", obra: "You're On Your Own, Kid", autor: "Taylor Swift" },
   { texto: "Tudo estava morto e eu estava viva, e só isso era o único problema.", obra: "A Amiga Genial", autor: "Elena Ferrante" },
   { texto: "Uma vez que você supera a barreira das legendas, um mundo inteiro se abre.", obra: "Parasite", autor: "Bong Joon-ho" },
   { texto: "O amor não é um estado permanente. É um esforço constante.", obra: "Before Midnight", autor: "Richard Linklater" },
