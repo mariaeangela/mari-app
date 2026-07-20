@@ -100,6 +100,7 @@ function RetroHome({ isWide, onOpen }) {
 
   const numeros = [
     { key: 'lido', label: 'livros lidos', itens: cultItens('lido') },
+    { key: 'ouvido', label: 'livros ouvidos', itens: cultItens('ouvido') },
     { key: 'filme', label: 'filmes', itens: cultItens('filme') },
     { key: 'serie', label: 'séries', itens: cultItens('serie') },
     { key: 'exposicao', label: 'exposições', itens: cultItens('exposicao') },
