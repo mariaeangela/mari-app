@@ -741,10 +741,10 @@ function ExSummary({ data }) {
 
 // ---------------- Lista de exercícios (por data, editável) ----------------
 // Alternativa à visão de calendário: lista simples agrupada por data (ordem
-// cronológica, mais antigo primeiro), pra editar rápido. Separada em Passado /
-// Próximos, igual à Agenda (padrão: Passado, que é onde ficam os já feitos).
+// cronológica, mais antigo primeiro), pra editar rápido. Separada em Próximos /
+// Passado, igual à Agenda (padrão: Próximos).
 function ExerciciosList({ data, onEdit }) {
-  const [modo, setModo] = useState('passado');
+  const [modo, setModo] = useState('proximos');
   const tk = ymd(hoje());
   const list = [...data.exercicios]
     .filter(x => modo === 'proximos' ? (x.data || '') >= tk : (x.data || '') < tk)
@@ -758,7 +758,7 @@ function ExerciciosList({ data, onEdit }) {
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {[['passado', 'Passado'], ['proximos', 'Próximos']].map(([id, label]) => (
+        {[['proximos', 'Próximos'], ['passado', 'Passado']].map(([id, label]) => (
           <button key={id} onClick={() => setModo(id)} style={{
             padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             border: '1px solid ' + (modo === id ? '#111' : '#e2e2e2'), background: modo === id ? '#111' : '#fff', color: modo === id ? '#fff' : '#888',
