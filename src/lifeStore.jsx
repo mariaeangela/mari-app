@@ -37,7 +37,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1973,6 +1973,16 @@ export function LifeProvider({ children }) {
   const addVrGasto = (ck, g) => { const c = vrCicloDe(ck); setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: [...c.gastos, { ...g, id: uid('vg') }] } } }); };
   const deleteVrGasto = (ck, id) => { const c = vr.ciclos[ck]; if (!c) return; setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: c.gastos.filter(x => x.id !== id) } } }); };
 
+  // ---- Posso gastar: orçamento do mês (ciclo 27→26), 2 caixas INDEPENDENTES:
+  // 'total' e 'mercado'. Cada uma { budget, gastos:[...] }. Resta = budget − gasto.
+  // NÃO divide por dia e NÃO tem relação com as categorias de Gastos.
+  const possoGastar = data.possoGastar || { ciclos: {} };
+  const setPG = (next) => persist({ ...data, possoGastar: next });
+  const pgCicloDe = (ck) => { const c = possoGastar.ciclos[ck] || {}; return { total: c.total || { budget: 0, gastos: [] }, mercado: c.mercado || { budget: 0, gastos: [] } }; };
+  const setPgBudget = (ck, bucket, budget) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], budget: Number(budget) || 0 } } } }); };
+  const addPgGasto = (ck, bucket, g) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: [...c[bucket].gastos, { ...g, id: uid('pg') }] } } } }); };
+  const deletePgGasto = (ck, bucket, id) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: c[bucket].gastos.filter(x => x.id !== id) } } } }); };
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -2018,6 +2028,7 @@ export function LifeProvider({ children }) {
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
     vr, setVrTotal, addVrGasto, deleteVrGasto,
+    possoGastar, setPgBudget, addPgGasto, deletePgGasto,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

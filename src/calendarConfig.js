@@ -82,6 +82,22 @@ export const MOOD_BY_ID = Object.fromEntries(MOODS.map(m => [m.id, m]));
 export const pad2 = (n) => String(n).padStart(2, '0');
 export const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 export const parseYmd = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+// Ciclo mensal do dia 27 → 26 (usado pelo VR e pelo Posso Gastar). Devolve a
+// chave do ciclo (ymd do 27 que o inicia) e quantos dias faltam até o 26 (com hoje).
+export function cicloDia27(today) {
+  const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
+  const start = d >= 27 ? new Date(y, m, 27) : new Date(y, m - 1, 27);
+  const next = d >= 27 ? new Date(y, m + 1, 27) : new Date(y, m, 27);
+  const daysLeft = Math.max(1, Math.round((next - today) / 86400000));
+  return { cycleKey: ymd(start), daysLeft };
+}
+// Rótulo "27 jun → 26 jul/26" a partir da chave do ciclo.
+const CICLO_MES_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+export function cicloLabel(ck) {
+  const [y, m] = ck.split('-').map(Number);
+  const s = new Date(y, m - 1, 27), e = new Date(y, m, 26);
+  return `27 ${CICLO_MES_ABBR[s.getMonth()]} → 26 ${CICLO_MES_ABBR[e.getMonth()]}/${String(e.getFullYear()).slice(2)}`;
+}
 export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 export const DIAS_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 

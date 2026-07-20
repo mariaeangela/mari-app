@@ -5,7 +5,7 @@ import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
-import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID } from './calendarConfig.js';
+import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
@@ -288,15 +288,6 @@ function HojeAgenda() {
 
 // R$ formatado (curto, 2 casas).
 const fmtR$ = (v) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-// Ciclo do VR: dia 27 → 26 do mês seguinte. Devolve a chave do ciclo (ymd do 27
-// que o inicia) e quantos dias faltam até o 26 (incluindo hoje).
-function vrCiclo(today) {
-  const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
-  const start = d >= 27 ? new Date(y, m, 27) : new Date(y, m - 1, 27);
-  const next = d >= 27 ? new Date(y, m + 1, 27) : new Date(y, m, 27);
-  const daysLeft = Math.max(1, Math.round((next - today) / 86400000));
-  return { cycleKey: ymd(start), daysLeft };
-}
 
 // VR (vale-refeição) no fim da capa. Ciclo 27→26: você põe o total no dia 27 e
 // lança os gastos no +; o app mostra quanto pode gastar POR DIA = (total − gasto)
@@ -304,7 +295,7 @@ function vrCiclo(today) {
 function VRHoje() {
   const life = useLife();
   const today = hojeMid();
-  const { cycleKey, daysLeft } = vrCiclo(today);
+  const { cycleKey, daysLeft } = cicloDia27(today);
   const ciclo = (life.vr?.ciclos || {})[cycleKey] || { total: 0, gastos: [] };
   const gastos = ciclo.gastos || [];
   const gastoTotal = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);
@@ -376,11 +367,71 @@ function VRHoje() {
   );
 }
 
+// Uma "caixa" do Posso gastar (Total ou Mercado): orçamento do ciclo, gastos
+// lançados no +, e "resta" = orçamento − gasto. NÃO divide por dia.
+function PossoBucket({ ck, bucket, label }) {
+  const life = useLife();
+  const c = (life.possoGastar?.ciclos || {})[ck] || {};
+  const b = c[bucket] || { budget: 0, gastos: [] };
+  const gasto = (b.gastos || []).reduce((s, g) => s + (Number(g.valor) || 0), 0);
+  const budget = Number(b.budget) || 0;
+  const resta = budget - gasto;
+  const temBudget = budget > 0;
+  const [addOpen, setAddOpen] = useState(false);
+  const [val, setVal] = useState('');
+  const [editB, setEditB] = useState(false);
+  const [bTxt, setBTxt] = useState('');
+  const cor = '#b06d1e';
+  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, data: ymd(hojeMid()) }); setVal(''); setAddOpen(false); };
+  const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
+  return (
+    <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: '#555' }}>{label}</span>
+        {temBudget && !editB && <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, fontWeight: 700, color: resta < 0 ? '#c0392b' : cor }}>{fmtR$(resta)}</span>}
+      </div>
+      {!temBudget || editB ? (
+        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+          <input autoFocus type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`posso gastar em ${label.toLowerCase()}?`} style={{ ...capaInput, flex: 1 }} />
+          <button onClick={salvarB} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>salvar</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 2 }}>
+            <span style={{ fontSize: 11.5, color: '#999' }}>orçamento <b onClick={() => { setBTxt(String(budget)); setEditB(true); }} style={{ color: cor, cursor: 'pointer' }}>{fmtR$(budget)} ✎</b> · gastou {fmtR$(gasto)}</span>
+            {!addOpen && <button onClick={() => setAddOpen(true)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 9, background: '#fff', color: cor, fontSize: 12, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', flexShrink: 0 }}>+ gasto</button>}
+          </div>
+          {addOpen && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1 }} />
+              <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
+              <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Posso gastar na capa: 2 orçamentos independentes (Total e Mercado), ciclo 27→26.
+function PossoGastarHoje() {
+  const { cycleKey } = cicloDia27(hojeMid());
+  const cor = '#b06d1e';
+  return (
+    <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '12px 16px 8px' }}>
+      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>Posso gastar</div>
+      <PossoBucket ck={cycleKey} bucket="total" label="Total" />
+      <PossoBucket ck={cycleKey} bucket="mercado" label="Mercado" />
+    </div>
+  );
+}
+
 function Feed({ isWide }) {
   // Capa (Hoje) — enxuta, a pedido da Mari: saudação · neste dia · seu dia
   // (humor + diário) · antecipação (viagem/prova/compra + cultura acabando) ·
-  // lendo · ouvindo · agenda do dia (hoje) · VR (fim). Metas do mês, planos próximos
-  // e os cards de conteúdo saíram daqui (metas/planos no Calendário; conteúdo no Explorar).
+  // lendo · ouvindo · agenda do dia (hoje) · VR · Posso gastar (fim). Metas do mês,
+  // planos e os cards de conteúdo saíram daqui (metas/planos no Calendário; conteúdo no Explorar).
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{ padding: '20px 20px 0' }}>
@@ -392,6 +443,7 @@ function Feed({ isWide }) {
         <OuvindoAgora />
         <HojeAgenda />
         <VRHoje />
+        <PossoGastarHoje />
       </div>
     </div>
   );

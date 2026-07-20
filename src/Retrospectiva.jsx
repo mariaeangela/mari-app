@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
-import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace, fmtKm } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace, fmtKm, cicloDia27, cicloLabel } from './calendarConfig.js';
 
 const COR = '#8d6e63';
 const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
@@ -42,6 +42,7 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
+  { id: 'possoGastar', label: 'Posso gastar', desc: 'quanto ainda dá pra gastar', cor: '#b06d1e', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
@@ -57,6 +58,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const baseSec = (sec || '').split(':')[0];          // 'gastos:Saúde' → 'gastos'
   const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
   if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
+  if (baseSec === 'possoGastar') return <PossoGastarRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -1327,6 +1329,55 @@ function GastosRetro({ onBack, isWide, catInicial }) {
             );
           })}
         </div>
+      </>}
+    </div>
+  );
+}
+
+// Posso gastar (retrospectiva): quanto ainda dá pra gastar no ciclo atual (Total e
+// Mercado, independentes) + histórico dos ciclos anteriores. Ciclo 27→26.
+function PossoGastarRetro({ onBack, isWide }) {
+  const life = useLife();
+  const ciclos = life.possoGastar?.ciclos || {};
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const { cycleKey } = cicloDia27(hoje);
+  const keys = Object.keys(ciclos).sort().reverse();
+  const cor = '#b06d1e';
+  const buckets = [['total', 'Total'], ['mercado', 'Mercado']];
+  const resumo = (b) => { const bb = b || {}; const g = (bb.gastos || []).reduce((s, x) => s + (Number(x.valor) || 0), 0); const bud = Number(bb.budget) || 0; return { budget: bud, gasto: g, resta: bud - g }; };
+  const temAlgum = keys.some(k => resumo(ciclos[k].total).budget > 0 || resumo(ciclos[k].mercado).budget > 0 || (ciclos[k].total?.gastos || []).length || (ciclos[k].mercado?.gastos || []).length);
+  const linhaBuckets = (c, big) => (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: big ? 10 : 6 }}>
+      {buckets.map(([bk, lbl]) => { const r = resumo((c || {})[bk]); if (r.budget <= 0 && r.gasto <= 0) return null; return (
+        <div key={bk} style={{ flex: '1 1 40%', minWidth: 130 }}>
+          <div style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>{lbl}</div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: big ? 25 : 18, fontWeight: 700, color: r.resta < 0 ? '#c0392b' : cor }}>{fmtBRLr(r.resta)}</div>
+          <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>de {fmtBRLr(r.budget)} · gastou {fmtBRLr(r.gasto)}</div>
+        </div>
+      ); })}
+    </div>
+  );
+  const anteriores = keys.filter(k => k !== cycleKey);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Posso gastar</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>quanto ainda dá pra gastar no mês · ciclo 27→26</p>
+      {!temAlgum ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Defina seus orçamentos no card “Posso gastar” no fim da Tela Hoje — os lançamentos aparecem aqui, atualizando quanto ainda dá pra gastar.</p>
+      ) : <>
+        <div style={{ border: '1px solid ' + cor + '33', background: cor + '0c', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
+          <div style={{ fontSize: 11.5, color: cor, fontWeight: 700 }}>{cicloLabel(cycleKey)} · agora</div>
+          {linhaBuckets(ciclos[cycleKey], true)}
+        </div>
+        {anteriores.length > 0 && <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>meses anteriores</p>}
+        {anteriores.map(k => (
+          <div key={k} style={{ border: '1px solid #eee', borderRadius: 12, padding: '11px 14px', marginBottom: 10 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#444' }}>{cicloLabel(k)}</div>
+            {linhaBuckets(ciclos[k], false)}
+          </div>
+        ))}
       </>}
     </div>
   );
