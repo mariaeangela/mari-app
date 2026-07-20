@@ -286,11 +286,101 @@ function HojeAgenda() {
   );
 }
 
+// R$ formatado (curto, 2 casas).
+const fmtR$ = (v) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Ciclo do VR: dia 27 → 26 do mês seguinte. Devolve a chave do ciclo (ymd do 27
+// que o inicia) e quantos dias faltam até o 26 (incluindo hoje).
+function vrCiclo(today) {
+  const y = today.getFullYear(), m = today.getMonth(), d = today.getDate();
+  const start = d >= 27 ? new Date(y, m, 27) : new Date(y, m - 1, 27);
+  const next = d >= 27 ? new Date(y, m + 1, 27) : new Date(y, m, 27);
+  const daysLeft = Math.max(1, Math.round((next - today) / 86400000));
+  return { cycleKey: ymd(start), daysLeft };
+}
+
+// VR (vale-refeição) no fim da capa. Ciclo 27→26: você põe o total no dia 27 e
+// lança os gastos no +; o app mostra quanto pode gastar POR DIA = (total − gasto)
+// ÷ dias restantes até o 26, recalculando a cada gasto.
+function VRHoje() {
+  const life = useLife();
+  const today = hojeMid();
+  const { cycleKey, daysLeft } = vrCiclo(today);
+  const ciclo = (life.vr?.ciclos || {})[cycleKey] || { total: 0, gastos: [] };
+  const gastos = ciclo.gastos || [];
+  const gastoTotal = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+  const total = Number(ciclo.total) || 0;
+  const resta = total - gastoTotal;
+  const porDia = resta / daysLeft;
+  const temTotal = total > 0;
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [val, setVal] = useState('');
+  const [editTotal, setEditTotal] = useState(false);
+  const [totalTxt, setTotalTxt] = useState('');
+
+  const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: ymd(today) }); setVal(''); setAddOpen(false); };
+  const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
+
+  const cor = '#1a7a4f';
+  return (
+    <div style={{ marginTop: 8, marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: temTotal ? 10 : 6 }}>
+        <span style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>VR do mês</span>
+        <span style={{ fontSize: 11, color: '#aaa' }}>ciclo 27→26 · {daysLeft} {daysLeft === 1 ? 'dia' : 'dias'} restantes</span>
+      </div>
+
+      {!temTotal || editTotal ? (
+        <div>
+          <p style={{ fontSize: 12.5, color: '#777', margin: '0 0 8px' }}>Quanto você tem no VR neste ciclo?</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input autoFocus type="text" inputMode="decimal" value={totalTxt} onChange={e => setTotalTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarTotal()} placeholder="ex.: 1000" style={{ ...capaInput, flex: 1 }} />
+            <button onClick={salvarTotal} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>salvar</button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ textAlign: 'center', marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: resta < 0 ? '#c0392b' : cor, lineHeight: 1.1 }}>{fmtR$(porDia)}</div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>pode gastar por dia</div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 14, fontSize: 12, color: '#777', marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>resta <b style={{ color: '#444' }}>{fmtR$(resta)}</b></span>
+            <span>gastou <b style={{ color: '#444' }}>{fmtR$(gastoTotal)}</b></span>
+            <span onClick={() => { setTotalTxt(String(total)); setEditTotal(true); }} style={{ cursor: 'pointer' }}>total <b style={{ color: cor }}>{fmtR$(total)}</b> ✎</span>
+          </div>
+
+          {addOpen ? (
+            <div style={{ display: 'flex', gap: 8, marginBottom: gastos.length ? 10 : 0 }}>
+              <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGasto()} placeholder="quanto gastou? ex.: 50" style={{ ...capaInput, flex: 1 }} />
+              <button onClick={addGasto} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>ok</button>
+              <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 12px', cursor: 'pointer' }}>×</button>
+            </div>
+          ) : (
+            <button onClick={() => setAddOpen(true)} style={{ display: 'block', width: '100%', border: '1px dashed ' + cor + '66', borderRadius: 10, background: '#fff', color: cor, fontSize: 13, fontWeight: 700, padding: '10px 0', cursor: 'pointer' }}>+ lançar gasto</button>
+          )}
+
+          {gastos.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              {[...gastos].reverse().map(g => (
+                <div key={g.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '5px 0', borderTop: '1px solid #f0f0f0', fontSize: 12.5, color: '#666' }}>
+                  <span>{g.data ? g.data.slice(8, 10) + '/' + g.data.slice(5, 7) : ''}</span>
+                  <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(g.valor)}</span>
+                  <button onClick={() => life.deleteVrGasto(cycleKey, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 16, cursor: 'pointer', lineHeight: 1 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function Feed({ isWide }) {
   // Capa (Hoje) — enxuta, a pedido da Mari: saudação · neste dia · seu dia
   // (humor + diário) · antecipação (viagem/prova/compra + cultura acabando) ·
-  // lendo · ouvindo · agenda do dia (hoje). Metas do mês, planos próximos e os
-  // cards de conteúdo saíram daqui (metas/planos ficam no Calendário; conteúdo, no Explorar).
+  // lendo · ouvindo · agenda do dia (hoje) · VR (fim). Metas do mês, planos próximos
+  // e os cards de conteúdo saíram daqui (metas/planos no Calendário; conteúdo no Explorar).
   return (
     <div style={{ paddingBottom: 40 }}>
       <div style={{ padding: '20px 20px 0' }}>
@@ -301,6 +391,7 @@ function Feed({ isWide }) {
         <LendoAgora />
         <OuvindoAgora />
         <HojeAgenda />
+        <VRHoje />
       </div>
     </div>
   );

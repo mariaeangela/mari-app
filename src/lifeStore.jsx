@@ -37,7 +37,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} } };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1964,6 +1964,15 @@ export function LifeProvider({ children }) {
     : [...gastosItens, { ...it, id: uid('gi') }] });
   const deleteGastoItem = (id) => persist({ ...data, gastosItens: gastosItens.filter(x => x.id !== id) });
 
+  // ---- VR (vale-refeição): ciclo dia 27→26. Por ciclo: { total, gastos:[{id,valor,data,nota?}] }.
+  // Chave do ciclo = ymd do dia 27 que o inicia. "Pode gastar por dia" = (total − gasto) / dias até o 26.
+  const vr = data.vr || { ciclos: {} };
+  const setVr = (next) => persist({ ...data, vr: next });
+  const vrCicloDe = (ck) => vr.ciclos[ck] || { total: 0, gastos: [] };
+  const setVrTotal = (ck, total) => setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...vrCicloDe(ck), total: Number(total) || 0 } } });
+  const addVrGasto = (ck, g) => { const c = vrCicloDe(ck); setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: [...c.gastos, { ...g, id: uid('vg') }] } } }); };
+  const deleteVrGasto = (ck, id) => { const c = vr.ciclos[ck]; if (!c) return; setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: c.gastos.filter(x => x.id !== id) } } }); };
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -2008,6 +2017,7 @@ export function LifeProvider({ children }) {
     ingles, saveInglesEntry, deleteInglesEntry,
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
+    vr, setVrTotal, addVrGasto, deleteVrGasto,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }
