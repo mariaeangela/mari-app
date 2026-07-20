@@ -42,11 +42,11 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
-  { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
+  { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f', pronto: true },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
-  { id: 'saude', label: 'Saúde', desc: 'terapia, consultas', cor: '#d96459' },
+  { id: 'saude', label: 'Saúde', desc: 'terapia, consultas, exames', cor: '#d96459', pronto: true },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates, beijos e afins', cor: '#c2548f', pronto: true },
 ];
@@ -63,6 +63,8 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'quem') return <QuemRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'saude') return <SaudeRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -82,10 +84,16 @@ function RetroHome({ isWide, onOpen }) {
   const [anoSelRaw, setAnoSel] = useState(anoAtual);
   const anoSel = anos.includes(anoSelRaw) ? anoSelRaw : (anos[0] || anoAtual);
   const [detalhe, setDetalhe] = useState(null);
+  const [mesSel, setMesSel] = useState(null); // 'YYYY-MM' ou null (ano inteiro)
 
-  const noAno = (arr) => arr.filter(x => (x.data || '').startsWith(anoSel) && (x.data || '') <= hk);
+  const mesesComDados = [...new Set([...cultura, ...exercicios]
+    .filter(x => (x.data || '').startsWith(anoSel) && (x.data || '') <= hk)
+    .map(x => x.data.slice(0, 7)))].sort().reverse();
+  const mesAtivo = mesSel && mesesComDados.includes(mesSel) ? mesSel : null;
+  const noAno = (arr) => arr.filter(x => { const d = x.data || ''; if (!d || d > hk) return false; return mesAtivo ? d.startsWith(mesAtivo) : d.startsWith(anoSel); });
   const cultAno = noAno(cultura);
   const exAno = noAno(exercicios);
+  const mesChip = (active) => ({ whiteSpace: 'nowrap', padding: '6px 13px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (active ? COR : '#e2e2e2'), background: active ? COR + '1c' : '#fff', color: active ? '#5d473e' : '#888' });
   const byData = (a, b) => (b.data || '').localeCompare(a.data || '');
   const cultItens = (sub) => cultAno.filter(c => c.subtipo === sub).sort(byData).map(c => ({ titulo: c.titulo || '—', data: c.data }));
   const exGrupo = (g) => exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === g).sort(byData);
@@ -123,7 +131,7 @@ function RetroHome({ isWide, onOpen }) {
       {anos.length > 1 && (
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
           {anos.map(a => (
-            <button key={a} onClick={() => { setAnoSel(a); setDetalhe(null); }} style={{
+            <button key={a} onClick={() => { setAnoSel(a); setDetalhe(null); setMesSel(null); }} style={{
               whiteSpace: 'nowrap', padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
               border: '1px solid ' + (anoSel === a ? COR : '#e2e2e2'), background: anoSel === a ? COR + '1c' : '#fff', color: anoSel === a ? '#5d473e' : '#888',
             }}>{a}</button>
@@ -131,7 +139,15 @@ function RetroHome({ isWide, onOpen }) {
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>{anoSel} em números</div>
+      {mesesComDados.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 10 }}>
+          <button onClick={() => { setMesSel(null); setDetalhe(null); }} style={mesChip(!mesAtivo)}>Ano</button>
+          {mesesComDados.map(mm => (
+            <button key={mm} onClick={() => { setMesSel(mm); setDetalhe(null); }} style={mesChip(mesAtivo === mm)}>{MESES[+mm.slice(5, 7) - 1].slice(0, 3)}</button>
+          ))}
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>{mesAtivo ? `${MESES[+mesAtivo.slice(5, 7) - 1]} de ${anoSel}` : `${anoSel} em números`}</div>
 
       {numeros.length === 0 ? (
         <div style={{ padding: 24, borderRadius: 16, background: COR + '10', border: '1px dashed ' + COR + '55', textAlign: 'center' }}>
@@ -183,6 +199,104 @@ function RetroHome({ isWide, onOpen }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Quem você viu: soma as pessoas marcadas (comQuem) em eventos/rolês/cultura, por ano.
+function QuemRetro({ onBack, isWide }) {
+  const cal = useCalendar();
+  const cor = '#ff5d8f';
+  const [pessoaSel, setPessoaSel] = useState(null);
+  const ocasioes = [];
+  (cal.data.events || []).forEach(e => { if (e.comQuem) ocasioes.push({ data: e.inicio, quem: e.comQuem, oque: e.titulo }); });
+  (cal.data.roles || []).forEach(r => { if (r.comQuem) ocasioes.push({ data: r.data, quem: r.comQuem, oque: r.titulo }); });
+  (cal.data.cultura || []).forEach(c => { if (c.comQuem) ocasioes.push({ data: c.data, quem: c.comQuem, oque: c.titulo }); });
+  const registros = [];
+  ocasioes.forEach(o => (o.quem || '').split(/[,;]/).map(s => s.trim()).filter(Boolean).forEach(nome => registros.push({ nome, data: o.data, oque: o.oque })));
+  const { anos, anoSel, setAnoSel } = useAnoSel(registros.map(r => r.data));
+  const doAno = registros.filter(r => (r.data || '').slice(0, 4) === anoSel);
+  const porPessoa = {};
+  doAno.forEach(r => { (porPessoa[r.nome] = porPessoa[r.nome] || []).push(r); });
+  const pessoas = Object.entries(porPessoa).map(([nome, arr]) => ({ nome, n: arr.length, arr: arr.sort((a, b) => (b.data || '').localeCompare(a.data || '')) })).sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Quem você viu</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>as pessoas que você marcou no calendário</p>
+      <AnoChips anos={anos} anoSel={anoSel} setAnoSel={(a) => { setAnoSel(a); setPessoaSel(null); }} cor={cor} />
+      {pessoas.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Ninguém marcado em {anoSel}. Use o campo “com quem” ao criar eventos, rolês e cultura no Calendário.</p>
+      ) : <>
+        <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px' }}><b style={{ color: cor }}>{pessoas.length}</b> {pessoas.length === 1 ? 'pessoa' : 'pessoas'} · {doAno.length} {doAno.length === 1 ? 'encontro' : 'encontros'} em {anoSel}</p>
+        {pessoas.map(p => (
+          <div key={p.nome} style={{ borderBottom: '1px solid #f3f3f3' }}>
+            <div onClick={() => setPessoaSel(pessoaSel === p.nome ? null : p.nome)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', cursor: 'pointer' }}>
+              <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{pessoaSel === p.nome ? '▾' : '▸'} {p.nome}</span>
+              <span style={{ fontSize: 13, color: cor, fontWeight: 700 }}>{p.n}×</span>
+            </div>
+            {pessoaSel === p.nome && (
+              <div style={{ padding: '0 0 10px 16px' }}>
+                {p.arr.map((r, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: 12.5, color: '#666' }}>
+                    <span style={{ color: cor, fontWeight: 700, width: 46, flexShrink: 0 }}>{r.data ? fmtDiaMes(r.data) : '—'}</span>
+                    <span>{r.oque || '—'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </>}
+    </div>
+  );
+}
+
+// Saúde: nº de sessões de terapia, consultas e exames (eventos categoria 'saude' do Calendário).
+function SaudeRetro({ onBack, isWide }) {
+  const cal = useCalendar();
+  const cor = '#d96459';
+  const [tipoSel, setTipoSel] = useState(null);
+  const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
+  const { anos, anoSel, setAnoSel } = useAnoSel(eventos.map(e => e.inicio));
+  const doAno = eventos.filter(e => (e.inicio || '').slice(0, 4) === anoSel);
+  const classifica = (e) => { const t = (e.titulo || '').toLowerCase(); if (/terapia|psic[oó]|psiqui/.test(t)) return 'terapia'; if (/exame/.test(t)) return 'exame'; return 'consulta'; };
+  const grupos = { terapia: [], consulta: [], exame: [] };
+  doAno.forEach(e => grupos[classifica(e)].push(e));
+  const cards = [['terapia', 'sessões de terapia'], ['consulta', 'consultas'], ['exame', 'exames']]
+    .map(([k, label]) => ({ k, label, itens: grupos[k].sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')) }))
+    .filter(c => c.itens.length);
+  const sel = cards.find(c => c.k === tipoSel);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Saúde</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>suas idas ao médico no ano (do Calendário)</p>
+      <AnoChips anos={anos} anoSel={anoSel} setAnoSel={(a) => { setAnoSel(a); setTipoSel(null); }} cor={cor} />
+      {cards.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada de saúde em {anoSel}. Marque consultas e exames como categoria “saúde” no Calendário (terapia, psiquiatria e exames são reconhecidos pelo título).</p>
+      ) : <>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 8 }}>
+          {cards.map(c => (
+            <div key={c.k} onClick={() => setTipoSel(tipoSel === c.k ? null : c.k)} style={{ background: tipoSel === c.k ? cor + '1c' : cor + '10', border: '1px solid ' + (tipoSel === c.k ? cor : cor + '28'), borderRadius: 14, padding: '14px 12px', cursor: 'pointer' }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#111', lineHeight: 1 }}>{c.itens.length}</div>
+              <div style={{ fontSize: 11, color: '#777', marginTop: 5 }}>{c.label}<span style={{ color: cor, fontWeight: 700 }}> ›</span></div>
+            </div>
+          ))}
+        </div>
+        {sel && (
+          <div style={{ marginTop: 10, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 14px' }}>
+            {sel.itens.map((e, i) => (
+              <div key={e.id || i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '1px solid #f4f4f4' }}>
+                <span style={{ fontSize: 12, color: cor, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtDiaMes(e.inicio)}</span>
+                <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>{e.titulo || '—'}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </>}
     </div>
   );
 }

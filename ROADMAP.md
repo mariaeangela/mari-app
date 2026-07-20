@@ -100,7 +100,6 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 **🪞 Pessoais / reflexivas**
 - 🔴 **"Seu ano em revisão" (Wrapped)** — tela linda no fim do ano juntando livros, viagens, corridas, música,
   humor, gastos, dias importantes. Grand finale da Retrospectiva.
-- 🟢 **3 coisas boas do dia** — no Hoje, ao lado do diário/humor (gratidão).
 - 🟡 **"Neste mês, anos atrás"** — memórias do mesmo mês em anos passados (diário, livros, viagens).
 
 **🌍 Cruzando tudo**
