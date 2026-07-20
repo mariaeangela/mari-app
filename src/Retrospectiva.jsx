@@ -1169,6 +1169,7 @@ function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
   const totalDe = (n) => mesesDesc.reduce((a, mm) => a + valOf(n, mm), 0);
   const nomes = Object.keys(byNomeMes).sort((a, b) => totalDe(b) - totalDe(a));
   const totalMes = (mm) => nomes.reduce((a, n) => a + valOf(n, mm), 0);
+  const totalGeral = nomes.reduce((a, n) => a + totalDe(n), 0);
   const fmt = (v) => v ? Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '·';
   const mAbbr = (mm) => MESES[+mm.slice(5, 7) - 1].slice(0, 3);
   const stickyL = { position: 'sticky', left: 0, background: '#fff', zIndex: 1 };
@@ -1181,6 +1182,7 @@ function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
           <tr>
             <th style={{ ...th, ...stickyL, textAlign: 'left' }}>item</th>
             {mesesDesc.map(mm => <th key={mm} style={th}>{mAbbr(mm)}</th>)}
+            <th style={{ ...th, color: cor, borderLeft: '2px solid #eee' }}>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -1192,11 +1194,13 @@ function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
                 const v = valOf(n, mm);
                 return <td key={mm} onClick={arr.length ? () => onEdit(arr[0]) : undefined} style={{ ...td, cursor: arr.length ? 'pointer' : 'default', color: v ? '#333' : '#ccc' }}>{fmt(v)}</td>;
               })}
+              <td style={{ ...td, fontWeight: 700, color: '#111', borderLeft: '2px solid #eee' }}>{fmt(totalDe(n))}</td>
             </tr>
           ))}
           <tr>
             <td style={{ ...td, ...stickyL, textAlign: 'left', fontWeight: 700, color: cor, borderTop: '2px solid #eee' }}>Total</td>
             {mesesDesc.map(mm => <td key={mm} style={{ ...td, fontWeight: 700, color: cor, borderTop: '2px solid #eee' }}>{fmt(totalMes(mm))}</td>)}
+            <td style={{ ...td, fontWeight: 700, color: cor, borderTop: '2px solid #eee', borderLeft: '2px solid #eee' }}>{fmt(totalGeral)}</td>
           </tr>
         </tbody>
       </table>
