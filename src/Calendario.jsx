@@ -743,7 +743,7 @@ function ExSummary({ data }) {
 // Alternativa à visão de calendário: uma lista simples de todos os exercícios
 // agrupados por data (mais recente primeiro), pra editar rápido.
 function ExerciciosList({ data, onEdit }) {
-  const list = [...data.exercicios].sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const list = [...data.exercicios].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
   if (!list.length) return <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhum exercício ainda. Toque no + para adicionar.</p>;
   const grupos = [];
   let atual = null;
