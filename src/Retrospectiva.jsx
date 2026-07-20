@@ -42,7 +42,6 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
-  { id: 'possoGastar', label: 'Posso gastar', desc: 'quanto ainda dá pra gastar', cor: '#b06d1e', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f' },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
@@ -58,7 +57,6 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const baseSec = (sec || '').split(':')[0];          // 'gastos:Saúde' → 'gastos'
   const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
   if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
-  if (baseSec === 'possoGastar') return <PossoGastarRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -1230,6 +1228,11 @@ function GastosRetro({ onBack, isWide, catInicial }) {
   // botão DENTRO de Coisas, sem se confundir com a categoria.
   if (catSel === 'Coisas' && verComprasCaras) return <ComprasRetro onBack={() => setVerComprasCaras(false)} isWide={isWide} backLabel="Coisas" />;
 
+  // Posso gastar e VR ficam DENTRO de Gastos (cards próprios), mas NÃO entram na
+  // somatória das categorias — são só organização/controle do mês.
+  if (catSel === '__posso') return <PossoGastarRetro onBack={() => setCatSel(null)} isWide={isWide} backLabel="Gastos" />;
+  if (catSel === '__vr') return <VRRetro onBack={() => setCatSel(null)} isWide={isWide} />;
+
   if (catSel) {
     // itens itemizados desta categoria no ano (quebra enviada pela Mari)
     const itens = (life.gastosItens || []).filter(x => x.categoria === catSel && (x.mes || '').slice(0, 4) === anoSel);
@@ -1329,14 +1332,87 @@ function GastosRetro({ onBack, isWide, catInicial }) {
             );
           })}
         </div>
+
+        {/* Posso gastar e VR: controle do mês, FORA do total acima */}
+        <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '24px 0 8px' }}>controle do mês · fora do total</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[['__posso', 'Posso gastar', 'quanto ainda dá pra gastar'], ['__vr', 'VR', 'histórico por ciclo e por dia']].map(([id, label, desc]) => (
+            <button key={id} onClick={() => setCatSel(id)} style={{ background: '#b06d1e10', border: '1px solid #b06d1e33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 22, height: 4, background: '#b06d1e', borderRadius: 4, marginBottom: 10 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{label}</div>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{desc}</div>
+            </button>
+          ))}
+        </div>
       </>}
+    </div>
+  );
+}
+
+// VR (retrospectiva): histórico do vale-refeição por ciclo 27→26 e, dentro de cada
+// um, os gastos por dia. Fica dentro de Gastos, fora da somatória das categorias.
+function VRRetro({ onBack, isWide }) {
+  const life = useLife();
+  const ciclos = life.vr?.ciclos || {};
+  const keys = Object.keys(ciclos).sort().reverse();
+  const [aberto, setAberto] = useState(keys[0] || null);
+  const cor = '#b06d1e';
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Gastos</button>
+      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>VR</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>histórico do vale-refeição · ciclo 27→26</p>
+      {!keys.length ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Ainda sem VR. Lance no card “VR do mês” no fim da Tela Hoje.</p>
+      ) : keys.map(ck => {
+        const c = ciclos[ck];
+        const gastos = c.gastos || [];
+        const gasto = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+        const total = Number(c.total) || 0;
+        const sobrou = total - gasto;
+        const open = aberto === ck;
+        const porDia = {};
+        gastos.forEach(g => { (porDia[g.data] = porDia[g.data] || []).push(g); });
+        const dias = Object.keys(porDia).sort().reverse();
+        return (
+          <div key={ck} style={{ border: '1px solid #eee', borderRadius: 12, marginBottom: 10, overflow: 'hidden' }}>
+            <div onClick={() => setAberto(open ? null : ck)} style={{ padding: '11px 14px', cursor: 'pointer', background: '#fafafa' }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#222' }}>{open ? '▾' : '▸'} {cicloLabel(ck)}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>gastou <b style={{ color: '#555' }}>{fmtBRLr(gasto)}</b> de {fmtBRLr(total)} · sobrou {fmtBRLr(sobrou)}</div>
+            </div>
+            {open && (
+              <div style={{ padding: '4px 14px 12px' }}>
+                {dias.length === 0 ? <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', margin: '6px 0' }}>Nenhum gasto neste ciclo.</p> :
+                  dias.map(dia => {
+                    const arr = porDia[dia];
+                    const totDia = arr.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+                    return (
+                      <div key={dia} style={{ marginTop: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888', fontWeight: 700, borderBottom: '1px solid #f3f3f3', paddingBottom: 2 }}>
+                          <span>{dia.slice(8, 10)}/{dia.slice(5, 7)}</span><span>{fmtBRLr(totDia)}</span>
+                        </div>
+                        {arr.map(g => (
+                          <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '4px 0 4px 12px', fontSize: 12.5, color: '#666' }}>
+                            <span style={{ color: '#bbb' }}>· {g.nota || 'gasto'}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{fmtBRLr(g.valor)}<button onClick={() => life.deleteVrGasto(ck, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 15, cursor: 'pointer', lineHeight: 1 }}>×</button></span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 // Posso gastar (retrospectiva): quanto ainda dá pra gastar no ciclo atual (Total e
 // Mercado, independentes) + histórico dos ciclos anteriores. Ciclo 27→26.
-function PossoGastarRetro({ onBack, isWide }) {
+function PossoGastarRetro({ onBack, isWide, backLabel = 'Retrospectiva' }) {
   const life = useLife();
   const ciclos = life.possoGastar?.ciclos || {};
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
@@ -1360,7 +1436,7 @@ function PossoGastarRetro({ onBack, isWide }) {
   const anteriores = keys.filter(k => k !== cycleKey);
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
       <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Posso gastar</h2>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>quanto ainda dá pra gastar no mês · ciclo 27→26</p>
