@@ -22,7 +22,8 @@ CONSOLIDA = {
         'default': 'Mercado',
         'grupos': {
             'Nutricar': ['nutricar'],
-            'Cozinha de atleta': ['cozinha atleta', 'cozinha de atleta'],
+            # "Performance" = cozinha de atleta + barra de proteína (a pedido da Mari).
+            'Performance': ['cozinha atleta', 'cozinha de atleta', 'barra de proteina', 'barra de proteína', 'barra proteina'],
             'Livup': ['livup', 'liv up'],
         },
     },

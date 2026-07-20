@@ -1225,10 +1225,10 @@ function ensureFixosJunhoFix(d) {
 // refresca os totais do mês pra bater com o arquivo. Supera os seeds parciais antigos
 // (gi-pres-/gi-fix-) e preserva itens que a Mari adicionou à mão. Ver src/gastosSeed.js.
 function ensureGastos2026Detalhe(d) {
-  if (d.gastos2026ImpV21) return d; // V21: Presentes junta Laços em Doação; V20: Rolês; V19: Fixos; V18: Viagem; V17: Coisas; V16: Coisas baldes; V15: Bolsa/Roupas BZ; V14: Sapatos; V13: Roupa; V12: Presentes->Mãe; V11: Nutricar; V10: Bobeira; V9: Skin care; V8: Podologia; V7-2: demais
+  if (d.gastos2026ImpV22) return d; // V22: Mercado "Cozinha de atleta"->"Performance" (+barra de proteína); V21: Presentes junta Laços em Doação; V20: Rolês; V19: Fixos; V18: Viagem; V17: Coisas; V16: Coisas baldes; V15: Bolsa/Roupas BZ; V14: Sapatos; V13: Roupa; V12: Presentes->Mãe; V11: Nutricar; V10: Bobeira; V9: Skin care; V8: Podologia; V7-2: demais
   const semSeed = (d.gastosItens || []).filter(x => !/^gi-(pres|fix|imp)-/.test(x.id || ''));
   const novos = GASTOS_ITENS_2026.map((r, i) => ({ id: 'gi-imp-' + i, mes: r[0], categoria: r[1], nome: r[2], valor: r[3] }));
-  const out = { ...d, gastos2026ImpV21: true, gastosItens: [...semSeed, ...novos] };
+  const out = { ...d, gastos2026ImpV22: true, gastosItens: [...semSeed, ...novos] };
   if (d.gastos) { // já congelado na nuvem → refresca só os meses importados
     const imp = new Set(GASTOS_TOTAIS_2026.map(g => g.mes));
     out.gastos = [...d.gastos.filter(g => !imp.has(g.mes)), ...GASTOS_TOTAIS_2026].sort((a, b) => a.mes.localeCompare(b.mes));

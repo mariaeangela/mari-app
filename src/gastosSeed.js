@@ -80,7 +80,7 @@ export const GASTOS_ITENS_2026 = [
   ['2026-03', 'Fixos', 'Streaming assinaturas', 259.88],
   ['2026-03', 'Mercado', 'Nutricar', 80.82],
   ['2026-03', 'Mercado', 'Mercado', 1102.58],
-  ['2026-03', 'Mercado', 'Cozinha de atleta', 325.2],
+  ['2026-03', 'Mercado', 'Performance', 325.2],
   ['2026-03', 'Uber', 'Uber vida', 845.11],
   ['2026-03', 'Trabalho', 'Almoço', 888.44],
   ['2026-03', 'Mãe', 'Mãe', 457.65],
