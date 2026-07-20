@@ -2102,6 +2102,62 @@ function LinhasGastos({ meses, cats, valor }) {
   );
 }
 
+// Histórico do VR (vale-refeição): cada ciclo 27→26 e, dentro dele, os gastos por dia.
+const VR_MES_ABBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+function VRHistorico() {
+  const life = useLife();
+  const ciclos = life.vr?.ciclos || {};
+  const keys = Object.keys(ciclos).sort().reverse(); // ciclo mais recente primeiro
+  const [aberto, setAberto] = useState(keys[0] || null);
+  const cicloLabel = (ck) => { const [y, m] = ck.split('-').map(Number); const s = new Date(y, m - 1, 27), e = new Date(y, m, 26); return `27 ${VR_MES_ABBR[s.getMonth()]} → 26 ${VR_MES_ABBR[e.getMonth()]}/${String(e.getFullYear()).slice(2)}`; };
+  if (!keys.length) return <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic', lineHeight: 1.6 }}>Ainda sem VR. Lance no fim da Tela Hoje, no card “VR do mês”.</p>;
+  return (
+    <div>
+      {keys.map(ck => {
+        const c = ciclos[ck];
+        const gastos = c.gastos || [];
+        const gasto = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+        const total = Number(c.total) || 0;
+        const sobrou = total - gasto;
+        const open = aberto === ck;
+        const porDia = {};
+        gastos.forEach(g => { (porDia[g.data] = porDia[g.data] || []).push(g); });
+        const dias = Object.keys(porDia).sort().reverse();
+        return (
+          <div key={ck} style={{ border: '1px solid #eee', borderRadius: 12, marginBottom: 10, overflow: 'hidden' }}>
+            <div onClick={() => setAberto(open ? null : ck)} style={{ padding: '11px 14px', cursor: 'pointer', background: '#fafafa' }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#222' }}>{open ? '▾' : '▸'} {cicloLabel(ck)}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>gastou <b style={{ color: '#555' }}><V>{fmtBRL(gasto)}</V></b> de <V>{fmtBRL(total)}</V> · sobrou <V>{fmtBRL(sobrou)}</V></div>
+            </div>
+            {open && (
+              <div style={{ padding: '4px 14px 12px' }}>
+                {dias.length === 0 ? <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', margin: '6px 0' }}>Nenhum gasto neste ciclo.</p> :
+                  dias.map(dia => {
+                    const arr = porDia[dia];
+                    const totDia = arr.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+                    return (
+                      <div key={dia} style={{ marginTop: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888', fontWeight: 700, borderBottom: '1px solid #f3f3f3', paddingBottom: 2 }}>
+                          <span>{dia.slice(8, 10)}/{dia.slice(5, 7)}</span><span><V>{fmtBRL(totDia)}</V></span>
+                        </div>
+                        {arr.map(g => (
+                          <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '4px 0 4px 12px', fontSize: 12.5, color: '#666' }}>
+                            <span style={{ color: '#bbb' }}>· {g.nota || 'gasto'}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><V>{fmtBRL(g.valor)}</V><button onClick={() => life.deleteVrGasto(ck, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 15, cursor: 'pointer', lineHeight: 1 }}>×</button></span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function GastosVida() {
   const life = useLife();
   const nav = useNav();
@@ -2141,7 +2197,7 @@ function GastosVida() {
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {vchip('mes', 'Mês')}{vchip('tabela', 'Tabela')}{vchip('linhas', 'Linhas')}
+        {vchip('mes', 'Mês')}{vchip('tabela', 'Tabela')}{vchip('linhas', 'Linhas')}{vchip('vr', 'VR')}
       </div>
 
       {vista === 'mes' && (
@@ -2210,8 +2266,9 @@ function GastosVida() {
 
       {vista === 'tabela' && <TabelaGastos meses={meses} cats={todasCats} totalDe={totalDe} valor={valorMesCat} />}
       {vista === 'linhas' && <LinhasGastos meses={meses} cats={todasCats} valor={valorMesCat} />}
+      {vista === 'vr' && <VRHistorico />}
 
-      <button onClick={() => setForm({ novo: true })} style={addBtn}>+ adicionar mês</button>
+      {vista !== 'vr' && <button onClick={() => setForm({ novo: true })} style={addBtn}>+ adicionar mês</button>}
       {form && <GastoForm editing={form.editing} meses={meses} onClose={() => setForm(null)} />}
     </div>
   );
