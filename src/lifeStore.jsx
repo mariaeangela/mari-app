@@ -37,7 +37,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} } };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} }, trechos: [], albuns: [] };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1983,6 +1983,16 @@ export function LifeProvider({ children }) {
   const addPgGasto = (ck, bucket, g) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: [...c[bucket].gastos, { ...g, id: uid('pg') }] } } } }); };
   const deletePgGasto = (ck, bucket, id) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: c[bucket].gastos.filter(x => x.id !== id) } } } }); };
 
+  // ---- Trechos favoritos (frases marcantes de livros) ----
+  const trechos = data.trechos || [];
+  const saveTrecho = (t) => persist({ ...data, trechos: t.id && trechos.some(x => x.id === t.id) ? trechos.map(x => x.id === t.id ? { ...x, ...t } : x) : [...trechos, { ...t, id: uid('tr'), criadoEm: Date.now() }] });
+  const deleteTrecho = (id) => persist({ ...data, trechos: trechos.filter(x => x.id !== id) });
+
+  // ---- Álbuns marcantes (discos que marcaram; complementa a Música do Spotify) ----
+  const albuns = data.albuns || [];
+  const saveAlbum = (a) => persist({ ...data, albuns: a.id && albuns.some(x => x.id === a.id) ? albuns.map(x => x.id === a.id ? { ...x, ...a } : x) : [...albuns, { ...a, id: uid('alb'), criadoEm: Date.now() }] });
+  const deleteAlbum = (id) => persist({ ...data, albuns: albuns.filter(x => x.id !== id) });
+
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
   const setAprendizados = (next) => persist({ ...data, aprendizados: next });
@@ -2029,6 +2039,8 @@ export function LifeProvider({ children }) {
     gastosItens, saveGastoItem, deleteGastoItem,
     vr, setVrTotal, addVrGasto, deleteVrGasto,
     possoGastar, setPgBudget, addPgGasto, deletePgGasto,
+    trechos, saveTrecho, deleteTrecho,
+    albuns, saveAlbum, deleteAlbum,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

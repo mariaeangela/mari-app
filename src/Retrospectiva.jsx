@@ -715,8 +715,10 @@ function MusicaRetro({ onBack, isWide }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const [vis, setVis] = useState('lista');
+  const [verAlbuns, setVerAlbuns] = useState(false);
   const todasMeses = life.musica || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(todasMeses.map(m => m.mes));
+  if (verAlbuns) return <AlbunsView onBack={() => setVerAlbuns(false)} isWide={isWide} />; // depois de todos os hooks
   const meses = todasMeses.filter(m => (m.mes || '').slice(0, 4) === anoSel).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
   const totalMin = meses.reduce((a, m) => a + (Number(m.minutos) || 0), 0);
   const fmtMin = (n) => Number(n || 0).toLocaleString('pt-BR');
@@ -732,6 +734,8 @@ function MusicaRetro({ onBack, isWide }) {
         </div>
         <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
+
+      <button onClick={() => setVerAlbuns(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid ' + COR_MUSICA + '55', background: COR_MUSICA + '10', color: '#0a7d36', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>💿 Álbuns marcantes ›</button>
 
       {todasMeses.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + e cadastre o print do Spotify do mês (minutos, top artista e top música).</p>
@@ -781,6 +785,79 @@ const LIVRO_FLAG = {
   'Bielorrússia': '🇧🇾', 'Grécia': '🇬🇷', 'Suíça': '🇨🇭', 'Canadá': '🇨🇦', 'México': '🇲🇽', 'Argentina': '🇦🇷',
   'Chile': '🇨🇱', 'Colômbia': '🇨🇴', 'Peru': '🇵🇪', 'Bolívia': '🇧🇴', 'Paquistão': '🇵🇰', 'Israel': '🇮🇱', 'Austrália': '🇦🇺',
 };
+// Trechos favoritos: frases marcantes de livros, agrupadas por livro.
+function TrechosView({ onBack, isWide }) {
+  const life = useLife();
+  const trechos = life.trechos || [];
+  const [form, setForm] = useState(null);
+  const cor = COR_LIVROS;
+  const grupos = {};
+  [...trechos].sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0)).forEach(t => { const k = t.livro || 'sem livro'; (grupos[k] = grupos[k] || []).push(t); });
+  const livros = Object.keys(grupos);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Leituras</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Trechos favoritos</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>frases que ficaram com você</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar trecho" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+      {trechos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum trecho ainda. Toque no + pra guardar uma frase marcante (com o livro de onde veio).</p>
+      ) : livros.map(lv => (
+        <div key={lv} style={{ marginBottom: 18 }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, marginBottom: 1 }}>{lv}</div>
+          {grupos[lv][0].autor && <div style={{ fontSize: 11.5, color: '#999', marginBottom: 8 }}>{grupos[lv][0].autor}</div>}
+          {grupos[lv].map(t => (
+            <div key={t.id} onClick={() => setForm({ editing: t })} style={{ borderLeft: '3px solid ' + cor + '55', padding: '2px 0 2px 12px', margin: '0 0 10px', cursor: 'pointer' }}>
+              <div style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14, color: '#333', lineHeight: 1.5 }}>“{t.texto}”</div>
+              {t.pagina && <div style={{ fontSize: 11, color: '#bbb', marginTop: 3 }}>p. {t.pagina}</div>}
+            </div>
+          ))}
+        </div>
+      ))}
+      {form && <TrechoForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+function TrechoForm({ editing, onClose }) {
+  const life = useLife();
+  const [texto, setTexto] = useState(editing?.texto || '');
+  const [livro, setLivro] = useState(editing?.livro || '');
+  const [autor, setAutor] = useState(editing?.autor || '');
+  const [pagina, setPagina] = useState(editing?.pagina || '');
+  const livrosSug = [...new Set((life.leituras || []).map(l => l.titulo).filter(Boolean))];
+  const autorDe = (titulo) => (life.leituras || []).find(l => l.titulo === titulo)?.autor || '';
+  const podeSalvar = texto.trim() && livro.trim();
+  const salvar = () => { if (!podeSalvar) return; life.saveTrecho({ id: editing?.id, texto: texto.trim(), livro: livro.trim(), autor: autor.trim() || undefined, pagina: String(pagina).trim() || undefined }); onClose(); };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} trecho</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Frase</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} placeholder="a frase que marcou" style={{ ...inputStyle, minHeight: 84, resize: 'vertical' }} />
+        <label style={labelStyle}>Livro</label>
+        <input list="trecho-livros" value={livro} onChange={e => { const v = e.target.value; setLivro(v); if (!autor && autorDe(v)) setAutor(autorDe(v)); }} placeholder="de qual livro?" style={inputStyle} />
+        <datalist id="trecho-livros">{livrosSug.map(t => <option key={t} value={t} />)}</datalist>
+        <label style={labelStyle}>Autor (opcional)</label>
+        <input value={autor} onChange={e => setAutor(e.target.value)} placeholder="ex.: Clarice Lispector" style={inputStyle} />
+        <label style={labelStyle}>Página (opcional)</label>
+        <input type="text" inputMode="numeric" value={pagina} onChange={e => setPagina(e.target.value)} placeholder="ex.: 42" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteTrecho(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LeiturasRetro({ onBack, isWide }) {
   const life = useLife();
   const lidos = (life.leituras || []).filter(l => l.lido && l.lidoEm && l.lidoEm.length);
@@ -789,6 +866,8 @@ function LeiturasRetro({ onBack, isWide }) {
   const opcoes = [...anosNum.map(String), ...(temAntes ? ['antes'] : [])];
   const anoAtual = String(new Date().getFullYear());
   const [selRaw, setSel] = useState(null);
+  const [verTrechos, setVerTrechos] = useState(false);
+  if (verTrechos) return <TrechosView onBack={() => setVerTrechos(false)} isWide={isWide} />;
   const sel = (selRaw && opcoes.includes(selRaw)) ? selRaw : (opcoes.includes(anoAtual) ? anoAtual : opcoes[0]);
   const doAno = sel === 'antes' ? lidos.filter(l => l.lidoEm.includes('antes')) : lidos.filter(l => l.lidoEm.includes(Number(sel)));
   const totalPaginas = doAno.reduce((s, l) => s + (Number(l.paginas) || 0), 0);
@@ -822,7 +901,8 @@ function LeiturasRetro({ onBack, isWide }) {
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
       <div style={{ width: 36, height: 4, background: COR_LIVROS, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Leituras</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os livros que você leu, por ano</p>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>os livros que você leu, por ano</p>
+      <button onClick={() => setVerTrechos(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid ' + COR_LIVROS + '55', background: COR_LIVROS + '10', color: '#5d3f7e', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>✎ Trechos favoritos ›</button>
 
       {lidos.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum livro com ano de leitura ainda. Marque "lido em ANO" nos livros (Explorar › Próximas leituras) que eles aparecem aqui.</p>
@@ -904,6 +984,91 @@ function MusicaForm({ editing, onClose }) {
         <input value={musica} onChange={e => setMusica(e.target.value)} placeholder="ex.: Reliquia" style={inputStyle} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteMusica(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Álbuns marcantes: coleção de discos (complementa a Música do Spotify). Por ano ou artista.
+function AlbunsView({ onBack, isWide }) {
+  const life = useLife();
+  const albuns = life.albuns || [];
+  const [form, setForm] = useState(null);
+  const [modo, setModo] = useState('ano'); // 'ano' | 'artista'
+  const cor = COR_MUSICA;
+  const keyDe = (a) => modo === 'ano' ? (a.ano || 'sem ano') : (a.artista || 'sem artista');
+  const grupos = {};
+  albuns.forEach(a => { (grupos[keyDe(a)] = grupos[keyDe(a)] || []).push(a); });
+  const chaves = Object.keys(grupos).sort((x, y) => modo === 'ano' ? String(y).localeCompare(String(x)) : String(x).localeCompare(String(y)));
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Música</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Álbuns marcantes</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os discos que marcaram você</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar álbum" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+      {albuns.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum álbum ainda. Toque no + pra guardar um disco que marcou (álbum, artista, ano e o link do Spotify).</p>
+      ) : <>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          {[['ano', 'por ano'], ['artista', 'por artista']].map(([v, label]) => (
+            <button key={v} onClick={() => setModo(v)} style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (modo === v ? cor : '#e2e2e2'), background: modo === v ? cor + '1c' : '#fff', color: modo === v ? '#0a7d36' : '#888' }}>{label}</button>
+          ))}
+        </div>
+        {chaves.map(k => (
+          <div key={k} style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: cor, fontWeight: 700, textTransform: modo === 'artista' ? 'none' : 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{k}</div>
+            {grupos[k].map(a => (
+              <div key={a.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '11px 14px', marginBottom: 8 }}>
+                <div onClick={() => setForm({ editing: a })} style={{ cursor: 'pointer' }}>
+                  <div style={{ fontSize: 14.5, color: '#222', fontWeight: 700 }}>{a.album}</div>
+                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 1 }}>{a.artista}{modo === 'artista' && a.ano ? ` · ${a.ano}` : ''}</div>
+                  {a.nota && <div style={{ fontSize: 12, color: '#999', fontStyle: 'italic', marginTop: 4 }}>{a.nota}</div>}
+                </div>
+                {a.link && <a href={a.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 700, color: '#0a7d36', textDecoration: 'none' }}>▶ ouvir no Spotify ↗</a>}
+              </div>
+            ))}
+          </div>
+        ))}
+      </>}
+      {form && <AlbumForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+function AlbumForm({ editing, onClose }) {
+  const life = useLife();
+  const [album, setAlbum] = useState(editing?.album || '');
+  const [artista, setArtista] = useState(editing?.artista || '');
+  const [ano, setAno] = useState(editing?.ano || '');
+  const [nota, setNota] = useState(editing?.nota || '');
+  const [link, setLink] = useState(editing?.link || '');
+  const podeSalvar = album.trim() && artista.trim();
+  const salvar = () => { if (!podeSalvar) return; life.saveAlbum({ id: editing?.id, album: album.trim(), artista: artista.trim(), ano: String(ano).trim() || undefined, nota: nota.trim() || undefined, link: link.trim() || undefined }); onClose(); };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} álbum</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Álbum</label>
+        <input value={album} onChange={e => setAlbum(e.target.value)} placeholder="ex.: Blue" style={inputStyle} />
+        <label style={labelStyle}>Artista</label>
+        <input value={artista} onChange={e => setArtista(e.target.value)} placeholder="ex.: Joni Mitchell" style={inputStyle} />
+        <label style={labelStyle}>Ano</label>
+        <input type="text" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="ex.: 2019 (do disco ou de quando marcou)" style={inputStyle} />
+        <label style={labelStyle}>Link do Spotify (opcional)</label>
+        <input value={link} onChange={e => setLink(e.target.value)} placeholder="cole o link do álbum no Spotify" style={inputStyle} />
+        <label style={labelStyle}>Nota (opcional)</label>
+        <input value={nota} onChange={e => setNota(e.target.value)} placeholder="ex.: trilha do verão de 2019" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteAlbum(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>
