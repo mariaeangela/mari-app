@@ -56,8 +56,12 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   quero fazer"** — wishlist por região (Brasil/América Latina/Europa/América do Norte/Ásia/África), destinos
   checáveis, editável (botão na aba Viagens). FALTA: **feitas** (passado, hoje na Retrospectiva) · juntar
   com listas de compras por ocasião.
-- **Vida Financeira:** 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs rendimento** (separar
-  "quanto aportei" de "quanto rendeu") · 🟢 2ª linha de total também na vista **Tabela**.
+- **Vida Financeira:** ✅ **VR** (por dia, na capa) · ✅ **Posso gastar** (Total+Mercado, capa + Retrospectiva) ·
+  ✅ seletor de mês em **dropdown** · ✅ **Coisas** normal + "Compras caras" num botão · ✅ Mercado: subgrupo
+  "Cozinha de atleta" → **"Performance"**. FALTA: 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs
+  rendimento** (separar "quanto aportei" de "quanto rendeu") · 🟢 2ª linha de total também na vista **Tabela**.
+- 🔴 **"Performance"** (recurso novo de finanças, ⏳ a Mari vai detalhar) — **fazer quando ela receber o
+  salário**. (É diferente do subgrupo "Performance" do Mercado, que já existe.)
 - **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima
   menstruação** (média dos ciclos).
 - **Aprendizados:** 🟢 preencher materiais **vazios** (Tecidos, Fotografia, Espumante) · 🟡 criar
@@ -143,6 +147,12 @@ do Calendário: meta × executado, pace real/meta, "bateu a meta", melhor pace +
 **Aprendizados** reordenáveis (⚙) · clicar item da agenda na **Hoje** abre a edição · campo de **km
 aceita decimais** (5.2) no celular · livros lidos + prova "Corrida 7km SP" semeados · **seletor de ano**
 nos cards Compras/Música/Corridas da Retrospectiva (consistente com "ano em números").
+
+**Rodada jul/2026:** **sync blindado** (não apaga a nuvem em falha de leitura; retry; `_rev` anti-perda;
+keepalive no flush; aviso de falha) · **Calendário**: lista de exercícios (Passado/Próximos) · **audiobooks**
+"Ouvindo/Ouvido" (capa + Calendário + Retrospectiva "livros ouvidos") · **Tela Hoje enxuta** · **Vida
+Financeira**: dropdown de mês, Coisas normal, Mercado→Performance · **Retrospectiva**: coluna de Total,
+Posso gastar + VR dentro de Gastos (fora do total) · **VR** e **Posso gastar** (capa + Retrospectiva).
 
 > Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
 > via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.
