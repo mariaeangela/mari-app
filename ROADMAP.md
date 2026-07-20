@@ -20,7 +20,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🔴 **Cartas** — crescer a coleção, completas e verificadas (incl. brasileiras, tipo Clarice).
 - 🟢✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
   topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
-  (datas). FALTA (refino): mais cidades em `cidadeFatos.js` · opção por GPS.
+  (datas). FALTA (refino): ✅ Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas); falta opção por GPS.
 - 🟡 (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só.
 - ⏸🔴🔴 **Mapa da mente** *(bem depois)* — visualização do grafo dos seus interesses.
 
@@ -59,20 +59,20 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - **Vida Financeira:** ✅ **VR** (por dia, na capa) · ✅ **Posso gastar** (Total+Mercado, capa + Retrospectiva) ·
   ✅ seletor de mês em **dropdown** · ✅ **Coisas** normal + "Compras caras" num botão · ✅ Mercado: subgrupo
   "Cozinha de atleta" → **"Performance"**. FALTA: 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs
-  rendimento** (separar "quanto aportei" de "quanto rendeu") · 🟢 2ª linha de total também na vista **Tabela**.
+  rendimento** (separar "quanto aportei" de "quanto rendeu"). ✅ 2ª linha de total ("Sem viagem/fixos/mercado") na vista **Tabela**.
 - 🔴 **"Performance"** (recurso novo de finanças, ⏳ a Mari vai detalhar) — **fazer quando ela receber o
   salário**. (É diferente do subgrupo "Performance" do Mercado, que já existe.)
 - **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima
   menstruação** (média dos ciclos).
-- **Aprendizados:** 🟢 preencher materiais **vazios** (Tecidos, Fotografia, Espumante) · 🟡 criar
+- **Aprendizados:** 🟢 preencher materiais **vazios** (Tecidos, Fotografia, Espumante) — *a Mari vai preencher (conteúdo dela)* · 🟡 criar
   **grupo de vinho** / métodos novos pela UI · 🟡 outras listas espelhando Compras.
 
 ## 📊 Retrospectiva
 *(prontos: ✅ ano em números · ✅ Gastos (grid por categoria; Coisas=compras itemizado; deep-link da VF) · ✅ Música · ✅ Corridas · ✅ Dias importantes · ✅ Viagens · ✅ Leituras)*
 - ✅ **Leituras** — livros por ano (gráfico), páginas no ano, países/idiomas (lista c/ bandeiras), gênero/tema
   mais lido. Usa o slice `leituras` (lido + `lidoEm`/`paginas`/`pais`/`idioma`/`tipo`/`temas`).
-- 🟢 **Quem você viu** — soma as pessoas marcadas (`comQuem`), clicável, por mês.
-- 🟢 **Saúde** — nº de sessões de terapia, consultas, exames (do Calendário).
+- ✅ **Quem você viu** — soma as pessoas marcadas (`comQuem`) em eventos/rolês/cultura, por ano; clica → encontros.
+- ✅ **Saúde** — nº de sessões de terapia, consultas, exames (eventos categoria 'saude', classificados pelo título).
 - ✅ **Viagens** — timeline por ano + países com bandeiras + barras por ano (jovem→2026). Editável.
 - ✅ **Amorosa** *(privada)* — sexo/dates/beijos/casos por ano + botão **Total** (linha do tempo inteira);
   cada registro com pessoa/onde/quanto gastou/comentário; **cadeado** no topo borra nomes+valores.
@@ -80,7 +80,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Corridas: trajeto** da prova desenhado (print/GPS do Strava) — meta × executado, pace e
   evolução já estão prontos; falta só o desenho do trajeto.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
-- 🟢 (refino) opção **"por mês"** no ano em números, além do "por ano".
+- ✅ (refino) opção **"por mês"** no ano em números, além do "por ano".
 
 ---
 
@@ -88,14 +88,13 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 
 **📚 Leituras** *(em cima da aba nova)*
 - ✅ **Retrospectiva de Leituras** (feita — ver acima).
-- 🟢 **Meta de leitura anual** — "X livros / X páginas em 2026", barra de progresso (puxa dos "lido em 2026").
 - 🟡 **"Me sugere um livro"** — sugere da Estante por tempo/humor/tema ("tá com 1h? esse tem 96 páginas").
-- 🟢 **Trechos favoritos** — guardar 1–2 frases marcantes por livro.
+- ✅ **Trechos favoritos** — frases marcantes por livro (dentro de Retrospectiva → Leituras; agrupadas por livro).
 
 **🎬 Novas coleções (mesmo molde da de livros)**
 - 🟡 **Filmes & séries vistos** — aba gêmea da de leituras: por ano · diretor · país · gênero, com nota e filtros.
 - 🟡 **Lugares** — restaurantes/cafés/cidades que foi e quer ir, por cidade (conversa com Eventos recorrentes).
-- 🟢 **Álbuns marcantes** — coleção de discos por ano/artista (complementa a Música do Spotify).
+- ✅ **Álbuns marcantes** — coleção de discos por ano/artista + link do Spotify (dentro de Retrospectiva → Música).
 
 **🪞 Pessoais / reflexivas**
 - 🔴 **"Seu ano em revisão" (Wrapped)** — tela linda no fim do ano juntando livros, viagens, corridas, música,
@@ -111,7 +110,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 
 ## Para depois (não é prioridade — decisão da Mari)
 - 🟡 **Imagem de fundo da tela de senha** — fotos bonitas ligadas à estação/frio (hoje é só cor).
-- 🟢 **Número de frases de abertura** — está em **145** (era 12); dá pra continuar engordando.
+- 🟢 **Número de frases de abertura** — ~**155** (era 12); dá pra continuar engordando.
 
 ---
 
