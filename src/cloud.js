@@ -70,14 +70,16 @@ async function getDoc() {
 // Cada fetch devolve UNREACHABLE (não leu) OU o valor da seção (lido; pode ser
 // [] / null = vazio). O chamador DEVE tratar UNREACHABLE como "mantém o local,
 // não empurra nada", e só migrar o local pra cima quando a nuvem leu e veio vazia.
-export async function fetchSaved() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return Array.isArray(d && d.saved) ? d.saved : []; }
+// fetchSaved devolve { items, rev } (ou UNREACHABLE). `rev` = carimbo companheiro
+// dos Salvos (registro `savedRev`), pra reconciliar por versão como life/calendario.
+export async function fetchSaved() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return { items: Array.isArray(d && d.saved) ? d.saved : [], rev: Number((d && d.savedRev) || 0) }; }
 export async function fetchCalendario() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.calendario === 'object' && d.calendario) || null; }
 export async function fetchLife() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.life === 'object' && d.life) || null; }
 
 // ---- Envio automático (debounce curto por seção + flush ao ocultar/sair) ----
-// `p` = valor pendente ainda não confirmado na nuvem. Ele SÓ é limpo quando o
-// POST volta OK; se falhar, mantém e re-tenta — assim um save que caiu na rede
-// não é perdido em silêncio (antes o pendente era zerado antes do POST).
+// `p` = PAYLOAD pendente (o "pedaço" a postar, ex.: {life:{...}} ou
+// {saved:[...], savedRev:N}) ainda não confirmado. Só é limpo quando o POST
+// volta OK; se falhar, mantém e re-tenta — save que caiu na rede não some.
 const DEBOUNCE = 200;
 const RETRY = 4000;
 const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
@@ -87,16 +89,16 @@ function runPush(field, keepalive) {
   if (s.sending || s.p == null) return;   // um envio de cada vez por seção
   const v = s.p;
   s.sending = true;
-  doPost({ [field]: v }, { keepalive }).then(ok => {
+  doPost(v, { keepalive }).then(ok => {
     s.sending = false;
     // Se um valor MAIS NOVO chegou durante o envio, `s.p` já é outro: envia esse.
     if (ok && s.p === v) s.p = null;        // confirmado e nada novo -> limpa
     if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), ok ? 0 : RETRY);
   });
 }
-function schedule(field, value) {
+function schedule(field, payload) {
   const s = q[field];
-  s.p = value;                              // sobrescreve o pendente (é o estado atual inteiro)
+  s.p = payload;                            // sobrescreve o pendente (payload atual da seção)
   if (s.t) clearTimeout(s.t);
   s.t = setTimeout(() => runPush(field), DEBOUNCE);
 }
@@ -113,21 +115,21 @@ if (typeof document !== 'undefined') {
   window.addEventListener('pagehide', flushAll);
 }
 
-export function pushSaved(saved) { schedule('saved', saved); }
-export function pushCalendario(cal) { schedule('calendario', cal); }
-export function pushLife(life) { schedule('life', life); }
+export function pushSaved(saved, savedRev) { schedule('saved', { saved, savedRev }); }
+export function pushCalendario(cal) { schedule('calendario', { calendario: cal }); }
+export function pushLife(life) { schedule('life', { life }); }
 
 // ---- Salvar AGORA (aguardável) — pro botão manual; garante entrega + confirmação ----
 // Se FALHAR, deixa o valor no pendente pra o retry automático continuar tentando
 // (o botão mostra erro, mas o dado não é abandonado).
-async function saveNow(field, value) {
+async function saveNow(field, payload) {
   const s = q[field];
   if (s.t) { clearTimeout(s.t); s.t = null; }
-  const ok = await doPost({ [field]: value });
-  if (ok) { if (s.p === value) s.p = null; }
-  else { s.p = value; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY); }
+  const ok = await doPost(payload);
+  if (ok) { if (s.p === payload) s.p = null; }
+  else { s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY); }
   return ok;
 }
-export async function saveLifeNow(life) { return saveNow('life', life); }
-export async function saveCalendarioNow(cal) { return saveNow('calendario', cal); }
-export async function saveSavedNow(saved) { return saveNow('saved', saved); }
+export async function saveLifeNow(life) { return saveNow('life', { life }); }
+export async function saveCalendarioNow(cal) { return saveNow('calendario', { calendario: cal }); }
+export async function saveSavedNow(saved, savedRev) { return saveNow('saved', { saved, savedRev }); }

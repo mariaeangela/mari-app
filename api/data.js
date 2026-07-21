@@ -27,7 +27,7 @@ const redis = new Redis({
 });
 
 const LEGACY = 'diagonal:data';
-const K = { saved: 'diagonal:saved', calendario: 'diagonal:calendario', life: 'diagonal:life', projetos: 'diagonal:projetos' };
+const K = { saved: 'diagonal:saved', calendario: 'diagonal:calendario', life: 'diagonal:life', projetos: 'diagonal:projetos', savedRev: 'diagonal:savedRev' };
 
 module.exports = async function handler(req, res) {
   const secret = process.env.DIAGONAL_API_SECRET;
@@ -41,14 +41,15 @@ module.exports = async function handler(req, res) {
       // lê cada registro isolado: se um falhar (ex.: legado muito grande), os
       // outros ainda voltam — o load nunca quebra por causa de uma seção só.
       const safeGet = async (k) => { try { return await redis.get(k); } catch { return null; } };
-      const [legacy, saved, calendario, life, projetos] = await Promise.all([
-        safeGet(LEGACY), safeGet(K.saved), safeGet(K.calendario), safeGet(K.life), safeGet(K.projetos),
+      const [legacy, saved, calendario, life, projetos, savedRev] = await Promise.all([
+        safeGet(LEGACY), safeGet(K.saved), safeGet(K.calendario), safeGet(K.life), safeGet(K.projetos), safeGet(K.savedRev),
       ]);
       const out = { ...(legacy || {}) };            // base: registro antigo (se houver)
       if (saved != null) out.saved = saved;         // por-seção sobrepõe o legado
       if (calendario != null) out.calendario = calendario;
       if (life != null) out.life = life;
       if (projetos != null) out.projetos = projetos;
+      if (savedRev != null) out.savedRev = savedRev; // carimbo companheiro dos Salvos
       if (!Array.isArray(out.saved)) out.saved = [];
       res.status(200).json(out);
       return;
@@ -58,6 +59,7 @@ module.exports = async function handler(req, res) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const ops = [];
       if (Array.isArray(body.saved)) ops.push(redis.set(K.saved, body.saved));
+      if (body.savedRev !== undefined) ops.push(redis.set(K.savedRev, body.savedRev));
       if (body.calendario !== undefined) ops.push(redis.set(K.calendario, body.calendario));
       if (body.life !== undefined) ops.push(redis.set(K.life, body.life));
       if (body.projetos !== undefined) ops.push(redis.set(K.projetos, body.projetos));
