@@ -1701,7 +1701,8 @@ function FinancasSection({ onBack }) {
             <MesDropdown options={[...snaps].reverse().map(s => ({ key: s.id, label: fmtMes(s.mes) }))} selected={atual.id} onSelect={setSelId} />
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>total</div>
-              <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a7a4f' }}>{fmtBRL(total)}</V>
+              <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: atualTemUSD && !rateNum ? '#c0392b' : '#1a7a4f' }}>{fmtBRL(total)}</V>
+              {atualTemUSD && !rateNum && <div style={{ fontSize: 10, color: '#c0392b', fontWeight: 700, marginTop: 1 }}>⚠ falta a cotação — dólar fora</div>}
             </div>
           </div>
 
@@ -2129,7 +2130,7 @@ function GastosVida() {
   const totalGeral = {};
   meses.forEach(m => (m.itens || []).forEach(i => { totalGeral[i.categoria] = (totalGeral[i.categoria] || 0) + (Number(i.valor) || 0); }));
   const todasCats = Object.keys(totalGeral).sort((a, b) => totalGeral[b] - totalGeral[a]);
-  const valorMesCat = (m, c) => { const it = (m.itens || []).find(x => x.categoria === c); return it ? (Number(it.valor) || 0) : 0; };
+  const valorMesCat = (m, c) => (m.itens || []).filter(x => x.categoria === c).reduce((s, x) => s + (Number(x.valor) || 0), 0); // soma TODOS os lançamentos da categoria no mês (fecha com o Total mesmo com categoria repetida)
   const addBtn = { display: 'block', background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '11px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: meses.length ? 12 : 16 };
   const vchip = (k, txt) => <button onClick={() => setVista(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vista === k ? COR_FIN : '#eee', color: vista === k ? '#fff' : '#888' }}>{txt}</button>;
 
