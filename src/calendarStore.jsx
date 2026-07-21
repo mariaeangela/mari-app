@@ -94,6 +94,7 @@ function writeLocal(d) {
 export function CalendarProvider({ children }) {
   const [data, setData] = useState(() => runSeeds(readLocal()));
   const dirty = useRef(false); // não deixa a nuvem tardia sobrescrever ação local
+  const resyncing = useRef(false);
   const dataRef = useRef(data); dataRef.current = data; // pro salvar manual pegar o estado atual
 
   useEffect(() => {
@@ -150,6 +151,30 @@ export function CalendarProvider({ children }) {
   const patch = (part) => persist({ ...data, ...part });
   // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveCalendarioNow(dataRef.current); };
+
+  // Re-sincroniza ao voltar ao foco / rede retornar: adota a nuvem só se ela for
+  // mais nova que o local (via _rev). Fecha a fresta do aparelho desatualizado
+  // empurrar por cima de mudança mais recente de outro aparelho.
+  const resyncCal = async () => {
+    if (resyncing.current) return;
+    resyncing.current = true;
+    try {
+      const cloud = await fetchCalendario();
+      if (cloud === UNREACHABLE || !cloud) return;
+      const merged = runSeeds({ ...DEFAULT, ...cloud });
+      if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
+        const r = rolarAtrasadas(merged.tasks, hojeKey());
+        const f = r.changed ? { ...merged, tasks: r.next } : merged;
+        writeLocal(f); setData(f); pushCalendario(f);
+      }
+    } finally { resyncing.current = false; }
+  };
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') resyncCal(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('online', resyncCal);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncCal); };
+  }, []); // eslint-disable-line
 
   // ---- Eventos ----
   const saveEvent = (ev) => {

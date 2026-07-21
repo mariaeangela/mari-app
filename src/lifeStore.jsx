@@ -1612,6 +1612,7 @@ function writeLocal(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } c
 export function LifeProvider({ children }) {
   const [data, setData] = useState(() => runLifeSeeds(readLocal()));
   const dirty = useRef(false);
+  const resyncing = useRef(false);
   const dataRef = useRef(data);
   dataRef.current = data;
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | saving | saved | error
@@ -1657,6 +1658,31 @@ export function LifeProvider({ children }) {
   const persist = (next) => { const s = stampRev(next); dirty.current = true; setData(s); writeLocal(s); pushLife(s); };
   // Salvar AGORA (botão manual): grava na nuvem e AGUARDA a confirmação. Devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveLifeNow(dataRef.current); };
+
+  // Re-sincroniza com a nuvem quando o app VOLTA ao foco ou a rede retorna: relê e
+  // ADOTA a nuvem só se ela for mais nova que o local (via _rev). Fecha a fresta de
+  // um aparelho desatualizado (aberto o dia todo / boot offline) empurrar por cima
+  // de uma mudança mais recente de outro aparelho. Nunca descarta edição local mais
+  // nova (o _rev dela é maior). O pushLife supera qualquer push pendente já velho.
+  const resyncLife = async () => {
+    if (resyncing.current) return;
+    resyncing.current = true;
+    try {
+      const cloud = await fetchLife();
+      if (cloud === UNREACHABLE || !cloud) return;
+      const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
+      if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
+        const next = runLifeSeeds(merged);
+        writeLocal(next); setData(next); pushLife(next);
+      }
+    } finally { resyncing.current = false; }
+  };
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') resyncLife(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('online', resyncLife);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncLife); };
+  }, []); // eslint-disable-line
 
   // Re-roda o "puxar vencidos pra hoje" CONTINUAMENTE (não só no login): ao voltar
   // pro app e a cada minuto. Sem isso, se o app ficar aberto e o dia virar, o item
