@@ -180,8 +180,8 @@ function Antecipacao() {
     return (!best || dd < best.dias) ? { dias: dd, it } : best;
   }, null);
 
-  const proxEvento = nearest(cal.data.events.filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
-  const proxProva = nearest(cal.data.exercicios.filter(x => x.subtipo === 'corrida_prova'), x => x.data);
+  const proxEvento = nearest((cal.data.events || []).filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
+  const proxProva = nearest((cal.data.exercicios || []).filter(x => x.subtipo === 'corrida_prova'), x => x.data);
   // compras com prazo nos próximos 7 dias (mais urgentes primeiro)
   const comprasPrazo = (life.compras?.itens || [])
     .filter(i => !i.comprado && i.dataLimite && i.dataLimite >= tk && dias(i.dataLimite) <= 7)
@@ -214,7 +214,7 @@ function Antecipacao() {
 // Lendo no momento
 function LendoAgora() {
   const cal = useCalendar();
-  const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
+  const lendo = (cal.data.cultura || []).filter(c => c.subtipo === 'lendo');
   if (!lendo.length) return null;
   return (
     <p style={{ fontSize: 13, color: '#777', marginBottom: 22 }}>
@@ -227,7 +227,7 @@ function LendoAgora() {
 // Ouvindo no momento (audiobooks) — igual ao Lendo, logo abaixo dele.
 function OuvindoAgora() {
   const cal = useCalendar();
-  const ouvindo = cal.data.cultura.filter(c => c.subtipo === 'ouvindo');
+  const ouvindo = (cal.data.cultura || []).filter(c => c.subtipo === 'ouvindo');
   if (!ouvindo.length) return null;
   return (
     <p style={{ fontSize: 13, color: '#777', marginBottom: 22 }}>

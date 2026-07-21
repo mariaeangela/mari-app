@@ -67,17 +67,17 @@ export const PLANO_COR = '#6b7a99';
 // `planos` (opcional, = life.planos) injeta itens do checklist de Planos com `prazo` neste dia.
 export function itemsForDay(data, date, planos) {
   const key = ymd(date);
-  const events = data.events.filter(e => eventOccursOn(e, date))
+  const events = (data.events || []).filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo, _dia: key }));
-  const exercicios = data.exercicios.filter(x => x.data === key)
+  const exercicios = (data.exercicios || []).filter(x => x.data === key)
     .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: ehCorrida(x) ? corridaLabel(x) : exTitulo(x) }));
-  const tasks = data.tasks.filter(t => t.data && taskOccursOn(t, date))
+  const tasks = (data.tasks || []).filter(t => t.data && taskOccursOn(t, date))
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: t.trabalho ? '#4f7cff' : TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
-  const roles = data.roles.filter(r => r.data === key)
+  const roles = (data.roles || []).filter(r => r.data === key)
     .map(r => ({ ...r, _tipo: 'role', _cor: ROLE_COR, _titulo: r.titulo + (r.local ? ' · ' + r.local : '') }));
   // 'lendo'/'ouvindo' não entram no dia/calendário — só aparecem nas seções fixas
   // "Lendo/Ouvindo no momento" (e voltam ao calendário como 'lido'/'ouvido' ao concluir).
-  const cultura = data.cultura.filter(c => c.data === key && c.subtipo !== 'lendo' && c.subtipo !== 'ouvindo')
+  const cultura = (data.cultura || []).filter(c => c.data === key && c.subtipo !== 'lendo' && c.subtipo !== 'ouvindo')
     .map(c => ({ ...c, _tipo: 'cultura', _cor: CULTURA_COR, _titulo: c.titulo }));
   let planoItens = [];
   if (planos) {
@@ -414,7 +414,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
   const key = ymd(date);
   const todayKey = ymd(hoje());
   const { events, exercicios, tasks, roles, cultura, planoItens } = itemsForDay(cal.data, date, life.planos);
-  const mood = cal.data.moods[key];
+  const mood = (cal.data.moods || {})[key];
 
   const linha = (it, extra) => (
     <button key={it.id} onClick={() => onEdit(it)} style={rowBtn}>
@@ -450,14 +450,14 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
         {key > todayKey && (
           <>
             <label style={labelStyle}>✉ Bilhete para o futuro</label>
-            <textarea value={cal.data.bilhetes[key] || ''} onChange={e => cal.setBilhete(key, e.target.value)} rows={2}
+            <textarea value={(cal.data.bilhetes || {})[key] || ''} onChange={e => cal.setBilhete(key, e.target.value)} rows={2}
               placeholder="escreva algo para você ler quando este dia chegar" style={{ ...inputStyle, resize: 'vertical' }} />
           </>
         )}
-        {key <= todayKey && cal.data.bilhetes[key] && (
+        {key <= todayKey && (cal.data.bilhetes || {})[key] && (
           <>
             <label style={labelStyle}>✉ Bilhete</label>
-            <p style={{ fontSize: 14, color: '#5b4a2e', fontStyle: 'italic', lineHeight: 1.5, background: '#fff7ec', border: '1px solid #f0dcc0', borderRadius: 10, padding: '10px 12px' }}>{cal.data.bilhetes[key]}</p>
+            <p style={{ fontSize: 14, color: '#5b4a2e', fontStyle: 'italic', lineHeight: 1.5, background: '#fff7ec', border: '1px solid #f0dcc0', borderRadius: 10, padding: '10px 12px' }}>{(cal.data.bilhetes || {})[key]}</p>
           </>
         )}
 
@@ -520,7 +520,7 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
         {cells.map(({ date, out }, i) => {
           const key = ymd(date);
           const dots = moodMode ? [] : (getDots ? getDots(date) : itemsForDay(cal.data, date).all);
-          const mood = cal.data.moods[key];
+          const mood = (cal.data.moods || {})[key];
           const isToday = key === todayKey;
           return (
             <button key={i} onClick={() => onDayClick(date)} style={{
@@ -831,12 +831,12 @@ export default function Calendario({ isWide }) {
   const [exView, setExView] = useState('cal'); // dentro de Exercício: 'cal' (calendário) | 'lista'
 
   const VIEWS = [['mes', 'Mês'], ['agenda', 'Agenda'], ['exercicio', 'Exercício'], ['humor', 'Humor']];
-  const lendo = cal.data.cultura.filter(c => c.subtipo === 'lendo');
-  const ouvindo = cal.data.cultura.filter(c => c.subtipo === 'ouvindo');
-  const bilheteHoje = cal.data.bilhetes[ymd(today)];
+  const lendo = (cal.data.cultura || []).filter(c => c.subtipo === 'lendo');
+  const ouvindo = (cal.data.cultura || []).filter(c => c.subtipo === 'ouvindo');
+  const bilheteHoje = (cal.data.bilhetes || {})[ymd(today)];
   // Tarefas sem data: pendentes (visíveis) e concluídas (escondidas atrás de um botão).
-  const tarefasPendentes = cal.data.tasks.filter(t => !t.data && !t.feita);
-  const tarefasConcluidas = cal.data.tasks.filter(t => !t.data && t.feita).sort((a, b) => (b.feitaEm || '').localeCompare(a.feitaEm || ''));
+  const tarefasPendentes = (cal.data.tasks || []).filter(t => !t.data && !t.feita);
+  const tarefasConcluidas = (cal.data.tasks || []).filter(t => !t.data && t.feita).sort((a, b) => (b.feitaEm || '').localeCompare(a.feitaEm || ''));
   const temSemData = cal.data.tasks.some(t => !t.data);
   // Compras com data limite no mês exibido (refDate).
   const mesKey = `${refDate.getFullYear()}-${pad2(refDate.getMonth() + 1)}`;

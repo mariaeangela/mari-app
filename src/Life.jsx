@@ -1798,8 +1798,8 @@ function SalariosVida() {
   const [form, setForm] = useState(null);
 
   let acc = 0, prevTotal = null;
-  const anos = life.salarios.map(a => {
-    const total = a.meses.reduce((s, v) => s + (Number(v) || 0), 0) + (Number(a.extra) || 0) + (Number(a.bonus) || 0);
+  const anos = (life.salarios || []).map(a => {
+    const total = (a.meses || []).reduce((s, v) => s + (Number(v) || 0), 0) + (Number(a.extra) || 0) + (Number(a.bonus) || 0);
     acc += total;
     const yoy = a.yoy != null ? a.yoy : (prevTotal ? (total / prevTotal - 1) * 100 : null);
     prevTotal = total;
@@ -2489,7 +2489,7 @@ function SaudeSection({ onBack }) {
         {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
         {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : (pesosAberto ? pesosDesc : pesosDesc.slice(0, 1)).map((p, idx) => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
-          <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{p.valor.toLocaleString('pt-BR')} kg</span>
+          <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{(Number(p.valor) || 0).toLocaleString('pt-BR')} kg</span>
           <span style={{ flex: 1, fontSize: 11.5, color: '#aaa' }}>{[TREINO_LABEL[p.treino], PERIODO_LABEL[normPeriodo(p.periodo)], p.local].filter(Boolean).join(' · ')}</span>
           <button onClick={() => setForm({ tipo: 'peso', editing: p })} style={editLink}>editar</button>
           {idx === 0 && pesosDesc.length > 1 && <span onClick={() => setPesosAberto(v => !v)} title="pesos anteriores" style={{ cursor: 'pointer', color: '#bbb', fontSize: 12.5, fontWeight: 700, flexShrink: 0, marginLeft: 2 }}>{pesosAberto ? '▾' : `▸ ${pesosDesc.length - 1}`}</span>}
@@ -3289,7 +3289,7 @@ function ViagemDetail({ trip, onBack }) {
     if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
     return true;
   });
-  const dias = [...new Set(mesasFiltradas.map(m => m.dia))].sort();
+  const dias = [...new Set(mesasFiltradas.map(m => m.dia).filter(Boolean))].sort();
   const totalFav = todasMesas.filter(m => m.favorito).length;
   const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || fFav || !!qBusca;
 

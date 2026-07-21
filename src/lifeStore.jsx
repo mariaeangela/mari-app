@@ -1966,7 +1966,7 @@ export function LifeProvider({ children }) {
 
   // ---- VR (vale-refeição): ciclo dia 27→26. Por ciclo: { total, gastos:[{id,valor,data,nota?}] }.
   // Chave do ciclo = ymd do dia 27 que o inicia. "Pode gastar por dia" = (total − gasto) / dias até o 26.
-  const vr = data.vr || { ciclos: {} };
+  const vr = (data.vr && data.vr.ciclos) ? data.vr : { ciclos: {} };
   const setVr = (next) => persist({ ...data, vr: next });
   const vrCicloDe = (ck) => vr.ciclos[ck] || { total: 0, gastos: [] };
   const setVrTotal = (ck, total) => setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...vrCicloDe(ck), total: Number(total) || 0 } } });
@@ -1976,7 +1976,7 @@ export function LifeProvider({ children }) {
   // ---- Posso gastar: orçamento do mês (ciclo 27→26), 2 caixas INDEPENDENTES:
   // 'total' e 'mercado'. Cada uma { budget, gastos:[...] }. Resta = budget − gasto.
   // NÃO divide por dia e NÃO tem relação com as categorias de Gastos.
-  const possoGastar = data.possoGastar || { ciclos: {} };
+  const possoGastar = (data.possoGastar && data.possoGastar.ciclos) ? data.possoGastar : { ciclos: {} };
   const setPG = (next) => persist({ ...data, possoGastar: next });
   const pgCicloDe = (ck) => { const c = possoGastar.ciclos[ck] || {}; return { total: c.total || { budget: 0, gastos: [] }, mercado: c.mercado || { budget: 0, gastos: [] } }; };
   const setPgBudget = (ck, bucket, budget) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], budget: Number(budget) || 0 } } } }); };
