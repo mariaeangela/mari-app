@@ -2018,6 +2018,15 @@ export function LifeProvider({ children }) {
   const albuns = data.albuns || [];
   const saveAlbum = (a) => persist({ ...data, albuns: a.id && albuns.some(x => x.id === a.id) ? albuns.map(x => x.id === a.id ? { ...x, ...a } : x) : [...albuns, { ...a, id: uid('alb'), criadoEm: Date.now() }] });
   const deleteAlbum = (id) => persist({ ...data, albuns: albuns.filter(x => x.id !== id) });
+  // Backfill de capas: aplica VÁRIAS capas de uma vez (mapa id->capa), atômico. Update
+  // funcional (lê `prev`, não o `data` do closure) pra vários saves não se sobrescreverem.
+  const setAlbunsCapas = (capaById) => setData(prev => {
+    const arr = prev.albuns || [];
+    if (!arr.some(x => capaById[x.id] && !x.capa)) return prev;
+    const next = stampRev({ ...prev, albuns: arr.map(x => (capaById[x.id] && !x.capa) ? { ...x, capa: capaById[x.id] } : x) });
+    dirty.current = true; writeLocal(next); pushLife(next);
+    return next;
+  });
 
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
@@ -2079,7 +2088,7 @@ export function LifeProvider({ children }) {
     vr, setVrTotal, addVrGasto, deleteVrGasto,
     possoGastar, setPgBudget, addPgGasto, deletePgGasto,
     trechos, saveTrecho, deleteTrecho,
-    albuns, saveAlbum, deleteAlbum,
+    albuns, saveAlbum, deleteAlbum, setAlbunsCapas,
   };
   return <LifeContext.Provider value={value}>{children}</LifeContext.Provider>;
 }

@@ -983,12 +983,17 @@ function AlbunsView({ onBack, isWide }) {
   // (oEmbed via /api/spotify) UMA vez e guarda. O triedRef evita re-buscar em loop.
   const triedRef = useRef(new Set());
   useEffect(() => {
-    albuns.forEach(a => {
-      if (a.link && !a.capa && !triedRef.current.has(a.id)) {
-        triedRef.current.add(a.id);
-        fetchSpotifyCover(a.link).then(thumb => { if (thumb) life.saveAlbum({ ...a, capa: thumb }); });
-      }
-    });
+    const pend = albuns.filter(a => a.link && !a.capa && !triedRef.current.has(a.id));
+    if (!pend.length) return;
+    pend.forEach(a => triedRef.current.add(a.id));
+    // Busca todas as capas e salva UMA vez (setAlbunsCapas é atômico) — se salvasse
+    // uma a uma, os saves usariam `data` velho e se sobrescreveriam (capas sumiam).
+    Promise.all(pend.map(a => fetchSpotifyCover(a.link).then(thumb => [a.id, thumb]).catch(() => [a.id, null])))
+      .then(pairs => {
+        const map = {};
+        pairs.forEach(([id, thumb]) => { if (thumb) map[id] = thumb; });
+        if (Object.keys(map).length) life.setAlbunsCapas(map);
+      });
   }, [albuns]); // eslint-disable-line
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
