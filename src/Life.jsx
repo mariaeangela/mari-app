@@ -600,11 +600,16 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
   const [cidadeSel, setCidadeSel] = useState('todas');
   const [tipoSel, setTipoSel] = useState('todos');
   const [verRec, setVerRec] = useState(false);
+  const [verPassado, setVerPassado] = useState(false);
   if (verRec) return <RecorrentesView onBack={() => setVerRec(false)} />;
   const cidades = [...new Set(life.cultural.itens.map(i => i.cidade).filter(Boolean))].sort();
-  const itens = life.cultural.itens
-    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel))
-    .sort((a, b) => (a.dataMax || '9999-99-99').localeCompare(b.dataMax || '9999-99-99'));
+  const hk = hojeKey();
+  const filtrados = life.cultural.itens
+    .filter(i => (cidadeSel === 'todas' || i.cidade === cidadeSel) && (tipoSel === 'todos' || i.tipo === tipoSel));
+  // "Passado" = já saiu de cartaz (tem data de fim e ela passou). Sem data fica no atual.
+  const ehPassado = (i) => i.dataMax && i.dataMax < hk;
+  const atuais = filtrados.filter(i => !ehPassado(i)).sort((a, b) => (a.dataMax || '9999-99-99').localeCompare(b.dataMax || '9999-99-99'));
+  const passados = filtrados.filter(ehPassado).sort((a, b) => (b.dataMax || '').localeCompare(a.dataMax || '')); // mais recente primeiro
 
   const chip = (ativo, label, onClick) => (
     <button key={label} onClick={onClick} style={{
@@ -647,22 +652,44 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
         {CULT_TIPOS.map(t => chip(tipoSel === t.id, t.label, () => setTipoSel(t.id)))}
       </div>
 
-      {/* lista (ordenada pela data que acaba antes) */}
-      {itens.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada em cartaz por aqui. Toque no + para adicionar.</p>
-      ) : itens.map(it => {
-        const meta = [it.local, it.dataMax ? 'até ' + fmtData(it.dataMax) : null, it.preco, fmtFuncionamento(it.funcionamento) || null].filter(Boolean).join(' · ');
-        return (
-          <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
-              {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
-              <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{cultTipoLabel(it.tipo)}</span>
+      {/* card de um item (reusado no atual e no passado; `passou` deixa o passado esmaecido) */}
+      {(() => {
+        const renderItem = (it, passou) => {
+          const meta = [it.local, it.dataMax ? (passou ? 'foi até ' : 'até ') + fmtData(it.dataMax) : null, it.preco, fmtFuncionamento(it.funcionamento) || null].filter(Boolean).join(' · ');
+          return (
+            <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer', opacity: passou ? 0.6 : 1 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
+                {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+                <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{cultTipoLabel(it.tipo)}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
             </div>
-            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
-          </div>
+          );
+        };
+        if (atuais.length === 0 && passados.length === 0)
+          return <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nada em cartaz por aqui. Toque no + para adicionar.</p>;
+        return (
+          <>
+            {atuais.length === 0
+              ? <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '20px 0', fontStyle: 'italic' }}>Nada em cartaz agora.</p>
+              : atuais.map(it => renderItem(it, false))}
+            {passados.length > 0 && (
+              <>
+                <button onClick={() => setVerPassado(v => !v)} style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, marginBottom: 8,
+                  background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', color: '#999', fontSize: 12.5, fontWeight: 700,
+                }}>
+                  <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>Passado ({passados.length})</span>
+                  <span style={{ flex: 1, height: 1, background: '#eee' }} />
+                  <span>{verPassado ? '▾' : '▸'}</span>
+                </button>
+                {verPassado && passados.map(it => renderItem(it, true))}
+              </>
+            )}
+          </>
         );
-      })}
+      })()}
 
       {form && <CulturalForm editing={form.editing} onClose={() => setForm(null)} />}
     </div>
