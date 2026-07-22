@@ -166,6 +166,43 @@ function SeuDia() {
   );
 }
 
+// Nos dias com terapia marcada no Calendário, uma caixa na capa (logo após o humor)
+// pra anotar o que aprendeu — vira/atualiza a nota do dia em "Terapia Insights"
+// (Aprendizados). Assim não esquece de preencher.
+function TerapiaHoje() {
+  const cal = useCalendar();
+  const life = useLife();
+  const [txt, setTxt] = useState('');
+  const today = hojeMid();
+  const eventosHoje = itemsForDay(cal.data, today).events;
+  const temTerapia = eventosHoje.some(e => e.categoria === 'saude' && /terapia|psic[oó]|psiqui/i.test(e.titulo || ''));
+  if (!temTerapia) return null;
+  const dataLabel = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+  const ap = life.aprendizados || { topicos: [], notas: [] };
+  const topico = (ap.topicos || []).find(t => /terapia/i.test(t.nome || ''));
+  const notaHoje = topico ? (ap.notas || []).find(n => n.topicoId === topico.id && n.titulo === dataLabel) : null;
+  const itens = notaHoje?.itens || [];
+  const add = () => { const t = txt.trim(); if (!t) return; life.addTerapiaInsight(dataLabel, t); setTxt(''); };
+  const cor = '#7a5c9e';
+  return (
+    <div style={{ marginBottom: 22, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '13px 16px' }}>
+      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>Terapia de hoje ✍</div>
+      <p style={{ fontSize: 12, color: '#888', margin: '4px 0 8px' }}>o que você aprendeu? vai pra <b style={{ color: cor }}>Terapia Insights</b> · nota {dataLabel}</p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input value={txt} onChange={e => setTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="um aprendizado…" style={{ ...capaInput, flex: 1 }} />
+        <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>anotar</button>
+      </div>
+      {itens.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          {itens.map((it, i) => (
+            <div key={i} style={{ fontSize: 13, color: '#444', padding: '3px 0', display: 'flex', gap: 7 }}><span style={{ color: cor, flexShrink: 0 }}>•</span><span>{it}</span></div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Antecipação: contagem regressiva (viagem), próxima prova (corrida) e eventos culturais
 // que "vencem" (dataMax) nos próximos 30 dias (última chance de ver).
 function Antecipacao() {
@@ -454,6 +491,7 @@ function Feed({ isWide }) {
         <NesteDiaFato />
         <BilheteHoje />
         <SeuDia />
+        <TerapiaHoje />
         <Antecipacao />
         <LendoAgora />
         <OuvindoAgora />

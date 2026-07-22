@@ -2036,6 +2036,19 @@ export function LifeProvider({ children }) {
     ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) } // merge preserva criadoEm
     : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n'), criadoEm: Date.now() }] });
   const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
+  // Insight de terapia do dia: acha (ou cria) o tópico "Terapia Insights" e a nota
+  // com o dia (dataLabel) como título, e adiciona o aprendizado dentro — tudo num
+  // único save (atômico). Usado pela caixa da Tela Hoje nos dias de terapia.
+  const addTerapiaInsight = (dataLabel, texto) => {
+    const ap = aprendizados;
+    let topico = (ap.topicos || []).find(t => /terapia/i.test(t.nome || ''));
+    let topicos = ap.topicos || [], notas = ap.notas || [];
+    if (!topico) { topico = { id: uid('t'), nome: 'Terapia Insights' }; topicos = [...topicos, topico]; }
+    const nota = notas.find(n => n.topicoId === topico.id && n.titulo === dataLabel);
+    if (nota) notas = notas.map(n => n === nota ? { ...n, itens: [...(n.itens || []), texto] } : n);
+    else notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, itens: [texto], criadoEm: Date.now() }];
+    setAprendizados({ ...ap, topicos, notas });
+  };
 
   const value = {
     data, compras, salvarAgora, syncStatus,
@@ -2047,7 +2060,7 @@ export function LifeProvider({ children }) {
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
-    aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota,
+    aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight,
     comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
