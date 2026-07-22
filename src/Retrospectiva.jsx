@@ -43,6 +43,7 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'gastos', label: 'Gastos', desc: 'pra onde foi o dinheiro', cor: '#6b7a99', pronto: true },
+  { id: 'coisasCaras', label: 'Coisas caras', desc: 'quando comprei e quanto duram', cor: '#ff8a3d', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f', pronto: true },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
@@ -58,6 +59,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   const baseSec = (sec || '').split(':')[0];          // 'gastos:Saúde' → 'gastos'
   const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
   if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
+  if (baseSec === 'coisasCaras') return <CoisasCarasView onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -426,60 +428,37 @@ function ComprasChart({ meses }) {
 }
 
 // ---- Card: Compras — histórico próprio (+ o que foi marcado como comprado nas listas) ----
-function ComprasRetro({ onBack, isWide, backLabel = 'Retrospectiva' }) {
+// Lista das compras marcadas à mão (comprasFeitas) por mês, com preço — mostrada
+// INLINE embaixo da tabela de Coisas. `ano` filtra pelo ano selecionado (opcional).
+function ComprasFeitasLista({ ano }) {
   const life = useLife();
-  const [form, setForm] = useState(null); // { editing? }
-  const [verCaras, setVerCaras] = useState(false);
+  const [form, setForm] = useState(null);
   const valorTxt = (v, m) => v ? simboloMoeda(m) + ' ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
-
-  // Fonte única: registro próprio (comprasFeitas) — marcado manualmente aqui.
-  // (As listas de compras NÃO alimentam mais esta retrospectiva, por decisão da Mari.)
-  const todas = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, editavel: true, raw: c }));
-  const { anos, anoSel, setAnoSel } = useAnoSel(todas.map(i => i.data));
-  if (verCaras) return <CoisasCarasView onBack={() => setVerCaras(false)} isWide={isWide} />; // depois de todos os hooks
-  const doAno = todas.filter(i => (i.data || '').slice(0, 4) === anoSel); // só compras do ano selecionado
-
+  const todas = (life.comprasFeitas || []).map(c => ({ id: c.id, titulo: c.titulo, data: c.data, sub: c.categoria, vtxt: valorTxt(c.valor, c.moeda), moeda: c.moeda || 'BRL', vnum: Number(c.valor) || 0, raw: c }));
+  const doAno = ano ? todas.filter(i => (i.data || '').slice(0, 4) === ano) : todas;
   const meses = [...new Set(doAno.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
-  const ordDia = (a, b) => (b.data || '').localeCompare(a.data || '');
-  const grupos = meses.map(mm => ({ mm, itens: doAno.filter(i => (i.data || '').slice(0, 7) === mm).sort(ordDia) }));
-  const semData = todas.filter(i => !i.data); // compras sem data: aparecem em qualquer ano
-  // dados do gráfico: meses em ordem cronológica, só compras em R$ com valor (faixas maiores embaixo).
+  const grupos = meses.map(mm => ({ mm, itens: doAno.filter(i => (i.data || '').slice(0, 7) === mm).sort((a, b) => (b.data || '').localeCompare(a.data || '')) }));
+  const semData = doAno.filter(i => !i.data);
   const mesesChart = [...grupos].reverse().map(g => {
-    const itens = g.itens.filter(i => i.moeda === 'BRL' && i.vnum > 0).map(i => ({ titulo: i.titulo, vnum: i.vnum })).sort((a, b) => b.vnum - a.vnum);
-    return { mm: g.mm, label: MESES[+g.mm.slice(5, 7) - 1].slice(0, 3), itens, total: itens.reduce((a, i) => a + i.vnum, 0) };
+    const it = g.itens.filter(i => i.moeda === 'BRL' && i.vnum > 0).map(i => ({ titulo: i.titulo, vnum: i.vnum })).sort((a, b) => b.vnum - a.vnum);
+    return { mm: g.mm, label: MESES[+g.mm.slice(5, 7) - 1].slice(0, 3), itens: it, total: it.reduce((a, i) => a + i.vnum, 0) };
   }).filter(m => m.total > 0);
-
   const linhaItem = (it) => (
-    <div key={it.id} onClick={it.editavel ? () => setForm({ editing: it.raw }) : undefined} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: it.editavel ? 'pointer' : 'default' }}>
+    <div key={it.id} onClick={() => setForm({ editing: it.raw })} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
       <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.titulo}</span>
       <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{[it.sub, it.vtxt].filter(Boolean).join(' · ')}</span>
     </div>
   );
-
   return (
-    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{backLabel === 'Retrospectiva' ? 'Compras' : 'Compras caras'}</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu histórico de compras feitas</p>
-        </div>
-        <button onClick={() => setForm({})} title="registrar compra" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+    <div style={{ marginTop: 26, borderTop: '1px solid #eee', paddingTop: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, color: '#7a3d12', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700 }}>Compras por mês</span>
+        <button onClick={() => setForm({})} title="registrar compra" style={{ width: 34, height: 34, borderRadius: 9, border: 'none', background: '#111', color: '#fff', fontSize: 20, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
-
-      <button onClick={() => setVerCaras(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid #ff8a3d55', background: '#fff8f2', color: '#7a3d12', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🏷️ Compras caras — quando comprei e quanto duram ›</button>
-
-      {todas.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma compra que você fez.</p>
+      {doAno.length === 0 ? (
+        <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', padding: '4px 0' }}>Nenhuma compra marcada{ano ? ' em ' + ano : ''}. Toque no + para registrar.</p>
       ) : <>
-        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor="#ff8a3d" />
-        <div style={{ marginBottom: 18 }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
-          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'compra' : 'compras'} em {anoSel}</span>
-        </div>
         {mesesChart.length > 0 && <ComprasChart meses={mesesChart} />}
-        {grupos.length === 0 && semData.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
         {grupos.map(g => {
           const totalBRL = g.itens.filter(i => i.moeda === 'BRL').reduce((a, i) => a + i.vnum, 0);
           return (
@@ -499,34 +478,36 @@ function ComprasRetro({ onBack, isWide, backLabel = 'Retrospectiva' }) {
           </div>
         )}
       </>}
-
       {form && <CompraFeitaForm editing={form.editing} onClose={() => setForm(null)} />}
     </div>
   );
 }
 
-// ---- Coisas caras: quando comprei e quanto duram (semestre = ano + half 1|2) ----
-const halfLabel = (h) => (h === 2 ? '2º sem.' : '1º sem.');
+// ---- Coisas caras: quando comprei e quanto duram (por MÊS: ano + mes 0–11) ----
+// Compat: itens antigos têm `half` (semestre) — cai no início do semestre.
 const halfStartMonth = (h) => (h === 2 ? 6 : 0);
+const mesInicio = (c) => (c && c.mes != null) ? c.mes : halfStartMonth(c && c.half);
+const mesFim = (c) => (c && c.fimMes != null) ? c.fimMes : halfStartMonth((c && c.fimHalf) || 1);
+const mesLabel = (i) => MESES[((i % 12) + 12) % 12].slice(0, 3);
 function fmtDuracao(meses) {
   const a = Math.floor(meses / 12), m = meses % 12;
   if (a <= 0) return `${m} ${m === 1 ? 'mês' : 'meses'}`;
   if (m === 0) return `${a} ${a === 1 ? 'ano' : 'anos'}`;
   return `${a} ${a === 1 ? 'ano' : 'anos'} e ${m} ${m === 1 ? 'mês' : 'meses'}`;
 }
-function CoisasCarasView({ onBack, isWide }) {
+function CoisasCarasView({ onBack, isWide, backLabel = 'Retrospectiva' }) {
   const life = useLife();
   const [form, setForm] = useState(null);
   const hoje = new Date();
   const nowMonths = hoje.getFullYear() * 12 + hoje.getMonth();
-  const itens = [...(life.coisasCaras || [])].sort((a, b) => (b.ano * 12 + halfStartMonth(b.half)) - (a.ano * 12 + halfStartMonth(a.half)));
+  const itens = [...(life.coisasCaras || [])].sort((a, b) => (b.ano * 12 + mesInicio(b)) - (a.ano * 12 + mesInicio(a)));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Compras</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <div style={{ width: 36, height: 4, background: '#ff8a3d', borderRadius: 4, marginBottom: 12 }} />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Compras caras</h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Coisas caras</h2>
           <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>quando comprei e quanto duram</p>
         </div>
         <button onClick={() => setForm({})} title="adicionar coisa cara" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
@@ -535,9 +516,9 @@ function CoisasCarasView({ onBack, isWide }) {
       {itens.length === 0 ? (
         <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + para registrar uma coisa cara (ex.: notebook, celular).</p>
       ) : itens.map(c => {
-        const startMonths = c.ano * 12 + halfStartMonth(c.half);
+        const startMonths = c.ano * 12 + mesInicio(c);
         const emUso = c.fimAno == null;
-        const endMonths = emUso ? nowMonths : c.fimAno * 12 + halfStartMonth(c.fimHalf || 1);
+        const endMonths = emUso ? nowMonths : c.fimAno * 12 + mesFim(c);
         const dur = Math.max(0, endMonths - startMonths);
         return (
           <div key={c.id} onClick={() => setForm({ editing: c })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px', marginBottom: 8, cursor: 'pointer' }}>
@@ -545,7 +526,7 @@ function CoisasCarasView({ onBack, isWide }) {
               <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{c.nome}</span>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: emUso ? '#2bb673' : '#999', flexShrink: 0 }}>{emUso ? 'em uso há ' : 'durou '}{fmtDuracao(dur)}</span>
             </div>
-            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>comprei no {halfLabel(c.half)} de {c.ano}{!emUso ? ` · até ${halfLabel(c.fimHalf || 1)} de ${c.fimAno}` : ''}</div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>comprei em {mesLabel(mesInicio(c))} de {c.ano}{!emUso ? ` · até ${mesLabel(mesFim(c))} de ${c.fimAno}` : ''}</div>
           </div>
         );
       })}
@@ -559,20 +540,20 @@ function CoisaCaraForm({ editing, onClose }) {
   const life = useLife();
   const [nome, setNome] = useState(editing?.nome || '');
   const [ano, setAno] = useState(editing?.ano != null ? String(editing.ano) : '');
-  const [half, setHalf] = useState(editing?.half || 1);
+  const [mes, setMes] = useState(editing?.mes != null ? editing.mes : (editing ? halfStartMonth(editing.half) : new Date().getMonth()));
   const [aindaUso, setAindaUso] = useState(editing ? editing.fimAno == null : true);
   const [fimAno, setFimAno] = useState(editing?.fimAno != null ? String(editing.fimAno) : '');
-  const [fimHalf, setFimHalf] = useState(editing?.fimHalf || 1);
+  const [fimMes, setFimMes] = useState(editing?.fimMes != null ? editing.fimMes : (editing?.fimHalf ? halfStartMonth(editing.fimHalf) : 0));
   const podeSalvar = nome.trim().length > 0 && ano;
   const salvar = () => {
     if (!podeSalvar) return;
-    life.saveCoisaCara({ id: editing?.id, nome: nome.trim(), ano: Number(ano), half: Number(half),
-      fimAno: aindaUso || !fimAno ? undefined : Number(fimAno), fimHalf: aindaUso || !fimAno ? undefined : Number(fimHalf) });
+    life.saveCoisaCara({ id: editing?.id, nome: nome.trim(), ano: Number(ano), mes: Number(mes),
+      fimAno: aindaUso || !fimAno ? undefined : Number(fimAno), fimMes: aindaUso || !fimAno ? undefined : Number(fimMes) });
     onClose();
   };
-  const semSel = (v, set) => (
-    <select value={v} onChange={e => set(Number(e.target.value))} style={{ ...inputStyle, width: 130, flexShrink: 0 }}>
-      <option value={1}>1º semestre</option><option value={2}>2º semestre</option>
+  const mesSel = (v, set) => (
+    <select value={v} onChange={e => set(Number(e.target.value))} style={{ ...inputStyle, width: 140, flexShrink: 0, textTransform: 'capitalize' }}>
+      {MESES.map((m, i) => <option key={i} value={i}>{m}</option>)}
     </select>
   );
   return (
@@ -587,7 +568,7 @@ function CoisaCaraForm({ editing, onClose }) {
         <label style={labelStyle}>Comprei em</label>
         <div style={{ display: 'flex', gap: 8 }}>
           <input type="number" inputMode="numeric" value={ano} onChange={e => setAno(e.target.value)} placeholder="ano" style={inputStyle} />
-          {semSel(half, setHalf)}
+          {mesSel(mes, setMes)}
         </div>
         <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 8, textTransform: 'none', letterSpacing: 0, fontSize: 13, color: '#444', cursor: 'pointer' }}>
           <input type="checkbox" checked={aindaUso} onChange={e => setAindaUso(e.target.checked)} /> Ainda uso
@@ -597,7 +578,7 @@ function CoisaCaraForm({ editing, onClose }) {
             <label style={labelStyle}>Parei de usar em</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" inputMode="numeric" value={fimAno} onChange={e => setFimAno(e.target.value)} placeholder="ano" style={inputStyle} />
-              {semSel(fimHalf, setFimHalf)}
+              {mesSel(fimMes, setFimMes)}
             </div>
           </>
         )}
@@ -1509,8 +1490,7 @@ function GastosRetro({ onBack, isWide, catInicial }) {
   const [catSel, setCatSel] = useState(catInicial || null);
   const [form, setForm] = useState(null); // { editing? } — item de gasto
   const [tipoChart, setTipoChart] = useState(null); // null = automático; 'barras' | 'linhas'
-  const [verComprasCaras, setVerComprasCaras] = useState(false); // "Compras caras" guardada dentro de Coisas
-  useEffect(() => { setTipoChart(null); setVerComprasCaras(false); }, [catSel]); // reset ao trocar de categoria
+  useEffect(() => { setTipoChart(null); }, [catSel]); // reset ao trocar de categoria
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
   const doAno = gastos.filter(g => (g.mes || '').slice(0, 4) === anoSel);
@@ -1519,10 +1499,9 @@ function GastosRetro({ onBack, isWide, catInicial }) {
   const cats = [...GASTO_CATS.filter(c => catTotals[c] != null), ...Object.keys(catTotals).filter(c => !GASTO_CATS.includes(c))];
   const totalAno = cats.reduce((a, c) => a + (catTotals[c] || 0), 0);
 
-  // "Coisas" agora é uma categoria NORMAL (mostra os itens, como as outras).
-  // A "Compras caras" (compras marcadas à mão + durabilidade) fica guardada num
-  // botão DENTRO de Coisas, sem se confundir com a categoria.
-  if (catSel === 'Coisas' && verComprasCaras) return <ComprasRetro onBack={() => setVerComprasCaras(false)} isWide={isWide} backLabel="Coisas" />;
+  // "Coisas" é uma categoria NORMAL (gráficos + tabela); embaixo dela, a lista das
+  // compras marcadas à mão por mês (ComprasFeitasLista). A durabilidade ("Coisas
+  // caras": AirPod/iPhone/…) virou um card próprio no hub da Retrospectiva.
 
   // Posso gastar e VR ficam DENTRO de Gastos (cards próprios), mas NÃO entram na
   // somatória das categorias — são só organização/controle do mês.
@@ -1564,10 +1543,6 @@ function GastosRetro({ onBack, isWide, catInicial }) {
           <button onClick={() => setForm({})} title="adicionar gasto" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
         </div>
 
-        {catSel === 'Coisas' && (
-          <button onClick={() => setVerComprasCaras(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid #ff8a3d55', background: '#fff8f2', color: '#7a3d12', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🏷️ Compras caras — quando comprei e quanto duram ›</button>
-        )}
-
         {temItens ? <>
           {mesesChart.length > 0 && <>
             {mesesAsc.length > 1 && <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -1594,6 +1569,8 @@ function GastosRetro({ onBack, isWide, catInicial }) {
             </div>
           ))}
         </>}
+
+        {catSel === 'Coisas' && <ComprasFeitasLista ano={anoSel} />}
 
         {form && <GastoItemForm editing={form.editing} categoria={catSel} onClose={() => setForm(null)} />}
       </div>
