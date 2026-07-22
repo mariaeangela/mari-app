@@ -254,6 +254,21 @@ function NesteDiaFato() {
   );
 }
 
+// Bilhete que você deixou para hoje (escrito num dia futuro no Calendário) — também
+// aparece na capa, logo após o "Neste dia". Toque para ler.
+function BilheteHoje() {
+  const cal = useCalendar();
+  const [aberto, setAberto] = useState(false);
+  const bilhete = (cal.data.bilhetes || {})[ymd(hojeMid())];
+  if (!bilhete) return null;
+  return (
+    <div onClick={() => setAberto(v => !v)} style={{ marginBottom: 18, padding: '11px 14px', borderRadius: 12, background: '#fff7ec', border: '1px solid #f0dcc0', cursor: 'pointer' }}>
+      <div style={{ fontSize: 12.5, color: '#a9772f', fontWeight: 700 }}>✉ você te deixou um bilhete{aberto ? '' : ' — toque para ler'}</div>
+      {aberto && <p style={{ fontSize: 14, color: '#5b4a2e', fontStyle: 'italic', lineHeight: 1.55, marginTop: 8, marginBottom: 0 }}>{bilhete}</p>}
+    </div>
+  );
+}
+
 // Lista do que está marcado para hoje (eventos, tarefas, rolês, cultura…).
 function HojeAgenda() {
   const cal = useCalendar();
@@ -437,6 +452,7 @@ function Feed({ isWide }) {
       <div style={{ padding: '20px 20px 0' }}>
         <Saudacao />
         <NesteDiaFato />
+        <BilheteHoje />
         <SeuDia />
         <Antecipacao />
         <LendoAgora />
