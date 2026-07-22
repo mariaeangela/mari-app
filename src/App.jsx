@@ -324,7 +324,7 @@ function VRHoje() {
         <div>
           <p style={{ fontSize: 12.5, color: '#777', margin: '0 0 8px' }}>Quanto você tem no VR neste ciclo?</p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input autoFocus type="text" inputMode="decimal" value={totalTxt} onChange={e => setTotalTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarTotal()} placeholder="ex.: 1000" style={{ ...capaInput, flex: 1 }} />
+            <input autoFocus={editTotal} type="text" inputMode="decimal" value={totalTxt} onChange={e => setTotalTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarTotal()} placeholder="ex.: 1000" style={{ ...capaInput, flex: 1 }} />
             <button onClick={salvarTotal} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>salvar</button>
           </div>
         </div>
@@ -392,7 +392,7 @@ function PossoBucket({ ck, bucket, label }) {
       </div>
       {!temBudget || editB ? (
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <input autoFocus type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`posso gastar em ${label.toLowerCase()}?`} style={{ ...capaInput, flex: 1 }} />
+          <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`posso gastar em ${label.toLowerCase()}?`} style={{ ...capaInput, flex: 1 }} />
           <button onClick={salvarB} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>salvar</button>
         </div>
       ) : (
