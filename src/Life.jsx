@@ -2385,7 +2385,9 @@ function SaudeSection({ onBack }) {
   const anoEx = (exAtualMes || '').slice(0, 4);
   const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx) && (x.data || '').slice(0, 7) <= mesAtualKey);
   const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
-  const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm).length }));
+  // "treinos" = só musculação (grupo 'treino'), pra bater com a Retrospectiva; corrida/outros vão à parte.
+  const treinoAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length;
+  const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm && EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length }));
 
   // Próximas metas: provas (corrida prova) futuras, do calendário; meta de tempo editável.
   const COR_CORRIDA = EXERCICIO_BY_ID.corrida?.cor || '#ef6c4d';
@@ -2460,7 +2462,7 @@ function SaudeSection({ onBack }) {
           </div>
           {exMeses.length > 1 && <BarrasSalario barras={barrasEx} fmt={(v) => v + (v === 1 ? ' treino' : ' treinos')} />}
           <div style={{ display: 'flex', gap: 20, margin: '10px 0 6px' }}>
-            <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{exDoMes.length}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
+            <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{muscMes}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
             {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{fmtKm(kmMes)} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
           </div>
           <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>musculação <b style={{ color: '#555' }}>{muscMes}×</b> · corrida <b style={{ color: '#555' }}>{corrMes}×</b></div>
@@ -2476,7 +2478,7 @@ function SaudeSection({ onBack }) {
               </div>
             </div>
           ))}
-          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{exAno.length}</b> treinos{kmAno > 0 ? ' · ' + fmtKm(kmAno) + ' km corridos' : ''}</p>
+          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{treinoAno}</b> treinos{kmAno > 0 ? ' · ' + fmtKm(kmAno) + ' km corridos' : ''}</p>
         </>}</>)}
 
       {bloco('Peso', 'peso', <>
