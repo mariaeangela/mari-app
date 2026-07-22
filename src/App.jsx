@@ -87,11 +87,11 @@ function Header({ tab, setTab }) {
       <div style={{ display: 'flex', padding: '0 20px', gap: 20, overflowX: 'auto' }}>
         {[
           { id: 'feed', label: 'Hoje' },
-          { id: 'explore', label: 'Explorar' },
-          { id: 'saved', label: 'Salvos' },
           { id: 'calendar', label: 'Calendário' },
+          { id: 'explore', label: 'Explorar' },
           { id: 'life', label: 'Life' },
           { id: 'retrospectiva', label: 'Retrospectiva' },
+          { id: 'saved', label: 'Salvos' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             background: 'none', border: 'none', cursor: 'pointer',
