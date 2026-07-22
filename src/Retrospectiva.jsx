@@ -56,6 +56,9 @@ const CARDS = [
 export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) {
   const [sec, setSec] = useState(secInicial || null);
   useEffect(() => { if (secInicial) { setSec(secInicial); onConsumeSec && onConsumeSec(); } }, [secInicial]);
+  // Ao trocar de sub-tela (abrir um card ou voltar), volta pro topo — senão fica
+  // na posição rolada do hub e a sub-tela abre no fim.
+  useEffect(() => { window.scrollTo(0, 0); }, [sec]);
   const baseSec = (sec || '').split(':')[0];          // 'gastos:Saúde' → 'gastos'
   const catInicial = (sec || '').split(':').slice(1).join(':') || null; // → 'Saúde'
   if (baseSec === 'gastos') return <GastosRetro onBack={() => setSec(null)} isWide={isWide} catInicial={catInicial} />;
