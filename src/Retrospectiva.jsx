@@ -1,8 +1,9 @@
 // Aba "Retrospectiva": hub que agrega seus números e marcos.
 // Página inicial: "o ano em números" (clicável) + cards que abrem sub-retrospectivas.
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda, MOEDAS } from './lifeStore.jsx';
+import { fetchSpotifyCover } from './cloud.js';
 import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace, fmtKm, cicloDia27, cicloLabel } from './calendarConfig.js';
 
 const COR = '#8d6e63';
@@ -1002,6 +1003,17 @@ function AlbunsView({ onBack, isWide }) {
   const grupos = {};
   albuns.forEach(a => { (grupos[keyDe(a)] = grupos[keyDe(a)] || []).push(a); });
   const chaves = Object.keys(grupos).sort((x, y) => modo === 'ano' ? String(y).localeCompare(String(x)) : String(x).localeCompare(String(y)));
+  // Backfill das capas: pra cada álbum com link do Spotify e sem `capa`, busca a capa
+  // (oEmbed via /api/spotify) UMA vez e guarda. O triedRef evita re-buscar em loop.
+  const triedRef = useRef(new Set());
+  useEffect(() => {
+    albuns.forEach(a => {
+      if (a.link && !a.capa && !triedRef.current.has(a.id)) {
+        triedRef.current.add(a.id);
+        fetchSpotifyCover(a.link).then(thumb => { if (thumb) life.saveAlbum({ ...a, capa: thumb }); });
+      }
+    });
+  }, [albuns]); // eslint-disable-line
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Música</button>
@@ -1025,13 +1037,18 @@ function AlbunsView({ onBack, isWide }) {
           <div key={k} style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 12, color: cor, fontWeight: 700, textTransform: modo === 'artista' ? 'none' : 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{k}</div>
             {grupos[k].map(a => (
-              <div key={a.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '11px 14px', marginBottom: 8 }}>
-                <div onClick={() => setForm({ editing: a })} style={{ cursor: 'pointer' }}>
-                  <div style={{ fontSize: 14.5, color: '#222', fontWeight: 700 }}>{a.album}</div>
-                  <div style={{ fontSize: 12.5, color: '#777', marginTop: 1 }}>{a.artista}{modo === 'artista' && a.ano ? ` · ${a.ano}` : ''}</div>
-                  {a.nota && <div style={{ fontSize: 12, color: '#999', fontStyle: 'italic', marginTop: 4 }}>{a.nota}</div>}
+              <div key={a.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '11px 12px', marginBottom: 8, display: 'flex', gap: 12 }}>
+                {a.capa
+                  ? <img src={a.capa} alt="" onClick={() => setForm({ editing: a })} style={{ width: 54, height: 54, borderRadius: 8, objectFit: 'cover', flexShrink: 0, cursor: 'pointer' }} />
+                  : <div onClick={() => setForm({ editing: a })} style={{ width: 54, height: 54, borderRadius: 8, background: cor + '18', flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>💿</div>}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div onClick={() => setForm({ editing: a })} style={{ cursor: 'pointer' }}>
+                    <div style={{ fontSize: 14.5, color: '#222', fontWeight: 700 }}>{a.album}</div>
+                    <div style={{ fontSize: 12.5, color: '#777', marginTop: 1 }}>{a.artista}{modo === 'artista' && a.ano ? ` · ${a.ano}` : ''}</div>
+                    {a.nota && <div style={{ fontSize: 12, color: '#999', fontStyle: 'italic', marginTop: 4 }}>{a.nota}</div>}
+                  </div>
+                  {a.link && <a href={a.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 700, color: '#0a7d36', textDecoration: 'none' }}>▶ ouvir no Spotify ↗</a>}
                 </div>
-                {a.link && <a href={a.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ display: 'inline-block', marginTop: 6, fontSize: 12, fontWeight: 700, color: '#0a7d36', textDecoration: 'none' }}>▶ ouvir no Spotify ↗</a>}
               </div>
             ))}
           </div>

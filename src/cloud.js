@@ -76,6 +76,16 @@ export async function fetchSaved() { const d = await getDoc(); if (d === UNREACH
 export async function fetchCalendario() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.calendario === 'object' && d.calendario) || null; }
 export async function fetchLife() { const d = await getDoc(); if (d === UNREACHABLE) return UNREACHABLE; return (d && typeof d.life === 'object' && d.life) || null; }
 
+// Capa de um álbum a partir do link do Spotify (via /api/spotify -> oEmbed). null se não achar.
+export async function fetchSpotifyCover(url) {
+  try {
+    const res = await fetch('/api/spotify?url=' + encodeURIComponent(url));
+    if (!res.ok) return null;
+    const j = await res.json();
+    return j && j.thumb ? j.thumb : null;
+  } catch { return null; }
+}
+
 // ---- Envio automático (debounce curto por seção + flush ao ocultar/sair) ----
 // `p` = PAYLOAD pendente (o "pedaço" a postar, ex.: {life:{...}} ou
 // {saved:[...], savedRev:N}) ainda não confirmado. Só é limpo quando o POST
