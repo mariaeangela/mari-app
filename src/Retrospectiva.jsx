@@ -439,10 +439,6 @@ function ComprasFeitasLista({ ano }) {
   const meses = [...new Set(doAno.map(i => (i.data || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   const grupos = meses.map(mm => ({ mm, itens: doAno.filter(i => (i.data || '').slice(0, 7) === mm).sort((a, b) => (b.data || '').localeCompare(a.data || '')) }));
   const semData = doAno.filter(i => !i.data);
-  const mesesChart = [...grupos].reverse().map(g => {
-    const it = g.itens.filter(i => i.moeda === 'BRL' && i.vnum > 0).map(i => ({ titulo: i.titulo, vnum: i.vnum })).sort((a, b) => b.vnum - a.vnum);
-    return { mm: g.mm, label: MESES[+g.mm.slice(5, 7) - 1].slice(0, 3), itens: it, total: it.reduce((a, i) => a + i.vnum, 0) };
-  }).filter(m => m.total > 0);
   const linhaItem = (it) => (
     <div key={it.id} onClick={() => setForm({ editing: it.raw })} style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
       <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it.titulo}</span>
@@ -458,7 +454,6 @@ function ComprasFeitasLista({ ano }) {
       {doAno.length === 0 ? (
         <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', padding: '4px 0' }}>Nenhuma compra marcada{ano ? ' em ' + ano : ''}. Toque no + para registrar.</p>
       ) : <>
-        {mesesChart.length > 0 && <ComprasChart meses={mesesChart} />}
         {grupos.map(g => {
           const totalBRL = g.itens.filter(i => i.moeda === 'BRL').reduce((a, i) => a + i.vnum, 0);
           return (
