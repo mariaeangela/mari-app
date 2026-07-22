@@ -983,9 +983,11 @@ function AlbunsView({ onBack, isWide }) {
   // (oEmbed via /api/spotify) UMA vez e guarda. O triedRef evita re-buscar em loop.
   const triedRef = useRef(new Set());
   useEffect(() => {
-    const pend = albuns.filter(a => a.link && !a.capa && !triedRef.current.has(a.id));
+    // Chave por id+link: se o link mudar, conta como nova busca (não fica na capa velha).
+    const chave = a => a.id + '|' + a.link;
+    const pend = albuns.filter(a => a.link && !a.capa && !triedRef.current.has(chave(a)));
     if (!pend.length) return;
-    pend.forEach(a => triedRef.current.add(a.id));
+    pend.forEach(a => triedRef.current.add(chave(a)));
     // Busca todas as capas e salva UMA vez (setAlbunsCapas é atômico) — se salvasse
     // uma a uma, os saves usariam `data` velho e se sobrescreveriam (capas sumiam).
     Promise.all(pend.map(a => fetchSpotifyCover(a.link).then(thumb => [a.id, thumb]).catch(() => [a.id, null])))
@@ -1047,7 +1049,14 @@ function AlbumForm({ editing, onClose }) {
   const [nota, setNota] = useState(editing?.nota || '');
   const [link, setLink] = useState(editing?.link || '');
   const podeSalvar = album.trim() && artista.trim();
-  const salvar = () => { if (!podeSalvar) return; life.saveAlbum({ id: editing?.id, album: album.trim(), artista: artista.trim(), ano: String(ano).trim() || undefined, nota: nota.trim() || undefined, link: link.trim() || undefined }); onClose(); };
+  const salvar = () => {
+    if (!podeSalvar) return;
+    const novoLink = link.trim() || undefined;
+    // Se o link mudou, zera a capa pra o backfill buscar a nova (senão fica a antiga).
+    const capa = editing && novoLink !== editing.link ? undefined : editing?.capa;
+    life.saveAlbum({ id: editing?.id, album: album.trim(), artista: artista.trim(), ano: String(ano).trim() || undefined, nota: nota.trim() || undefined, link: novoLink, capa });
+    onClose();
+  };
   return (
     <div onClick={onClose} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={sheet}>
