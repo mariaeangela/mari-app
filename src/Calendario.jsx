@@ -9,8 +9,9 @@ import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
   MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
-  parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm,
+  parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm, CORRIDA_COM_ROTA,
 } from './calendarConfig.js';
+import { RotaField } from './rota.jsx';
 
 const hoje = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const exTitulo = (x) => x.titulo || EXERCICIO_BY_ID[x.subtipo]?.label || 'Exercício';
@@ -60,7 +61,7 @@ function taskOccursOn(t, date) {
 
 // "Rotina" = não aparece no Mês/Agenda (só na visão Exercício): treinos
 // musculares (costas/peitoral/perna) e corrida treino. Corrida prova e Outros aparecem.
-const ehRotina = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino' || x.subtipo === 'corrida_treino';
+const ehRotina = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino' || x.subtipo === 'corrida_treino' || x.subtipo === 'corrida_treino_rua' || x.subtipo === 'corrida_treino_esteira';
 const ehCorrida = (x) => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida';
 
 export const PLANO_COR = '#6b7a99';
@@ -169,6 +170,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
   const [distancia, setDistancia] = useState(editing?.distancia != null ? fmtKm(editing.distancia) : '');
   const [tempo, setTempo] = useState(editing?.tempo != null ? fmtTempo(editing.tempo) : '');
   const [metaTempo, setMetaTempo] = useState(editing?.metaTempo != null ? fmtTempo(editing.metaTempo) : '');
+  const [rota, setRota] = useState((editing?._tipo === 'exercicio' && editing?.rota) || undefined);
   const [nota, setNota] = useState(editing?.nota || '');
   const [comQuem, setComQuem] = useState(editing?.comQuem || '');
   const [local, setLocal] = useState(editing?.local || '');
@@ -183,7 +185,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
   // Monta o objeto do tipo escolhido (sem id) — usado na conversão de tipo.
   const buildObj = () => {
     if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
-    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined };
+    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: CORRIDA_COM_ROTA.has(subtipoEx) ? rota : undefined, nota: nota || undefined };
     if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: false };
     if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
     return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, horaInicio: horaInicio || undefined, nota: nota || undefined, comQuem: comQuem || undefined };
@@ -199,7 +201,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
     }
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
-    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, nota: nota || undefined });
+    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: CORRIDA_COM_ROTA.has(subtipoEx) ? rota : undefined, nota: nota || undefined });
     else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
@@ -351,6 +353,12 @@ export function AddSheet({ initialDate, editing, onClose }) {
                 </div>
               );
             })()}
+            {CORRIDA_COM_ROTA.has(subtipoEx) && (
+              <>
+                <label style={labelStyle}>Trajeto (GPX do Strava/Garmin, opcional)</label>
+                <RotaField rota={rota} onChange={setRota} cor={EXERCICIO_BY_ID[subtipoEx]?.cor || '#ef6c4d'} />
+              </>
+            )}
           </>
         )}
 

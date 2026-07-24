@@ -21,19 +21,23 @@ export const EXERCICIO_SUBTIPOS = [
   { id: 'peitoral',       label: 'Peitoral',       grupo: 'treino',  cor: '#c77dff' },
   { id: 'perna',          label: 'Perna',          grupo: 'treino',  cor: '#2bb673' },
   { id: 'alongamento',    label: 'Alongamento',    grupo: 'treino',  cor: '#26c6da' },
-  { id: 'corrida_treino', label: 'Corrida treino', grupo: 'corrida', cor: '#f0a35e' },
+  { id: 'corrida_treino_rua',     label: 'Corrida rua',     grupo: 'corrida', cor: '#f0a35e' },
+  { id: 'corrida_treino_esteira', label: 'Corrida esteira', grupo: 'corrida', cor: '#e0b877' },
   { id: 'corrida_prova',  label: 'Corrida prova',  grupo: 'corrida', cor: '#ef6c4d', aguardado: true },
   { id: 'outros',         label: 'Outros',         grupo: 'outros',  cor: COR_OUTROS },
 ];
 export const EXERCICIO_BY_ID = Object.fromEntries(EXERCICIO_SUBTIPOS.map(e => [e.id, e]));
 // Compatibilidade com dados antigos (subtipos que não existem mais).
 EXERCICIO_BY_ID.corrida = EXERCICIO_BY_ID.corrida_prova;
+EXERCICIO_BY_ID.corrida_treino = EXERCICIO_BY_ID.corrida_treino_rua; // treino antigo -> rua (editável)
 ['natacao', 'caminhada', 'trilha', 'jogo', 'danca'].forEach(k => { EXERCICIO_BY_ID[k] = EXERCICIO_BY_ID.outros; });
+// Subtipos de corrida em que faz sentido desenhar o trajeto (têm GPS/rua). Esteira não.
+export const CORRIDA_COM_ROTA = new Set(['corrida_prova', 'corrida', 'corrida_treino', 'corrida_treino_rua']);
 // Legenda da visão Exercício.
 export const EXERCICIO_LEGENDA = [
   { label: 'Costas', cor: '#5b8def' }, { label: 'Peitoral', cor: '#c77dff' }, { label: 'Perna', cor: '#2bb673' },
   { label: 'Alongamento', cor: '#26c6da' },
-  { label: 'Corrida treino', cor: '#f0a35e' }, { label: 'Corrida prova', cor: '#ef6c4d' }, { label: 'Outros', cor: COR_OUTROS },
+  { label: 'Corrida rua', cor: '#f0a35e' }, { label: 'Corrida esteira', cor: '#e0b877' }, { label: 'Corrida prova', cor: '#ef6c4d' }, { label: 'Outros', cor: COR_OUTROS },
 ];
 
 // Rolês, Cultura e Tarefas são TIPOS próprios, com cor própria.
