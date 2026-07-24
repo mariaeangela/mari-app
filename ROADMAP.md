@@ -17,7 +17,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡🔴 **Conexões de verdade** — no rodapé do card, 3–4 "continua em" com 1 frase do porquê (usa os temas).
 - 🟡 **Perguntas** — cada card termina com uma pergunta; **salvar respostas** → diário intelectual.
 - 🔴 **Álbum da semana** — na capa de Hoje + histórico no Explorar (banda, ano, momento do disco).
-- 🟡 **Cartas** — coleção crescendo (17 cartas: originais + tradução + contexto, de domínio público e com fonte). FALTA: mais brasileiras (Clarice tem direitos, só trecho); retomar Tchékhov e Rosa Luxemburgo (falharam no 1º pull).
+- 🟡 **Cartas** — coleção crescendo (26 cartas: originais + tradução + contexto, de domínio público e com fonte). FALTA: retomar **Tchékhov** (bateu num filtro 2x); mais brasileiras (Clarice tem direitos, só trecho).
 - ✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
   topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
   (datas). Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas).
