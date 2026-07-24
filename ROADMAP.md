@@ -18,9 +18,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - 🟡 **Perguntas** — cada card termina com uma pergunta; **salvar respostas** → diário intelectual.
 - 🔴 **Álbum da semana** — na capa de Hoje + histórico no Explorar (banda, ano, momento do disco).
 - 🔴 **Cartas** — crescer a coleção, completas e verificadas (incl. brasileiras, tipo Clarice).
-- 🟢✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
+- ✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
   topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
-  (datas). FALTA (refino): ✅ Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas); falta opção por GPS.
+  (datas). Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas).
 - 🟡 (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só.
 - ⏸🔴🔴 **Mapa da mente** *(bem depois)* — visualização do grafo dos seus interesses.
 
@@ -64,8 +64,6 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
   salário**. (É diferente do subgrupo "Performance" do Mercado, que já existe.)
 - **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima
   menstruação** (média dos ciclos).
-- **Aprendizados:** 🟢 preencher materiais **vazios** (Tecidos, Fotografia, Espumante) — *a Mari vai preencher (conteúdo dela)* · 🟡 criar
-  **grupo de vinho** / métodos novos pela UI · 🟡 outras listas espelhando Compras.
 
 ## 📊 Retrospectiva
 *(prontos: ✅ ano em números · ✅ Gastos (grid por categoria; Coisas=compras itemizado; deep-link da VF) · ✅ Música · ✅ Corridas · ✅ Dias importantes · ✅ Viagens · ✅ Leituras)*
