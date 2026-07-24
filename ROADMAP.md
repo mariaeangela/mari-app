@@ -21,7 +21,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - ✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
   topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
   (datas). Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas).
-- 🟡 (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só.
+- ✅ (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só — `getDoc` com `inflight` compartilhado: no boot os 3 stores reusam 1 GET em vez de 3.
 - ⏸🔴🔴 **Mapa da mente** *(bem depois)* — visualização do grafo dos seus interesses.
 
 ---

@@ -58,14 +58,27 @@ async function doPost(payload, opts) {
 
 // Devolve o doc da nuvem, ou UNREACHABLE se não deu pra ler (offline/erro/timeout).
 // NUNCA devolve null por falha — null/[] são reservados para "leu, mas vazio".
-async function getDoc() {
-  try {
-    const res = await fetch(ENDPOINT, { method: 'GET' });
-    if (!res.ok) return UNREACHABLE;
-    return await res.json();
-  } catch {
-    return UNREACHABLE;
-  }
+//
+// Leitura COMPARTILHADA: saved/calendario/life leem a mesma seção (o doc inteiro),
+// e no boot os três disparam quase juntos. `inflight` faz o 1º GET valer pelos três
+// — enquanto uma requisição está no ar, as outras reusam a MESMA promessa (1 GET em
+// vez de 3). Some assim que a resposta chega, então cada resync futuro faz um GET novo.
+// Todos recebem o MESMO resultado (doc OU UNREACHABLE), então a invariante do sync
+// (falha de leitura nunca empurra o local por cima da nuvem) continua valendo igual.
+let inflight = null;
+function getDoc() {
+  if (inflight) return inflight;
+  inflight = (async () => {
+    try {
+      const res = await fetch(ENDPOINT, { method: 'GET' });
+      return res.ok ? await res.json() : UNREACHABLE;
+    } catch {
+      return UNREACHABLE;
+    } finally {
+      inflight = null;
+    }
+  })();
+  return inflight;
 }
 // Cada fetch devolve UNREACHABLE (não leu) OU o valor da seção (lido; pode ser
 // [] / null = vazio). O chamador DEVE tratar UNREACHABLE como "mantém o local,
