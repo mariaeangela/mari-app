@@ -75,8 +75,9 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 - ✅ **Amorosa** *(privada)* — sexo/dates/beijos/casos por ano + botão **Total** (linha do tempo inteira);
   cada registro com pessoa/onde/quanto gastou/comentário; **cadeado** no topo borra nomes+valores.
   Já semeados os registros da Mari. FUTURO possível: PIN próprio, correlações com humor.
-- 🟡 **Corridas: trajeto** da prova desenhado (print/GPS do Strava) — meta × executado, pace e
-  evolução já estão prontos; falta só o desenho do trajeto.
+- ✅ **Corridas: trajeto** da prova desenhado — sobe o **GPX** do Strava/Garmin e o app desenha o
+  percurso (linha SVG, largada verde/chegada vermelha) em cada card de prova. `parseGpx` projeta
+  lat/lon (correção de latitude) e simplifica p/ ~250 pontos; guarda em `exercicio.rota`.
 - 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
 - ✅ (refino) opção **"por mês"** no ano em números, além do "por ano".
 
