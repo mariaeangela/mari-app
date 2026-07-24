@@ -110,7 +110,7 @@ Para entender o **código/arquitetura**, ver `HANDOFF.md`.
 
 ## Para depois (não é prioridade — decisão da Mari)
 - 🟡 **Imagem de fundo da tela de senha** — fotos bonitas ligadas à estação/frio (hoje é só cor).
-- 🟢 **Número de frases de abertura** — ~**155** (era 12); dá pra continuar engordando.
+- 🟢 **Número de frases de abertura** — ~**181** (era 12); dá pra continuar engordando.
 
 ---
 
