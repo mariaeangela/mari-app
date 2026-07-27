@@ -308,6 +308,11 @@ function SaudeRetro({ onBack, isWide }) {
   );
 }
 
+// Rótulo do tipo de corrida pro selo: prova / rua / esteira (treino antigo conta como rua).
+const corridaTipoLabel = (x) => (x.subtipo === 'corrida_prova' || x.subtipo === 'corrida')
+  ? 'prova'
+  : (x.subtipo === 'corrida_treino_esteira' ? 'esteira' : 'rua');
+
 // Drill-down do "km corridos": tudo que correu (prova + treino), por data ou por mês (evolução).
 function KmDrilldown({ corridas, ehProva, onClose }) {
   const [modo, setModo] = useState('data');
@@ -331,7 +336,7 @@ function KmDrilldown({ corridas, ehProva, onClose }) {
         <div key={x.id || i} style={{ display: 'flex', gap: 10, alignItems: 'baseline', padding: '7px 0', borderBottom: '1px solid #f4f4f4' }}>
           <span style={{ fontSize: 12, color: COR_CORRIDA, fontWeight: 700, width: 42, flexShrink: 0 }}>{fmtDM(x.data)}</span>
           <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{x.distancia ? fmtKm(x.distancia) + 'km' : '—'}{x.tempo ? ' · ' + fmtTempo(x.tempo) : ''}</span>
-          <span style={{ fontSize: 10.5, color: ehProva(x) ? COR_CORRIDA : '#aaa', textTransform: 'uppercase', fontWeight: 700, flexShrink: 0 }}>{ehProva(x) ? 'prova' : 'treino'}</span>
+          <span style={{ fontSize: 10.5, color: EXERCICIO_BY_ID[x.subtipo]?.cor || '#aaa', textTransform: 'uppercase', fontWeight: 700, flexShrink: 0 }}>{corridaTipoLabel(x)}</span>
         </div>
       )) : mesesAsc.map(mm => {
         const v = Math.round(porMes[mm] * 10) / 10;
@@ -1131,8 +1136,12 @@ function CorridasRetro({ onBack, isWide }) {
   const cal = useCalendar();
   const hoje = new Date();
   const hk = `${hoje.getFullYear()}-${pad2(hoje.getMonth() + 1)}-${pad2(hoje.getDate())}`;
+  const [vista, setVista] = useState('provas');            // 'provas' | 'rua'
+  const ehProvaSub = (s) => s === 'corrida_prova' || s === 'corrida';
+  const ehRuaSub = (s) => s === 'corrida_treino_rua' || s === 'corrida_treino'; // treino antigo = rua
+  const naVista = (s) => vista === 'provas' ? ehProvaSub(s) : ehRuaSub(s);
   const todasProvas = (cal.data.exercicios || [])
-    .filter(x => x.subtipo === 'corrida_prova' || x.subtipo === 'corrida')
+    .filter(x => naVista(x.subtipo))
     .filter(x => (x.data || '') <= hk)
     .map(x => {
       const km = Number(x.distancia) || 0;
@@ -1144,6 +1153,12 @@ function CorridasRetro({ onBack, isWide }) {
     .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const { anos, anoSel, setAnoSel } = useAnoSel(todasProvas.map(p => p.data));
   const provas = todasProvas.filter(p => (p.data || '').slice(0, 4) === anoSel);
+  const ehProvas = vista === 'provas';
+  const uni = ehProvas ? 'prova' : 'corrida';            // singular
+  const plu = ehProvas ? 'provas' : 'corridas';          // plural
+  const vistaBtn = (id, txt) => (
+    <button key={id} onClick={() => setVista(id)} style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (vista === id ? COR_CORRIDA : '#e2e2e2'), background: vista === id ? COR_CORRIDA + '1c' : '#fff', color: vista === id ? '#b33d20' : '#888' }}>{txt}</button>
+  );
 
   const comTempo = provas.filter(p => p.tempo);
   const totalKm = Math.round(provas.reduce((a, p) => a + p.km, 0) * 10) / 10;
@@ -1155,15 +1170,20 @@ function CorridasRetro({ onBack, isWide }) {
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
       <div style={{ width: 36, height: 4, background: COR_CORRIDA, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Corridas</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>suas provas: meta × executado e evolução do pace</p>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>{ehProvas ? 'suas provas: meta × executado e evolução do pace' : 'seus treinos na rua: distância, pace e trajeto'}</p>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {vistaBtn('provas', 'Provas')}
+        {vistaBtn('rua', 'Treinos rua')}
+      </div>
 
       {todasProvas.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhuma prova ainda. Marque uma "Corrida prova" no Calendário com distância, tempo real e meta de tempo.</p>
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>{ehProvas ? 'Nenhuma prova ainda. Marque uma "Corrida prova" no Calendário com distância, tempo real e meta de tempo.' : 'Nenhuma corrida de rua ainda. Marque uma "Corrida rua" no Calendário com distância e tempo.'}</p>
       ) : <>
         <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_CORRIDA} />
-        {provas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nenhuma prova em {anoSel}.</p>}
+        {provas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nenhuma {uni} em {anoSel}.</p>}
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18 }}>
-          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{provas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {provas.length === 1 ? 'prova' : 'provas'}</span></div>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{provas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {provas.length === 1 ? uni : plu}</span></div>
           <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{fmtKm(totalKm)}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>
           {melhorPace && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: COR_CORRIDA }}>{fmtPace(melhorPace)}</span><span style={{ fontSize: 12.5, color: '#999' }}> melhor pace</span></div>}
         </div>
