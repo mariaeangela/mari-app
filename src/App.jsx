@@ -800,6 +800,8 @@ export default function App() {
   const goRetroCompras = () => goRetro('gastos', 'Coisas');
   const [viagemInicial, setViagemInicial] = useState(null);
   const goViagem = (id) => { setViagemInicial(id); goTab('life'); };
+  const [comprasInicial, setComprasInicial] = useState(null);
+  const goCompras = (listaId) => { setComprasInicial(listaId || 'geral'); goTab('life'); };
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
@@ -809,7 +811,7 @@ export default function App() {
     <SavedProvider>
       <CalendarProvider>
         <LifeProvider>
-          <NavContext.Provider value={{ goRetro, goRetroCompras, goViagem }}>
+          <NavContext.Provider value={{ goRetro, goRetroCompras, goViagem, goCompras }}>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
@@ -820,7 +822,7 @@ export default function App() {
             {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
-            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} />}
+            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
             {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
           <SalvarFAB />
