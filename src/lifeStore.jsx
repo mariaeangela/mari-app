@@ -1770,6 +1770,12 @@ export function LifeProvider({ children }) {
     ? viagensFuturas.map(x => x.id === v.id ? v : x)
     : [...viagensFuturas, { ...v, id: uid('vf') }] });
   const deleteViagemFutura = (id) => persist({ ...data, viagensFuturas: viagensFuturas.filter(x => x.id !== id) });
+  // "Posso gastar" da viagem: orçamento + gastos guardados NA viagem (campo `gastoViagem`),
+  // isolado do slice possoGastar (que é por ciclo 27→26 e alimenta a Retrospectiva).
+  const _gvDe = (id) => { const v = viagensFuturas.find(x => x.id === id); return v ? { v, gv: v.gastoViagem || { budget: 0, gastos: [] } } : null; };
+  const setViagemBudget = (id, budget) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, budget: Number(budget) || 0 } }); };
+  const addViagemGasto = (id, g) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, gastos: [...(r.gv.gastos || []), { ...g, id: uid('vg') }] } }); };
+  const deleteViagemGasto = (id, gid) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, gastos: (r.gv.gastos || []).filter(x => x.id !== gid) } }); };
 
   // ---- Próximas leituras (livros a ler; tema em vez de sinopse, sem spoiler) ----
   // leitura = { id, titulo, autor?, pais?, ano?, genero?, temas:[string], nota?, lido? }
@@ -2078,7 +2084,7 @@ export function LifeProvider({ children }) {
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
-    viagensFuturas, saveViagemFutura, deleteViagemFutura,
+    viagensFuturas, saveViagemFutura, deleteViagemFutura, setViagemBudget, addViagemGasto, deleteViagemGasto,
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,
