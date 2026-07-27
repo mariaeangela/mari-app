@@ -894,6 +894,21 @@ function ensureFlipParalela(d) {
   });
   return { ...d, flipParalela1: true, viagensFuturas: viagens };
 }
+// Limpeza única (a pedido da Mari, jul/2026): a FLIP acabou; apaga as mesas NÃO favoritas
+// (as centenas de sessões que ela não marcou) e mantém só as favoritas (as que ela foi), pra
+// enxugar os dados sincronizados. Trava de segurança: se a FLIP ainda não carregou OU não há
+// NENHUMA favorita, não apaga nada e nem marca a flag — assim tenta de novo no próximo load e
+// nunca zera tudo por engano. `ensureFlipParalela` (com flag) não re-injeta depois.
+function ensureFlipPurgeNaoFav(d) {
+  if (d.flipPurgeNaoFav1) return d;
+  const trip = (d.viagensFuturas || []).find(v => v.id === 'vf-flip2026');
+  if (!trip || !Array.isArray(trip.mesas) || !trip.mesas.length) return d;
+  const favs = trip.mesas.filter(m => m.favorito);
+  if (favs.length === 0) return d;                    // nada favoritado ainda: não apaga, tenta depois
+  if (favs.length === trip.mesas.length) return { ...d, flipPurgeNaoFav1: true }; // já está limpo
+  const viagens = d.viagensFuturas.map(v => v.id === 'vf-flip2026' ? { ...v, mesas: favs } : v);
+  return { ...d, flipPurgeNaoFav1: true, viagensFuturas: viagens };
+}
 
 // ---- Viagem Nova York & Chicago 2026 (roteiro da Mari, 13–26/09) ----
 // Cada lugar vira um item da programação, com descrição, dias/horário de abertura,
@@ -1551,7 +1566,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipParalela, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipParalela, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
