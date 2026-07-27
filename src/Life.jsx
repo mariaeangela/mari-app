@@ -3260,6 +3260,47 @@ function flipHoraMin(m) {
   return x ? (+x[1]) * 60 + (x[2] ? +x[2] : 0) : 9999;
 }
 
+// "Compras na viagem" quando VINCULADA a uma lista de Compras (Life): espelha os itens
+// da lista real (sincroniza de verdade), com marcar/editar/apagar/adicionar.
+function ComprasViagemLink({ listaId, onUnlink }) {
+  const life = useLife();
+  const [novo, setNovo] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editTxt, setEditTxt] = useState('');
+  const nome = [...LISTAS_FIXAS, ...(life.compras.listas || [])].find(l => l.id === listaId)?.nome || 'lista';
+  const itens = (life.compras.itens || []).filter(i => i.listaId === listaId)
+    .sort((a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1));
+  const add = () => { const t = novo.trim(); if (!t) return; life.addComprasItem({ titulo: t, listaId }); setNovo(''); };
+  const salvarEdit = () => { const t = editTxt.trim(); const it = itens.find(x => x.id === editId); if (t && it) life.updateComprasItem({ ...it, titulo: t }); setEditId(null); setEditTxt(''); };
+  return (
+    <div>
+      <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>🔗 vinculada a <b style={{ color: COR_VIAGEM }}>{nome}</b> em Compras · <span onClick={onUnlink} style={{ color: '#c0392b', cursor: 'pointer', fontWeight: 700 }}>desvincular</span></div>
+      {itens.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 8px' }}>Lista vazia.</p>}
+      {itens.map(it => (
+        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span onClick={() => life.toggleComprado(it.id)} style={{ fontSize: 18, color: it.comprado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{it.comprado ? '☑' : '☐'}</span>
+          {editId === it.id ? (
+            <>
+              <input autoFocus value={editTxt} onChange={e => setEditTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(); if (e.key === 'Escape') { setEditId(null); setEditTxt(''); } }} style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={salvarEdit} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
+            </>
+          ) : (
+            <>
+              <span onClick={() => { setEditId(it.id); setEditTxt(it.titulo); }} style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.comprado ? 'line-through' : 'none', opacity: it.comprado ? 0.5 : 1, cursor: 'text' }}>{it.titulo}</span>
+              <button onClick={() => { setEditId(it.id); setEditTxt(it.titulo); }} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+              <button onClick={() => life.deleteComprasItem(it.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+            </>
+          )}
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <input value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+        <button onClick={add} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+      </div>
+    </div>
+  );
+}
+
 function ViagemDetail({ trip, onBack }) {
   const life = useLife();
   const [form, setForm] = useState(null);     // editar a viagem
@@ -3268,6 +3309,7 @@ function ViagemDetail({ trip, onBack }) {
   const [secaoForm, setSecaoForm] = useState(false); // criar tópico livre
   const [novoLevar, setNovoLevar] = useState('');
   const [novoComprar, setNovoComprar] = useState('');
+  const [novoComprasV, setNovoComprasV] = useState('');
   const [editItem, setEditItem] = useState(null); // { campo, id } item de lista (levar/comprar) em edição
   const [editItemTxt, setEditItemTxt] = useState('');
   const [novoSecItem, setNovoSecItem] = useState({}); // texto do "adicionar" por seção (chave = id da seção)
@@ -3479,7 +3521,21 @@ function ViagemDetail({ trip, onBack }) {
       ))}
 
       {bloco('O que levar', listaCheck('levar', novoLevar, setNovoLevar))}
-      {bloco('O que comprar', listaCheck('comprar', novoComprar, setNovoComprar))}
+      {bloco('Comprar pra viagem', listaCheck('comprar', novoComprar, setNovoComprar))}
+      {bloco('Compras na viagem', trip.comprasLinkId ? (
+        <ComprasViagemLink listaId={trip.comprasLinkId} onUnlink={() => salvar({ comprasLinkId: undefined })} />
+      ) : (
+        <div>
+          {listaCheck('comprasViagem', novoComprasV, setNovoComprasV)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, color: '#999' }}>ou vincular a uma lista de Compras:</span>
+            <select value="" onChange={e => { if (e.target.value) salvar({ comprasLinkId: e.target.value }); }} style={{ ...inputStyle, width: 'auto', flex: '0 1 auto', padding: '6px 8px', cursor: 'pointer' }}>
+              <option value="">escolher…</option>
+              {[...LISTAS_FIXAS, ...(life.compras.listas || [])].map(l => <option key={l.id} value={l.id}>{l.nome}</option>)}
+            </select>
+          </div>
+        </div>
+      ))}
 
       {/* Tópicos livres criados pela Mari (ex.: "fantasias pra fazer", "dicas gerais") */}
       {(trip.secoes || []).map(s => (
