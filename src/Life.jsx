@@ -2955,10 +2955,13 @@ function statusViagem(v) {
   return { label: `faltam ${d} dias`, cor: '#888', ativa: false };
 }
 
-function ViagensSection({ onBack }) {
+function ViagensSection({ onBack, viagemInicial, onConsumeViagem }) {
   const life = useLife();
   const nav = useNav();
-  const [selId, setSelId] = useState(null);
+  const [selId, setSelId] = useState(viagemInicial || null);
+  useEffect(() => {
+    if (viagemInicial) { setSelId(viagemInicial); onConsumeViagem && onConsumeViagem(); }
+  }, [viagemInicial]); // eslint-disable-line
   const [form, setForm] = useState(null);
   const [verQuero, setVerQuero] = useState(false);
   const [verPlanos, setVerPlanos] = useState(false);
@@ -4290,8 +4293,13 @@ function SubPlaceholder({ secao, onBack }) {
   );
 }
 
-export default function LifePage({ isWide }) {
+export default function LifePage({ isWide, viagemInicial, onConsumeViagem }) {
   const [sec, setSec] = useState(null);
+  const [viagemId, setViagemId] = useState(null);
+  // Deep-link do Modo Viagem (faixa "Você está em X"): abre direto Viagens + a viagem.
+  useEffect(() => {
+    if (viagemInicial) { setSec('viagens'); setViagemId(viagemInicial); onConsumeViagem && onConsumeViagem(); }
+  }, [viagemInicial]); // eslint-disable-line
   let content;
   if (sec === 'compras') content = <ComprasSection onBack={() => setSec(null)} />;
   else if (sec === 'planos') content = <PlanosSection onBack={() => setSec(null)} />;
@@ -4300,7 +4308,7 @@ export default function LifePage({ isWide }) {
   else if (sec === 'aprendizados') content = <AprendizadosSection onBack={() => setSec(null)} />;
   else if (sec === 'legendas') content = <LegendasSection onBack={() => setSec(null)} />;
   else if (sec === 'estudos') content = <EstudosPage onBack={() => setSec(null)} />;
-  else if (sec === 'viagens') content = <ViagensSection onBack={() => setSec(null)} />;
+  else if (sec === 'viagens') content = <ViagensSection onBack={() => setSec(null)} viagemInicial={viagemId} onConsumeViagem={() => setViagemId(null)} />;
   else if (sec) content = <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
   else content = (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>

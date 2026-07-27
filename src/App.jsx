@@ -10,7 +10,7 @@ import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import EsportesSection from './Esportes.jsx';
-import { NavContext } from './nav.jsx';
+import { NavContext, useNav } from './nav.jsx';
 import { getLastSyncError, onSyncStatus } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
 
@@ -116,14 +116,16 @@ const capaInput = { width: '100%', padding: '9px 12px', border: '1px solid #e6e6
 
 // Saudação + data
 // Faixa do Modo Viagem: aparece no topo do app inteiro enquanto a viagem está ativa.
+// Clicar leva direto pra página da viagem em Life › Viagens.
 function FaixaViagem() {
   const life = useLife();
+  const nav = useNav();
   const viagem = getViagemAtiva(life.viagensFuturas);
   if (!viagem) return null;
   return (
-    <div style={{ background: '#19b3a6', color: '#fff', textAlign: 'center', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', letterSpacing: '0.3px' }}>
-      ✈ Você está em {viagem.cidade} · {viagem.titulo}
-    </div>
+    <button onClick={() => nav.goViagem(viagem.id)} title="abrir a viagem" style={{ display: 'block', width: '100%', border: 'none', cursor: 'pointer', background: '#19b3a6', color: '#fff', textAlign: 'center', fontSize: 12.5, fontWeight: 700, padding: '7px 12px', letterSpacing: '0.3px', fontFamily: 'inherit' }}>
+      ✈ Você está em {viagem.cidade} · {viagem.titulo} ›
+    </button>
   );
 }
 
@@ -701,6 +703,8 @@ export default function App() {
   const [retroSec, setRetroSec] = useState(null);
   const goRetro = (sec, cat) => { setRetroSec(cat ? sec + ':' + cat : sec); goTab('retrospectiva'); };
   const goRetroCompras = () => goRetro('gastos', 'Coisas');
+  const [viagemInicial, setViagemInicial] = useState(null);
+  const goViagem = (id) => { setViagemInicial(id); goTab('life'); };
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
@@ -710,7 +714,7 @@ export default function App() {
     <SavedProvider>
       <CalendarProvider>
         <LifeProvider>
-          <NavContext.Provider value={{ goRetro, goRetroCompras }}>
+          <NavContext.Provider value={{ goRetro, goRetroCompras, goViagem }}>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
@@ -721,7 +725,7 @@ export default function App() {
             {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
-            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} />}
+            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} />}
             {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
           <SalvarFAB />
