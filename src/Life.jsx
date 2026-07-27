@@ -3283,8 +3283,22 @@ function ViagemDetail({ trip, onBack }) {
   const addItem = (campo, texto, limpar) => { const t = texto.trim(); if (!t) return; salvar({ [campo]: [...(trip[campo] || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); limpar(''); };
   const toggleItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).map(c => c.id === id ? { ...c, feito: !c.feito } : c) });
   const delItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).filter(c => c.id !== id) });
-  const abrirEditItem = (campo, c) => { setEditItem({ campo, id: c.id }); setEditItemTxt(c.texto); };
-  const salvarEditItem = () => { if (!editItem) return; const t = editItemTxt.trim(); if (t) salvar({ [editItem.campo]: (trip[editItem.campo] || []).map(c => c.id === editItem.id ? { ...c, texto: t } : c) }); setEditItem(null); setEditItemTxt(''); };
+  // Edição inline de item de checklist — serve tanto as listas fixas (levar/comprar, kind 'lista')
+  // quanto os itens dos tópicos livres (kind 'sec', por secId).
+  const abrirEditLista = (campo, c) => { setEditItem({ kind: 'lista', campo, id: c.id }); setEditItemTxt(c.texto); };
+  const abrirEditSec = (secId, c) => { setEditItem({ kind: 'sec', secId, id: c.id }); setEditItemTxt(c.texto); };
+  const cancelEditItem = () => { setEditItem(null); setEditItemTxt(''); };
+  const emEdicaoLista = (campo, id) => !!editItem && editItem.kind === 'lista' && editItem.campo === campo && editItem.id === id;
+  const emEdicaoSec = (secId, id) => !!editItem && editItem.kind === 'sec' && editItem.secId === secId && editItem.id === id;
+  const salvarEditItem = () => {
+    if (!editItem) return;
+    const t = editItemTxt.trim();
+    if (t) {
+      if (editItem.kind === 'lista') salvar({ [editItem.campo]: (trip[editItem.campo] || []).map(c => c.id === editItem.id ? { ...c, texto: t } : c) });
+      else setSecoes(ss => ss.map(s => s.id === editItem.secId ? { ...s, itens: (s.itens || []).map(c => c.id === editItem.id ? { ...c, texto: t } : c) } : s));
+    }
+    cancelEditItem();
+  };
   // Marca/desmarca um lugar da programação como visitado (☑ do roteiro).
   const toggleVisitado = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, visitado: !m.visitado } : m) });
   // Favorita/desfavorita uma sessão (★). Alimenta o filtro "só favoritos".
@@ -3311,26 +3325,23 @@ function ViagemDetail({ trip, onBack }) {
     const itens = trip[campo] || [];
     return (
       <div>
-        {itens.map(c => {
-          const emEdicao = editItem && editItem.campo === campo && editItem.id === c.id;
-          return (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
-              <span onClick={() => toggleItem(campo, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
-              {emEdicao ? (
-                <>
-                  <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') { setEditItem(null); setEditItemTxt(''); } }} style={{ ...inputStyle, flex: 1 }} />
-                  <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
-                </>
-              ) : (
-                <>
-                  <span onClick={() => abrirEditItem(campo, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
-                  <button onClick={() => abrirEditItem(campo, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
-                  <button onClick={() => delItem(campo, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
-                </>
-              )}
-            </div>
-          );
-        })}
+        {itens.map(c => (
+          <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+            <span onClick={() => toggleItem(campo, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
+            {emEdicaoLista(campo, c.id) ? (
+              <>
+                <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') cancelEditItem(); }} style={{ ...inputStyle, flex: 1 }} />
+                <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
+              </>
+            ) : (
+              <>
+                <span onClick={() => abrirEditLista(campo, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
+                <button onClick={() => abrirEditLista(campo, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+                <button onClick={() => delItem(campo, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+              </>
+            )}
+          </div>
+        ))}
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <input value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem(campo, novo, setNovo)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
           <button onClick={() => addItem(campo, novo, setNovo)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
@@ -3483,8 +3494,18 @@ function ViagemDetail({ trip, onBack }) {
               {(s.itens || []).map(c => (
                 <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
                   <span onClick={() => secaoToggle(s.id, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
-                  <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1 }}>{c.texto}</span>
-                  <button onClick={() => secaoDel(s.id, c.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+                  {emEdicaoSec(s.id, c.id) ? (
+                    <>
+                      <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') cancelEditItem(); }} style={{ ...inputStyle, flex: 1 }} />
+                      <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                    </>
+                  ) : (
+                    <>
+                      <span onClick={() => abrirEditSec(s.id, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
+                      <button onClick={() => abrirEditSec(s.id, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+                      <button onClick={() => secaoDel(s.id, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+                    </>
+                  )}
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
