@@ -51,6 +51,7 @@ const CARDS = [
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas, exames', cor: '#d96459', pronto: true },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
+  { id: 'trilhas', label: 'Trilhas', desc: 'seus percursos na natureza', cor: '#6b8e5a', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates, beijos e afins', cor: '#c2548f', pronto: true },
 ];
 
@@ -67,6 +68,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'trilhas') return <TrilhasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -1121,7 +1123,7 @@ function PaceChart({ pts }) {
 
 // Bloco do trajeto num card de prova: usa o RotaField compartilhado e salva no
 // exercício original (campo `rota`), sem os campos derivados do card.
-function RotaProva({ prova }) {
+function RotaProva({ prova, cor = COR_CORRIDA }) {
   const cal = useCalendar();
   const orig = (cal.data.exercicios || []).find(e => e.id === prova.id);
   const onChange = (rota) => {
@@ -1129,7 +1131,7 @@ function RotaProva({ prova }) {
     if (rota) cal.saveExercicio({ ...orig, rota });
     else { const { rota: _drop, ...rest } = orig; cal.saveExercicio(rest); }
   };
-  return <RotaField rota={prova.rota} onChange={onChange} cor={COR_CORRIDA} />;
+  return <RotaField rota={prova.rota} onChange={onChange} cor={cor} />;
 }
 
 function CorridasRetro({ onBack, isWide }) {
@@ -1217,6 +1219,53 @@ function CorridasRetro({ onBack, isWide }) {
             </div>
           );
         })}
+      </>}
+    </div>
+  );
+}
+
+// ---- Card: Trilhas (percursos na natureza — distância, tempo e trajeto) ----
+const COR_TRILHA = '#6b8e5a';
+function TrilhasRetro({ onBack, isWide }) {
+  const cal = useCalendar();
+  const hoje = new Date();
+  const hk = `${hoje.getFullYear()}-${pad2(hoje.getMonth() + 1)}-${pad2(hoje.getDate())}`;
+  const todas = (cal.data.exercicios || [])
+    .filter(x => x.subtipo === 'trilha')
+    .filter(x => (x.data || '') <= hk)
+    .map(x => ({ ...x, km: Number(x.distancia) || 0, nome: x.titulo || 'Trilha' }))
+    .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  const { anos, anoSel, setAnoSel } = useAnoSel(todas.map(t => t.data));
+  const trilhas = todas.filter(t => (t.data || '').slice(0, 4) === anoSel);
+  const totalKm = Math.round(trilhas.reduce((a, t) => a + t.km, 0) * 10) / 10;
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_TRILHA, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Trilhas</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os percursos que você fez na natureza</p>
+
+      {todas.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhuma trilha ainda. Marque uma "Trilha" no Calendário (em Exercício) com distância e, se quiser, o trajeto (GPX).</p>
+      ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_TRILHA} />
+        {trilhas.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nenhuma trilha em {anoSel}.</p>}
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 18 }}>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{trilhas.length}</span><span style={{ fontSize: 12.5, color: '#999' }}> {trilhas.length === 1 ? 'trilha' : 'trilhas'}</span></div>
+          <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: '#111' }}>{fmtKm(totalKm)}</span><span style={{ fontSize: 12.5, color: '#999' }}> km</span></div>
+        </div>
+
+        {trilhas.map(t => (
+          <div key={t.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: '#222' }}>{t.nome}</span>
+              <span style={{ fontSize: 11.5, color: '#aaa', flexShrink: 0 }}>{t.data ? fmtDM(t.data) : '—'}{t.km ? ` · ${fmtKm(t.km)}km` : ''}</span>
+            </div>
+            {t.tempo && <div style={{ fontSize: 13, color: '#333' }}>tempo <b>{fmtTempo(t.tempo)}</b></div>}
+            <RotaProva prova={t} cor={COR_TRILHA} />
+          </div>
+        ))}
       </>}
     </div>
   );

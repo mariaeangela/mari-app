@@ -9,7 +9,7 @@ import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
   MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
-  parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm, CORRIDA_COM_ROTA,
+  parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm, ROTA_SUBTIPOS, COM_DISTANCIA,
 } from './calendarConfig.js';
 import { RotaField } from './rota.jsx';
 
@@ -71,7 +71,7 @@ export function itemsForDay(data, date, planos) {
   const events = (data.events || []).filter(e => eventOccursOn(e, date))
     .map(e => ({ ...e, _tipo: 'evento', _cor: CAT_BY_ID[e.categoria]?.cor || '#999', _titulo: e.titulo, _dia: key }));
   const exercicios = (data.exercicios || []).filter(x => x.data === key)
-    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: ehCorrida(x) ? corridaLabel(x) : exTitulo(x) }));
+    .map(x => ({ ...x, _tipo: 'exercicio', _cor: EXERCICIO_BY_ID[x.subtipo]?.cor || '#999', _titulo: COM_DISTANCIA.has(x.subtipo) ? corridaLabel(x) : exTitulo(x) }));
   const tasks = (data.tasks || []).filter(t => t.data && taskOccursOn(t, date))
     .map(t => ({ ...t, _tipo: 'tarefa', _cor: t.trabalho ? '#4f7cff' : TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: (t.feitas || []).includes(key) }));
   const roles = (data.roles || []).filter(r => r.data === key)
@@ -185,7 +185,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
   // Monta o objeto do tipo escolhido (sem id) — usado na conversão de tipo.
   const buildObj = () => {
     if (tipo === 'evento') return { titulo: titulo.trim(), categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined };
-    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: CORRIDA_COM_ROTA.has(subtipoEx) ? rota : undefined, nota: nota || undefined };
+    if (tipo === 'exercicio') return { subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: ROTA_SUBTIPOS.has(subtipoEx) ? rota : undefined, nota: nota || undefined };
     if (tipo === 'tarefa') return { titulo: titulo.trim(), data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: false };
     if (tipo === 'role') return { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
     return { subtipo: subtipoCult, titulo: titulo.trim(), data: inicio, horaInicio: horaInicio || undefined, nota: nota || undefined, comQuem: comQuem || undefined };
@@ -201,7 +201,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
     }
     const base = { id: editing?.id, titulo: titulo.trim() };
     if (tipo === 'evento') cal.saveEvent({ ...base, categoria, inicio, fim: fim || undefined, horaInicio: horaInicio || undefined, horaFim: horaFim || undefined, repetir, nota: nota || undefined, comQuem: comQuem || undefined });
-    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: CORRIDA_COM_ROTA.has(subtipoEx) ? rota : undefined, nota: nota || undefined });
+    else if (tipo === 'exercicio') cal.saveExercicio({ id: editing?.id, subtipo: subtipoEx, titulo: titulo.trim() || undefined, data: inicio, horaInicio: horaInicio || undefined, distancia: parseKm(distancia), tempo: parseTempo(tempo) || undefined, metaTempo: parseTempo(metaTempo) || undefined, rota: ROTA_SUBTIPOS.has(subtipoEx) ? rota : undefined, nota: nota || undefined });
     else if (tipo === 'tarefa') cal.saveTask({ ...base, data: semDataChk ? undefined : inicio, repetir: semDataChk ? undefined : (repetir === 'nao' ? undefined : repetir), nota: nota || undefined, trabalho: trabalho || undefined, feita: semDataChk ? (editing?.feita || false) : false, feitas: editing?.feitas });
     else if (tipo === 'role') {
       const r = { data: inicio, titulo: titulo.trim(), horaInicio: horaInicio || undefined, comQuem: comQuem || undefined, local: local || undefined };
@@ -327,7 +327,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
             <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} style={inputStyle} />
           </>
         )}
-        {tipo === 'exercicio' && EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' && (
+        {tipo === 'exercicio' && COM_DISTANCIA.has(subtipoEx) && (
           <>
             <label style={labelStyle}>Distância em km (opcional)</label>
             <input type="text" inputMode="decimal" value={distancia} onChange={e => setDistancia(e.target.value)} placeholder="ex.: 5.2" style={inputStyle} />
@@ -336,15 +336,17 @@ export function AddSheet({ initialDate, editing, onClose }) {
                 <label style={labelStyle}>Tempo real (opcional)</label>
                 <input type="text" inputMode="numeric" value={tempo} onChange={e => setTempo(e.target.value)} placeholder="ex.: 32:10" style={inputStyle} />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Meta de tempo (opcional)</label>
-                <input type="text" inputMode="numeric" value={metaTempo} onChange={e => setMetaTempo(e.target.value)} placeholder="ex.: 30:00" style={inputStyle} />
-              </div>
+              {EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' && (
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Meta de tempo (opcional)</label>
+                  <input type="text" inputMode="numeric" value={metaTempo} onChange={e => setMetaTempo(e.target.value)} placeholder="ex.: 30:00" style={inputStyle} />
+                </div>
+              )}
             </div>
             {(() => {
               const d = parseKm(distancia) || 0;
               const pReal = paceSecs(parseTempo(tempo), d);
-              const pMeta = paceSecs(parseTempo(metaTempo), d);
+              const pMeta = EXERCICIO_BY_ID[subtipoEx]?.grupo === 'corrida' ? paceSecs(parseTempo(metaTempo), d) : null;
               if (!pReal && !pMeta) return null;
               return (
                 <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 12.5, color: '#666' }}>
@@ -353,7 +355,7 @@ export function AddSheet({ initialDate, editing, onClose }) {
                 </div>
               );
             })()}
-            {CORRIDA_COM_ROTA.has(subtipoEx) && (
+            {ROTA_SUBTIPOS.has(subtipoEx) && (
               <>
                 <label style={labelStyle}>Trajeto (GPX do Strava/Garmin, opcional)</label>
                 <RotaField rota={rota} onChange={setRota} cor={EXERCICIO_BY_ID[subtipoEx]?.cor || '#ef6c4d'} />
