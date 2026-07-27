@@ -2954,6 +2954,8 @@ function statusViagem(v) {
   if (d === 1) return { label: 'é amanhã', cor: COR_VIAGEM, ativa: true };
   return { label: `faltam ${d} dias`, cor: '#888', ativa: false };
 }
+// Viagem que já acabou (tem fim e ele passou) — vai pro bloco "Passado" no fim da lista.
+const viagemTerminou = (v) => !!(v.fim && vgHoje() > v.fim);
 
 function ViagensSection({ onBack, viagemInicial, onConsumeViagem }) {
   const life = useLife();
@@ -3001,18 +3003,36 @@ function ViagensSection({ onBack, viagemInicial, onConsumeViagem }) {
 
       {trips.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>Nenhuma viagem ainda. Toque no + pra cadastrar uma.</p>
-      ) : trips.map(t => {
-        const st = statusViagem(t);
+      ) : (() => {
+        const renderTrip = (t) => {
+          const st = statusViagem(t);
+          return (
+            <button key={t.id} onClick={() => setSelId(t.id)} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid ' + (st.ativa ? COR_VIAGEM + '66' : '#eee'), borderRadius: 14, padding: '15px 16px', marginBottom: 10, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#111' }}>{t.titulo}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: st.cor, flexShrink: 0 }}>{st.label}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: '#888', marginTop: 4 }}>{[t.cidade, fmtIntervalo(t.inicio, t.fim)].filter(Boolean).join(' · ')}</div>
+            </button>
+          );
+        };
+        const atuais = trips.filter(t => !viagemTerminou(t));                                  // futuras/rolando (por início asc)
+        const passadas = trips.filter(viagemTerminou).sort((a, b) => (b.fim || '').localeCompare(a.fim || '')); // mais recente primeiro
         return (
-          <button key={t.id} onClick={() => setSelId(t.id)} style={{ display: 'block', width: '100%', textAlign: 'left', background: '#fff', border: '1px solid ' + (st.ativa ? COR_VIAGEM + '66' : '#eee'), borderRadius: 14, padding: '15px 16px', marginBottom: 10, cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: 19, fontWeight: 700, color: '#111' }}>{t.titulo}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: st.cor, flexShrink: 0 }}>{st.label}</span>
-            </div>
-            <div style={{ fontSize: 12.5, color: '#888', marginTop: 4 }}>{[t.cidade, fmtIntervalo(t.inicio, t.fim)].filter(Boolean).join(' · ')}</div>
-          </button>
+          <>
+            {atuais.map(renderTrip)}
+            {passadas.length > 0 && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: atuais.length ? 20 : 4, marginBottom: 10, color: '#999', fontSize: 12.5, fontWeight: 700 }}>
+                  <span style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>Passado</span>
+                  <span style={{ flex: 1, height: 1, background: '#eee' }} />
+                </div>
+                {passadas.map(renderTrip)}
+              </>
+            )}
+          </>
         );
-      })}
+      })()}
 
       {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={() => { setForm(null); }} />}
     </div>
