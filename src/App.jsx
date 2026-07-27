@@ -6,7 +6,7 @@ import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
-import { LifeProvider, useLife, getViagemAtiva } from './lifeStore.jsx';
+import { LifeProvider, useLife, getViagemAtiva, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
 import EsportesSection from './Esportes.jsx';
@@ -476,18 +476,36 @@ function PossoGastarViagem() {
   const viagem = getViagemAtiva(life.viagensFuturas);
   const [addOpen, setAddOpen] = useState(false);
   const [val, setVal] = useState('');
+  const [moeda, setMoeda] = useState('BRL');
+  const [cambio, setCambio] = useState('');
   const [editB, setEditB] = useState(false);
   const [bTxt, setBTxt] = useState('');
   if (!viagem) return null;
   const gv = viagem.gastoViagem || { budget: 0, gastos: [] };
-  const gasto = (gv.gastos || []).reduce((s, g) => s + (Number(g.valor) || 0), 0);
+  const gastos = gv.gastos || [];
+  const gasto = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);   // sempre em R$
   const budget = Number(gv.budget) || 0;
   const resta = budget - gasto;
   const temBudget = budget > 0;
   const onde = viagem.cidade || viagem.titulo;
   const cor = '#19b3a6';
-  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addViagemGasto(viagem.id, { valor: v, data: ymd(hojeMid()) }); setVal(''); setAddOpen(false); };
+  // último câmbio usado nessa moeda (pra pré-preencher e não redigitar).
+  const ultimoCambio = (m) => { const g = [...gastos].reverse().find(x => x.moeda === m && x.cambio); return g ? String(g.cambio) : ''; };
+  const trocaMoeda = (m) => { setMoeda(m); setCambio(m === 'BRL' ? '' : ultimoCambio(m)); };
+  const nVal = Number(String(val).replace(',', '.')) || 0;
+  const nCambio = Number(String(cambio).replace(',', '.')) || 0;
+  const valorBRL = moeda === 'BRL' ? nVal : nVal * nCambio;               // convertido pra R$
+  const podeAdd = nVal > 0 && (moeda === 'BRL' || nCambio > 0);
+  const add = () => {
+    if (!podeAdd) return;
+    const g = moeda === 'BRL'
+      ? { valor: nVal, moeda: 'BRL', data: ymd(hojeMid()) }
+      : { valor: valorBRL, moeda, valorOrig: nVal, cambio: nCambio, data: ymd(hojeMid()) };
+    life.addViagemGasto(viagem.id, g);
+    setVal(''); setAddOpen(false);
+  };
   const salvarB = () => { life.setViagemBudget(viagem.id, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
+  const selStyle = { ...capaInput, flex: '0 0 auto', width: 68, padding: '0 6px', cursor: 'pointer' };
   return (
     <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '12px 16px' }}>
       <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>✈ Posso gastar em {onde}</div>
@@ -498,7 +516,7 @@ function PossoGastarViagem() {
         </div>
         {!temBudget || editB ? (
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`quanto posso gastar em ${onde}?`} style={{ ...capaInput, flex: 1 }} />
+            <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`quanto posso gastar em ${onde}? (R$)`} style={{ ...capaInput, flex: 1 }} />
             <button onClick={salvarB} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>salvar</button>
           </div>
         ) : (
@@ -508,10 +526,33 @@ function PossoGastarViagem() {
               {!addOpen && <button onClick={() => setAddOpen(true)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 9, background: '#fff', color: cor, fontSize: 12, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', flexShrink: 0 }}>+ gasto</button>}
             </div>
             {addOpen && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1 }} />
-                <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
-                <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select value={moeda} onChange={e => trocaMoeda(e.target.value)} style={selStyle}>
+                    {MOEDAS.map(m => <option key={m.id} value={m.id}>{m.simbolo}</option>)}
+                  </select>
+                  <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`quanto gastou? (${simboloMoeda(moeda)})`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+                  <button onClick={add} disabled={!podeAdd} style={{ border: 'none', borderRadius: 10, background: podeAdd ? cor : '#ccc', color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: podeAdd ? 'pointer' : 'default' }}>ok</button>
+                  <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+                </div>
+                {moeda !== 'BRL' && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+                    <input type="text" inputMode="decimal" value={cambio} onChange={e => setCambio(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`câmbio: R$ por 1 ${simboloMoeda(moeda)}`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+                    <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{valorBRL > 0 ? '= ' + fmtR$(valorBRL) : ''}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {gastos.length > 0 && (
+              <div style={{ marginTop: 10, borderTop: '1px solid ' + cor + '22', paddingTop: 6 }}>
+                {gastos.slice().reverse().map(g => (
+                  <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
+                    <span>{g.moeda && g.moeda !== 'BRL'
+                      ? `${simboloMoeda(g.moeda)} ${g.valorOrig} → ${fmtR$(g.valor)}`
+                      : fmtR$(g.valor)}</span>
+                    <span onClick={() => life.deleteViagemGasto(viagem.id, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
+                  </div>
+                ))}
               </div>
             )}
           </>
