@@ -9,7 +9,6 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
-import { FLIP_PARALELA } from './flipParalelaSeed.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -877,28 +876,16 @@ function ensureFlipTipoPrincipal(d) {
     : { ...v, mesas: (v.mesas || []).map(m => m.tipo ? m : { ...m, tipo: 'principal' }) });
   return { ...d, flipTipoPrincipal1: true, viagensFuturas: viagens };
 }
-// Patch único: injeta a programação PARALELA da FLIP (todas as casas/espaços, ~946 sessões,
-// gerada do Excel da @tatianyleite) como itens da programação com tipo:'paralela', casa (local),
-// endereço e link do Google Maps p/ chegar. Idempotente: pula ids já presentes. Flag nova.
-function ensureFlipParalela(d) {
-  if (d.flipParalela1) return d;
-  const viagens = (d.viagensFuturas || []).map(v => {
-    if (v.id !== 'vf-flip2026') return v;
-    const have = new Set((v.mesas || []).map(m => m.id));
-    const novos = FLIP_PARALELA.filter(p => !have.has(p.id)).map(p => ({
-      id: p.id, tipo: 'paralela', casa: p.casa, dia: p.dia, hora: p.hora, horaMin: p.horaMin,
-      titulo: p.titulo, autores: p.autores || undefined, endereco: p.endereco || undefined,
-      maps: p.endereco ? gmap(p.endereco + ', Paraty - RJ') : (p.casa ? gmap(p.casa + ', Paraty - RJ') : undefined),
-    }));
-    return { ...v, mesas: [...(v.mesas || []), ...novos] };
-  });
-  return { ...d, flipParalela1: true, viagensFuturas: viagens };
-}
+// NOTA: a programação PARALELA da FLIP (~946 sessões, seed `flipParalelaSeed.js`) já foi injetada
+// na época (flag `flipParalela1`) e depois PURGADA para só as favoritas (ver abaixo). O seed e o
+// patch `ensureFlipParalela` foram REMOVIDOS do código pra aliviar o bundle (256 KB). Como a flag
+// nunca mais deixaria o patch rodar, remover é seguro; as favoritas da Mari vivem nos dados dela.
+
 // Limpeza única (a pedido da Mari, jul/2026): a FLIP acabou; apaga as mesas NÃO favoritas
 // (as centenas de sessões que ela não marcou) e mantém só as favoritas (as que ela foi), pra
 // enxugar os dados sincronizados. Trava de segurança: se a FLIP ainda não carregou OU não há
 // NENHUMA favorita, não apaga nada e nem marca a flag — assim tenta de novo no próximo load e
-// nunca zera tudo por engano. `ensureFlipParalela` (com flag) não re-injeta depois.
+// nunca zera tudo por engano.
 function ensureFlipPurgeNaoFav(d) {
   if (d.flipPurgeNaoFav1) return d;
   const trip = (d.viagensFuturas || []).find(v => v.id === 'vf-flip2026');
@@ -1566,7 +1553,7 @@ function ensureAmorosaDate2(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipParalela, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
