@@ -29,6 +29,11 @@ const KEEPALIVE_MAX = 60000;
 // `keepalive`: no flush ao fechar/ocultar o app, o navegador pode matar um fetch
 // normal em andamento; keepalive garante a entrega — mas só vale pra corpo pequeno
 // (calendario/saved), então cai no fetch normal quando não cabe (life grande).
+// Devolve o RESULTADO do POST: 'ok' | 'conflict' | 'fail'.
+//  - 'conflict' (HTTP 409): o servidor recusou porque a nuvem tem dados MAIS NOVOS
+//    (esta aba/aparelho está desatualizado). NÃO é pra re-tentar com o dado velho —
+//    o chamador descarta o envio, e o resync (ao focar a aba) puxa a versão nova.
+//  - 'fail': erro de rede/servidor → mantém pendente e re-tenta.
 async function doPost(payload, opts) {
   emit('saving');
   const body = JSON.stringify(payload);
@@ -40,19 +45,24 @@ async function doPost(payload, opts) {
       body,
       ...(keepalive ? { keepalive: true } : {}),
     });
+    if (res.status === 409) {
+      lastError = 'ignorado: a nuvem já tinha dados mais novos (esta tela estava desatualizada)';
+      emit('conflict');
+      return 'conflict';
+    }
     if (!res.ok) {
       const corpo = await res.text().catch(() => '');
       lastError = `HTTP ${res.status}` + (corpo ? ` · ${corpo.slice(0, 140)}` : '');
       emit('error');
-      return false;
+      return 'fail';
     }
     lastError = null;
     emit('saved');
-    return true;
+    return 'ok';
   } catch (e) {
     lastError = 'rede/offline · ' + String((e && e.message) || e).slice(0, 120);
     emit('error');
-    return false;
+    return 'fail';
   }
 }
 
@@ -112,11 +122,14 @@ function runPush(field, keepalive) {
   if (s.sending || s.p == null) return;   // um envio de cada vez por seção
   const v = s.p;
   s.sending = true;
-  doPost(v, { keepalive }).then(ok => {
+  doPost(v, { keepalive }).then(result => {
     s.sending = false;
-    // Se um valor MAIS NOVO chegou durante o envio, `s.p` já é outro: envia esse.
-    if (ok && s.p === v) s.p = null;        // confirmado e nada novo -> limpa
-    if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), ok ? 0 : RETRY);
+    // 'ok' = gravou; 'conflict' = a nuvem tinha dados mais novos, então DESCARTA este
+    // envio velho (não re-tenta); 'fail' = erro de rede, mantém `v` pra re-tentar.
+    // Em ambos 'ok'/'conflict' o envio de `v` está resolvido; só re-agenda se um valor
+    // MAIS NOVO chegou durante o envio (s.p !== v).
+    if (result !== 'fail' && s.p === v) s.p = null;
+    if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), result === 'ok' ? 0 : RETRY);
   });
 }
 function schedule(field, payload) {
@@ -148,10 +161,11 @@ export function pushLife(life) { schedule('life', { life }); }
 async function saveNow(field, payload) {
   const s = q[field];
   if (s.t) { clearTimeout(s.t); s.t = null; }
-  const ok = await doPost(payload);
-  if (ok) { if (s.p === payload) s.p = null; }
-  else { s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY); }
-  return ok;
+  const result = await doPost(payload);
+  if (result === 'ok') { if (s.p === payload) s.p = null; return true; }
+  if (result === 'conflict') { if (s.p === payload) s.p = null; return false; } // descarta o velho; o resync (ao focar) traz a versão nova
+  s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY);        // erro de rede: re-tenta
+  return false;
 }
 export async function saveLifeNow(life) { return saveNow('life', { life }); }
 export async function saveCalendarioNow(cal) { return saveNow('calendario', { calendario: cal }); }
