@@ -433,10 +433,12 @@ function PossoBucket({ ck, bucket, label }) {
   const temBudget = budget > 0;
   const [addOpen, setAddOpen] = useState(false);
   const [val, setVal] = useState('');
+  const [nome, setNome] = useState('');   // "o que foi" — só no bucket Total
   const [editB, setEditB] = useState(false);
   const [bTxt, setBTxt] = useState('');
   const cor = '#b06d1e';
-  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, data: ymd(hojeMid()) }); setVal(''); setAddOpen(false); };
+  const comNome = bucket === 'total';     // só o Total ganha descrição + lista
+  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: comNome ? (nome.trim() || undefined) : undefined, data: ymd(hojeMid()) }); setVal(''); setNome(''); setAddOpen(false); };
   const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
@@ -456,10 +458,24 @@ function PossoBucket({ ck, bucket, label }) {
             {!addOpen && <button onClick={() => setAddOpen(true)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 9, background: '#fff', color: cor, fontSize: 12, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', flexShrink: 0 }}>+ gasto</button>}
           </div>
           {addOpen && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1 }} />
-              <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
-              <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+            <div style={{ marginTop: 8 }}>
+              {comNome && <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, width: '100%', marginBottom: 8 }} />}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+                <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
+                <button onClick={() => { setAddOpen(false); setVal(''); setNome(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+              </div>
+            </div>
+          )}
+          {comNome && (b.gastos || []).length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              {(b.gastos || []).slice().reverse().map(g => (
+                <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.nome || '—'}</span>
+                  <span style={{ flexShrink: 0 }}>{fmtR$(g.valor)}</span>
+                  <span onClick={() => life.deletePgGasto(ck, bucket, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
+                </div>
+              ))}
             </div>
           )}
         </>
