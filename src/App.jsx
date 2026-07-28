@@ -53,6 +53,35 @@ function CardWithContent({ type, offset = 0, tile = false, showReload = true }) 
   return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={showReload ? reload : undefined} tile={tile} />;
 }
 
+// Indicador MINÚSCULO de sincronização (canto do cabeçalho): ✓ sincronizado ·
+// ↻ sincronizando/puxando · ⚠ offline ou não-sincronizado. Discreto de propósito.
+function SyncDot() {
+  const [st, setSt] = useState(typeof navigator !== 'undefined' && !navigator.onLine ? 'warn' : 'ok');
+  useEffect(() => onSyncStatus((s) => {
+    if (s === 'saving') setSt('saving');
+    else if (s === 'saved') setSt('ok');
+    else if (s === 'error') setSt('warn');
+    // 'conflict' é benigno (a nuvem tinha algo mais novo e o app se corrige) — não alarma.
+  }), []);
+  useEffect(() => {
+    let t;
+    const puxando = () => { if (!navigator.onLine) { setSt('warn'); return; } setSt('saving'); clearTimeout(t); t = setTimeout(() => setSt('ok'), 900); };
+    const offline = () => setSt('warn');
+    const onVis = () => { if (document.visibilityState === 'visible') puxando(); };  // ao voltar pra aba, ela puxa a nuvem
+    window.addEventListener('online', puxando);
+    window.addEventListener('offline', offline);
+    document.addEventListener('visibilitychange', onVis);
+    return () => { clearTimeout(t); window.removeEventListener('online', puxando); window.removeEventListener('offline', offline); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
+  const M = {
+    ok: { ic: '✓', cor: '#9ac1a8', t: 'sincronizado' },
+    saving: { ic: '↻', cor: '#c9a24a', t: 'sincronizando…' },
+    warn: { ic: '⚠', cor: '#d08a3e', t: 'offline ou não-sincronizado — evite editar o mesmo dado em dois aparelhos até voltar' },
+  };
+  const m = M[st] || M.ok;
+  return <span title={m.t} style={{ fontSize: 10, fontWeight: 700, color: m.cor, lineHeight: 1, cursor: 'default' }}>{m.ic}</span>;
+}
+
 function Header({ tab, setTab }) {
   const now = new Date();
   const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
@@ -68,7 +97,7 @@ function Header({ tab, setTab }) {
         <div onClick={() => setTab('feed')} title="ir para Hoje" style={{ fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(24px, 7vw, 34px)', fontWeight: 700, color: '#111', letterSpacing: '1px', lineHeight: 1, textTransform: 'uppercase', whiteSpace: 'nowrap', cursor: 'pointer' }}>diagonal</div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 10, color: '#999', letterSpacing: '1.5px', textTransform: 'uppercase' }}>{days[now.getDay()]}, {now.getDate()} {months[now.getMonth()]}</div>
-          <div style={{ fontSize: 10, color: '#ccc', marginTop: 2 }}>edicao diaria</div>
+          <div style={{ fontSize: 10, color: '#ccc', marginTop: 2, display: 'flex', gap: 5, justifyContent: 'flex-end', alignItems: 'center' }}>edicao diaria <SyncDot /></div>
         </div>
       </div>
 
