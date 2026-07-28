@@ -203,22 +203,30 @@ function SeuDia() {
 function TerapiaHoje() {
   const cal = useCalendar();
   const life = useLife();
-  const [txt, setTxt] = useState('');
   const today = hojeMid();
   const eventosHoje = itemsForDay(cal.data, today).events;
   const temTerapia = eventosHoje.some(e => e.categoria === 'saude' && /terapia|psic[oó]|psiqui/i.test(e.titulo || ''));
-  if (!temTerapia) return null;
   const dataLabel = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
   const ap = life.aprendizados || { topicos: [], notas: [] };
   const topico = (ap.topicos || []).find(t => /terapia/i.test(t.nome || ''));
-  const notaHoje = topico ? (ap.notas || []).find(n => n.topicoId === topico.id && n.titulo === dataLabel) : null;
+  // Busca robusta: pela data (chave estável), título === data, ou título que começa com a
+  // data (nota renomeada "28/07/2026 - FLIP") — assim renomear não "cria" nota nova.
+  const notaHoje = topico ? (ap.notas || []).find(n => n.topicoId === topico.id && (n.data === dataLabel || n.titulo === dataLabel || String(n.titulo || '').startsWith(dataLabel))) : null;
+  const sufixo = (notaHoje && String(notaHoje.titulo || '').startsWith(dataLabel) && String(notaHoje.titulo).trim() !== dataLabel) ? String(notaHoje.titulo).slice(dataLabel.length).replace(/^[\s\-–—·|:>/]+/, '').trim() : '';
+  const temasSalvo = notaHoje?.temas || sufixo;
   const itens = notaHoje?.itens || [];
+  const [txt, setTxt] = useState('');
+  const [temas, setTemas] = useState(temasSalvo);
+  useEffect(() => { setTemas(temasSalvo); }, [notaHoje?.id]); // eslint-disable-line
+  if (!temTerapia) return null;
   const add = () => { const t = txt.trim(); if (!t) return; life.addTerapiaInsight(dataLabel, t); setTxt(''); };
+  const salvarTemas = () => { if ((temas || '').trim() !== (temasSalvo || '').trim()) life.setTerapiaTemas(dataLabel, temas); };
   const cor = '#7a5c9e';
   return (
     <div style={{ marginBottom: 22, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '13px 16px' }}>
       <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>Terapia de hoje ✍</div>
       <p style={{ fontSize: 12, color: '#888', margin: '4px 0 8px' }}>o que você aprendeu? vai pra <b style={{ color: cor }}>Terapia Insights</b> · nota {dataLabel}</p>
+      <input value={temas} onChange={e => setTemas(e.target.value)} onBlur={salvarTemas} onKeyDown={e => { if (e.key === 'Enter') { salvarTemas(); e.currentTarget.blur(); } }} placeholder="principais temas (ex.: FLIP, ansiedade)" style={{ ...capaInput, width: '100%', marginBottom: 8 }} />
       <div style={{ display: 'flex', gap: 8 }}>
         <input value={txt} onChange={e => setTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="um aprendizado…" style={{ ...capaInput, flex: 1 }} />
         <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>anotar</button>

@@ -1559,6 +1559,19 @@ function runLifeSeeds(d) {
 
 const LifeContext = createContext(null);
 const uid = (p = 'i') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+// Nota de terapia: normaliza a chave. `data` = chave estável (a data). Se o título
+// virou "DATA - tema" e ainda não há campo `temas`, move o tema pra `temas` e devolve
+// o título pra só a data. NUNCA mexe nos `itens` (os aprendizados salvos).
+function _normTerapiaNota(n, dataLabel) {
+  const out = { ...n, data: dataLabel };
+  const tit = String(out.titulo || '');
+  if (!out.temas && tit.startsWith(dataLabel) && tit.trim() !== dataLabel) {
+    const suf = tit.slice(dataLabel.length).replace(/^[\s\-–—·|:>/]+/, '').trim();
+    if (suf) out.temas = suf;
+  }
+  if (tit.startsWith(dataLabel)) out.titulo = dataLabel;
+  return out;
+}
 const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 // Compras com data limite vencida (e não compradas) puxam pra hoje (pra não se perder).
 function rolarComprasVencidas(d) {
@@ -2056,14 +2069,36 @@ export function LifeProvider({ children }) {
   // Insight de terapia do dia: acha (ou cria) o tópico "Terapia Insights" e a nota
   // com o dia (dataLabel) como título, e adiciona o aprendizado dentro — tudo num
   // único save (atômico). Usado pela caixa da Tela Hoje nos dias de terapia.
+  // Busca ROBUSTA da nota do dia: pela chave estável `data`, OU título === data, OU
+  // título que COMEÇA com a data (ex.: "28/07/2026 - FLIP") — assim renomear o título
+  // não faz o app "criar" nota nova. Primeiro match na ordem do array (a original vem
+  // antes de uma eventual duplicata vazia criada depois).
+  const _matchTerapia = (n, topicoId, dataLabel) => n.topicoId === topicoId && (n.data === dataLabel || n.titulo === dataLabel || String(n.titulo || '').startsWith(dataLabel));
+  const _ensureTerapiaTopico = (ap) => {
+    let topicos = ap.topicos || [];
+    let topico = topicos.find(t => /terapia/i.test(t.nome || ''));
+    if (!topico) { topico = { id: uid('t'), nome: 'Terapia Insights' }; topicos = [...topicos, topico]; }
+    return { topico, topicos };
+  };
   const addTerapiaInsight = (dataLabel, texto) => {
     const ap = aprendizados;
-    let topico = (ap.topicos || []).find(t => /terapia/i.test(t.nome || ''));
-    let topicos = ap.topicos || [], notas = ap.notas || [];
-    if (!topico) { topico = { id: uid('t'), nome: 'Terapia Insights' }; topicos = [...topicos, topico]; }
-    const nota = notas.find(n => n.topicoId === topico.id && n.titulo === dataLabel);
-    if (nota) notas = notas.map(n => n === nota ? { ...n, itens: [...(n.itens || []), texto] } : n);
-    else notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, itens: [texto], criadoEm: Date.now() }];
+    const { topico, topicos } = _ensureTerapiaTopico(ap);
+    let notas = ap.notas || [];
+    const nota = notas.find(n => _matchTerapia(n, topico.id, dataLabel));
+    if (nota) notas = notas.map(n => n === nota ? _normTerapiaNota({ ...n, itens: [...(n.itens || []), texto] }, dataLabel) : n);
+    else notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, data: dataLabel, temas: '', itens: [texto], criadoEm: Date.now() }];
+    setAprendizados({ ...ap, topicos, notas });
+  };
+  // "Principais temas" da nota de terapia do dia (campo separado, mostrado ao lado da data).
+  const setTerapiaTemas = (dataLabel, temas) => {
+    const ap = aprendizados;
+    const { topico, topicos } = _ensureTerapiaTopico(ap);
+    let notas = ap.notas || [];
+    const nota = notas.find(n => _matchTerapia(n, topico.id, dataLabel));
+    const t = String(temas || '').trim();
+    if (nota) notas = notas.map(n => n === nota ? { ..._normTerapiaNota(n, dataLabel), temas: t } : n);
+    else if (t) notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, data: dataLabel, temas: t, itens: [], criadoEm: Date.now() }];
+    else return;
     setAprendizados({ ...ap, topicos, notas });
   };
 
@@ -2077,7 +2112,7 @@ export function LifeProvider({ children }) {
     salarios, saveSalarioAno, deleteSalarioAno,
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
-    aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight,
+    aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight, setTerapiaTemas,
     comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,

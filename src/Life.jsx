@@ -2792,7 +2792,7 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
   return (
     <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
       <div onClick={() => toggle(nota.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: nivel ? '10px 12px' : '12px 14px', cursor: 'pointer' }}>
-        <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}</span>
+        <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}{nota.temas ? <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: COR_APREND }}>{'  ·  ' + nota.temas}</span> : null}</span>
         {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: COR_APREND, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
         {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: COR_APREND, fontWeight: 700, background: COR_APREND + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
         <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>
