@@ -473,10 +473,15 @@ function PossoBucket({ ck, bucket, label }) {
   const [nome, setNome] = useState('');   // "o que foi" — só no bucket Total
   const [editB, setEditB] = useState(false);
   const [bTxt, setBTxt] = useState('');
+  const [editId, setEditId] = useState(null); // gasto em edição na lista
+  const [eNome, setENome] = useState('');
+  const [eVal, setEVal] = useState('');
   const cor = '#b06d1e';
   const comNome = bucket === 'total';     // só o Total ganha descrição + lista
   const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: comNome ? (nome.trim() || undefined) : undefined, data: ymd(hojeMid()) }); setVal(''); setNome(''); setAddOpen(false); };
   const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
+  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || ''); setEVal(String(g.valor ?? '')); };
+  const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, { valor: v, nome: eNome.trim() || undefined }); setEditId(null); };
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -506,10 +511,17 @@ function PossoBucket({ ck, bucket, label }) {
           )}
           {comNome && (b.gastos || []).length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {(b.gastos || []).slice().reverse().map(g => (
+              {(b.gastos || []).slice().reverse().map(g => editId === g.id ? (
+                <div key={g.id} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '3px 0' }}>
+                  <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />
+                  <input value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, width: 66, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                  <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                  <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+                </div>
+              ) : (
                 <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.nome || '—'}</span>
-                  <span style={{ flexShrink: 0 }}>{fmtR$(g.valor)}</span>
+                  <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}>{g.nome || '—'}</span>
+                  <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flexShrink: 0, cursor: 'pointer' }}>{fmtR$(g.valor)}</span>
                   <span onClick={() => life.deletePgGasto(ck, bucket, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
                 </div>
               ))}

@@ -2029,6 +2029,7 @@ export function LifeProvider({ children }) {
   const setPgBudget = (ck, bucket, budget) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], budget: Number(budget) || 0 } } } }); };
   const addPgGasto = (ck, bucket, g) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: [...c[bucket].gastos, { ...g, id: uid('pg') }] } } } }); };
   const deletePgGasto = (ck, bucket, id) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: c[bucket].gastos.filter(x => x.id !== id) } } } }); };
+  const updatePgGasto = (ck, bucket, id, patch) => { const c = pgCicloDe(ck); setPG({ ...possoGastar, ciclos: { ...possoGastar.ciclos, [ck]: { ...c, [bucket]: { ...c[bucket], gastos: c[bucket].gastos.map(x => x.id === id ? { ...x, ...patch } : x) } } } }); };
 
   // ---- Trechos favoritos (frases marcantes de livros) ----
   const trechos = data.trechos || [];
@@ -2129,7 +2130,7 @@ export function LifeProvider({ children }) {
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
     vr, setVrTotal, addVrGasto, deleteVrGasto,
-    possoGastar, setPgBudget, addPgGasto, deletePgGasto,
+    possoGastar, setPgBudget, addPgGasto, deletePgGasto, updatePgGasto,
     trechos, saveTrecho, deleteTrecho,
     albuns, saveAlbum, deleteAlbum, setAlbunsCapas,
   };
