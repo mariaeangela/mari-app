@@ -1642,15 +1642,23 @@ function MesDropdown({ options, selected, onSelect }) {
 
 // `onBack` é opcional: em Life ele volta pro hub; na aba VF (página própria) não
 // há pra onde voltar, então o botão simplesmente não aparece.
-export function FinancasSection({ onBack }) {
+//
+// `comoHub` (só a aba VF usa): em vez das três pastilhas Carteira/Salários/Gastos
+// sempre visíveis, abre numa capa com três cards horizontais — o mesmo formato dos
+// cards de Viagens. Escolhido um, ele ocupa a tela e um "← Vida Financeira" volta
+// pra capa. Em Life nada muda: sem `comoHub`, as pastilhas continuam como sempre.
+export function FinancasSection({ onBack, comoHub }) {
   const life = useLife();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
+  // Contagens do resumo à direita de cada card da capa (modo hub).
+  const qtdAnosSal = (life.salarios || []).length;
+  const qtdMesesGastos = (life.gastos || []).length;
   const [view, setView] = useState('tabela');
   const [selId, setSelId] = useState(null);
   const [form, setForm] = useState(null);
   const [rate, setRate] = useState('');
   const [buscando, setBuscando] = useState(false);
-  const [sub, setSub] = useState('carteira');
+  const [sub, setSub] = useState(comoHub ? null : 'carteira');  // null = capa dos cards (só no modo hub)
   const [oculto, setOculto] = useState(true);
 
   const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
@@ -1706,11 +1714,29 @@ export function FinancasSection({ onBack }) {
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Vida Financeira</h2>
         <button onClick={() => setOculto(o => !o)} title={oculto ? 'mostrar valores' : 'ocultar valores'} style={{ flexShrink: 0, border: '1px solid ' + (oculto ? COR_FIN + '66' : '#e2e2e2'), borderRadius: 12, background: oculto ? COR_FIN + '14' : '#fff', cursor: 'pointer', width: 42, height: 42, fontSize: 18, lineHeight: 1 }}>{oculto ? '🔒' : '🔓'}</button>
       </div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {[['carteira', 'Carteira'], ['salarios', 'Salários'], ['gastos', 'Gastos']].map(([k, txt]) => (
-          <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
-        ))}
-      </div>
+      {comoHub ? (sub === null ? (
+        // Capa da VF: os três cards horizontais, no mesmo formato dos de Viagens.
+        <div style={{ marginTop: 4 }}>
+          {[
+            ['carteira', '📈', 'Carteira', snaps.length, snaps.length === 1 ? 'mês' : 'meses'],
+            ['salarios', '💵', 'Salários', qtdAnosSal, qtdAnosSal === 1 ? 'ano' : 'anos'],
+            ['gastos', '🧾', 'Gastos', qtdMesesGastos, qtdMesesGastos === 1 ? 'mês' : 'meses'],
+          ].map(([k, emoji, titulo, qtd, unidade]) => (
+            <button key={k} onClick={() => setSub(k)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_FIN + '12', border: '1px solid ' + COR_FIN + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
+              <span><span style={{ fontSize: 15 }}>{emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{titulo}</span></span>
+              <span style={{ fontSize: 12, color: '#999' }}>{qtd ? `${qtd} ${unidade} ›` : '›'}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <button onClick={() => setSub(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, margin: '0 0 14px', padding: 0 }}>&larr; Vida Financeira</button>
+      )) : (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {[['carteira', 'Carteira'], ['salarios', 'Salários'], ['gastos', 'Gastos']].map(([k, txt]) => (
+            <button key={k} onClick={() => setSub(k)} style={{ flex: 1, padding: '9px 6px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, background: sub === k ? COR_FIN : '#eee', color: sub === k ? '#fff' : '#888' }}>{txt}</button>
+          ))}
+        </div>
+      )}
 
       <PrivacyCtx.Provider value={oculto}>
       {sub === 'salarios' && <SalariosVida />}
