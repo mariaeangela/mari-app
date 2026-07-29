@@ -2315,7 +2315,6 @@ function LinhasGastos({ meses, cats, valor }) {
   const blurTxt = oculto ? { filter: 'blur(3.5px)' } : null;
   const W = 320, H = 162, padTop = 12, padBot = 20, padLeft = 40, padRight = 10;
   const n = meses.length;
-  const umaSo = sels.length === 1;   // 1 categoria: mostra pontos e valores
   const vals = (c) => meses.map(m => valor(m, c));
   const max = Math.max(...(sels.length ? sels.flatMap(c => vals(c)) : [0]), 1);
   const x = (i) => n === 1 ? (padLeft + (W - padLeft - padRight) / 2) : padLeft + i * (W - padLeft - padRight) / (n - 1);
@@ -2325,8 +2324,18 @@ function LinhasGastos({ meses, cats, valor }) {
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => f * max);
   return (
     <div style={{ marginTop: 4 }}>
+      {/* Seletor ANTES do gráfico: a Mari escolhe as categorias e o gráfico
+          aparece abaixo. */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {cats.map(c => { const on = sels.includes(c); return (
+          <button key={c} onClick={() => toggle(c)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (on ? '#111' : '#e2e2e2'), background: on ? '#1111110d' : '#fff', color: on ? '#111' : '#888' }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: corDe(c), flexShrink: 0 }} />{c}
+          </button>
+        ); })}
+      </div>
+      <p style={{ fontSize: 11, color: '#aaa', margin: '8px 0 4px' }}>toque pra adicionar/remover categorias — dá pra comparar várias.</p>
       {sels.length === 0 ? (
-        <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '24px 0', lineHeight: 1.6 }}>Escolha uma ou mais categorias abaixo pra ver a evolução delas ao longo dos meses.</p>
+        <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '24px 0', lineHeight: 1.6 }}>Escolha uma ou mais categorias acima pra ver a evolução delas ao longo dos meses.</p>
       ) : (
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
           {ticks.map((t, i) => (
@@ -2342,25 +2351,19 @@ function LinhasGastos({ meses, cats, valor }) {
             </g>
           ))}
           {sels.map(c => <path key={c} d={pathFor(c)} fill="none" stroke={corDe(c)} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />)}
-          {umaSo && meses.map((m, i) => {
-            const v = valor(m, sels[0]);
+          {/* Pontos e valores em TODAS as selecionadas, cada um na cor da sua linha
+              (com várias, é o que distingue de quem é cada valor). */}
+          {sels.map(c => meses.map((m, i) => {
+            const v = valor(m, c);
             return (
-              <g key={m.mes}>
-                <circle cx={x(i)} cy={y(v)} r="2.8" fill={corDe(sels[0])} />
-                <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111" style={blurTxt}>{fmtBRLcurto(v)}</text>
+              <g key={c + m.mes}>
+                <circle cx={x(i)} cy={y(v)} r="2.6" fill={corDe(c)} />
+                <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill={corDe(c)} style={blurTxt}>{fmtBRLcurto(v)}</text>
               </g>
             );
-          })}
+          }))}
         </svg>
       )}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-        {cats.map(c => { const on = sels.includes(c); return (
-          <button key={c} onClick={() => toggle(c)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (on ? '#111' : '#e2e2e2'), background: on ? '#1111110d' : '#fff', color: on ? '#111' : '#888' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: corDe(c), flexShrink: 0 }} />{c}
-          </button>
-        ); })}
-      </div>
-      <p style={{ fontSize: 11, color: '#aaa', marginTop: 8 }}>toque pra adicionar/remover categorias — dá pra comparar várias.</p>
     </div>
   );
 }
