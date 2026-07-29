@@ -1833,13 +1833,14 @@ export function FinancasSection({ comoHub }) {
         // Capa da VF: os três cards horizontais, no mesmo formato dos de Viagens.
         <div style={{ marginTop: 4 }}>
           {[
-            ['gastos', '🛍️', 'Gastos', qtdMesesGastos, qtdMesesGastos === 1 ? 'mês' : 'meses'],
-            ['carteira', '📈', 'Carteira', snaps.length, snaps.length === 1 ? 'mês' : 'meses'],
-            ['salarios', '💵', 'Salários', qtdAnosSal, qtdAnosSal === 1 ? 'ano' : 'anos'],
-          ].map(([k, emoji, titulo, qtd, unidade]) => (
-            <button key={k} onClick={() => setSub(k)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_FIN + '12', border: '1px solid ' + COR_FIN + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
-              <span><span style={{ fontSize: 15 }}>{emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{titulo}</span></span>
-              <span style={{ fontSize: 12, color: '#999' }}>{qtd ? `${qtd} ${unidade} ›` : '›'}</span>
+            { k: 'gastos', emoji: '🛍️', titulo: 'Gastos', qtd: qtdMesesGastos, unidade: qtdMesesGastos === 1 ? 'mês' : 'meses' },
+            { k: 'carteira', emoji: '📈', titulo: 'Carteira', qtd: snaps.length, unidade: snaps.length === 1 ? 'mês' : 'meses' },
+            { k: 'performance', emoji: '📊', titulo: 'Performance', meta: 'em construção' },
+            { k: 'salarios', emoji: '💵', titulo: 'Salários', qtd: qtdAnosSal, unidade: qtdAnosSal === 1 ? 'ano' : 'anos' },
+          ].map(c => (
+            <button key={c.k} onClick={() => setSub(c.k)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_FIN + '12', border: '1px solid ' + COR_FIN + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
+              <span><span style={{ fontSize: 15 }}>{c.emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{c.titulo}</span></span>
+              <span style={{ fontSize: 12, color: '#999', fontStyle: c.meta ? 'italic' : 'normal' }}>{c.meta || (c.qtd ? `${c.qtd} ${c.unidade} ›` : '›')}</span>
             </button>
           ))}
         </div>
@@ -1856,6 +1857,13 @@ export function FinancasSection({ comoHub }) {
       <PrivacyCtx.Provider value={oculto}>
       {sub === 'salarios' && <SalariosVida />}
       {sub === 'gastos' && <GastosVida />}
+      {/* Reservado: a Mari pediu o card já criado pra desenharmos depois. */}
+      {sub === 'performance' && (
+        <div style={{ marginTop: 12, padding: 28, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>Performance — em construção.</p>
+          <p style={{ fontSize: 13, color: '#999', marginTop: 8, lineHeight: 1.6 }}>Ainda não desenhamos esta parte. Quando quiser, me diga o que ela deve mostrar.</p>
+        </div>
+      )}
 
       {sub === 'carteira' && (<>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
