@@ -1640,7 +1640,9 @@ function MesDropdown({ options, selected, onSelect }) {
   );
 }
 
-function FinancasSection({ onBack }) {
+// `onBack` é opcional: em Life ele volta pro hub; na aba VF (página própria) não
+// há pra onde voltar, então o botão simplesmente não aparece.
+export function FinancasSection({ onBack }) {
   const life = useLife();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
   const [view, setView] = useState('tabela');
@@ -1698,7 +1700,7 @@ function FinancasSection({ onBack }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 640, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      {onBack && <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>}
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Vida Financeira</h2>

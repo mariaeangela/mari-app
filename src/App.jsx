@@ -9,6 +9,7 @@ import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, 
 import { LifeProvider, useLife, getViagemAtiva, MOEDAS, simboloMoeda } from './lifeStore.jsx';
 import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
 import RetrospectivaPage from './Retrospectiva.jsx';
+import VFPage from './VF.jsx';
 import EsportesSection from './Esportes.jsx';
 import { NavContext, useNav } from './nav.jsx';
 import { getLastSyncError, onSyncStatus } from './cloud';
@@ -119,6 +120,7 @@ function Header({ tab, setTab }) {
           { id: 'calendar', label: 'Calendário' },
           { id: 'explore', label: 'Explorar' },
           { id: 'life', label: 'Life' },
+          { id: 'vf', label: 'VF' },
           { id: 'retrospectiva', label: 'Retrospectiva' },
           { id: 'saved', label: 'Salvos' },
         ].map(t => (
@@ -380,6 +382,9 @@ function HojeAgenda() {
 // R$ formatado (curto, 2 casas).
 const fmtR$ = (v) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// Dia da semana em 3 letras, pra acompanhar a data na lista do VR.
+const DIA_ABREV = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
 // VR (vale-refeição) no fim da capa. Ciclo 27→26: você põe o total no dia 27 e
 // lança os gastos no +; o app mostra quanto pode gastar POR DIA = (total − gasto)
 // ÷ dias restantes até o 26, recalculando a cada gasto.
@@ -399,6 +404,16 @@ function VRHoje() {
   const [val, setVal] = useState('');
   const [editTotal, setEditTotal] = useState(false);
   const [totalTxt, setTotalTxt] = useState('');
+  // A lista crua de gastos crescia demais até o fim do ciclo. Agora ela nasce
+  // fechada e, aberta, mostra UMA linha por dia com o valor somado; tocar no dia
+  // abre os lançamentos daquele dia (é lá que dá pra apagar um).
+  const [verDias, setVerDias] = useState(false);
+  const [diaExp, setDiaExp] = useState(null);
+  const gastosPorDia = (() => {
+    const m = {};
+    gastos.forEach(g => { const d = g.data || ''; (m[d] = m[d] || []).push(g); });
+    return Object.keys(m).sort().reverse().map(d => ({ dia: d, itens: m[d], soma: m[d].reduce((s, x) => s + (Number(x.valor) || 0), 0) }));
+  })();
 
   const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: ymd(today) }); setVal(''); setAddOpen(false); };
   const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
@@ -442,14 +457,36 @@ function VRHoje() {
           )}
 
           {gastos.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              {[...gastos].reverse().map(g => (
-                <div key={g.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '5px 0', borderTop: '1px solid #f0f0f0', fontSize: 12.5, color: '#666' }}>
-                  <span>{g.data ? g.data.slice(8, 10) + '/' + g.data.slice(5, 7) : ''}</span>
-                  <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(g.valor)}</span>
-                  <button onClick={() => life.deleteVrGasto(cycleKey, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 16, cursor: 'pointer', lineHeight: 1 }}>×</button>
-                </div>
-              ))}
+            <div style={{ marginTop: 8 }}>
+              <button onClick={() => setVerDias(v => !v)} style={{ display: 'block', width: '100%', border: 'none', background: 'none', color: '#999', fontSize: 11.5, fontWeight: 600, padding: '5px 0', cursor: 'pointer' }}>
+                {verDias ? '▴' : '▾'} gasto por dia
+              </button>
+              {verDias && gastosPorDia.map(d => {
+                const aberto = diaExp === d.dia;
+                return (
+                  <div key={d.dia || 'sem-data'} style={{ borderTop: '1px solid #f0f0f0' }}>
+                    <div onClick={() => setDiaExp(aberto ? null : d.dia)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', fontSize: 12.5, color: '#666', cursor: 'pointer' }}>
+                      <span>
+                        <span style={{ color: cor, fontWeight: 700, fontSize: 10, marginRight: 5 }}>{aberto ? '▾' : '▸'}</span>
+                        {d.dia ? d.dia.slice(8, 10) + '/' + d.dia.slice(5, 7) : 'sem data'}
+                        {d.dia && <span style={{ color: '#aaa', marginLeft: 5 }}>{DIA_ABREV[parseYmd(d.dia).getDay()]}</span>}
+                        {d.itens.length > 1 && <span style={{ color: '#c4c4c4', marginLeft: 6, fontSize: 11 }}>{d.itens.length}×</span>}
+                      </span>
+                      <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(d.soma)}</span>
+                    </div>
+                    {aberto && (
+                      <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
+                        {d.itens.map(g => (
+                          <div key={g.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12, color: '#8a8a8a' }}>
+                            <span>{fmtR$(g.valor)}</span>
+                            <button onClick={() => life.deleteVrGasto(cycleKey, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 15, cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </>
@@ -888,6 +925,7 @@ export default function App() {
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
             {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
+            {tab === 'vf' && <VFPage key={homeNonce} isWide={isWide} />}
             {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
           </div>
           <SalvarFAB />
