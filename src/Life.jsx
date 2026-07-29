@@ -2533,7 +2533,13 @@ function GastoForm({ editing, meses, onClose }) {
   const hojeMes = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
   const novaRow = () => ({ categoria: '', valor: '' });
   const [mes, setMes] = useState(editing?.mes || hojeMes());
-  const [rows, setRows] = useState(editing?.itens?.length ? editing.itens.map(i => ({ categoria: i.categoria, valor: String(i.valor) })) : [novaRow()]);
+  // Mês novo já nasce com as 13 categorias fixas preenchidas (na ordem), pra a
+  // Mari só digitar os valores. As que ela deixar em branco são descartadas ao
+  // salvar (o `limpos` abaixo só guarda linha com valor > 0). Editando um mês que
+  // já existe, mostra as categorias dele, como antes.
+  const [rows, setRows] = useState(editing?.itens?.length
+    ? editing.itens.map(i => ({ categoria: i.categoria, valor: String(i.valor) }))
+    : GASTO_CATEGORIAS.map(c => ({ categoria: c, valor: '' })));
   const catsUsadas = [...new Set((meses || []).flatMap(m => (m.itens || []).map(i => i.categoria)))];
   const setRow = (i, k, v) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
   const addRow = () => setRows([...rows, novaRow()]);
