@@ -36,6 +36,11 @@ const COR_FIN = '#54c08a';
 // ativo, mas não viram chip pra novos. O "+ nova" segue criando outras.
 const FIN_CATEGORIAS = ['Renda Fixa', 'Ações', 'ETF', 'Cripto', 'FGTS', 'Previdência Privada'];
 const FIN_FINALIDADES = ['Aposentadoria', 'Aposta', 'Investimento', 'Reserva de emergência', 'Viagem', 'Vida'];
+// As 13 categorias fixas de GASTOS, na ordem que a Mari definiu. Grafia igual à
+// dos dados ("Presentes", "Skin care") pra casar com o que já está gravado. Tudo
+// tem que cair numa destas; se aparecer gasto fora delas, o card avisa (não some).
+const GASTO_CATEGORIAS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúde', 'Viagem', 'Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Rolês', 'Presentes'];
+const gastoCatRank = (c) => { const i = GASTO_CATEGORIAS.indexOf(c); return i === -1 ? 99 : i; };
 const FIN_PALETTE = ['#54c08a', '#5c6bc0', '#ff8a3d', '#c2548f', '#19b3a6', '#c78a3a', '#8d6e63', '#6b7a99', '#a8516a', '#9844a7', '#2f746d', '#b24624'];
 const MES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const fmtBRL = (n) => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2272,8 +2277,6 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
   const cols = [...meses].reverse(); // mês mais recente primeiro
   const cell = { padding: '6px 8px', fontSize: 11.5, whiteSpace: 'nowrap', textAlign: 'right' };
   const stick = { position: 'sticky', left: 0, background: '#fff', textAlign: 'left' };
-  const EXCLUI_2A = ['Viagem', 'Fixos', 'Mercado']; // 2ª linha de total: gasto recorrente
-  const correnteDe = (m) => cats.filter(c => !EXCLUI_2A.includes(c)).reduce((s, c) => s + (Number(valor(m, c)) || 0), 0);
   return (
     <div style={{ overflowX: 'auto', marginTop: 4, border: '1px solid #f0f0f0', borderRadius: 10 }}>
       <table style={{ borderCollapse: 'collapse', fontSize: 11.5, minWidth: '100%' }}>
@@ -2296,92 +2299,103 @@ function TabelaGastos({ meses, cats, totalDe, valor }) {
             <td style={{ ...cell, ...stick, color: '#111' }}>Total</td>
             {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#111' }}><V>{fmtBRLcurto(totalDe(m))}</V></td>)}
           </tr>
-          <tr style={{ fontWeight: 600 }}>
-            <td style={{ ...cell, ...stick, color: '#999', fontSize: 10.5 }}>Sem viagem/fixos/mercado</td>
-            {cols.map(m => <td key={m.mes} style={{ ...cell, color: '#999', fontSize: 10.5 }}><V>{fmtBRLcurto(correnteDe(m))}</V></td>)}
-          </tr>
         </tfoot>
       </table>
     </div>
   );
 }
 
+// Gráfico de linhas por categoria. Começa VAZIO: a Mari não quer todas as linhas
+// de uma vez, e sim ir escolhendo — uma de cada vez, podendo somar mais de uma pra
+// comparar. `sels` é o conjunto de categorias escolhidas (multi-seleção).
 function LinhasGastos({ meses, cats, valor }) {
-  const [sel, setSel] = useState(null);
+  const [sels, setSels] = useState([]);
+  const toggle = (c) => setSels(sels.includes(c) ? sels.filter(x => x !== c) : [...sels, c]);
   const oculto = useContext(PrivacyCtx);
   const blurTxt = oculto ? { filter: 'blur(3.5px)' } : null;
   const W = 320, H = 162, padTop = 12, padBot = 20, padLeft = 40, padRight = 10;
   const n = meses.length;
+  const umaSo = sels.length === 1;   // 1 categoria: mostra pontos e valores
   const vals = (c) => meses.map(m => valor(m, c));
-  const max = Math.max(...(sel ? vals(sel) : cats.flatMap(c => vals(c))), 1);
+  const max = Math.max(...(sels.length ? sels.flatMap(c => vals(c)) : [0]), 1);
   const x = (i) => n === 1 ? (padLeft + (W - padLeft - padRight) / 2) : padLeft + i * (W - padLeft - padRight) / (n - 1);
   const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
   const pathFor = (c) => meses.map((m, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(valor(m, c)).toFixed(1)}`).join(' ');
   const corDe = (c) => FIN_PALETTE[cats.indexOf(c) % FIN_PALETTE.length];
-  const lista = sel ? [sel] : cats;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => f * max);
   return (
     <div style={{ marginTop: 4 }}>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
-        {ticks.map((t, i) => (
-          <g key={'t' + i}>
-            <line x1={padLeft} y1={y(t)} x2={W - padRight} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
-            <text x={padLeft - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb" style={blurTxt}>{fmtBRLcurto(t)}</text>
-          </g>
-        ))}
-        {meses.map((m, i) => (
-          <g key={m.mes}>
-            <line x1={x(i)} y1={padTop} x2={x(i)} y2={H - padBot} stroke="#f6f6f6" strokeWidth="1" />
-            <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(m.mes)}</text>
-          </g>
-        ))}
-        {lista.map(c => <path key={c} d={pathFor(c)} fill="none" stroke={corDe(c)} strokeWidth={sel ? 2.5 : 1.4} strokeLinejoin="round" strokeLinecap="round" opacity={sel ? 1 : 0.75} />)}
-        {sel && meses.map((m, i) => {
-          const v = valor(m, sel);
-          return (
-            <g key={m.mes}>
-              <circle cx={x(i)} cy={y(v)} r="2.8" fill={corDe(sel)} />
-              <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111" style={blurTxt}>{fmtBRLcurto(v)}</text>
+      {sels.length === 0 ? (
+        <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '24px 0', lineHeight: 1.6 }}>Escolha uma ou mais categorias abaixo pra ver a evolução delas ao longo dos meses.</p>
+      ) : (
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+          {ticks.map((t, i) => (
+            <g key={'t' + i}>
+              <line x1={padLeft} y1={y(t)} x2={W - padRight} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
+              <text x={padLeft - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb" style={blurTxt}>{fmtBRLcurto(t)}</text>
             </g>
-          );
-        })}
-      </svg>
+          ))}
+          {meses.map((m, i) => (
+            <g key={m.mes}>
+              <line x1={x(i)} y1={padTop} x2={x(i)} y2={H - padBot} stroke="#f6f6f6" strokeWidth="1" />
+              <text x={x(i)} y={H - 6} textAnchor="middle" fontSize="8" fill="#bbb">{fmtMes(m.mes)}</text>
+            </g>
+          ))}
+          {sels.map(c => <path key={c} d={pathFor(c)} fill="none" stroke={corDe(c)} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />)}
+          {umaSo && meses.map((m, i) => {
+            const v = valor(m, sels[0]);
+            return (
+              <g key={m.mes}>
+                <circle cx={x(i)} cy={y(v)} r="2.8" fill={corDe(sels[0])} />
+                <text x={x(i)} y={Math.max(8, y(v) - 5)} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#111" style={blurTxt}>{fmtBRLcurto(v)}</text>
+              </g>
+            );
+          })}
+        </svg>
+      )}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-        {cats.map(c => (
-          <button key={c} onClick={() => setSel(sel === c ? null : c)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (sel === c ? '#111' : '#e2e2e2'), background: sel === c ? '#1111110d' : '#fff', color: sel === c ? '#111' : '#888' }}>
+        {cats.map(c => { const on = sels.includes(c); return (
+          <button key={c} onClick={() => toggle(c)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (on ? '#111' : '#e2e2e2'), background: on ? '#1111110d' : '#fff', color: on ? '#111' : '#888' }}>
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: corDe(c), flexShrink: 0 }} />{c}
           </button>
-        ))}
+        ); })}
       </div>
-      <p style={{ fontSize: 11, color: '#aaa', marginTop: 8 }}>toque numa categoria pra focar a linha dela.</p>
+      <p style={{ fontSize: 11, color: '#aaa', marginTop: 8 }}>toque pra adicionar/remover categorias — dá pra comparar várias.</p>
     </div>
   );
 }
 
 function GastosVida() {
   const life = useLife();
-  const nav = useNav();
   const [selMes, setSelMes] = useState(null);
-  const [vista, setVista] = useState('mes');
   const [form, setForm] = useState(null);
   const [catExp, setCatExp] = useState(null); // categoria com itens abertos (drill-down)
+  const [sub, setSub] = useState(null);        // null | 'anoano' | 'detalhados' (abas futuras)
   const meses = [...life.gastos].sort((a, b) => a.mes.localeCompare(b.mes));
   const totalDe = (m) => (m?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0);
   const atual = meses.find(m => m.mes === selMes) || meses[meses.length - 1] || null;
   const total = totalDe(atual);
-  // 2ª linha de total: gasto recorrente do mês (sem Viagem, Fixos e Mercado) + % do total.
-  const EXCLUI_2A = ['Viagem', 'Fixos', 'Mercado'];
-  const totalCorrente = (atual?.itens || []).filter(i => !EXCLUI_2A.includes(i.categoria)).reduce((s, i) => s + (Number(i.valor) || 0), 0);
-  const pctCorrente = total ? Math.round(totalCorrente / total * 100) : 0;
-  const barras = meses.map(m => ({ label: fmtMes(m.mes), full: fmtMesLongo(m.mes), valor: totalDe(m) }));
-  const cats = atual ? [...atual.itens].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0)) : [];
-  const maxCat = Math.max(...cats.map(c => Number(c.valor) || 0), 1);
-  const totalGeral = {};
-  meses.forEach(m => (m.itens || []).forEach(i => { totalGeral[i.categoria] = (totalGeral[i.categoria] || 0) + (Number(i.valor) || 0); }));
-  const todasCats = Object.keys(totalGeral).sort((a, b) => totalGeral[b] - totalGeral[a]);
-  const valorMesCat = (m, c) => (m.itens || []).filter(x => x.categoria === c).reduce((s, x) => s + (Number(x.valor) || 0), 0); // soma TODOS os lançamentos da categoria no mês (fecha com o Total mesmo com categoria repetida)
+  const valorMesCat = (m, c) => (m.itens || []).filter(x => x.categoria === c).reduce((s, x) => s + (Number(x.valor) || 0), 0); // soma TODOS os lançamentos da categoria no mês
   const addBtn = { display: 'block', background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '11px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: meses.length ? 12 : 16 };
-  const vchip = (k, txt) => <button onClick={() => setVista(k)} style={{ flex: 1, padding: '8px 0', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vista === k ? COR_FIN : '#eee', color: vista === k ? '#fff' : '#888' }}>{txt}</button>;
+
+  // Seletores separados de ano e mês (como na Carteira). Barras, tabela e linhas
+  // acompanham o ANO selecionado.
+  const anoSel = (atual?.mes || '').slice(0, 4);
+  const anos = [...new Set(meses.map(m => m.mes.slice(0, 4)))].sort().reverse();
+  const mesesDoAno = meses.filter(m => m.mes.slice(0, 4) === anoSel);
+  const escolherAno = (a) => { const ult = meses.filter(m => m.mes.slice(0, 4) === a).pop(); if (ult) setSelMes(ult.mes); };
+  const barras = mesesDoAno.map(m => ({ label: fmtMes(m.mes), full: fmtMesLongo(m.mes), valor: totalDe(m) }));
+
+  // Totais por categoria do mês selecionado. A lista mostra só as 13 fixas com
+  // gasto (esconde zeradas), na ordem definida. `extras` = qualquer categoria fora
+  // das 13 com valor — não some, vira aviso pra Mari dizer onde encaixar.
+  const totMes = {};
+  (atual?.itens || []).forEach(i => { totMes[i.categoria] = (totMes[i.categoria] || 0) + (Number(i.valor) || 0); });
+  const catsMes = GASTO_CATEGORIAS.filter(c => (totMes[c] || 0) !== 0);
+  const extras = Object.keys(totMes).filter(c => !GASTO_CATEGORIAS.includes(c) && (totMes[c] || 0) !== 0);
+  const maxCat = Math.max(...catsMes.map(c => totMes[c]), 1);
+  // Tabela e linhas: as 13 (na ordem) que tiveram algum gasto no ano selecionado.
+  const catsAno = GASTO_CATEGORIAS.filter(c => mesesDoAno.some(m => valorMesCat(m, c) > 0));
 
   if (meses.length === 0) {
     return (
@@ -2394,78 +2408,103 @@ function GastosVida() {
       </div>
     );
   }
+
+  // Abas futuras (Ano a ano, Gastos detalhados): placeholder por enquanto.
+  if (sub) {
+    const titulo = sub === 'anoano' ? 'Ano a ano' : 'Gastos detalhados';
+    return (
+      <div>
+        <button onClick={() => setSub(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, margin: '0 0 14px', padding: 0 }}>&larr; Gastos</button>
+        <div style={{ padding: 28, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>{titulo} — em construção.</p>
+          <p style={{ fontSize: 13, color: '#999', marginTop: 8, lineHeight: 1.6 }}>Ainda vamos desenhar esta aba. Quando quiser, me diga o que ela deve mostrar.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const secLabel = { fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '26px 0 6px', fontWeight: 600 };
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {vchip('mes', 'Mês')}{vchip('tabela', 'Tabela')}{vchip('linhas', 'Linhas')}
+      {/* Dois cards → abas futuras. */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
+        {[['anoano', '📅', 'Ano a ano'], ['detalhados', '🔍', 'Gastos detalhados']].map(([k, emoji, txt]) => (
+          <button key={k} onClick={() => setSub(k)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, textAlign: 'left', background: COR_FIN + '12', border: '1px solid ' + COR_FIN + '33', borderRadius: 14, padding: '12px 14px', cursor: 'pointer' }}>
+            <span><span style={{ fontSize: 14 }}>{emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 13.5, fontWeight: 700, color: '#222' }}>{txt}</span></span>
+            <span style={{ fontSize: 13, color: '#999' }}>›</span>
+          </button>
+        ))}
       </div>
 
-      {vista === 'mes' && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
-            <MesDropdown options={[...meses].reverse().map(m => ({ key: m.mes, label: fmtMes(m.mes) }))} selected={atual.mes} onSelect={setSelMes} />
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
-              <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</V>
-              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>sem viagem, fixos e mercado: <b style={{ color: '#555' }}><V>{fmtBRL(totalCorrente)}</V></b> · {pctCorrente}%</div>
-            </div>
-          </div>
+      {/* Ano + mês + gasto no mês. */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'flex', gap: 8, flex: 1, minWidth: 0 }}>
+          <MesDropdown options={anos.map(a => ({ key: a, label: a }))} selected={anoSel} onSelect={escolherAno} />
+          <MesDropdown options={[...mesesDoAno].reverse().map(m => ({ key: m.mes, label: fmtMes(m.mes) }))} selected={atual.mes} onSelect={setSelMes} />
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>gasto no mês</div>
+          <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}>{fmtBRL(total)}</V>
+        </div>
+      </div>
 
-          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 6px', fontWeight: 600 }}>gastos por mês</p>
-          <BarrasSalario barras={barras} />
+      <p style={{ ...secLabel, marginTop: 0 }}>gastos por mês · {anoSel}</p>
+      <BarrasSalario barras={barras} />
 
-          <div style={{ marginTop: 18 }}>
-            {cats.map((c, i) => {
-              const v = Number(c.valor) || 0;
-              const itens = (life.gastosItens || []).filter(x => x.mes === atual.mes && x.categoria === c.categoria).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
-              const temItens = itens.length > 0;
-              const aberto = catExp === c.categoria;
-              const resto = Math.round((v - itens.reduce((s, it) => s + (Number(it.valor) || 0), 0)) * 100) / 100;
-              return (
-                <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                    <span onClick={() => temItens && setCatExp(aberto ? null : c.categoria)} style={{ fontSize: 13.5, color: '#222', fontWeight: 600, cursor: temItens ? 'pointer' : 'default' }}>
-                      {temItens && <span style={{ color: COR_FIN, fontWeight: 700, marginRight: 5, fontSize: 11 }}>{aberto ? '▾' : '▸'}</span>}
-                      {c.categoria}
-                      <span onClick={(e) => { e.stopPropagation(); nav.goRetro('gastos', c.categoria); }} style={{ fontSize: 11, color: COR_FIN, fontWeight: 700, cursor: 'pointer', marginLeft: 8 }}>ver ›</span>
-                    </span>
-                    <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V> <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
-                  </div>
-                  <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: (v / maxCat * 100) + '%', background: '#111', borderRadius: 4 }} />
-                  </div>
-                  {aberto && (
-                    <div style={{ margin: '8px 0 2px', paddingLeft: 16 }}>
-                      {itens.map((it, j) => (
-                        <div key={it.id || j} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#666' }}>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nome}</span>
-                          <span style={{ whiteSpace: 'nowrap', color: '#444' }}><V>{fmtBRL(Number(it.valor) || 0)}</V></span>
-                        </div>
-                      ))}
-                      {Math.abs(resto) > 0.01 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#aaa', fontStyle: 'italic' }}>
-                          <span>outros</span><span><V>{fmtBRL(resto)}</V></span>
-                        </div>
-                      )}
+      <div style={{ marginTop: 18 }}>
+        {extras.length > 0 && (
+          <p style={{ fontSize: 12, color: '#b0752a', background: '#fdf6ec', border: '1px solid #f0dcc0', borderRadius: 9, padding: '8px 11px', margin: '0 0 10px', lineHeight: 1.5 }}>
+            ⚠ Gasto em categoria fora das 13: <b>{extras.join(', ')}</b>. Me diga em qual das 13 isso deve entrar.
+          </p>
+        )}
+        {catsMes.map(c => {
+          const v = totMes[c] || 0;
+          const itens = (life.gastosItens || []).filter(x => x.mes === atual.mes && x.categoria === c).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
+          const temItens = itens.length > 0;
+          const aberto = catExp === c;
+          const resto = Math.round((v - itens.reduce((s, it) => s + (Number(it.valor) || 0), 0)) * 100) / 100;
+          return (
+            <div key={c} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <span onClick={() => temItens && setCatExp(aberto ? null : c)} style={{ fontSize: 13.5, color: '#222', fontWeight: 600, cursor: temItens ? 'pointer' : 'default' }}>
+                  {temItens && <span style={{ color: COR_FIN, fontWeight: 700, marginRight: 5, fontSize: 11 }}>{aberto ? '▾' : '▸'}</span>}
+                  {c}
+                </span>
+                <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V> <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
+              </div>
+              <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 5, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: (v / maxCat * 100) + '%', background: '#111', borderRadius: 4 }} />
+              </div>
+              {aberto && (
+                <div style={{ margin: '8px 0 2px', paddingLeft: 16 }}>
+                  {itens.map((it, j) => (
+                    <div key={it.id || j} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#666' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nome}</span>
+                      <span style={{ whiteSpace: 'nowrap', color: '#444' }}><V>{fmtBRL(Number(it.valor) || 0)}</V></span>
+                    </div>
+                  ))}
+                  {Math.abs(resto) > 0.01 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12.5, color: '#aaa', fontStyle: 'italic' }}>
+                      <span>outros</span><span><V>{fmtBRL(resto)}</V></span>
                     </div>
                   )}
                 </div>
-              );
-            })}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
-              <span>Total do mês</span><V>{fmtBRL(total)}</V>
+              )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12.5, color: '#888' }}>
-              <span>Sem viagem, fixos e mercado</span><span><V>{fmtBRL(totalCorrente)}</V> · {pctCorrente}%</span>
-            </div>
-          </div>
+          );
+        })}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
+          <span>Total do mês</span><V>{fmtBRL(total)}</V>
+        </div>
+      </div>
 
-          <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 16, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
-        </>
-      )}
+      <button onClick={() => setForm({ editing: atual })} style={{ marginTop: 16, background: 'none', border: '1px solid #ddd', borderRadius: 10, padding: '9px 14px', fontSize: 12.5, color: '#777', cursor: 'pointer' }}>Editar {fmtMesLongo(atual.mes)}</button>
 
-      {vista === 'tabela' && <TabelaGastos meses={meses} cats={todasCats} totalDe={totalDe} valor={valorMesCat} />}
-      {vista === 'linhas' && <LinhasGastos meses={meses} cats={todasCats} valor={valorMesCat} />}
+      <p style={secLabel}>tabela · mês a mês · {anoSel}</p>
+      <TabelaGastos meses={mesesDoAno} cats={catsAno} totalDe={totalDe} valor={valorMesCat} />
+
+      <p style={secLabel}>evolução por categoria · {anoSel}</p>
+      <LinhasGastos meses={mesesDoAno} cats={catsAno} valor={valorMesCat} />
 
       <button onClick={() => setForm({ novo: true })} style={addBtn}>+ adicionar mês</button>
       {form && <GastoForm editing={form.editing} meses={meses} onClose={() => setForm(null)} />}
