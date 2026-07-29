@@ -1478,9 +1478,13 @@ function FinPizza({ fatias, total }) {
 }
 
 function FinEvolucao({ snaps }) {
-  const ativos = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => h.nome).filter(Boolean)))];
-  const categorias = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && h.categoria).map(h => h.categoria)))];
-  const finalidades = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && h.finalidade).map(h => h.finalidade)))];
+  // Normaliza como o resto do app (agregarCat, gruposPorFinalidade) já fazia: sem
+  // isto, "Ações Brasil" e "Ações Brasil " viravam DUAS séries de nome idêntico, e
+  // cada uma aparecia zerada nos meses da outra.
+  const norm = (v) => (v || '').trim();
+  const ativos = [...new Set(snaps.flatMap(s => (s.holdings || []).map(h => norm(h.nome)).filter(Boolean)))];
+  const categorias = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && norm(h.categoria)).map(h => norm(h.categoria))))];
+  const finalidades = [...new Set(snaps.flatMap(s => (s.holdings || []).filter(h => !h.externo && norm(h.finalidade)).map(h => norm(h.finalidade))))];
   const DIMS = [
     ['carteira', 'Carteira'],
     ...(ativos.length ? [['ativo', 'Por ativo']] : []),
@@ -1492,15 +1496,20 @@ function FinEvolucao({ snaps }) {
   const itens = dim === 'ativo' ? ativos : dim === 'categoria' ? categorias : dim === 'finalidade' ? finalidades : [];
   const itemAtivo = dim === 'carteira' ? null : (itens.includes(item) ? item : itens[0]);
 
-  const pontos = snaps.map(s => {
+  const daSerie = (h) => dim === 'carteira' ? !h.externo
+    : dim === 'ativo' ? norm(h.nome) === itemAtivo
+    : dim === 'categoria' ? (!h.externo && norm(h.categoria) === itemAtivo)
+    : (!h.externo && norm(h.finalidade) === itemAtivo);
+  // Um mês sem cotação zerava os ativos em dólar (valor × 0), e a série despencava
+  // 100% como se ela tivesse vendido tudo. Meses assim ficam FORA do gráfico, com
+  // um aviso — melhor um buraco honesto do que um número inventado.
+  const todos = snaps.map(s => {
     const r = rateOf(s);
-    let total;
-    if (dim === 'carteira') total = totalCarteiraBRL(s.holdings, r);
-    else if (dim === 'ativo') total = (s.holdings || []).filter(h => h.nome === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
-    else if (dim === 'categoria') total = (s.holdings || []).filter(h => !h.externo && h.categoria === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
-    else total = (s.holdings || []).filter(h => !h.externo && h.finalidade === itemAtivo).reduce((a, h) => a + valorBRL(h, r), 0);
-    return { mes: s.mes, total };
+    const hs = (s.holdings || []).filter(daSerie);
+    return { mes: s.mes, total: hs.reduce((a, h) => a + valorBRL(h, r), 0), semCotacao: !r && hs.some(h => h.moeda === 'USD') };
   });
+  const pontos = todos.filter(p => !p.semCotacao);
+  const semCotacao = todos.filter(p => p.semCotacao).map(p => fmtMes(p.mes));
   const linhas = [...pontos].reverse();
   const chip = (on) => ({ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, border: '1px solid ' + (on ? COR_FIN : '#e2e2e2'), background: on ? COR_FIN + '1c' : '#fff', color: on ? '#1a7a4f' : '#888' });
 
@@ -1515,6 +1524,11 @@ function FinEvolucao({ snaps }) {
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 14, paddingBottom: 4 }}>
           {itens.map(it => <button key={it} onClick={() => setItem(it)} style={chip(itemAtivo === it)}>{it}</button>)}
         </div>
+      )}
+      {semCotacao.length > 0 && (
+        <p style={{ fontSize: 12, color: '#b0752a', background: '#fdf6ec', border: '1px solid #f0dcc0', borderRadius: 9, padding: '8px 11px', margin: '0 0 12px', lineHeight: 1.5 }}>
+          ⚠ Fora do gráfico por falta da cotação do dólar: {semCotacao.join(', ')}. Defina a cotação no mês pra ele entrar.
+        </p>
       )}
       {pontos.length < 2 ? (
         <p style={{ color: '#bbb', fontStyle: 'italic', fontSize: 13, textAlign: 'center', padding: '20px 0', lineHeight: 1.6 }}>Adicione pelo menos dois meses pra ver a evolução.</p>
