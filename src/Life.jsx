@@ -6,6 +6,10 @@ import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
+// Aba "Gastos detalhados" da VF reusa o Gastos da Retrospectiva no modo 'vf'
+// (mesma máquina de detalhe; capa própria). Import de mão única — Retrospectiva
+// não importa de Life, então não há ciclo.
+import { GastosRetro } from './Retrospectiva.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -2422,15 +2426,16 @@ function GastosVida() {
     );
   }
 
-  // Abas futuras (Ano a ano, Gastos detalhados): placeholder por enquanto.
-  if (sub) {
-    const titulo = sub === 'anoano' ? 'Ano a ano' : 'Gastos detalhados';
+  // Gastos detalhados: a tela nova (reusa o Gastos da Retrospectiva em modo 'vf').
+  if (sub === 'detalhados') return <GastosRetro modo="vf" isWide={false} onBack={() => setSub(null)} backLabel="Gastos" />;
+  // Ano a ano: placeholder até 2027 ter dados.
+  if (sub === 'anoano') {
     return (
       <div>
         <button onClick={() => setSub(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, margin: '0 0 14px', padding: 0 }}>&larr; Gastos</button>
         <div style={{ padding: 28, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>{titulo} — em construção.</p>
-          <p style={{ fontSize: 13, color: '#999', marginTop: 8, lineHeight: 1.6 }}>Ainda vamos desenhar esta aba. Quando quiser, me diga o que ela deve mostrar.</p>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16, color: '#555', margin: 0 }}>Ano a ano — em construção.</p>
+          <p style={{ fontSize: 13, color: '#999', marginTop: 8, lineHeight: 1.6 }}>Vamos montar quando 2027 tiver dados.</p>
         </div>
       </div>
     );
