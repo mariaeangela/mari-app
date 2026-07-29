@@ -1583,7 +1583,9 @@ function FinancasForm({ editing, snaps, onClose }) {
       id: editing?.id || existente?.id,
       mes,
       usdRate: Number(usdRate) || undefined,
-      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: r.categoria.trim(), finalidade: (r.finalidade || '').trim() || undefined, valor: evalValor(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
+      // canonizar: aqui o datalist só sugere; se digitar "ETF " ou "etf" à mão,
+      // casa com a categoria que já existe em vez de criar uma variante nova.
+      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: canonizar(r.categoria, cats), finalidade: canonizar(r.finalidade, fins) || undefined, valor: evalValor(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
     onClose();
@@ -1654,6 +1656,35 @@ function FinancasForm({ editing, snaps, onClose }) {
 
 // Seletor de mês em DROPDOWN (clica → abre a lista), no lugar da fila que rolava
 // pro lado (ruim no celular). options: [{key,label}]; selected=key; onSelect(key).
+// Se o texto digitado for igual a um valor já usado a menos de espaços e
+// maiúsculas, grava o que já existe. Sem isto, "ETF", "Etf" e "ETF " viram três
+// categorias diferentes — e cada uma aparece zerada nos meses das outras.
+const canonizar = (txt, existentes) => {
+  const t = (txt || '').trim();
+  if (!t) return '';
+  return (existentes || []).find(e => e.toLowerCase() === t.toLowerCase()) || t;
+};
+
+// Escolher entre o que já existe em vez de digitar. O "+ nova" abre o campo livre
+// pra quando for mesmo uma categoria/finalidade nova; tocar de novo no escolhido
+// limpa o campo (os dois são opcionais).
+function SeletorComNovo({ label, valor, onChange, opcoes, placeholder }) {
+  const [livre, setLivre] = useState(!!valor && !opcoes.includes(valor));
+  const chip = (on) => ({ padding: '6px 11px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', border: '1px solid ' + (on ? COR_FIN : '#e2e2e2'), background: on ? COR_FIN + '1c' : '#fff', color: on ? '#1a7a4f' : '#888' });
+  return (
+    <>
+      <label style={labelStyle}>{label}</label>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {opcoes.map(o => (
+          <button key={o} onClick={() => { setLivre(false); onChange(valor === o ? '' : o); }} style={chip(!livre && valor === o)}>{o}</button>
+        ))}
+        <button onClick={() => { setLivre(true); onChange(''); }} style={chip(livre)}>+ nova</button>
+      </div>
+      {livre && <input autoFocus value={valor} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ ...inputStyle, marginTop: 8 }} />}
+    </>
+  );
+}
+
 // Um ativo só, sem abrir o mês inteiro: chega tocando na linha da tabela (editar)
 // ou no "+" no fim de uma categoria expandida (criar, já com a categoria e a
 // finalidade daquele grupo preenchidas). Mexe só naquele holding do snapshot —
@@ -1667,10 +1698,16 @@ function AtivoForm({ snap, holding, onClose }) {
   const [valor, setValor] = useState(String(holding.valor ?? ''));
   const [moeda, setMoeda] = useState(holding.moeda || 'BRL');
   const [externo, setExterno] = useState(!!holding.externo);
+  // Categorias e finalidades já usadas em QUALQUER mês, pra oferecer de escolher em
+  // vez de digitar — é o que evita "ETF" virar "Etf"/"ETF " sem querer.
+  const todosHoldings = (life.financas.snapshots || []).flatMap(s => s.holdings || []);
+  const catsUsadas = [...new Set(todosHoldings.map(h => (h.categoria || '').trim()).filter(Boolean))].sort();
+  const finsUsadas = [...new Set(todosHoldings.map(h => (h.finalidade || '').trim()).filter(Boolean))].sort();
   const podeSalvar = nome.trim() && evalValor(valor) > 0 && !contaInvalida(valor);
   const salvar = () => {
     if (!podeSalvar) return;
-    const campos = { nome: nome.trim(), categoria: categoria.trim(), finalidade: finalidade.trim() || undefined, valor: evalValor(valor), moeda, externo };
+    // canonizar: se digitou algo que já existe a menos de caixa/espaços, usa o que existe.
+    const campos = { nome: nome.trim(), categoria: canonizar(categoria, catsUsadas), finalidade: canonizar(finalidade, finsUsadas) || undefined, valor: evalValor(valor), moeda, externo };
     const atuais = snap.holdings || [];
     life.saveFinancasSnapshot({
       ...snap,
@@ -1694,10 +1731,8 @@ function AtivoForm({ snap, holding, onClose }) {
         <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 4px' }}>em {fmtMesLongo(snap.mes)}</p>
         <label style={labelStyle}>Ativo</label>
         <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Tesouro Selic" style={inputStyle} />
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Categoria</label><input value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="ex.: Renda fixa" style={inputStyle} /></div>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Finalidade</label><input value={finalidade} onChange={e => setFinalidade(e.target.value)} placeholder="ex.: Reserva" style={inputStyle} /></div>
-        </div>
+        <SeletorComNovo label="Categoria" valor={categoria} onChange={setCategoria} opcoes={catsUsadas} placeholder="ex.: Renda fixa" />
+        <SeletorComNovo label="Finalidade" valor={finalidade} onChange={setFinalidade} opcoes={finsUsadas} placeholder="ex.: Reserva" />
         <label style={labelStyle}>Valor (aceita conta)</label>
         <div style={{ display: 'flex', gap: 8 }}>
           <select value={moeda} onChange={e => setMoeda(e.target.value)} style={{ ...inputStyle, width: 78, flexShrink: 0 }}>
