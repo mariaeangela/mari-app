@@ -43,8 +43,13 @@ const GASTO_CATEGORIAS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúd
 const gastoCatRank = (c) => { const i = GASTO_CATEGORIAS.indexOf(c); return i === -1 ? 99 : i; };
 const FIN_PALETTE = ['#54c08a', '#5c6bc0', '#ff8a3d', '#c2548f', '#19b3a6', '#c78a3a', '#8d6e63', '#6b7a99', '#a8516a', '#9844a7', '#2f746d', '#b24624'];
 const MES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-const fmtBRL = (n) => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtBRLcurto = (n) => { const v = Number(n) || 0; if (v >= 1e6) return 'R$ ' + (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M'; if (v >= 1e3) return 'R$ ' + (v / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k'; return fmtBRL(v); };
+// Dinheiro nas abas financeiras (Carteira, Salários, Gastos): número inteiro
+// ARREDONDADO, separador de milhar por vírgula (2,900 / 4,500), zero casas
+// decimais — preferência da Mari. Nada de "2k". Usa en-US só pra ter a vírgula
+// como separador de milhar; o "R$" na frente é fixo.
+const fmtBRL = (n) => 'R$ ' + Math.round(Number(n) || 0).toLocaleString('en-US');
+// "curto" não abrevia mais (nada de k/M): é o mesmo formato inteiro.
+const fmtBRLcurto = fmtBRL;
 const fmtMes = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]}/${y.slice(2)}`; };
 const fmtMesLongo = (ym) => { const [y, m] = ym.split('-'); return `${MES_ABREV[(+m) - 1]} de ${y}`; };
 const fmtUSD = (n) => 'US$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2317,11 +2322,16 @@ function LinhasGastos({ meses, cats, valor }) {
   const n = meses.length;
   const vals = (c) => meses.map(m => valor(m, c));
   const max = Math.max(...(sels.length ? sels.flatMap(c => vals(c)) : [0]), 1);
+  // Eixo Y só em múltiplos de 500 (a Mari não quer valores quebrados no eixo). O
+  // passo é o menor múltiplo de 500 que dá ~5 divisões; o topo é arredondado pra
+  // cima até fechar num múltiplo de 500.
+  const step = Math.max(500, Math.ceil(max / 5 / 500) * 500);
+  const axisMax = Math.max(500, Math.ceil(max / step) * step);
   const x = (i) => n === 1 ? (padLeft + (W - padLeft - padRight) / 2) : padLeft + i * (W - padLeft - padRight) / (n - 1);
-  const y = (v) => (H - padBot) - (v / max) * (H - padTop - padBot);
+  const y = (v) => (H - padBot) - (v / axisMax) * (H - padTop - padBot);
   const pathFor = (c) => meses.map((m, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(valor(m, c)).toFixed(1)}`).join(' ');
   const corDe = (c) => FIN_PALETTE[cats.indexOf(c) % FIN_PALETTE.length];
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => f * max);
+  const ticks = []; for (let t = 0; t <= axisMax; t += step) ticks.push(t);
   return (
     <div style={{ marginTop: 4 }}>
       {/* Seletor ANTES do gráfico: a Mari escolhe as categorias e o gráfico
