@@ -1552,8 +1552,37 @@ function ensureAmorosaDate2(d) {
   return { ...d, amorosaDate2: true, amorosa: [...(d.amorosa || []), ...novos.filter(x => !have.has(x.id))] };
 }
 
+// Carteira do mês corrente: quando vira o mês (ex.: chega agosto), replica os
+// ativos do último mês — mesmos nomes, categorias, finalidades e moedas, com os
+// valores do mês anterior como ponto de partida — pra Mari só ajustar os números
+// em vez de digitar a carteira inteira de novo.
+//
+// Roda como seed, ou seja, DEPOIS do merge com a nuvem: nunca cria mês em cima
+// de um estado desatualizado. Quando a nuvem está inalcançável o seed até grava
+// local, mas o boot não empurra — mantendo a invariante de sync.
+//
+// `financas.autoMes` guarda o último mês já replicado. Sem essa marca, apagar o
+// mês criado o faria voltar no boot seguinte, e não haveria como se livrar dele.
+function ensureCarteiraMesAtual(d) {
+  const snaps = d.financas?.snapshots || [];
+  if (!snaps.length) return d;                      // nunca inventa carteira do nada
+  const agora = new Date();
+  const mesAtual = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
+  if (d.financas.autoMes === mesAtual) return d;    // já replicado (ou ela apagou de propósito)
+  if (snaps.some(s => s.mes === mesAtual)) return { ...d, financas: { ...d.financas, autoMes: mesAtual } };
+  const ultimo = snaps.reduce((a, b) => (a.mes > b.mes ? a : b));
+  if (ultimo.mes >= mesAtual) return d;             // não há mês anterior pra replicar
+  const novo = {
+    id: 'f-auto-' + mesAtual,                       // determinístico: rodar 2× não duplica
+    mes: mesAtual,
+    usdRate: ultimo.usdRate,                        // ponto de partida; o ↻ buscar atualiza
+    holdings: (ultimo.holdings || []).map((h, i) => ({ ...h, id: 'h-auto-' + mesAtual + '-' + i })),
+  };
+  return { ...d, financas: { ...d.financas, autoMes: mesAtual, snapshots: [...snaps, novo] } };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 

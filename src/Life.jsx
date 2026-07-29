@@ -1324,14 +1324,16 @@ function EvolucaoFin({ pontos }) {
   );
 }
 
-function LinhaAtivo({ h, denom, rate, pctLabel, hideFin }) {
+// `onClick` torna a linha tocável (editar o ativo, ou abrir/fechar a categoria);
+// `seta` é o ▸/▾ das categorias e `dentro` recua os ativos listados sob elas.
+function LinhaAtivo({ h, denom, rate, pctLabel, hideFin, onClick, seta, dentro }) {
   const v = valorBRL(h, rate);
   const pct = denom ? (v / denom * 100) : 0;
   const sub = [h.categoria, hideFin ? null : h.finalidade, h.moeda === 'USD' ? fmtUSD(h.valor) : null].filter(Boolean).join(' · ');
   return (
-    <tr style={{ borderBottom: '1px solid #f3f3f3' }}>
-      <td style={{ padding: '10px 6px' }}>
-        <div style={{ color: '#222', fontWeight: 600 }}>{h.nome}</div>
+    <tr onClick={onClick} title={onClick && !seta ? 'tocar pra editar' : undefined} style={{ borderBottom: '1px solid #f3f3f3', cursor: onClick ? 'pointer' : 'default', background: dentro ? '#fcfcfc' : 'transparent' }}>
+      <td style={{ padding: '10px 6px', paddingLeft: dentro ? 22 : 6 }}>
+        <div style={{ color: '#222', fontWeight: 600 }}>{seta && <span style={{ color: COR_FIN, fontSize: 10, marginRight: 5 }}>{seta}</span>}{h.nome}</div>
         {sub && <div style={{ fontSize: 11, color: '#aaa', marginTop: 1 }}>{sub}</div>}
       </td>
       <td style={{ padding: '10px 6px', textAlign: 'right', color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V></td>
@@ -1366,8 +1368,9 @@ const agregarCat = (rows, rate) => Object.values(rows.reduce((acc, h) => {
   return acc;
 }, {})).sort((a, b) => b.valor - a.valor);
 
-function FinTabela({ holdings, rate }) {
+function FinTabela({ holdings, rate, onEditar }) {
   const [modo, setModo] = useState('categoria');
+  const [catAberta, setCatAberta] = useState(null);  // categoria expandida (modo 'categoria')
   const carteira = holdings.filter(h => !h.externo);
   const externos = [...holdings].filter(h => h.externo).sort((a, b) => (finRank(a.finalidade) - finRank(b.finalidade)) || (valorBRL(b, rate) - valorBRL(a, rate)));
   const total = carteira.reduce((s, h) => s + valorBRL(h, rate), 0);
@@ -1392,18 +1395,27 @@ function FinTabela({ holdings, rate }) {
               <th style={{ ...thStyle, textAlign: 'right', padding: '8px 6px', width: 52 }}>%</th>
             </tr>
           </thead>
-          {grupos.map(g => {
-            const linhas = modo === 'categoria' ? agregarCat(g.rows, rate) : g.rows;
-            return (
-              <tbody key={g.fin}>
-                <tr style={{ background: '#fafafa' }}>
-                  <td colSpan={2} style={{ padding: '9px 6px 5px', fontSize: 11.5, fontWeight: 700, color: '#888', textTransform: 'capitalize', letterSpacing: '0.3px' }}>{g.fin}</td>
-                  <td style={{ padding: '9px 6px 5px', textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: '#888' }}>{total ? (g.total / total * 100).toFixed(0) : 0}%</td>
-                </tr>
-                {linhas.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} hideFin />)}
-              </tbody>
-            );
-          })}
+          {grupos.map(g => (
+            <tbody key={g.fin}>
+              <tr style={{ background: '#fafafa' }}>
+                <td colSpan={2} style={{ padding: '9px 6px 5px', fontSize: 11.5, fontWeight: 700, color: '#888', textTransform: 'capitalize', letterSpacing: '0.3px' }}>{g.fin}</td>
+                <td style={{ padding: '9px 6px 5px', textAlign: 'right', fontSize: 11.5, fontWeight: 700, color: '#888' }}>{total ? (g.total / total * 100).toFixed(0) : 0}%</td>
+              </tr>
+              {/* Por ativo: cada linha abre o próprio ativo. Por categoria: a linha
+                  abre/fecha a categoria e os ativos de dentro é que são editáveis. */}
+              {modo === 'ativo'
+                ? g.rows.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} hideFin onClick={onEditar && (() => onEditar(h))} />)
+                : agregarCat(g.rows, rate).map(agg => {
+                  const chave = g.fin + '|' + agg.nome;
+                  const aberta = catAberta === chave;
+                  const dentro = g.rows.filter(h => ((h.categoria || '').trim() || 'Sem categoria') === agg.nome);
+                  return [
+                    <LinhaAtivo key={agg.id} h={agg} denom={total} rate={rate} hideFin seta={aberta ? '▾' : '▸'} onClick={() => setCatAberta(aberta ? null : chave)} />,
+                    ...(aberta ? dentro.map((h, i) => <LinhaAtivo key={agg.id + '-' + (h.id || i)} h={h} denom={total} rate={rate} hideFin dentro onClick={onEditar && (() => onEditar(h))} />) : []),
+                  ];
+                })}
+            </tbody>
+          ))}
           <tfoot>
             <tr style={{ borderTop: '2px solid #eee', fontWeight: 700 }}>
               <td style={{ padding: '10px 6px', color: '#111' }}>Total da carteira</td>
@@ -1425,7 +1437,7 @@ function FinTabela({ holdings, rate }) {
               </tr>
             </thead>
             <tbody>
-              {externos.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} pctLabel="em relação ao total da carteira" />)}
+              {externos.map((h, i) => <LinhaAtivo key={h.id || i} h={h} denom={total} rate={rate} pctLabel="em relação ao total da carteira" onClick={onEditar && (() => onEditar(h))} />)}
             </tbody>
           </table>
         </div>
@@ -1619,6 +1631,68 @@ function FinancasForm({ editing, snaps, onClose }) {
 
 // Seletor de mês em DROPDOWN (clica → abre a lista), no lugar da fila que rolava
 // pro lado (ruim no celular). options: [{key,label}]; selected=key; onSelect(key).
+// Edição de UM ativo, sem abrir o mês inteiro: chega tocando na linha da tabela
+// (ou num ativo dentro de uma categoria expandida). Salva reescrevendo só aquele
+// holding dentro do snapshot do mês — os demais ficam como estavam.
+function AtivoForm({ snap, holding, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(holding.nome || '');
+  const [categoria, setCategoria] = useState(holding.categoria || '');
+  const [finalidade, setFinalidade] = useState(holding.finalidade || '');
+  const [valor, setValor] = useState(String(holding.valor ?? ''));
+  const [moeda, setMoeda] = useState(holding.moeda || 'BRL');
+  const [externo, setExterno] = useState(!!holding.externo);
+  const podeSalvar = nome.trim() && evalValor(valor) > 0 && !contaInvalida(valor);
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveFinancasSnapshot({
+      ...snap,
+      holdings: (snap.holdings || []).map(h => h.id === holding.id
+        ? { ...h, nome: nome.trim(), categoria: categoria.trim(), finalidade: finalidade.trim() || undefined, valor: evalValor(valor), moeda, externo }
+        : h),
+    });
+    onClose();
+  };
+  const apagar = () => {
+    life.saveFinancasSnapshot({ ...snap, holdings: (snap.holdings || []).filter(h => h.id !== holding.id) });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Editar ativo</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 4px' }}>em {fmtMesLongo(snap.mes)}</p>
+        <label style={labelStyle}>Ativo</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Tesouro Selic" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Categoria</label><input value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="ex.: Renda fixa" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Finalidade</label><input value={finalidade} onChange={e => setFinalidade(e.target.value)} placeholder="ex.: Reserva" style={inputStyle} /></div>
+        </div>
+        <label style={labelStyle}>Valor (aceita conta)</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <select value={moeda} onChange={e => setMoeda(e.target.value)} style={{ ...inputStyle, width: 78, flexShrink: 0 }}>
+            <option value="BRL">R$</option>
+            <option value="USD">US$</option>
+          </select>
+          <input type="text" inputMode="text" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 1000+2500" style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+        </div>
+        <PreviaConta txt={valor} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, fontSize: 12.5, color: '#777', cursor: 'pointer' }}>
+          <input type="checkbox" checked={externo} onChange={e => setExterno(e.target.checked)} style={{ width: 15, height: 15, accentColor: COR_FIN }} />
+          fora da carteira (ex.: FGTS — não entra no total/pizza)
+        </label>
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          <button onClick={apagar} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Salvar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MesDropdown({ options, selected, onSelect }) {
   const [open, setOpen] = useState(false);
   const cur = options.find(o => o.key === selected) || options[options.length - 1];
@@ -1686,6 +1760,12 @@ export function FinancasSection({ comoHub }) {
 
   const atual = snaps.find(s => s.id === selId) || snaps[snaps.length - 1] || null;
   const atualTemUSD = (atual?.holdings || []).some(h => h.moeda === 'USD');
+  // Seletores de ano + mês da carteira. Trocar de ano leva pro mês mais recente dele.
+  const anoSel = (atual?.mes || '').slice(0, 4);
+  const anosCarteira = [...new Set(snaps.map(s => s.mes.slice(0, 4)))].sort().reverse();
+  const mesesDoAno = snaps.filter(s => s.mes.slice(0, 4) === anoSel).reverse();
+  const escolherAno = (a) => { const ult = snaps.filter(s => s.mes.slice(0, 4) === a).pop(); if (ult) setSelId(ult.id); };
+  const [ativoEdit, setAtivoEdit] = useState(null);  // ativo aberto pra edição individual
   const agora = new Date();
   const mesAtualStr = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
   const ehMesCorrente = atual && atual.mes >= mesAtualStr;
@@ -1778,7 +1858,12 @@ export function FinancasSection({ comoHub }) {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginBottom: 14 }}>
-            <MesDropdown options={[...snaps].reverse().map(s => ({ key: s.id, label: fmtMes(s.mes) }))} selected={atual.id} onSelect={setSelId} />
+            {/* Ano e mês em seletores separados: com anos acumulando, uma lista só
+                de "jan/24 … dez/26" ficaria longa demais pra achar o mês. */}
+            <div style={{ display: 'flex', gap: 8, flex: 1, minWidth: 0 }}>
+              <MesDropdown options={anosCarteira.map(a => ({ key: a, label: a }))} selected={anoSel} onSelect={escolherAno} />
+              <MesDropdown options={mesesDoAno.map(s => ({ key: s.id, label: fmtMes(s.mes) }))} selected={atual.id} onSelect={setSelId} />
+            </div>
             <div style={{ textAlign: 'right', flexShrink: 0 }}>
               <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>total</div>
               <V style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: atualTemUSD && !rateNum ? '#c0392b' : '#1a7a4f' }}>{fmtBRL(total)}</V>
@@ -1804,7 +1889,7 @@ export function FinancasSection({ comoHub }) {
             {tabBtn('evolucao', 'Evolução')}
           </div>
 
-          {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} />}
+          {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} onEditar={setAtivoEdit} />}
           {view === 'pizza' && (
             <>
               {pizzaOpcoes.length > 1 && (
@@ -1826,6 +1911,7 @@ export function FinancasSection({ comoHub }) {
       </>)}
       </PrivacyCtx.Provider>
       {form && <FinancasForm editing={form.editing} snaps={snaps} onClose={() => setForm(null)} />}
+      {ativoEdit && atual && <AtivoForm snap={atual} holding={ativoEdit} onClose={() => setAtivoEdit(null)} />}
     </div>
   );
 }
