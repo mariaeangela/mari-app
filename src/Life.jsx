@@ -1368,7 +1368,7 @@ const agregarCat = (rows, rate) => Object.values(rows.reduce((acc, h) => {
   return acc;
 }, {})).sort((a, b) => b.valor - a.valor);
 
-function FinTabela({ holdings, rate, onEditar }) {
+function FinTabela({ holdings, rate, onEditar, onNovo }) {
   const [modo, setModo] = useState('categoria');
   const [catAberta, setCatAberta] = useState(null);  // categoria expandida (modo 'categoria')
   const carteira = holdings.filter(h => !h.externo);
@@ -1412,6 +1412,15 @@ function FinTabela({ holdings, rate, onEditar }) {
                   return [
                     <LinhaAtivo key={agg.id} h={agg} denom={total} rate={rate} hideFin seta={aberta ? '▾' : '▸'} onClick={() => setCatAberta(aberta ? null : chave)} />,
                     ...(aberta ? dentro.map((h, i) => <LinhaAtivo key={agg.id + '-' + (h.id || i)} h={h} denom={total} rate={rate} hideFin dentro onClick={onEditar && (() => onEditar(h))} />) : []),
+                    // "+" no fim da categoria aberta: adiciona um ativo já dentro dela,
+                    // sem precisar reabrir o mês inteiro. 'Sem categoria'/'Sem finalidade'
+                    // são rótulos de fallback, então voltam a ser vazio no ativo novo.
+                    ...(aberta && onNovo ? [(
+                      <tr key={agg.id + '-add'} onClick={() => onNovo({ categoria: agg.nome === 'Sem categoria' ? '' : agg.nome, finalidade: g.fin === 'Sem finalidade' ? '' : g.fin })}
+                        style={{ borderBottom: '1px solid #f3f3f3', cursor: 'pointer', background: '#fcfcfc' }}>
+                        <td colSpan={3} style={{ padding: '9px 6px 10px 22px', fontSize: 12.5, fontWeight: 700, color: COR_FIN }}>+ ativo em {agg.nome.toLowerCase()}</td>
+                      </tr>
+                    )] : []),
                   ];
                 })}
             </tbody>
@@ -1631,11 +1640,13 @@ function FinancasForm({ editing, snaps, onClose }) {
 
 // Seletor de mês em DROPDOWN (clica → abre a lista), no lugar da fila que rolava
 // pro lado (ruim no celular). options: [{key,label}]; selected=key; onSelect(key).
-// Edição de UM ativo, sem abrir o mês inteiro: chega tocando na linha da tabela
-// (ou num ativo dentro de uma categoria expandida). Salva reescrevendo só aquele
-// holding dentro do snapshot do mês — os demais ficam como estavam.
+// Um ativo só, sem abrir o mês inteiro: chega tocando na linha da tabela (editar)
+// ou no "+" no fim de uma categoria expandida (criar, já com a categoria e a
+// finalidade daquele grupo preenchidas). Mexe só naquele holding do snapshot —
+// os demais ficam como estavam. Sem `holding.id`, é um ativo novo.
 function AtivoForm({ snap, holding, onClose }) {
   const life = useLife();
+  const ehNovo = !holding.id;
   const [nome, setNome] = useState(holding.nome || '');
   const [categoria, setCategoria] = useState(holding.categoria || '');
   const [finalidade, setFinalidade] = useState(holding.finalidade || '');
@@ -1645,11 +1656,13 @@ function AtivoForm({ snap, holding, onClose }) {
   const podeSalvar = nome.trim() && evalValor(valor) > 0 && !contaInvalida(valor);
   const salvar = () => {
     if (!podeSalvar) return;
+    const campos = { nome: nome.trim(), categoria: categoria.trim(), finalidade: finalidade.trim() || undefined, valor: evalValor(valor), moeda, externo };
+    const atuais = snap.holdings || [];
     life.saveFinancasSnapshot({
       ...snap,
-      holdings: (snap.holdings || []).map(h => h.id === holding.id
-        ? { ...h, nome: nome.trim(), categoria: categoria.trim(), finalidade: finalidade.trim() || undefined, valor: evalValor(valor), moeda, externo }
-        : h),
+      holdings: ehNovo
+        ? [...atuais, { ...campos, id: 'h' + Date.now().toString(36) }]
+        : atuais.map(h => h.id === holding.id ? { ...h, ...campos } : h),
     });
     onClose();
   };
@@ -1661,7 +1674,7 @@ function AtivoForm({ snap, holding, onClose }) {
     <div onClick={onClose} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={sheet}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Editar ativo</h3>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{ehNovo ? 'Novo ativo' : 'Editar ativo'}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
         </div>
         <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 4px' }}>em {fmtMesLongo(snap.mes)}</p>
@@ -1685,8 +1698,8 @@ function AtivoForm({ snap, holding, onClose }) {
           fora da carteira (ex.: FGTS — não entra no total/pizza)
         </label>
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-          <button onClick={apagar} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>
-          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Salvar</button>
+          {!ehNovo && <button onClick={apagar} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{ehNovo ? 'Adicionar' : 'Salvar'}</button>
         </div>
       </div>
     </div>
@@ -1889,7 +1902,7 @@ export function FinancasSection({ comoHub }) {
             {tabBtn('evolucao', 'Evolução')}
           </div>
 
-          {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} onEditar={setAtivoEdit} />}
+          {view === 'tabela' && <FinTabela holdings={atual.holdings} rate={rateNum} onEditar={setAtivoEdit} onNovo={(preset) => setAtivoEdit({ nome: '', valor: '', moeda: 'BRL', externo: false, ...preset })} />}
           {view === 'pizza' && (
             <>
               {pizzaOpcoes.length > 1 && (
