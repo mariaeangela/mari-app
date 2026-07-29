@@ -2473,14 +2473,17 @@ function GastosVida() {
         {catsMes.map(c => {
           const v = totMes[c] || 0;
           const itens = (life.gastosItens || []).filter(x => x.mes === atual.mes && x.categoria === c).sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0));
-          const temItens = itens.length > 0;
           const aberto = catExp === c;
+          // "outros" = quanto do total da categoria ainda NÃO foi detalhado em itens.
+          // Toda categoria é expansível: sem nenhum item, expandir mostra "outros =
+          // total inteiro"; conforme os itens são preenchidos (na aba Gastos
+          // detalhados), o "outros" encolhe até zerar.
           const resto = Math.round((v - itens.reduce((s, it) => s + (Number(it.valor) || 0), 0)) * 100) / 100;
           return (
             <div key={c} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                <span onClick={() => temItens && setCatExp(aberto ? null : c)} style={{ fontSize: 13.5, color: '#222', fontWeight: 600, cursor: temItens ? 'pointer' : 'default' }}>
-                  {temItens && <span style={{ color: COR_FIN, fontWeight: 700, marginRight: 5, fontSize: 11 }}>{aberto ? '▾' : '▸'}</span>}
+                <span onClick={() => setCatExp(aberto ? null : c)} style={{ fontSize: 13.5, color: '#222', fontWeight: 600, cursor: 'pointer' }}>
+                  <span style={{ color: COR_FIN, fontWeight: 700, marginRight: 5, fontSize: 11 }}>{aberto ? '▾' : '▸'}</span>
                   {c}
                 </span>
                 <span style={{ fontSize: 13.5, color: '#333', whiteSpace: 'nowrap' }}><V>{fmtBRL(v)}</V> <span style={{ fontSize: 11.5, color: '#aaa' }}>{total ? (v / total * 100).toFixed(0) : 0}%</span></span>
