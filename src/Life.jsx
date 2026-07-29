@@ -56,6 +56,16 @@ function evalValor(s) {
   try { const v = Function('"use strict";return(' + str + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
   catch { return NaN; }
 }
+// Mostra "= R$ 1.250,00" embaixo de um campo que tem conta escrita. Só aparece
+// quando há operador, pra não poluir quando o valor é um número simples.
+function PreviaConta({ txt }) {
+  if (!/[+\-*/]/.test(String(txt == null ? '' : txt))) return null;
+  const v = evalValor(txt);
+  return <div style={{ fontSize: 11.5, color: isFinite(v) ? '#1a7a4f' : '#c0392b', textAlign: 'right', marginTop: 3 }}>{isFinite(v) ? '= ' + fmtBRL(v) : 'conta inválida'}</div>;
+}
+// Uma conta escrita errado faz `evalValor` devolver NaN, que viraria 0 ao salvar
+// (apagando o valor). Serve pra travar o botão antes disso.
+const contaInvalida = (v) => { const s = String(v == null ? '' : v).trim(); return !!s && !isFinite(evalValor(s)); };
 // Total da CARTEIRA (exclui itens marcados como `externo`, ex.: FGTS).
 const totalCarteiraBRL = (holdings, rate) => (holdings || []).filter(h => !h.externo).reduce((s, h) => s + valorBRL(h, rate), 0);
 // Cotação travada de cada mês (cada snapshot guarda a sua em `usdRate`).
@@ -2039,7 +2049,8 @@ function SalarioForm({ editing, onClose }) {
   const [pl, setPl] = useState(editing?.pl != null ? String(editing.pl) : '');
   const [metaPL, setMetaPL] = useState(editing?.metaPL != null ? String(editing.metaPL) : '');
   const setMes = (i, v) => setMeses(meses.map((x, j) => j === i ? v : x));
-  const podeSalvar = Number(ano) >= 2000;
+  const temContaInvalida = [...meses, extra, bonus, pl, metaPL].some(contaInvalida);
+  const podeSalvar = Number(ano) >= 2000 && !temContaInvalida;
   const salvar = () => {
     if (!podeSalvar) return;
     life.saveSalarioAno({
@@ -2047,8 +2058,10 @@ function SalarioForm({ editing, onClose }) {
       ano: Number(ano), idade: Number(idade) || undefined, cargo: cargo.trim(),
       meses: meses.map(v => evalValor(v) || 0),
       extra: evalValor(extra) || 0, bonus: evalValor(bonus) || 0,
-      pl: Number(pl) > 0 ? evalValor(pl) : undefined,
-      metaPL: Number(metaPL) > 0 ? evalValor(metaPL) : undefined,
+      // evalValor (e não Number) também aqui: com `Number`, digitar "80000+5000"
+      // dava NaN, o teste falhava e o campo era descartado — a conta sumia.
+      pl: evalValor(pl) > 0 ? evalValor(pl) : undefined,
+      metaPL: evalValor(metaPL) > 0 ? evalValor(metaPL) : undefined,
     });
     onClose();
   };
@@ -2067,19 +2080,23 @@ function SalarioForm({ editing, onClose }) {
         <input value={cargo} onChange={e => setCargo(e.target.value)} placeholder="ex.: Analista — Research" style={inputStyle} />
         <label style={labelStyle}>Ganhos por mês (R$ · aceita conta)</label>
         {meses.map((v, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-            <span style={{ width: 32, fontSize: 12.5, color: '#888', textTransform: 'capitalize' }}>{SAL_MESES[i]}</span>
-            <input type="text" inputMode="text" value={v} onChange={e => setMes(i, e.target.value)} placeholder="0" style={{ ...inputStyle, flex: 1 }} />
+          <div key={i} style={{ marginBottom: 5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 32, fontSize: 12.5, color: '#888', textTransform: 'capitalize' }}>{SAL_MESES[i]}</span>
+              <input type="text" inputMode="text" value={v} onChange={e => setMes(i, e.target.value)} placeholder="0" style={{ ...inputStyle, flex: 1 }} />
+            </div>
+            <PreviaConta txt={v} />
           </div>
         ))}
         <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Extra</label><input type="text" value={extra} onChange={e => setExtra(e.target.value)} placeholder="0" style={inputStyle} /></div>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Bônus</label><input type="text" value={bonus} onChange={e => setBonus(e.target.value)} placeholder="0" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Extra (aceita conta)</label><input type="text" value={extra} onChange={e => setExtra(e.target.value)} placeholder="ex.: 500+300+120" style={inputStyle} /><PreviaConta txt={extra} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Bônus (aceita conta)</label><input type="text" value={bonus} onChange={e => setBonus(e.target.value)} placeholder="0" style={inputStyle} /><PreviaConta txt={bonus} /></div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Patrimônio fim do ano</label><input type="text" value={pl} onChange={e => setPl(e.target.value)} placeholder="ex.: 80325" style={inputStyle} /></div>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Meta de patrimônio</label><input type="text" value={metaPL} onChange={e => setMetaPL(e.target.value)} placeholder="ex.: 400000" style={inputStyle} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Patrimônio fim do ano</label><input type="text" value={pl} onChange={e => setPl(e.target.value)} placeholder="ex.: 80325" style={inputStyle} /><PreviaConta txt={pl} /></div>
+          <div style={{ flex: 1 }}><label style={labelStyle}>Meta de patrimônio</label><input type="text" value={metaPL} onChange={e => setMetaPL(e.target.value)} placeholder="ex.: 400000" style={inputStyle} /><PreviaConta txt={metaPL} /></div>
         </div>
+        {temContaInvalida && <p style={{ fontSize: 12, color: '#c0392b', margin: '12px 0 0', textAlign: 'center' }}>Tem uma conta escrita errado — corrija pra poder salvar.</p>}
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           {editing && <button onClick={() => { life.deleteSalarioAno(editing.ano); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
