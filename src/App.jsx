@@ -118,23 +118,37 @@ function Header({ tab, setTab }) {
         {[
           { id: 'feed', label: 'Hoje' },
           { id: 'calendar', label: 'Calendário' },
-          { id: 'explore', label: 'Explorar' },
+          { id: 'explore', label: 'Explorar', icone: <IconeBussola /> },
           { id: 'life', label: 'Life' },
           { id: 'vf', label: 'VF' },
           { id: 'retrospectiva', label: 'Retrospectiva' },
           { id: 'saved', label: 'Salvos' },
         ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
+          // `icone` troca o texto da aba por um símbolo; o label continua vivo no
+          // title/aria-label, pra leitor de tela e pro tooltip de quem passa o mouse.
+          <button key={t.id} onClick={() => setTab(t.id)} title={t.icone ? t.label : undefined} aria-label={t.label} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: '12px 0', fontSize: 13, fontWeight: 600,
             fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.3px',
             color: tab === t.id ? '#111' : '#bbb',
             borderBottom: tab === t.id ? '2px solid #111' : '2px solid transparent',
             whiteSpace: 'nowrap', transition: 'all 0.15s', flexShrink: 0,
-          }}>{t.label}</button>
+            display: 'flex', alignItems: 'center',
+          }}>{t.icone || t.label}</button>
         ))}
       </div>
     </div>
+  );
+}
+
+// Bússola da aba Explorar: círculo em linha + agulha, herdando a cor do botão
+// (some junto com o cinza quando a aba está inativa).
+function IconeBussola() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false" style={{ display: 'block' }}>
+      <circle cx="10" cy="10" r="7.4" />
+      <path d="M13.4 6.6 L11.1 11.1 L6.6 13.4 L8.9 8.9 Z" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
 
