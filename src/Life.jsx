@@ -1640,6 +1640,18 @@ function MesDropdown({ options, selected, onSelect }) {
   );
 }
 
+// Cadeado de ocultar valores, em linha e monocromático (o emoji 🔒/🔓 destoava
+// do resto). Herda a cor do botão via currentColor, como a bússola da aba Explorar.
+function IconeCadeado({ aberto }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true" focusable="false" style={{ display: 'block', margin: '0 auto' }}>
+      <rect x="4.6" y="9" width="10.8" height="7.8" rx="1.9" />
+      {/* fechado: a haste desce dos dois lados. aberto: ela fica suspensa à direita. */}
+      <path d={aberto ? 'M7.1 9 V6.4 a2.9 2.9 0 0 1 5.8 0' : 'M7.1 9 V6.4 a2.9 2.9 0 0 1 5.8 0 V9'} />
+    </svg>
+  );
+}
+
 // `onBack` é opcional: em Life ele volta pro hub; na aba VF (página própria) não
 // há pra onde voltar, então o botão simplesmente não aparece.
 //
@@ -1712,15 +1724,15 @@ export function FinancasSection({ onBack, comoHub }) {
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Vida Financeira</h2>
-        <button onClick={() => setOculto(o => !o)} title={oculto ? 'mostrar valores' : 'ocultar valores'} style={{ flexShrink: 0, border: '1px solid ' + (oculto ? COR_FIN + '66' : '#e2e2e2'), borderRadius: 12, background: oculto ? COR_FIN + '14' : '#fff', cursor: 'pointer', width: 42, height: 42, fontSize: 18, lineHeight: 1 }}>{oculto ? '🔒' : '🔓'}</button>
+        <button onClick={() => setOculto(o => !o)} title={oculto ? 'mostrar valores' : 'ocultar valores'} aria-label={oculto ? 'mostrar valores' : 'ocultar valores'} style={{ flexShrink: 0, border: '1px solid ' + (oculto ? COR_FIN + '66' : '#e2e2e2'), borderRadius: 12, background: oculto ? COR_FIN + '14' : '#fff', color: oculto ? COR_FIN : '#b0b0b0', cursor: 'pointer', width: 42, height: 42, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconeCadeado aberto={!oculto} /></button>
       </div>
       {comoHub ? (sub === null ? (
         // Capa da VF: os três cards horizontais, no mesmo formato dos de Viagens.
         <div style={{ marginTop: 4 }}>
           {[
+            ['gastos', '🛍️', 'Gastos', qtdMesesGastos, qtdMesesGastos === 1 ? 'mês' : 'meses'],
             ['carteira', '📈', 'Carteira', snaps.length, snaps.length === 1 ? 'mês' : 'meses'],
             ['salarios', '💵', 'Salários', qtdAnosSal, qtdAnosSal === 1 ? 'ano' : 'anos'],
-            ['gastos', '🧾', 'Gastos', qtdMesesGastos, qtdMesesGastos === 1 ? 'mês' : 'meses'],
           ].map(([k, emoji, titulo, qtd, unidade]) => (
             <button key={k} onClick={() => setSub(k)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', background: COR_FIN + '12', border: '1px solid ' + COR_FIN + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
               <span><span style={{ fontSize: 15 }}>{emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{titulo}</span></span>
