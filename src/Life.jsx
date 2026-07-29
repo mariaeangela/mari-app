@@ -2544,12 +2544,17 @@ function GastoForm({ editing, meses, onClose }) {
   const setRow = (i, k, v) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
   const addRow = () => setRows([...rows, novaRow()]);
   const delRow = (i) => setRows(rows.filter((_, j) => j !== i));
-  const limpos = rows.filter(r => r.categoria.trim() && evalValor(r.valor) > 0);
-  const totalPrev = limpos.reduce((s, r) => s + (evalValor(r.valor) || 0), 0);
-  const podeSalvar = mes && limpos.length > 0;
+  // Guarda TODA categoria com nome, mesmo sem valor: em branco vira 0 (a Mari quer
+  // as 13 preservadas; a lista do mês esconde as zeradas depois). Só linha sem nome
+  // de categoria é ignorada.
+  const comNome = rows.filter(r => r.categoria.trim());
+  const totalPrev = comNome.reduce((s, r) => s + (evalValor(r.valor) || 0), 0);
+  // Conta escrita errada não pode salvar 0 por cima sem avisar (mesma trava dos Salários).
+  const temContaInvalida = rows.some(r => contaInvalida(r.valor));
+  const podeSalvar = mes && comNome.length > 0 && !temContaInvalida;
   const salvar = () => {
     if (!podeSalvar) return;
-    life.saveGastoMes({ mes, itens: limpos.map(r => ({ categoria: r.categoria.trim(), valor: evalValor(r.valor) })) });
+    life.saveGastoMes({ mes, itens: comNome.map(r => ({ categoria: r.categoria.trim(), valor: evalValor(r.valor) || 0 })) });
     onClose();
   };
   return (
@@ -2571,6 +2576,7 @@ function GastoForm({ editing, meses, onClose }) {
           </div>
         ))}
         <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '8px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ categoria</button>
+        {temContaInvalida && <p style={{ fontSize: 12, color: '#c0392b', margin: '10px 0 0', textAlign: 'center' }}>Tem uma conta escrita errado — corrija pra poder salvar.</p>}
         <div style={{ textAlign: 'right', marginTop: 12, fontSize: 13, color: '#777' }}>Total: <b style={{ color: '#111' }}>{fmtBRL(totalPrev)}</b></div>
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
           {editing && <button onClick={() => { life.deleteGastoMes(editing.mes); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
