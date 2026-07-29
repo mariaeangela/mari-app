@@ -13,7 +13,7 @@ const SECOES = [
   { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
   { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
   { id: 'legendas',       label: 'Legendas',       desc: 'frases salvas pra reusar',         cor: '#c2548f' },
-  { id: 'financas',       label: 'Vida Financeira', desc: 'metas, gastos, economia',         cor: '#54c08a' },
+  // A Vida Financeira saiu daqui: agora tem aba própria (VF), ao lado de Life.
   { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
 ];
@@ -1652,14 +1652,15 @@ function IconeCadeado({ aberto }) {
   );
 }
 
-// `onBack` é opcional: em Life ele volta pro hub; na aba VF (página própria) não
-// há pra onde voltar, então o botão simplesmente não aparece.
+// A Vida Financeira. Mora na aba VF, hoje a única porta de entrada — o card que
+// existia no hub do Life saiu quando a aba nasceu.
 //
-// `comoHub` (só a aba VF usa): em vez das três pastilhas Carteira/Salários/Gastos
-// sempre visíveis, abre numa capa com três cards horizontais — o mesmo formato dos
-// cards de Viagens. Escolhido um, ele ocupa a tela e um "← Vida Financeira" volta
-// pra capa. Em Life nada muda: sem `comoHub`, as pastilhas continuam como sempre.
-export function FinancasSection({ onBack, comoHub }) {
+// `comoHub` (o que a VF passa): a capa mostra Gastos/Carteira/Salários como três
+// cards horizontais, no formato dos cards de Viagens; escolhido um, ele ocupa a
+// tela e um "← Vida Financeira" volta pra capa. Sem `comoHub` a seção abre direto
+// na Carteira, com as três pastilhas em cima — é o formato antigo, que ninguém
+// usa no momento mas continua funcionando.
+export function FinancasSection({ comoHub }) {
   const life = useLife();
   const snaps = [...life.financas.snapshots].sort((a, b) => a.mes.localeCompare(b.mes));
   // Contagens do resumo à direita de cada card da capa (modo hub).
@@ -1720,7 +1721,6 @@ export function FinancasSection({ onBack, comoHub }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 640, margin: '0 auto' }}>
-      {onBack && <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>}
       <div style={{ width: 36, height: 4, background: COR_FIN, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>Vida Financeira</h2>
@@ -4436,7 +4436,6 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
   let content;
   if (sec === 'compras') content = <ComprasSection onBack={() => setSec(null)} listaInicial={comprasListaId} onConsumeLista={() => setComprasListaId(null)} />;
   else if (sec === 'planos') content = <PlanosSection onBack={() => setSec(null)} />;
-  else if (sec === 'financas') content = <FinancasSection onBack={() => setSec(null)} />;
   else if (sec === 'saude') content = <SaudeSection onBack={() => setSec(null)} />;
   else if (sec === 'aprendizados') content = <AprendizadosSection onBack={() => setSec(null)} />;
   else if (sec === 'legendas') content = <LegendasSection onBack={() => setSec(null)} />;
