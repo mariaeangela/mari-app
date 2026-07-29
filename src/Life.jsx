@@ -30,6 +30,12 @@ const fmtData = (s) => { const [y, m, d] = s.split('-'); return `${d}/${m}`; };
 
 // ---- Vida financeira: helpers ----
 const COR_FIN = '#54c08a';
+// Listas fixas de categoria e finalidade oferecidas ao preencher um ativo (na
+// ordem que a Mari definiu). São só as OPÇÕES da seleção: valores antigos fora
+// destas listas (ex.: "CDB") continuam na carteira e aparecem ao editar aquele
+// ativo, mas não viram chip pra novos. O "+ nova" segue criando outras.
+const FIN_CATEGORIAS = ['Renda Fixa', 'Ações', 'ETF', 'Cripto', 'FGTS', 'Previdência Privada'];
+const FIN_FINALIDADES = ['Aposentadoria', 'Aposta', 'Investimento', 'Reserva de emergência', 'Viagem', 'Vida'];
 const FIN_PALETTE = ['#54c08a', '#5c6bc0', '#ff8a3d', '#c2548f', '#19b3a6', '#c78a3a', '#8d6e63', '#6b7a99', '#a8516a', '#9844a7', '#2f746d', '#b24624'];
 const MES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const fmtBRL = (n) => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1585,7 +1591,7 @@ function FinancasForm({ editing, snaps, onClose }) {
       usdRate: Number(usdRate) || undefined,
       // canonizar: aqui o datalist só sugere; se digitar "ETF " ou "etf" à mão,
       // casa com a categoria que já existe em vez de criar uma variante nova.
-      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: canonizar(r.categoria, cats), finalidade: canonizar(r.finalidade, fins) || undefined, valor: evalValor(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
+      holdings: limpos.map((r, i) => ({ id: r.id || ('h' + Date.now().toString(36) + i), nome: r.nome.trim(), categoria: canonizar(r.categoria, [...FIN_CATEGORIAS, ...cats]), finalidade: canonizar(r.finalidade, [...FIN_FINALIDADES, ...fins]) || undefined, valor: evalValor(r.valor), moeda: r.moeda === 'USD' ? 'USD' : 'BRL', externo: !!r.externo })),
     };
     life.saveFinancasSnapshot(snap);
     onClose();
@@ -1603,8 +1609,8 @@ function FinancasForm({ editing, snaps, onClose }) {
         <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
 
         <label style={labelStyle}>Ativos</label>
-        <datalist id="fin-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>
-        <datalist id="fin-fins">{fins.map(c => <option key={c} value={c} />)}</datalist>
+        <datalist id="fin-cats">{FIN_CATEGORIAS.map(c => <option key={c} value={c} />)}</datalist>
+        <datalist id="fin-fins">{FIN_FINALIDADES.map(c => <option key={c} value={c} />)}</datalist>
         {rows.map((r, i) => (
           <div key={i} style={{ border: '1px solid #eee', borderRadius: 11, padding: 10, marginBottom: 8, background: '#fff' }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
@@ -1698,16 +1704,16 @@ function AtivoForm({ snap, holding, onClose }) {
   const [valor, setValor] = useState(String(holding.valor ?? ''));
   const [moeda, setMoeda] = useState(holding.moeda || 'BRL');
   const [externo, setExterno] = useState(!!holding.externo);
-  // Categorias e finalidades já usadas em QUALQUER mês, pra oferecer de escolher em
-  // vez de digitar — é o que evita "ETF" virar "Etf"/"ETF " sem querer.
+  // Chips oferecidos: as listas fixas. Canonização casa contra elas primeiro (pra
+  // "renda fixa" virar "Renda Fixa") e depois contra o que já existe na carteira
+  // (pra um "CDB" antigo, fora da lista, não virar duplicata ao ser reeditado).
   const todosHoldings = (life.financas.snapshots || []).flatMap(s => s.holdings || []);
-  const catsUsadas = [...new Set(todosHoldings.map(h => (h.categoria || '').trim()).filter(Boolean))].sort();
-  const finsUsadas = [...new Set(todosHoldings.map(h => (h.finalidade || '').trim()).filter(Boolean))].sort();
+  const catsUsadas = [...new Set(todosHoldings.map(h => (h.categoria || '').trim()).filter(Boolean))];
+  const finsUsadas = [...new Set(todosHoldings.map(h => (h.finalidade || '').trim()).filter(Boolean))];
   const podeSalvar = nome.trim() && evalValor(valor) > 0 && !contaInvalida(valor);
   const salvar = () => {
     if (!podeSalvar) return;
-    // canonizar: se digitou algo que já existe a menos de caixa/espaços, usa o que existe.
-    const campos = { nome: nome.trim(), categoria: canonizar(categoria, catsUsadas), finalidade: canonizar(finalidade, finsUsadas) || undefined, valor: evalValor(valor), moeda, externo };
+    const campos = { nome: nome.trim(), categoria: canonizar(categoria, [...FIN_CATEGORIAS, ...catsUsadas]), finalidade: canonizar(finalidade, [...FIN_FINALIDADES, ...finsUsadas]) || undefined, valor: evalValor(valor), moeda, externo };
     const atuais = snap.holdings || [];
     life.saveFinancasSnapshot({
       ...snap,
@@ -1731,8 +1737,8 @@ function AtivoForm({ snap, holding, onClose }) {
         <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 4px' }}>em {fmtMesLongo(snap.mes)}</p>
         <label style={labelStyle}>Ativo</label>
         <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Tesouro Selic" style={inputStyle} />
-        <SeletorComNovo label="Categoria" valor={categoria} onChange={setCategoria} opcoes={catsUsadas} placeholder="ex.: Renda fixa" />
-        <SeletorComNovo label="Finalidade" valor={finalidade} onChange={setFinalidade} opcoes={finsUsadas} placeholder="ex.: Reserva" />
+        <SeletorComNovo label="Categoria" valor={categoria} onChange={setCategoria} opcoes={FIN_CATEGORIAS} placeholder="ex.: Renda fixa" />
+        <SeletorComNovo label="Finalidade" valor={finalidade} onChange={setFinalidade} opcoes={FIN_FINALIDADES} placeholder="ex.: Reserva" />
         <label style={labelStyle}>Valor (aceita conta)</label>
         <div style={{ display: 'flex', gap: 8 }}>
           <select value={moeda} onChange={e => setMoeda(e.target.value)} style={{ ...inputStyle, width: 78, flexShrink: 0 }}>
