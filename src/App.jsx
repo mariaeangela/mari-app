@@ -385,6 +385,39 @@ const fmtR$ = (v) => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumF
 // Dia da semana em 3 letras, pra acompanhar a data na lista do VR.
 const DIA_ABREV = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
+// Agrupa gastos por dia (mais recente primeiro) somando o valor de cada dia.
+// Compartilhado pelo VR e pelas caixas do Posso gastar: nos dois, a lista crua
+// crescia demais até o fim do ciclo.
+const agruparPorDia = (gastos) => {
+  const m = {};
+  (gastos || []).forEach(g => { const d = g.data || ''; (m[d] = m[d] || []).push(g); });
+  return Object.keys(m).sort().reverse().map(d => ({ dia: d, itens: m[d], soma: m[d].reduce((s, x) => s + (Number(x.valor) || 0), 0) }));
+};
+
+// Cabeçalho de um dia na lista agrupada:  ▸ 28/07 ter 3×  ....  R$ 76,30
+function LinhaDia({ dia, qtd, soma, aberto, cor, onClick }) {
+  return (
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', fontSize: 12.5, color: '#666', cursor: 'pointer' }}>
+      <span>
+        <span style={{ color: cor, fontWeight: 700, fontSize: 10, marginRight: 5 }}>{aberto ? '▾' : '▸'}</span>
+        {dia ? dia.slice(8, 10) + '/' + dia.slice(5, 7) : 'sem data'}
+        {dia && <span style={{ color: '#aaa', marginLeft: 5 }}>{DIA_ABREV[parseYmd(dia).getDay()]}</span>}
+        <span style={{ color: '#c4c4c4', marginLeft: 6, fontSize: 11 }}>{qtd}×</span>
+      </span>
+      <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(soma)}</span>
+    </div>
+  );
+}
+
+// Botão discreto que abre/fecha a lista agrupada por dia.
+function BotaoPorDia({ aberto, onClick }) {
+  return (
+    <button onClick={onClick} style={{ display: 'block', width: '100%', border: 'none', background: 'none', color: '#999', fontSize: 11.5, fontWeight: 600, padding: '5px 0', cursor: 'pointer' }}>
+      {aberto ? '▴' : '▾'} gasto por dia
+    </button>
+  );
+}
+
 // VR (vale-refeição) no fim da capa. Ciclo 27→26: você põe o total no dia 27 e
 // lança os gastos no +; o app mostra quanto pode gastar POR DIA = (total − gasto)
 // ÷ dias restantes até o 26, recalculando a cada gasto.
@@ -409,11 +442,7 @@ function VRHoje() {
   // abre os lançamentos daquele dia (é lá que dá pra apagar um).
   const [verDias, setVerDias] = useState(false);
   const [diaExp, setDiaExp] = useState(null);
-  const gastosPorDia = (() => {
-    const m = {};
-    gastos.forEach(g => { const d = g.data || ''; (m[d] = m[d] || []).push(g); });
-    return Object.keys(m).sort().reverse().map(d => ({ dia: d, itens: m[d], soma: m[d].reduce((s, x) => s + (Number(x.valor) || 0), 0) }));
-  })();
+  const gastosPorDia = agruparPorDia(gastos);
 
   const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: ymd(today) }); setVal(''); setAddOpen(false); };
   const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
@@ -458,22 +487,12 @@ function VRHoje() {
 
           {gastos.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              <button onClick={() => setVerDias(v => !v)} style={{ display: 'block', width: '100%', border: 'none', background: 'none', color: '#999', fontSize: 11.5, fontWeight: 600, padding: '5px 0', cursor: 'pointer' }}>
-                {verDias ? '▴' : '▾'} gasto por dia
-              </button>
+              <BotaoPorDia aberto={verDias} onClick={() => setVerDias(v => !v)} />
               {verDias && gastosPorDia.map(d => {
                 const aberto = diaExp === d.dia;
                 return (
                   <div key={d.dia || 'sem-data'} style={{ borderTop: '1px solid #f0f0f0' }}>
-                    <div onClick={() => setDiaExp(aberto ? null : d.dia)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', fontSize: 12.5, color: '#666', cursor: 'pointer' }}>
-                      <span>
-                        <span style={{ color: cor, fontWeight: 700, fontSize: 10, marginRight: 5 }}>{aberto ? '▾' : '▸'}</span>
-                        {d.dia ? d.dia.slice(8, 10) + '/' + d.dia.slice(5, 7) : 'sem data'}
-                        {d.dia && <span style={{ color: '#aaa', marginLeft: 5 }}>{DIA_ABREV[parseYmd(d.dia).getDay()]}</span>}
-                        {d.itens.length > 1 && <span style={{ color: '#c4c4c4', marginLeft: 6, fontSize: 11 }}>{d.itens.length}×</span>}
-                      </span>
-                      <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(d.soma)}</span>
-                    </div>
+                    <LinhaDia dia={d.dia} qtd={d.itens.length} soma={d.soma} aberto={aberto} cor={cor} onClick={() => setDiaExp(aberto ? null : d.dia)} />
                     {aberto && (
                       <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
                         {d.itens.map(g => (
@@ -513,6 +532,11 @@ function PossoBucket({ ck, bucket, label }) {
   const [editId, setEditId] = useState(null); // gasto em edição na lista
   const [eNome, setENome] = useState('');
   const [eVal, setEVal] = useState('');
+  // Mesma lógica do VR: a lista nasce fechada e mostra 1 linha por dia (data +
+  // dia da semana + quantas compras + soma); abrir o dia revela cada gasto.
+  const [verDias, setVerDias] = useState(false);
+  const [diaExp, setDiaExp] = useState(null);
+  const gastosPorDia = agruparPorDia(b.gastos);
   const cor = '#b06d1e';
   const comNome = bucket === 'total';     // só o Total ganha descrição + lista
   const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: comNome ? (nome.trim() || undefined) : undefined, data: ymd(hojeMid()) }); setVal(''); setNome(''); setAddOpen(false); };
@@ -548,20 +572,33 @@ function PossoBucket({ ck, bucket, label }) {
           )}
           {(b.gastos || []).length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {(b.gastos || []).slice().reverse().map(g => editId === g.id ? (
-                <div key={g.id} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '3px 0' }}>
-                  {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
-                  <input autoFocus={!comNome} value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, ...(comNome ? { width: 66 } : { flex: 1, minWidth: 0 }), fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
-                  <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
-                  <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
-                </div>
-              ) : (
-                <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
-                  {comNome && <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}>{g.nome || '—'}</span>}
-                  <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flexShrink: 0, cursor: 'pointer', ...(comNome ? {} : { flex: 1, textAlign: 'left' }) }}>{fmtR$(g.valor)}</span>
-                  <span onClick={() => life.deletePgGasto(ck, bucket, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
-                </div>
-              ))}
+              <BotaoPorDia aberto={verDias} onClick={() => setVerDias(v => !v)} />
+              {verDias && gastosPorDia.map(d => {
+                const diaAberto = diaExp === d.dia;
+                return (
+                  <div key={d.dia || 'sem-data'} style={{ borderTop: '1px solid ' + cor + '1a' }}>
+                    <LinhaDia dia={d.dia} qtd={d.itens.length} soma={d.soma} aberto={diaAberto} cor={cor} onClick={() => setDiaExp(diaAberto ? null : d.dia)} />
+                    {diaAberto && (
+                      <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
+                        {d.itens.map(g => editId === g.id ? (
+                          <div key={g.id} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '3px 0' }}>
+                            {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
+                            <input autoFocus={!comNome} value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, ...(comNome ? { width: 66 } : { flex: 1, minWidth: 0 }), fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                            <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                            <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+                          </div>
+                        ) : (
+                          <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
+                            {comNome && <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}>{g.nome || '—'}</span>}
+                            <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flexShrink: 0, cursor: 'pointer', ...(comNome ? {} : { flex: 1, textAlign: 'left' }) }}>{fmtR$(g.valor)}</span>
+                            <span onClick={() => life.deletePgGasto(ck, bucket, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </>
