@@ -6,10 +6,9 @@ import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
-// Aba "Gastos detalhados" da VF reusa o Gastos da Retrospectiva no modo 'vf'
-// (mesma máquina de detalhe; capa própria). Import de mão única — Retrospectiva
-// não importa de Life, então não há ciclo.
-import { GastosRetro } from './Retrospectiva.jsx';
+// Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
+// linkada à Retrospectiva, que vai ser aposentada).
+import GastosDetalhado from './GastosDetalhado.jsx';
 
 const SECOES = [
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -1925,7 +1924,7 @@ export function FinancasSection({ comoHub }) {
 
       <PrivacyCtx.Provider value={oculto}>
       {sub === 'salarios' && <SalariosVida />}
-      {sub === 'gastos' && <GastosVida />}
+      {sub === 'gastos' && <GastosVida oculto={oculto} />}
       {/* Reservado: a Mari pediu o card já criado pra desenharmos depois. */}
       {sub === 'performance' && (
         <div style={{ marginTop: 12, padding: 28, borderRadius: 16, background: COR_FIN + '10', border: '1px dashed ' + COR_FIN + '55', textAlign: 'center' }}>
@@ -2382,7 +2381,7 @@ function LinhasGastos({ meses, cats, valor }) {
   );
 }
 
-function GastosVida() {
+function GastosVida({ oculto }) {
   const life = useLife();
   const [selMes, setSelMes] = useState(null);
   const [form, setForm] = useState(null);
@@ -2427,7 +2426,7 @@ function GastosVida() {
   }
 
   // Gastos detalhados: a tela nova (reusa o Gastos da Retrospectiva em modo 'vf').
-  if (sub === 'detalhados') return <GastosRetro modo="vf" isWide={false} onBack={() => setSub(null)} backLabel="Gastos" />;
+  if (sub === 'detalhados') return <GastosDetalhado oculto={oculto} onBack={() => setSub(null)} />;
   // Ano a ano: placeholder até 2027 ter dados.
   if (sub === 'anoano') {
     return (

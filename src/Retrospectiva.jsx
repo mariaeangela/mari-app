@@ -1581,16 +1581,11 @@ function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
   );
 }
 
-// `modo='vf'` = a nova aba "Gastos detalhados" (dentro da VF), que vai SUBSTITUIR
-// esta seção na Retrospectiva. Muda só a CAPA (seletor ano+mês, totais ano/mês e
-// cards com os dois valores); todo o miolo — abrir categoria, itens, VR, Posso
-// gastar — é o mesmo, reaproveitado. `backLabel` nomeia o botão de voltar.
-export function GastosRetro({ onBack, isWide, catInicial, modo, backLabel = 'Retrospectiva' }) {
+function GastosRetro({ onBack, isWide, catInicial }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(catInicial || null);
   const [form, setForm] = useState(null); // { editing? } — item de gasto
   const [tipoChart, setTipoChart] = useState(null); // null = automático; 'barras' | 'linhas'
-  const [mesSel, setMesSel] = useState(null); // mês selecionado (só no modo vf)
   useEffect(() => { setTipoChart(null); }, [catSel]); // reset ao trocar de categoria
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
@@ -1599,14 +1594,6 @@ export function GastosRetro({ onBack, isWide, catInicial, modo, backLabel = 'Ret
   doAno.forEach(g => (g.itens || []).forEach(it => { catTotals[it.categoria] = (catTotals[it.categoria] || 0) + (Number(it.valor) || 0); }));
   const cats = [...GASTO_CATS.filter(c => catTotals[c] != null), ...Object.keys(catTotals).filter(c => !GASTO_CATS.includes(c))];
   const totalAno = cats.reduce((a, c) => a + (catTotals[c] || 0), 0);
-  // Modo vf: totais e valores do MÊS selecionado (puxados da aba Gastos).
-  const fmtInt = (n) => 'R$ ' + Math.round(Number(n) || 0).toLocaleString('en-US');
-  const mesesAno = [...new Set(doAno.map(g => g.mes))].sort();
-  const mesAtual = (mesSel && mesesAno.includes(mesSel)) ? mesSel : mesesAno[mesesAno.length - 1];
-  const catMes = {};
-  (doAno.find(g => g.mes === mesAtual)?.itens || []).forEach(it => { catMes[it.categoria] = (catMes[it.categoria] || 0) + (Number(it.valor) || 0); });
-  const totalMes = Object.values(catMes).reduce((a, b) => a + b, 0);
-  const selStyle = { flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid ' + COR_GASTOS + '55', background: COR_GASTOS + '10', color: '#3a4256', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', textTransform: 'capitalize', cursor: 'pointer' };
 
   // "Coisas" é uma categoria NORMAL (gráficos + tabela); embaixo dela, a lista das
   // compras marcadas à mão por mês (ComprasFeitasLista). A durabilidade ("Coisas
@@ -1682,76 +1669,6 @@ export function GastosRetro({ onBack, isWide, catInicial, modo, backLabel = 'Ret
         {catSel === 'Coisas' && <ComprasFeitasLista ano={anoSel} />}
 
         {form && <GastoItemForm editing={form.editing} categoria={catSel} onClose={() => setForm(null)} />}
-      </div>
-    );
-  }
-
-  // NOVA CAPA (aba "Gastos detalhados" da VF): seletor ano+mês, totais do ano e do
-  // mês, e um card por categoria com os dois valores (ano/mês) e seus %. Os valores
-  // vêm da aba Gastos (life.gastos). Clicar num card abre o mesmo detalhe de sempre.
-  if (modo === 'vf') {
-    const numRow = (lbl, val, pct) => (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-        <span style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{lbl}</span>
-        <span style={{ fontSize: 13, color: '#333', fontWeight: 700, whiteSpace: 'nowrap' }}>{fmtInt(val)} <span style={{ fontSize: 10.5, color: '#aaa', fontWeight: 600 }}>{pct}%</span></span>
-      </div>
-    );
-    return (
-      <div style={{ paddingBottom: 20 }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 14, padding: 0 }}>&larr; {backLabel}</button>
-        <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', margin: '0 0 12px' }}>Gastos detalhados</h2>
-
-        {gastos.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Sem gastos ainda — eles vêm da aba Gastos.</p>
-        ) : <>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-            <select value={anoSel} onChange={e => setAnoSel(e.target.value)} style={selStyle}>
-              {anos.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-            <select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>
-              {mesesAno.map(m => <option key={m} value={m}>{MESES[+m.slice(5, 7) - 1]}</option>)}
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', gap: 24, marginBottom: 18 }}>
-            <div>
-              <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>no ano até agora</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#111' }}>{fmtInt(totalAno)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 10.5, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>no mês até agora</div>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#111' }}>{fmtInt(totalMes)}</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
-            {GASTO_CATS.map((c, i) => {
-              const cor = catCor(c, i);
-              const va = catTotals[c] || 0, vm = catMes[c] || 0;
-              return (
-                <button key={c} onClick={() => setCatSel(c)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '14px 14px', cursor: 'pointer', textAlign: 'left' }}>
-                  <div style={{ width: 22, height: 4, background: cor, borderRadius: 4, marginBottom: 9 }} />
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c}</div>
-                  {numRow('ano', va, totalAno ? (va / totalAno * 100).toFixed(0) : 0)}
-                  {numRow('mês', vm, totalMes ? (vm / totalMes * 100).toFixed(0) : 0)}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Controle do mês (Posso gastar / VR): puxa da aba Hoje, fora do total. */}
-          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '24px 0 8px' }}>controle do mês · fora do total</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {[['__posso', 'Posso gastar', 'quanto ainda dá pra gastar'], ['__vr', 'VR', 'histórico por ciclo e por dia']].map(([id, label, desc]) => (
-              <button key={id} onClick={() => setCatSel(id)} style={{ background: '#b06d1e10', border: '1px solid #b06d1e33', borderRadius: 16, padding: '16px 14px', cursor: 'pointer', textAlign: 'left' }}>
-                <div style={{ width: 22, height: 4, background: '#b06d1e', borderRadius: 4, marginBottom: 10 }} />
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{label}</div>
-                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>{desc}</div>
-              </button>
-            ))}
-          </div>
-        </>}
       </div>
     );
   }
