@@ -1253,7 +1253,7 @@ const GASTO_SUBCATS_SEED = {
   'Roupa': ['Roupa', 'Fantasias', 'Bolsas', 'Ajustes', 'Esporte', 'Sapatos'],
   'Skin care': ['Cabelo', 'Pele', 'Maquiagem'],
   'Bobeira': ['Comida salgado', 'Comida doce', 'Água'],
-  'Rolês': ['Bares', 'Restaurante', 'Shows', 'Festas', 'Aniversário', 'Cultura', 'Corrida', 'Dates', 'Diversos'],
+  'Rolês': ['Bares', 'Restaurante', 'Shows', 'Festas', 'Aniversário', 'Cultura', 'Corrida', 'Dates'],
   'Presentes': ['Westwing', 'Doação', 'Milena', 'Posto praia', 'Sorvete Raul', 'Pedágio'],
 };
 function ensureGastoSubcats(d) {
@@ -1263,6 +1263,18 @@ function ensureGastoSubcats(d) {
   const next = { ...atual };
   Object.keys(GASTO_SUBCATS_SEED).forEach(cat => { if (!next[cat]) next[cat] = [...GASTO_SUBCATS_SEED[cat]]; });
   return { ...d, gastoSubcatsSeeded: true, gastoSubcats: next };
+}
+// A Mari pediu tirar "Diversos" do Rolês (fica só o "outros" automático). Migra
+// quem já foi semeado com ele: some da lista e apaga os lançamentos (viram outros).
+function ensureRolesSemDiversos(d) {
+  if (d.rolesSemDiversos) return d;
+  const subs = (d.gastoSubcats || {})['Rolês'];
+  if (!subs || !subs.includes('Diversos')) return { ...d, rolesSemDiversos: true };
+  return {
+    ...d, rolesSemDiversos: true,
+    gastoSubcats: { ...d.gastoSubcats, 'Rolês': subs.filter(s => s !== 'Diversos') },
+    gastosItens: (d.gastosItens || []).filter(x => !(x.categoria === 'Rolês' && x.nome === 'Diversos')),
+  };
 }
 
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
@@ -1609,7 +1621,7 @@ function ensureCarteiraMesAtual(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
