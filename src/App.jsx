@@ -734,7 +734,11 @@ function PossoGastarHoje() {
 // hábitos são liga/desliga.
 function TrackingHoje() {
   const cal = useCalendar();
-  const k = ymd(hojeMid());
+  const hojeK = ymd(hojeMid());
+  // Dá pra preencher dias anteriores: o seletor de data (discreto, no cabeçalho)
+  // troca o dia editado. Começa em hoje. Nunca deixa escolher o futuro (max=hoje).
+  const [dataSel, setDataSel] = useState(hojeK);
+  const k = dataSel;
   const t = (cal.data.tracking || {})[k] || {};
   const cor = '#3fb6a8';
   // Horas em hh:mm (7:30 = sete e meia). Guarda em horas DECIMAIS por dentro (bom
@@ -744,6 +748,8 @@ function TrackingHoje() {
   const parseHM = (s) => { const str = String(s).trim(); if (!str) return undefined; if (str.includes(':')) { const [h, m] = str.split(':'); const v = (Number(h) || 0) + (Number(m) || 0) / 60; return isFinite(v) ? v : undefined; } const n = Number(str.replace(',', '.')); return isFinite(n) ? n : undefined; };
   const [sono, setSono] = useState(fmtHM(t.sono));
   const [trab, setTrab] = useState(fmtHM(t.trabalho));
+  // Ao trocar o dia, os campos de hora recarregam os valores daquele dia.
+  useEffect(() => { setSono(fmtHM(t.sono)); setTrab(fmtHM(t.trabalho)); }, [dataSel]); // eslint-disable-line
   const salvarNum = (campo, txt) => { cal.setTracking(k, { [campo]: parseHM(txt) }); };
   const numLabel = { fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: 4, fontWeight: 700 };
   const numInput = { width: '100%', padding: '8px 10px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
@@ -758,7 +764,11 @@ function TrackingHoje() {
   };
   return (
     <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, color: '#2f746d', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 12 }}>Acompanhamento do dia</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 11, color: '#2f746d', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>Acompanhamento {k === hojeK ? 'do dia' : 'de'}</span>
+        {/* seletor de data discreto: troca o dia editado; nunca deixa ir pro futuro */}
+        <input type="date" value={dataSel} max={hojeK} onChange={e => setDataSel(e.target.value || hojeK)} title="escolher o dia" style={{ border: 'none', background: 'transparent', color: k === hojeK ? '#9bb8b3' : '#2f746d', fontSize: 12, fontFamily: 'inherit', fontWeight: 700, cursor: 'pointer', padding: 0 }} />
+      </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
           <label style={numLabel}>Sono (h)</label>
