@@ -563,46 +563,122 @@ function SubcatTabela({ cat, meses, catTotalDe }) {
 // Primeira leva (dá pra crescer): média do aluguel, maiores gastos do grupo
 // "coisas" (Coisas/Roupa/Skin care/Bobeira/Presentes) e Rolês mais caros. Tudo
 // do ano selecionado, puxando das subcategorias detalhadas.
-function AcompanhamentoInsights({ anoSel }) {
+function AcompanhamentoInsights({ anoSel, mesAtual }) {
   const life = useLife();
+  const subcats = life.gastoSubcats || {};
+  const doAno = (life.gastos || []).filter(g => (g.mes || '').slice(0, 4) === anoSel);
   const itensAno = (life.gastosItens || []).filter(x => (x.mes || '').slice(0, 4) === anoSel);
+  const mesesAno = [...new Set(doAno.map(g => g.mes))].sort();
+  const mesLbl = (m) => MESES[+m.slice(5, 7) - 1];
+  // totais de categoria
+  const catValMes = (cat, m) => (doAno.find(g => g.mes === m)?.itens || []).filter(i => i.categoria === cat).reduce((a, i) => a + (Number(i.valor) || 0), 0);
+  const catTotalAno = (cat) => mesesAno.reduce((a, m) => a + catValMes(cat, m), 0);
+  const totalAno = mesesAno.reduce((a, m) => a + (doAno.find(g => g.mes === m)?.itens || []).reduce((s, i) => s + (Number(i.valor) || 0), 0), 0);
+  // subcategorias
   const subTotal = (cat, sub) => itensAno.filter(x => x.categoria === cat && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
   const subMeses = (cat, sub) => new Set(itensAno.filter(x => x.categoria === cat && x.nome === sub && (Number(x.valor) || 0) > 0).map(x => x.mes)).size;
-  const aluguelTotal = subTotal('Fixos', 'Aluguel');
-  const aluguelMeses = subMeses('Fixos', 'Aluguel');
-  const mediaAluguel = aluguelMeses ? aluguelTotal / aluguelMeses : 0;
+
+  // 1) médias dos fixos (cada sub / meses em que apareceu)
+  const mediasFixos = (subcats['Fixos'] || []).map(sub => { const n = subMeses('Fixos', sub); return { sub, media: n ? subTotal('Fixos', sub) / n : 0 }; }).filter(x => x.media > 0).sort((a, b) => b.media - a.media);
+  // 2) este mês vs média (das outras ocorrências)
+  const catMediaOutras = (cat) => { const vals = mesesAno.filter(m => m !== mesAtual).map(m => catValMes(cat, m)).filter(v => v > 0); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; };
+  const desvios = mesAtual ? GASTO_CATS.map(cat => { const v = catValMes(cat, mesAtual); const med = catMediaOutras(cat); if (med <= 0 || v <= 0) return null; return { cat, dev: (v - med) / med }; }).filter(Boolean).filter(x => Math.abs(x.dev) >= 0.15).sort((a, b) => Math.abs(b.dev) - Math.abs(a.dev)).slice(0, 4) : [];
+  // 3) top 5 categorias do ano
+  const topCats = GASTO_CATS.map(cat => ({ cat, total: catTotalAno(cat) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+  // 4) essenciais vs extras
+  const ESSENCIAIS = ['Fixos', 'Mercado', 'Saúde'], EXTRAS = ['Rolês', 'Bobeira', 'Coisas'];
+  const somaG = (arr) => arr.reduce((a, c) => a + catTotalAno(c), 0);
+  const essT = somaG(ESSENCIAIS), extT = somaG(EXTRAS), outT = Math.max(0, totalAno - essT - extT);
+  const pct = (v) => totalAno ? Math.round(v / totalAno * 100) : 0;
+  // 5) maior gasto único
+  const maiorItem = itensAno.slice().sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0))[0];
+  // 6) meses mais caros + categoria que puxou
+  const mesesCaros = mesesAno.map(m => { const its = doAno.find(g => g.mes === m)?.itens || []; const tot = its.reduce((s, i) => s + (Number(i.valor) || 0), 0); const top = [...its].sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0))[0]; return { m, tot, top }; }).filter(x => x.tot > 0).sort((a, b) => b.tot - a.tot).slice(0, 3);
+  // grupo "coisas" e rolês (pedidos originais)
   const GRUPO = ['Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Presentes'];
-  const todos = [];
-  GRUPO.forEach(cat => ((life.gastoSubcats || {})[cat] || []).forEach(sub => { const t = subTotal(cat, sub); if (t > 0) todos.push({ cat, sub, total: t }); }));
-  const top5 = todos.sort((a, b) => b.total - a.total).slice(0, 5);
-  const topRoles = ((life.gastoSubcats || {})['Rolês'] || []).map(sub => ({ sub, total: subTotal('Rolês', sub) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+  const gastosCoisas = [];
+  GRUPO.forEach(cat => (subcats[cat] || []).forEach(sub => { const t = subTotal(cat, sub); if (t > 0) gastosCoisas.push({ cat, sub, total: t }); }));
+  const top5Coisas = gastosCoisas.sort((a, b) => b.total - a.total).slice(0, 5);
+  const topRoles = (subcats['Rolês'] || []).map(sub => ({ sub, total: subTotal('Rolês', sub) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+
   const box = { background: COR_GASTOS + '0a', border: '1px solid ' + COR_GASTOS + '22', borderRadius: 14, padding: '14px 16px', marginBottom: 12 };
-  const titulo = { fontSize: 10.5, color: '#7a8494', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, marginBottom: 6, lineHeight: 1.4 };
-  const linha = (esq, val) => (
-    <div key={esq} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
+  const titulo = { fontSize: 10.5, color: '#7a8494', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, marginBottom: 8, lineHeight: 1.4 };
+  const linha = (esq, val, key) => (
+    <div key={key || esq} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{esq}</span>
       <V style={{ fontWeight: 700, color: '#222', whiteSpace: 'nowrap' }}>{fmtR(val)}</V>
     </div>
   );
-  if (!itensAno.length) return <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', padding: '4px 0', lineHeight: 1.6 }}>Detalhe seus gastos nas categorias que aqui aparecem seus principais números.</p>;
+  if (totalAno <= 0) return <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', padding: '4px 0', lineHeight: 1.6 }}>Lance seus gastos que aqui aparecem seus principais números.</p>;
   return (
     <div>
-      {aluguelMeses > 0 && (
+      {topCats.length > 0 && (
         <div style={box}>
-          <div style={titulo}>Média do aluguel · {anoSel}</div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}><V>{fmtR(mediaAluguel)}</V> <span style={{ fontSize: 12, color: '#aaa', fontWeight: 400 }}>/mês</span></div>
+          <div style={titulo}>Onde foi o dinheiro · top categorias · {anoSel}</div>
+          {topCats.map((x, i) => linha(`${i + 1}. ${x.cat} · ${pct(x.total)}%`, x.total, x.cat))}
         </div>
       )}
-      {top5.length > 0 && (
+      {totalAno > 0 && (
+        <div style={box}>
+          <div style={titulo}>Essenciais × extras · {anoSel}</div>
+          <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
+            <div style={{ width: pct(essT) + '%', background: '#54c08a' }} />
+            <div style={{ width: pct(extT) + '%', background: '#ff8a3d' }} />
+            <div style={{ width: pct(outT) + '%', background: '#d8d8d8' }} />
+          </div>
+          <div style={{ fontSize: 12, color: '#666', display: 'flex', flexWrap: 'wrap', gap: '2px 12px' }}>
+            <span><b style={{ color: '#3a9c6e' }}>{pct(essT)}%</b> essenciais</span>
+            <span><b style={{ color: '#d4762a' }}>{pct(extT)}%</b> extras</span>
+            <span><b style={{ color: '#999' }}>{pct(outT)}%</b> outros</span>
+          </div>
+          <div style={{ fontSize: 10.5, color: '#bbb', marginTop: 4 }}>essenciais: fixos, mercado, saúde · extras: rolês, bobeira, coisas</div>
+        </div>
+      )}
+      {desvios.length > 0 && (
+        <div style={box}>
+          <div style={titulo}>Este mês vs sua média · {mesAtual ? mesLbl(mesAtual) : ''}</div>
+          {desvios.map(x => (
+            <div key={x.cat} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
+              <span>{x.cat}</span>
+              <span style={{ fontWeight: 700, color: x.dev > 0 ? '#c0392b' : '#3a9c6e', whiteSpace: 'nowrap' }}>{x.dev > 0 ? '▲' : '▼'} {Math.abs(Math.round(x.dev * 100))}% {x.dev > 0 ? 'acima' : 'abaixo'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {mesesCaros.length > 0 && (
+        <div style={box}>
+          <div style={titulo}>Meses mais caros · {anoSel}</div>
+          {mesesCaros.map((x, i) => (
+            <div key={x.m} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
+              <span>{i + 1}. <span style={{ textTransform: 'capitalize' }}>{mesLbl(x.m)}</span> {x.top && <span style={{ color: '#aaa', fontSize: 11.5 }}>· puxado por {x.top.categoria}</span>}</span>
+              <V style={{ fontWeight: 700, color: '#222', whiteSpace: 'nowrap' }}>{fmtR(x.tot)}</V>
+            </div>
+          ))}
+        </div>
+      )}
+      {mediasFixos.length > 0 && (
+        <div style={box}>
+          <div style={titulo}>Média mensal dos fixos · {anoSel}</div>
+          {mediasFixos.map(x => linha(x.sub, x.media, 'f-' + x.sub))}
+        </div>
+      )}
+      {maiorItem && (Number(maiorItem.valor) || 0) > 0 && (
+        <div style={box}>
+          <div style={titulo}>Maior gasto único · {anoSel}</div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}><V>{fmtR(maiorItem.valor)}</V></div>
+          <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{maiorItem.nome} · {maiorItem.categoria} · {mesLbl(maiorItem.mes)}</div>
+        </div>
+      )}
+      {top5Coisas.length > 0 && (
         <div style={box}>
           <div style={titulo}>Maiores gastos · coisas, roupa, skin care, bobeira, presentes</div>
-          {top5.map((x, i) => linha(`${i + 1}. ${x.sub} · ${x.cat}`, x.total))}
+          {top5Coisas.map((x, i) => linha(`${i + 1}. ${x.sub} · ${x.cat}`, x.total, 'c-' + x.cat + x.sub))}
         </div>
       )}
       {topRoles.length > 0 && (
         <div style={box}>
           <div style={titulo}>Rolês mais caros · {anoSel}</div>
-          {topRoles.map((x, i) => linha(`${i + 1}. ${x.sub}`, x.total))}
+          {topRoles.map((x, i) => linha(`${i + 1}. ${x.sub}`, x.total, 'r-' + x.sub))}
         </div>
       )}
     </div>
@@ -777,7 +853,7 @@ export default function GastosDetalhado({ onBack, oculto }) {
             ))}
           </div>
           <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '24px 0 8px' }}>acompanhamento</p>
-          <AcompanhamentoInsights anoSel={anoSel} />
+          <AcompanhamentoInsights anoSel={anoSel} mesAtual={mesAtual} />
         </>}
       </div>
     );
