@@ -452,25 +452,29 @@ function SubcatLista({ cat, mes, catTotalMes }) {
 // Gráfico por subcategoria de UMA categoria: escolhe subs (chips) e vê por mês.
 // Barras = empilhadas (acumulado do mês); Linhas = uma por sub. Eixo em múltiplos
 // de 500. Só oferece subs que tiveram algum valor no ano.
-function SubcatChart({ cat, anoSel }) {
+function SubcatChart({ cat, meses, catTotalDe }) {
   const life = useLife();
   const subsAll = (life.gastoSubcats || {})[cat] || [];
-  const itens = (life.gastosItens || []).filter(x => x.categoria === cat && (x.mes || '').slice(0, 4) === anoSel);
-  const meses = [...new Set(itens.map(i => i.mes))].sort();
-  const valorDe = (sub, mes) => itens.filter(x => x.mes === mes && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const itens = life.gastosItens || [];
+  const valorDe = (sub, mes) => itens.filter(x => x.categoria === cat && x.mes === mes && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const outrosDe = (m) => Math.max(0, Math.round((catTotalDe(m) - subsAll.reduce((a, s) => a + valorDe(s, m), 0)) * 100) / 100);
   const subsComValor = subsAll.filter(s => meses.some(m => valorDe(s, m) > 0));
+  const temOutros = meses.some(m => outrosDe(m) > 0.01);
+  const opcoes = [...subsComValor, ...(temOutros ? ['__outros'] : [])]; // mesmas séries da tabela
+  const valSerie = (s, m) => s === '__outros' ? outrosDe(m) : valorDe(s, m);
+  const labelSerie = (s) => s === '__outros' ? 'outros' : s;
+  const corDe = (s) => s === '__outros' ? '#b0b0b0' : GASTO_CORES[Math.max(0, subsAll.indexOf(s)) % GASTO_CORES.length];
   const [sels, setSels] = useState([]);
   const [tipo, setTipo] = useState('barras');
   const blur = useBlur();
-  const corDe = (s) => GASTO_CORES[Math.max(0, subsAll.indexOf(s)) % GASTO_CORES.length];
   const toggle = (s) => setSels(x => x.includes(s) ? x.filter(y => y !== s) : [...x, s]);
-  if (meses.length === 0 || subsComValor.length === 0) return null;
+  if (meses.length === 0 || opcoes.length === 0) return null;
 
   const W = 320, H = 172, padL = 40, padR = 10, padT = 12, padB = 26;
   const n = meses.length;
-  const totalMes = (m) => sels.reduce((a, s) => a + valorDe(s, m), 0);
+  const totalMes = (m) => sels.reduce((a, s) => a + valSerie(s, m), 0);
   const maxBar = Math.max(...meses.map(totalMes), 1);
-  const maxLine = Math.max(...sels.flatMap(s => meses.map(m => valorDe(s, m))), 1);
+  const maxLine = Math.max(...sels.flatMap(s => meses.map(m => valSerie(s, m))), 1);
   const max = sels.length ? (tipo === 'barras' ? maxBar : maxLine) : 1;
   const step = Math.max(500, Math.ceil(max / 4 / 500) * 500);
   const axisMax = Math.max(500, Math.ceil(max / step) * step);
@@ -500,17 +504,57 @@ function SubcatChart({ cat, anoSel }) {
           <text x={W / 2} y={H / 2} textAnchor="middle" fontSize="10" fill="#ccc">escolha subcategorias abaixo</text>
         ) : tipo === 'barras' ? meses.map((m, i) => {
           let acc = H - padB;
-          return <g key={m}>{sels.map(s => { const v = valorDe(s, m); const h = (v / axisMax) * (H - padT - padB); acc -= h; return h > 0.3 ? <rect key={s} x={xc(i) - barW / 2} y={acc} width={barW} height={h} fill={corDe(s)} /> : null; })}</g>;
+          return <g key={m}>{sels.map(s => { const v = valSerie(s, m); const h = (v / axisMax) * (H - padT - padB); acc -= h; return h > 0.3 ? <rect key={s} x={xc(i) - barW / 2} y={acc} width={barW} height={h} fill={corDe(s)} /> : null; })}</g>;
         }) : sels.map(s => (
           <g key={s}>
-            <path d={meses.map((m, i) => `${i ? 'L' : 'M'} ${xc(i).toFixed(1)} ${y(valorDe(s, m)).toFixed(1)}`).join(' ')} fill="none" stroke={corDe(s)} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-            {meses.map((m, i) => <circle key={m} cx={xc(i)} cy={y(valorDe(s, m))} r="2.4" fill={corDe(s)} />)}
+            <path d={meses.map((m, i) => `${i ? 'L' : 'M'} ${xc(i).toFixed(1)} ${y(valSerie(s, m)).toFixed(1)}`).join(' ')} fill="none" stroke={corDe(s)} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            {meses.map((m, i) => <circle key={m} cx={xc(i)} cy={y(valSerie(s, m))} r="2.4" fill={corDe(s)} />)}
           </g>
         ))}
       </svg>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-        {subsComValor.map(s => chip(sels.includes(s), corDe(s), s, () => toggle(s)))}
+        {opcoes.map(s => chip(sels.includes(s), corDe(s), labelSerie(s), () => toggle(s)))}
       </div>
+    </div>
+  );
+}
+
+// Tabela de evolução por SUBCATEGORIA (subs com valor + "outros") × meses. Mesmas
+// linhas do gráfico e o Total bate com o total da categoria (vindo de Gastos).
+function SubcatTabela({ cat, meses, catTotalDe }) {
+  const life = useLife();
+  const blurV = useBlur();
+  const subsAll = (life.gastoSubcats || {})[cat] || [];
+  const itens = life.gastosItens || [];
+  const valorDe = (sub, m) => itens.filter(x => x.categoria === cat && x.mes === m && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const outrosDe = (m) => Math.round((catTotalDe(m) - subsAll.reduce((a, s) => a + valorDe(s, m), 0)) * 100) / 100;
+  const cols = [...meses].reverse();
+  const subsComValor = subsAll.filter(s => meses.some(m => valorDe(s, m) > 0));
+  const temOutros = meses.some(m => Math.abs(outrosDe(m)) > 0.01);
+  const fmt = (v) => v ? Math.round(Number(v)).toLocaleString('en-US') : '·';
+  const mAbbr = (m) => MESES[+m.slice(5, 7) - 1].slice(0, 3);
+  const stickyL = { position: 'sticky', left: 0, background: '#fff', zIndex: 1 };
+  const th = { padding: '7px 10px', fontSize: 10.5, color: '#888', textTransform: 'uppercase', fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap', borderBottom: '2px solid #eee' };
+  const td = { padding: '7px 10px', fontSize: 12.5, color: '#333', textAlign: 'right', whiteSpace: 'nowrap', borderBottom: '1px solid #f3f3f3' };
+  const linha = (label, valDe, o = {}) => (
+    <tr key={label}>
+      <td style={{ ...td, ...stickyL, textAlign: 'left', fontWeight: o.total ? 700 : (o.outros ? 400 : 600), fontStyle: o.outros ? 'italic' : 'normal', color: o.total ? '#111' : (o.outros ? '#999' : '#222'), ...(o.total ? { borderTop: '2px solid #eee' } : {}) }}>{label}</td>
+      {cols.map(m => { const v = valDe(m); return <td key={m} style={{ ...td, ...(o.total ? { fontWeight: 700, color: '#111', borderTop: '2px solid #eee' } : {}), ...(o.outros ? { color: '#999', fontStyle: 'italic' } : {}), ...(v ? blurV : null) }}>{fmt(v)}</td>; })}
+    </tr>
+  );
+  return (
+    <div style={{ overflowX: 'auto', marginBottom: 18, border: '1px solid #eee', borderRadius: 12 }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead><tr>
+          <th style={{ ...th, ...stickyL, textAlign: 'left' }}>sub</th>
+          {cols.map(m => <th key={m} style={th}>{mAbbr(m)}</th>)}
+        </tr></thead>
+        <tbody>
+          {subsComValor.map(s => linha(s, (m) => valorDe(s, m)))}
+          {temOutros && linha('outros', outrosDe, { outros: true })}
+          {linha('Total', catTotalDe, { total: true })}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -573,16 +617,17 @@ export default function GastosDetalhado({ onBack, oculto }) {
           {editando
             ? <SubcatForm cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} cor={cor} />
             : <SubcatLista cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} />}
-          {/* Abaixo da lista: tabela de evolução dos itens no ano + gráfico. */}
+          {/* Abaixo da lista: tabela + gráfico por subcategoria, sobre os meses que
+              existem em Gastos (não só os que já têm item — assim agosto aparece). */}
           {(() => {
-            const itensCat = (life.gastosItens || []).filter(x => x.categoria === catSel && (x.mes || '').slice(0, 4) === anoSel);
-            if (!itensCat.length) return null;
-            const mesesAsc = [...new Set(itensCat.map(i => i.mes))].sort();
+            const catTotalDe = (m) => (doAno.find(g => g.mes === m)?.itens || []).filter(i => i.categoria === catSel).reduce((a, i) => a + (Number(i.valor) || 0), 0);
+            const mesesCat = [...new Set(doAno.map(g => g.mes))].sort().filter(m => catTotalDe(m) > 0);
+            if (!mesesCat.length) return null;
             return (
               <>
-                <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '26px 0 8px' }}>evolução dos itens · {anoSel}</p>
-                <GastoTabela itens={itensCat} mesesAsc={mesesAsc} cor={cor} onEdit={() => setEditando(true)} />
-                <SubcatChart cat={catSel} anoSel={anoSel} />
+                <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '26px 0 8px' }}>evolução por subcategoria · {anoSel}</p>
+                <SubcatTabela cat={catSel} meses={mesesCat} catTotalDe={catTotalDe} />
+                <SubcatChart cat={catSel} meses={mesesCat} catTotalDe={catTotalDe} />
               </>
             );
           })()}
