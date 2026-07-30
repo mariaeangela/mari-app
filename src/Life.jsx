@@ -2573,10 +2573,13 @@ function GastoForm({ editing, meses, onClose }) {
         <label style={labelStyle}>Gastos por categoria (R$ · aceita conta)</label>
         <datalist id="gasto-cats">{catsUsadas.map(c => <option key={c} value={c} />)}</datalist>
         {rows.map((r, i) => (
-          <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
-            <input list="gasto-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.4, minWidth: 0 }} />
-            <input type="text" inputMode="text" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor" style={{ ...inputStyle, width: 96, flexShrink: 0 }} />
-            <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 20, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
+          <div key={i} style={{ marginBottom: 6 }}>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <input list="gasto-cats" value={r.categoria} onChange={e => setRow(i, 'categoria', e.target.value)} placeholder="categoria" style={{ ...inputStyle, flex: 1.4, minWidth: 0 }} />
+              <input type="text" inputMode="text" value={r.valor} onChange={e => setRow(i, 'valor', e.target.value)} placeholder="valor (ex.: 500+300)" style={{ ...inputStyle, width: 96, flexShrink: 0 }} />
+              <button onClick={() => delRow(i)} title="remover" style={{ background: 'none', border: 'none', color: '#ccc', fontSize: 20, cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}>×</button>
+            </div>
+            <PreviaConta txt={r.valor} />
           </div>
         ))}
         <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '8px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ categoria</button>

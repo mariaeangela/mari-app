@@ -19,6 +19,14 @@ const GASTO_CORES = ['#ff8a3d', '#5b8def', '#2bb673', '#c77dff', '#ef6c4d', '#26
 const catCor = (c, fallback = 0) => { const i = GASTO_CATS.indexOf(c); return GASTO_CORES[(i >= 0 ? i : fallback) % GASTO_CORES.length]; };
 // Dinheiro no padrão da VF: inteiro arredondado, vírgula de milhar, sem decimais.
 const fmtR = (v) => 'R$ ' + Math.round(Number(v) || 0).toLocaleString('en-US');
+// Avalia conta simples ("500+300"): vírgula→ponto; só dígitos e + - * / ( ).
+const evalValor = (s) => {
+  const str = String(s == null ? '' : s).trim().replace(/,/g, '.');
+  if (!str) return 0;
+  if (!/^[0-9.+\-*/() ]+$/.test(str)) return NaN;
+  try { const v = Function('"use strict";return(' + str + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
+  catch { return NaN; }
+};
 
 // estilos locais (cópias — não importa de Life/Retrospectiva)
 const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
@@ -335,19 +343,29 @@ function SubcatForm({ cat, mes, catTotalMes, cor }) {
   const [addOpen, setAddOpen] = useState(false);
   const somaSubs = subs.reduce((a, s) => a + valorDe(s), 0);
   const outros = Math.round((catTotalMes - somaSubs) * 100) / 100;
-  const salvar = (s, v) => { setTxt(t => ({ ...t, [s]: v })); const n = Number(String(v).replace(',', '.')); life.setGastoSubItem(cat, mes, s, isFinite(n) ? n : 0); };
+  // Aceita conta ("500+300"): salva o resultado quando a conta é válida; no blur
+  // normaliza o campo pro número (ou volta pro valor guardado se ficou inválida).
+  const salvar = (s, v) => { setTxt(t => ({ ...t, [s]: v })); const n = evalValor(v); if (isFinite(n)) life.setGastoSubItem(cat, mes, s, n); };
+  const normalizar = (s) => setTxt(t => { const n = evalValor(t[s]); const g = valorDe(s); return { ...t, [s]: (t[s] && isFinite(n)) ? String(Math.round(n * 100) / 100) : (g ? String(g) : '') }; });
   const addSub = () => { const n = novo.trim(); if (!n) return; life.addGastoSubcat(cat, n); setNovo(''); setAddOpen(false); };
   const inputStyle = { width: 110, padding: '7px 9px', border: '1px solid #e2e2e2', borderRadius: 9, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222', textAlign: 'right' };
   return (
     <div>
-      {subs.map(s => (
-        <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f3f3' }}>
-          <span style={{ flex: 1, fontSize: 13.5, color: '#333', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s}</span>
-          <span style={{ fontSize: 12, color: '#aaa' }}>R$</span>
-          <input type="text" inputMode="decimal" value={txt[s] ?? ''} onChange={e => salvar(s, e.target.value)} placeholder="0" style={inputStyle} />
-          <button onClick={() => { if (confirm(`Excluir "${s}"? Os valores lançados nela também são apagados (viram "outros").`)) life.deleteGastoSubcat(cat, s); }} title="excluir subcategoria" style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 18, cursor: 'pointer', lineHeight: 1, flexShrink: 0, padding: '0 2px' }}>×</button>
+      {subs.map(s => {
+        const temConta = /[+\-*/]/.test(txt[s] || '');
+        const cv = temConta ? evalValor(txt[s]) : null;
+        return (
+        <div key={s} style={{ padding: '6px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ flex: 1, fontSize: 13.5, color: '#333', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s}</span>
+            <span style={{ fontSize: 12, color: '#aaa' }}>R$</span>
+            <input type="text" inputMode="text" value={txt[s] ?? ''} onChange={e => salvar(s, e.target.value)} onBlur={() => normalizar(s)} placeholder="0 (aceita conta)" style={inputStyle} />
+            <button onClick={() => { if (confirm(`Excluir "${s}"? Os valores lançados nela também são apagados (viram "outros").`)) life.deleteGastoSubcat(cat, s); }} title="excluir subcategoria" style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 18, cursor: 'pointer', lineHeight: 1, flexShrink: 0, padding: '0 2px' }}>×</button>
+          </div>
+          {temConta && <div style={{ fontSize: 11, textAlign: 'right', color: isFinite(cv) ? '#1a7a4f' : '#c0392b', marginTop: 2 }}>{isFinite(cv) ? '= ' + fmtR(cv) : 'conta inválida'}</div>}
         </div>
-      ))}
+        );
+      })}
       {/* outros = o que falta pra fechar o total do mês */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f3f3', fontStyle: 'italic', color: '#999' }}>
         <span style={{ fontSize: 13 }}>outros</span>
