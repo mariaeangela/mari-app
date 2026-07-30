@@ -368,13 +368,41 @@ function SubcatForm({ cat, mes, catTotalMes, cor }) {
   );
 }
 
+// Versão só-leitura das subcategorias de uma categoria num mês (lista dos gastos).
+// Mostra as subs com valor + "outros" + total. O editar fica atrás de um botão.
+function SubcatLista({ cat, mes, catTotalMes }) {
+  const life = useLife();
+  const subs = (life.gastoSubcats || {})[cat] || [];
+  const itens = life.gastosItens || [];
+  const valorDe = (nome) => itens.filter(x => x.categoria === cat && x.mes === mes && x.nome === nome).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const comValor = subs.map(s => ({ s, v: valorDe(s) })).filter(x => x.v > 0);
+  const somaSubs = subs.reduce((a, s) => a + valorDe(s), 0);
+  const outros = Math.round((catTotalMes - somaSubs) * 100) / 100;
+  const row = (nome, val, opts = {}) => (
+    <div key={nome} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '6px 0', ...(opts.total ? { marginTop: 8, paddingTop: 8, borderTop: '2px solid #eee' } : { borderBottom: '1px solid #f3f3f3' }) }}>
+      <span style={{ fontSize: 13.5, fontStyle: opts.outros ? 'italic' : 'normal', color: opts.total ? '#111' : (opts.outros ? '#999' : '#333'), fontWeight: opts.total ? 700 : 400 }}>{nome}</span>
+      <V style={{ fontSize: 13.5, fontWeight: opts.total ? 700 : 600, color: opts.total ? '#111' : (opts.outros ? (outros < -0.01 ? '#c0392b' : '#999') : '#333') }}>{fmtR(val)}</V>
+    </div>
+  );
+  if (comValor.length === 0 && Math.abs(outros) < 0.01) return <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '6px 0' }}>Nada lançado neste mês.</p>;
+  return (
+    <div>
+      {comValor.map(({ s, v }) => row(s, v))}
+      {Math.abs(outros) > 0.01 && row('outros', outros, { outros: true })}
+      {row('Total do mês', catTotalMes, { total: true })}
+    </div>
+  );
+}
+
 export default function GastosDetalhado({ onBack, oculto }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(null);
   const [form, setForm] = useState(null);
   const [tipoChart, setTipoChart] = useState(null);
   const [mesSel, setMesSel] = useState(null);
-  useEffect(() => { setTipoChart(null); }, [catSel]);
+  const [editandoTudo, setEditandoTudo] = useState(false); // hub: editar todas de uma vez
+  const [editando, setEditando] = useState(false);         // detalhe de UMA categoria: modo editar
+  useEffect(() => { setTipoChart(null); setEditando(false); }, [catSel]);
   const gastos = life.gastos || [];
   const { anos, anoSel, setAnoSel } = useAnoSel(gastos.map(g => g.mes));
   const doAno = gastos.filter(g => (g.mes || '').slice(0, 4) === anoSel);
@@ -417,10 +445,44 @@ export default function GastosDetalhado({ onBack, oculto }) {
               </div>
             </div>
           ))}
-        </> : <SubcatForm cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} cor={cor} />}
+        </> : <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <button onClick={() => setEditando(e => !e)} style={{ border: '1px solid ' + (editando ? cor : '#e2e2e2'), background: editando ? cor + '1c' : '#fff', color: editando ? '#1a4d47' : '#888', borderRadius: 20, padding: '6px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{editando ? '✓ concluir' : '✎ editar'}</button>
+          </div>
+          {editando
+            ? <SubcatForm cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} cor={cor} />
+            : <SubcatLista cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} />}
+        </>}
       </div>
     );
   };
+
+  // "Editar mês": todas as categorias (com subs) numa tela só, pra preencher tudo.
+  const editarTudo = () => (
+    <div style={{ paddingBottom: 20 }}>
+      <button onClick={() => setEditandoTudo(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 14, padding: 0 }}>&larr; Gastos detalhados</button>
+      <div style={{ width: 36, height: 4, background: COR_GASTOS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', margin: '0 0 4px', textTransform: 'capitalize' }}>Editar {mesAtual ? fmtMesAno(mesAtual) : anoSel}</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 20px' }}>preencha as subcategorias · "outros" fecha o total sozinho</p>
+      {GASTO_CATS.map(cat => {
+        const subs = (life.gastoSubcats || {})[cat] || [];
+        if (!subs.length) return null; // Uber/Mãe: sem subs
+        const cor = catCor(cat);
+        return (
+          <div key={cat} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ width: 16, height: 4, background: cor, borderRadius: 4, flexShrink: 0 }} />
+                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#222' }}>{cat}</span>
+              </span>
+              <span style={{ fontSize: 12, color: '#aaa', whiteSpace: 'nowrap' }}>total <V>{fmtR(catMes[cat] || 0)}</V></span>
+            </div>
+            <SubcatForm cat={cat} mes={mesAtual} catTotalMes={catMes[cat] || 0} cor={cor} />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const numRow = (lbl, val, pct) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
@@ -433,6 +495,7 @@ export default function GastosDetalhado({ onBack, oculto }) {
     if (catSel === '__posso') return <PossoDet onBack={() => setCatSel(null)} />;
     if (catSel === '__vr') return <VRDet onBack={() => setCatSel(null)} />;
     if (catSel) return detalhe();
+    if (editandoTudo) return editarTudo();
     return (
       <div style={{ paddingBottom: 20 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 14, padding: 0 }}>&larr; Gastos</button>
@@ -459,6 +522,7 @@ export default function GastosDetalhado({ onBack, oculto }) {
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#111' }}><V>{fmtR(totalMes)}</V></div>
             </div>
           </div>
+          <button onClick={() => setEditandoTudo(true)} style={{ display: 'block', width: '100%', border: '1px solid ' + COR_GASTOS + '55', background: COR_GASTOS + '10', color: '#3a4256', borderRadius: 12, padding: '11px 0', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}>✎ editar {mesAtual ? fmtMesAno(mesAtual) : anoSel} — preencher tudo</button>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {GASTO_CATS.map((c, i) => {
               const cor = catCor(c, i);
