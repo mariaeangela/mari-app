@@ -559,6 +559,56 @@ function SubcatTabela({ cat, meses, catTotalDe }) {
   );
 }
 
+// Acompanhamento: os principais números pra Mari controlar a vida financeira.
+// Primeira leva (dá pra crescer): média do aluguel, maiores gastos do grupo
+// "coisas" (Coisas/Roupa/Skin care/Bobeira/Presentes) e Rolês mais caros. Tudo
+// do ano selecionado, puxando das subcategorias detalhadas.
+function AcompanhamentoInsights({ anoSel }) {
+  const life = useLife();
+  const itensAno = (life.gastosItens || []).filter(x => (x.mes || '').slice(0, 4) === anoSel);
+  const subTotal = (cat, sub) => itensAno.filter(x => x.categoria === cat && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const subMeses = (cat, sub) => new Set(itensAno.filter(x => x.categoria === cat && x.nome === sub && (Number(x.valor) || 0) > 0).map(x => x.mes)).size;
+  const aluguelTotal = subTotal('Fixos', 'Aluguel');
+  const aluguelMeses = subMeses('Fixos', 'Aluguel');
+  const mediaAluguel = aluguelMeses ? aluguelTotal / aluguelMeses : 0;
+  const GRUPO = ['Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Presentes'];
+  const todos = [];
+  GRUPO.forEach(cat => ((life.gastoSubcats || {})[cat] || []).forEach(sub => { const t = subTotal(cat, sub); if (t > 0) todos.push({ cat, sub, total: t }); }));
+  const top5 = todos.sort((a, b) => b.total - a.total).slice(0, 5);
+  const topRoles = ((life.gastoSubcats || {})['Rolês'] || []).map(sub => ({ sub, total: subTotal('Rolês', sub) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+  const box = { background: COR_GASTOS + '0a', border: '1px solid ' + COR_GASTOS + '22', borderRadius: 14, padding: '14px 16px', marginBottom: 12 };
+  const titulo = { fontSize: 10.5, color: '#7a8494', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, marginBottom: 6, lineHeight: 1.4 };
+  const linha = (esq, val) => (
+    <div key={esq} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{esq}</span>
+      <V style={{ fontWeight: 700, color: '#222', whiteSpace: 'nowrap' }}>{fmtR(val)}</V>
+    </div>
+  );
+  if (!itensAno.length) return <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', padding: '4px 0', lineHeight: 1.6 }}>Detalhe seus gastos nas categorias que aqui aparecem seus principais números.</p>;
+  return (
+    <div>
+      {aluguelMeses > 0 && (
+        <div style={box}>
+          <div style={titulo}>Média do aluguel · {anoSel}</div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#111' }}><V>{fmtR(mediaAluguel)}</V> <span style={{ fontSize: 12, color: '#aaa', fontWeight: 400 }}>/mês</span></div>
+        </div>
+      )}
+      {top5.length > 0 && (
+        <div style={box}>
+          <div style={titulo}>Maiores gastos · coisas, roupa, skin care, bobeira, presentes</div>
+          {top5.map((x, i) => linha(`${i + 1}. ${x.sub} · ${x.cat}`, x.total))}
+        </div>
+      )}
+      {topRoles.length > 0 && (
+        <div style={box}>
+          <div style={titulo}>Rolês mais caros · {anoSel}</div>
+          {topRoles.map((x, i) => linha(`${i + 1}. ${x.sub}`, x.total))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GastosDetalhado({ onBack, oculto }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(null);
@@ -726,6 +776,8 @@ export default function GastosDetalhado({ onBack, oculto }) {
               </button>
             ))}
           </div>
+          <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '24px 0 8px' }}>acompanhamento</p>
+          <AcompanhamentoInsights anoSel={anoSel} />
         </>}
       </div>
     );
