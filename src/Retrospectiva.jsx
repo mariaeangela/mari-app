@@ -1497,6 +1497,10 @@ function HabitosRetro({ onBack, isWide }) {
   const [mesSel, setMesSel] = useState(null);
   const mesAtual = (mesSel && meses.includes(mesSel)) ? mesSel : meses[0];
   const regs = dias.filter(d => d.slice(0, 7) === mesAtual).sort().reverse().map(d => ({ d, ...tracking[d] }));
+  // Gráfico de linha (estilo do peso): escolhe sono OU trabalho e vê a evolução no
+  // mês. Série em ordem cronológica, só dias com o valor preenchido.
+  const [metric, setMetric] = useState('sono');
+  const serie = regs.filter(r => typeof r[metric] === 'number').map(r => ({ d: r.d, v: r[metric] })).sort((a, b) => a.d.localeCompare(b.d));
   const media = (campo) => { const vs = regs.map(r => r[campo]).filter(v => typeof v === 'number'); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; };
   const conta = (campo) => regs.filter(r => r[campo]).length;
   // Horas guardadas em decimal; exibidas em hh:mm (7,5 → 7:30). Média também.
@@ -1522,13 +1526,43 @@ function HabitosRetro({ onBack, isWide }) {
       ) : <>
         <div><select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>{meses.map(m => <option key={m} value={m}>{fmtMesAno(m)}</option>)}</select></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => typeof r.sono === 'number').length))}
-          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => typeof r.trabalho === 'number').length))}
+          {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => typeof r.sono === 'number').length), 'med-sono')}
+          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => typeof r.trabalho === 'number').length), 'med-trab')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
           {HABS.map(([campo, label, emoji]) => statBox(label, conta(campo), conta(campo) === 1 ? 'dia' : 'dias', campo))}
         </div>
         <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>dia a dia</p>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+          {[['sono', 'Sono'], ['trabalho', 'Trabalho']].map(([m, l]) => (
+            <button key={m} onClick={() => setMetric(m)} style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (metric === m ? COR_HAB : '#e2e2e2'), background: metric === m ? COR_HAB + '1c' : '#fff', color: metric === m ? '#1a4d47' : '#999' }}>{l}</button>
+          ))}
+        </div>
+        {serie.length >= 2 ? (() => {
+          const W = 320, H = 152, padTop = 14, padBot = 44, padLeft = 40, padRight = 10;
+          const n = serie.length;
+          const vs = serie.map(p => p.v);
+          const min = Math.min(...vs), max = Math.max(...vs);
+          const pad = Math.max(0.5, (max - min) * 0.6);
+          const lo = min - pad, hi = max + pad, span = (hi - lo) || 1;
+          const x = (i) => n === 1 ? W / 2 : padLeft + i * (W - padLeft - padRight) / (n - 1);
+          const y = (v) => (H - padBot) - ((v - lo) / span) * (H - padTop - padBot);
+          const path = serie.map((p, i) => `${i ? 'L' : 'M'} ${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
+          const yLbl = H - padBot + 6;
+          return (
+            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', marginBottom: 14 }}>
+              <text x={padLeft - 4} y={y(max) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{fmtH(max)}</text>
+              <text x={padLeft - 4} y={y(min) + 3} textAnchor="end" fontSize="7.5" fill="#bbb">{fmtH(min)}</text>
+              <path d={path} fill="none" stroke={COR_HAB} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+              {serie.map((p, i) => (
+                <g key={p.d}>
+                  <circle cx={x(i)} cy={y(p.v)} r="2.6" fill={COR_HAB} stroke="#fafafa" strokeWidth="1" />
+                  <text x={x(i)} y={yLbl} textAnchor="end" fontSize="7" fill="#bbb" transform={`rotate(270 ${x(i)} ${yLbl})`}>{p.d.slice(8, 10)}/{p.d.slice(5, 7)}</text>
+                </g>
+              ))}
+            </svg>
+          );
+        })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.</p>}
         {regs.map(r => (
           <div key={r.d} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
             <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>
