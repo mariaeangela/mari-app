@@ -1566,9 +1566,10 @@ function HabitosRetro({ onBack, isWide }) {
         {regs.map(r => (
           <div key={r.d} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
             <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>
-            <span style={{ fontSize: 12.5, color: '#777', width: 96, flexShrink: 0 }}>😴 {fmtH(r.sono)} · 💼 {fmtH(r.trabalho)}</span>
+            <span style={{ fontSize: 12.5, color: '#777', whiteSpace: 'nowrap', flexShrink: 0 }}>😴 {fmtH(r.sono)} · 💼 {fmtH(r.trabalho)}</span>
+            {/* só mostra o emoji do hábito que a Mari fez (nada de cinza pra o que não fez) */}
             <span style={{ fontSize: 14, display: 'flex', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
-              {HABS.map(([campo, label, emoji]) => <span key={campo} title={label} style={{ opacity: r[campo] ? 1 : 0.22, filter: r[campo] ? 'none' : 'grayscale(1)' }}>{emoji}</span>)}
+              {HABS.filter(([campo]) => r[campo]).map(([campo, label, emoji]) => <span key={campo} title={label}>{emoji}</span>)}
             </span>
           </div>
         ))}
