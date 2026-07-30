@@ -394,6 +394,72 @@ function SubcatLista({ cat, mes, catTotalMes }) {
   );
 }
 
+// Gráfico por subcategoria de UMA categoria: escolhe subs (chips) e vê por mês.
+// Barras = empilhadas (acumulado do mês); Linhas = uma por sub. Eixo em múltiplos
+// de 500. Só oferece subs que tiveram algum valor no ano.
+function SubcatChart({ cat, anoSel }) {
+  const life = useLife();
+  const subsAll = (life.gastoSubcats || {})[cat] || [];
+  const itens = (life.gastosItens || []).filter(x => x.categoria === cat && (x.mes || '').slice(0, 4) === anoSel);
+  const meses = [...new Set(itens.map(i => i.mes))].sort();
+  const valorDe = (sub, mes) => itens.filter(x => x.mes === mes && x.nome === sub).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const subsComValor = subsAll.filter(s => meses.some(m => valorDe(s, m) > 0));
+  const [sels, setSels] = useState([]);
+  const [tipo, setTipo] = useState('barras');
+  const blur = useBlur();
+  const corDe = (s) => GASTO_CORES[Math.max(0, subsAll.indexOf(s)) % GASTO_CORES.length];
+  const toggle = (s) => setSels(x => x.includes(s) ? x.filter(y => y !== s) : [...x, s]);
+  if (meses.length === 0 || subsComValor.length === 0) return null;
+
+  const W = 320, H = 172, padL = 40, padR = 10, padT = 12, padB = 26;
+  const n = meses.length;
+  const totalMes = (m) => sels.reduce((a, s) => a + valorDe(s, m), 0);
+  const maxBar = Math.max(...meses.map(totalMes), 1);
+  const maxLine = Math.max(...sels.flatMap(s => meses.map(m => valorDe(s, m))), 1);
+  const max = sels.length ? (tipo === 'barras' ? maxBar : maxLine) : 1;
+  const step = Math.max(500, Math.ceil(max / 4 / 500) * 500);
+  const axisMax = Math.max(500, Math.ceil(max / step) * step);
+  const y = (v) => (H - padB) - (v / axisMax) * (H - padT - padB);
+  const ticks = []; for (let t = 0; t <= axisMax; t += step) ticks.push(t);
+  const bandW = (W - padL - padR) / n;
+  const xc = (i) => padL + bandW * (i + 0.5);
+  const barW = Math.min(30, bandW * 0.55);
+  const chip = (on, c, label, onClick) => (
+    <button key={label} onClick={onClick} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 14, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (on ? (c || '#111') : '#e2e2e2'), background: on ? (c ? c + '1c' : '#1111110d') : '#fff', color: on ? '#333' : '#999' }}>{c && <span style={{ width: 9, height: 9, borderRadius: '50%', background: c, flexShrink: 0 }} />}{label}</button>
+  );
+  return (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        {chip(tipo === 'barras', null, 'barras', () => setTipo('barras'))}
+        {chip(tipo === 'linhas', null, 'linhas', () => setTipo('linhas'))}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        {ticks.map((t, i) => (
+          <g key={i}>
+            <line x1={padL} y1={y(t)} x2={W - padR} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
+            <text x={padL - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb" style={blur}>{fmtR(t)}</text>
+          </g>
+        ))}
+        {meses.map((m, i) => <text key={m} x={xc(i)} y={H - 8} textAnchor="middle" fontSize="8" fill="#bbb">{MESES[+m.slice(5, 7) - 1].slice(0, 3)}</text>)}
+        {sels.length === 0 ? (
+          <text x={W / 2} y={H / 2} textAnchor="middle" fontSize="10" fill="#ccc">escolha subcategorias abaixo</text>
+        ) : tipo === 'barras' ? meses.map((m, i) => {
+          let acc = H - padB;
+          return <g key={m}>{sels.map(s => { const v = valorDe(s, m); const h = (v / axisMax) * (H - padT - padB); acc -= h; return h > 0.3 ? <rect key={s} x={xc(i) - barW / 2} y={acc} width={barW} height={h} fill={corDe(s)} /> : null; })}</g>;
+        }) : sels.map(s => (
+          <g key={s}>
+            <path d={meses.map((m, i) => `${i ? 'L' : 'M'} ${xc(i).toFixed(1)} ${y(valorDe(s, m)).toFixed(1)}`).join(' ')} fill="none" stroke={corDe(s)} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            {meses.map((m, i) => <circle key={m} cx={xc(i)} cy={y(valorDe(s, m))} r="2.4" fill={corDe(s)} />)}
+          </g>
+        ))}
+      </svg>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+        {subsComValor.map(s => chip(sels.includes(s), corDe(s), s, () => toggle(s)))}
+      </div>
+    </div>
+  );
+}
+
 export default function GastosDetalhado({ onBack, oculto }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(null);
@@ -452,6 +518,19 @@ export default function GastosDetalhado({ onBack, oculto }) {
           {editando
             ? <SubcatForm cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} cor={cor} />
             : <SubcatLista cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} />}
+          {/* Abaixo da lista: tabela de evolução dos itens no ano + gráfico. */}
+          {(() => {
+            const itensCat = (life.gastosItens || []).filter(x => x.categoria === catSel && (x.mes || '').slice(0, 4) === anoSel);
+            if (!itensCat.length) return null;
+            const mesesAsc = [...new Set(itensCat.map(i => i.mes))].sort();
+            return (
+              <>
+                <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '26px 0 8px' }}>evolução dos itens · {anoSel}</p>
+                <GastoTabela itens={itensCat} mesesAsc={mesesAsc} cor={cor} onEdit={() => setEditando(true)} />
+                <SubcatChart cat={catSel} anoSel={anoSel} />
+              </>
+            );
+          })()}
         </>}
       </div>
     );
