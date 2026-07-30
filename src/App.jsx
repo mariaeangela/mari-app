@@ -540,7 +540,7 @@ function PossoBucket({ ck, bucket, label }) {
   const temBudget = budget > 0;
   const [addOpen, setAddOpen] = useState(false);
   const [val, setVal] = useState('');
-  const [nome, setNome] = useState('');   // "o que foi" — só no bucket Total
+  const [nome, setNome] = useState(bucket === 'mercado' ? 'mercado' : '');   // "o que foi"; Mercado já vem preenchido
   const [editB, setEditB] = useState(false);
   const [bTxt, setBTxt] = useState('');
   const [editId, setEditId] = useState(null); // gasto em edição na lista
@@ -552,10 +552,11 @@ function PossoBucket({ ck, bucket, label }) {
   const [diaExp, setDiaExp] = useState(null);
   const gastosPorDia = agruparPorDia(b.gastos);
   const cor = '#b06d1e';
-  const comNome = bucket === 'total';     // só o Total ganha descrição + lista
-  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: comNome ? (nome.trim() || undefined) : undefined, data: ymd(hojeMid()) }); setVal(''); setNome(''); setAddOpen(false); };
+  const comNome = true;                   // Total e Mercado ganham descrição + lista
+  const nomeDefault = bucket === 'mercado' ? 'mercado' : ''; // Mercado já vem preenchido (a Mari troca se quiser)
+  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: ymd(hojeMid()) }); setVal(''); setNome(nomeDefault); setAddOpen(false); };
   const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
-  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || ''); setEVal(String(g.valor ?? '')); };
+  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || nomeDefault); setEVal(String(g.valor ?? '')); };
   const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, comNome ? { valor: v, nome: eNome.trim() || undefined } : { valor: v }); setEditId(null); };
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
@@ -580,7 +581,7 @@ function PossoBucket({ ck, bucket, label }) {
               <div style={{ display: 'flex', gap: 8 }}>
                 <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
                 <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
-                <button onClick={() => { setAddOpen(false); setVal(''); setNome(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+                <button onClick={() => { setAddOpen(false); setVal(''); setNome(nomeDefault); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
               </div>
             </div>
           )}
