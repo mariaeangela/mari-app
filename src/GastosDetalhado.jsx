@@ -300,6 +300,41 @@ function PossoDet({ onBack }) {
       ); })}
     </div>
   );
+  // Lista dos gastos de UMA caixa por dia (igual Hoje/VR): dia + total, e cada
+  // lançamento com o que foi (nome) e o valor.
+  const listaPorDia = (gastos) => {
+    const porDia = {};
+    (gastos || []).forEach(g => { if (g.data) (porDia[g.data] = porDia[g.data] || []).push(g); });
+    const dias = Object.keys(porDia).sort().reverse();
+    return dias.map(dia => {
+      const arr = porDia[dia];
+      const tot = arr.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+      return (
+        <div key={dia} style={{ marginTop: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888', fontWeight: 700, borderBottom: '1px solid #f3f3f3', paddingBottom: 2 }}>
+            <span>{dia.slice(8, 10)}/{dia.slice(5, 7)}</span><span style={blur}>{fmtR(tot)}</span>
+          </div>
+          {arr.map(g => (
+            <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0 3px 12px', fontSize: 12.5, color: '#666' }}>
+              <span style={{ color: '#bbb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {g.nome || 'gasto'}</span>
+              <span style={blur}>{fmtR(g.valor)}</span>
+            </div>
+          ))}
+        </div>
+      );
+    });
+  };
+  // Por caixa (Total/Mercado): rótulo + a lista por dia, só se tiver gasto.
+  const listasBuckets = (c) => buckets.map(([bk, lbl]) => {
+    const gastos = (c || {})[bk]?.gastos || [];
+    if (!gastos.length) return null;
+    return (
+      <div key={bk} style={{ marginTop: 12 }}>
+        <div style={{ fontSize: 10.5, color: cor, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>{lbl} · por dia</div>
+        {listaPorDia(gastos)}
+      </div>
+    );
+  });
   const anteriores = keys.filter(k => k !== cycleKey);
   return (
     <div style={{ paddingBottom: 20 }}>
@@ -313,12 +348,14 @@ function PossoDet({ onBack }) {
         <div style={{ border: '1px solid ' + cor + '33', background: cor + '0c', borderRadius: 16, padding: '14px 16px', marginBottom: 18 }}>
           <div style={{ fontSize: 11.5, color: cor, fontWeight: 700 }}>{cicloLabel(cycleKey)} · agora</div>
           {linhaBuckets(ciclos[cycleKey], true)}
+          {listasBuckets(ciclos[cycleKey])}
         </div>
         {anteriores.length > 0 && <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>meses anteriores</p>}
         {anteriores.map(k => (
           <div key={k} style={{ border: '1px solid #eee', borderRadius: 12, padding: '11px 14px', marginBottom: 10 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#444' }}>{cicloLabel(k)}</div>
             {linhaBuckets(ciclos[k], false)}
+            {listasBuckets(ciclos[k])}
           </div>
         ))}
       </>}
