@@ -319,6 +319,55 @@ function PossoDet({ onBack }) {
 }
 
 // Componente principal. `oculto` vem da VF (cadeado) — borra os valores.
+// Preenchimento por subcategoria de UMA categoria num mês. As subcategorias vêm
+// com o nome pronto (life.gastoSubcats[cat]); a Mari só põe/edita o valor. "outros"
+// = total da categoria no mês (vindo de Gastos) − soma das subs. Dá pra criar e
+// excluir subcategoria (excluir apaga os valores dela → viram "outros").
+function SubcatForm({ cat, mes, catTotalMes, cor }) {
+  const life = useLife();
+  const subs = (life.gastoSubcats || {})[cat] || [];
+  const itens = life.gastosItens || [];
+  const valorDe = (nome) => itens.filter(x => x.categoria === cat && x.mes === mes && x.nome === nome).reduce((a, x) => a + (Number(x.valor) || 0), 0);
+  const [txt, setTxt] = useState({});
+  // seeda os campos com os valores do mês ao trocar de categoria ou mês
+  useEffect(() => { const o = {}; subs.forEach(s => { const v = valorDe(s); o[s] = v ? String(v) : ''; }); setTxt(o); }, [cat, mes]); // eslint-disable-line
+  const [novo, setNovo] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const somaSubs = subs.reduce((a, s) => a + valorDe(s), 0);
+  const outros = Math.round((catTotalMes - somaSubs) * 100) / 100;
+  const salvar = (s, v) => { setTxt(t => ({ ...t, [s]: v })); const n = Number(String(v).replace(',', '.')); life.setGastoSubItem(cat, mes, s, isFinite(n) ? n : 0); };
+  const addSub = () => { const n = novo.trim(); if (!n) return; life.addGastoSubcat(cat, n); setNovo(''); setAddOpen(false); };
+  const inputStyle = { width: 110, padding: '7px 9px', border: '1px solid #e2e2e2', borderRadius: 9, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222', textAlign: 'right' };
+  return (
+    <div>
+      {subs.map(s => (
+        <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span style={{ flex: 1, fontSize: 13.5, color: '#333', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s}</span>
+          <span style={{ fontSize: 12, color: '#aaa' }}>R$</span>
+          <input type="text" inputMode="decimal" value={txt[s] ?? ''} onChange={e => salvar(s, e.target.value)} placeholder="0" style={inputStyle} />
+          <button onClick={() => { if (confirm(`Excluir "${s}"? Os valores lançados nela também são apagados (viram "outros").`)) life.deleteGastoSubcat(cat, s); }} title="excluir subcategoria" style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 18, cursor: 'pointer', lineHeight: 1, flexShrink: 0, padding: '0 2px' }}>×</button>
+        </div>
+      ))}
+      {/* outros = o que falta pra fechar o total do mês */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', borderBottom: '1px solid #f3f3f3', fontStyle: 'italic', color: '#999' }}>
+        <span style={{ fontSize: 13 }}>outros</span>
+        <V style={{ fontSize: 13.5, fontWeight: 600, color: outros < -0.01 ? '#c0392b' : '#999' }}>{fmtR(outros)}</V>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 10, paddingTop: 8, borderTop: '2px solid #eee', fontSize: 13.5, fontWeight: 700, color: '#111' }}>
+        <span>Total do mês</span><V>{fmtR(catTotalMes)}</V>
+      </div>
+      {addOpen ? (
+        <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+          <input autoFocus value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addSub(); if (e.key === 'Escape') { setAddOpen(false); setNovo(''); } }} placeholder="nova subcategoria" style={{ flex: 1, padding: '9px 11px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+          <button onClick={addSub} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
+        </div>
+      ) : (
+        <button onClick={() => setAddOpen(true)} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 10, padding: '9px 0', width: '100%', color: '#999', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>+ subcategoria</button>
+      )}
+    </div>
+  );
+}
+
 export default function GastosDetalhado({ onBack, oculto }) {
   const life = useLife();
   const [catSel, setCatSel] = useState(null);
@@ -339,51 +388,25 @@ export default function GastosDetalhado({ onBack, oculto }) {
   const totalMes = Object.values(catMes).reduce((a, b) => a + b, 0);
   const selStyle = { flex: 1, minWidth: 0, padding: '10px 12px', borderRadius: 12, border: '1px solid ' + COR_GASTOS + '55', background: COR_GASTOS + '10', color: '#3a4256', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', textTransform: 'capitalize', cursor: 'pointer' };
 
-  // Detalhe de uma categoria (itens do ano, gráfico + tabela + add/editar).
+  // Detalhe de uma categoria: preenchimento das subcategorias do MÊS selecionado no
+  // topo. Uber/Mãe são únicas (sem subs) — mostram só os totais por mês.
   const detalhe = () => {
-    const itens = (life.gastosItens || []).filter(x => x.categoria === catSel && (x.mes || '').slice(0, 4) === anoSel);
-    const temItens = itens.length > 0;
+    const cor = catCor(catSel);
+    const subs = (life.gastoSubcats || {})[catSel] || [];
+    const unica = subs.length === 0;
+    const catTotalMes = catMes[catSel] || 0;
     const linhas = doAno.map(g => ({ mes: g.mes, valor: Number((g.itens || []).find(i => i.categoria === catSel)?.valor) || 0 }))
       .filter(l => l.valor > 0).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
     const maxMes = Math.max(...linhas.map(l => l.valor), 1);
-    const cor = catCor(catSel);
-    const mesesItens = [...new Set(itens.map(i => i.mes))].sort().reverse();
-    const totalItens = itens.reduce((a, i) => a + (Number(i.valor) || 0), 0);
-    const totalCat = temItens ? totalItens : linhas.reduce((a, l) => a + l.valor, 0);
-    const mesesChart = [...mesesItens].reverse().map(mm => {
-      const arr = itens.filter(i => i.mes === mm).map(i => ({ titulo: i.nome, vnum: Number(i.valor) || 0 })).sort((a, b) => b.vnum - a.vnum);
-      return { mm, label: MESES[+mm.slice(5, 7) - 1].slice(0, 3), itens: arr, total: arr.reduce((a, i) => a + i.vnum, 0) };
-    }).filter(m => m.total > 0);
-    const mesesAsc = [...mesesItens].reverse();
-    const recCount = {}; itens.forEach(i => { (recCount[i.nome] = recCount[i.nome] || new Set()).add(i.mes); });
-    const recorrentes = Object.values(recCount).filter(s => s.size >= 2).length;
-    const chartTipo = tipoChart || (recorrentes >= 3 ? 'linhas' : 'barras');
     return (
       <div style={{ paddingBottom: 20 }}>
         <button onClick={() => setCatSel(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 14, padding: 0 }}>&larr; Gastos detalhados</button>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
-            <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}><V>{fmtR(totalCat)}</V> em {anoSel}{temItens ? ` · ${itens.length} ${itens.length === 1 ? 'lançamento' : 'lançamentos'}` : ''}</p>
-          </div>
-          <button onClick={() => setForm({})} title="adicionar gasto" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
-        </div>
-        {temItens ? <>
-          {mesesChart.length > 0 && <>
-            {mesesAsc.length > 1 && <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              {[['barras', 'barras'], ['linhas', 'linhas']].map(([id, lbl]) => (
-                <button key={id} onClick={() => setTipoChart(id)} style={{ padding: '5px 12px', borderRadius: 16, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (chartTipo === id ? cor : '#e2e2e2'), background: chartTipo === id ? cor + '1c' : '#fff', color: chartTipo === id ? '#333' : '#999' }}>{lbl}</button>
-              ))}
-            </div>}
-            {chartTipo === 'linhas' ? <LinhasGastoChart itens={itens} mesesAsc={mesesAsc} /> : <ComprasChart meses={mesesChart} />}
-          </>}
-          <GastoTabela itens={itens} mesesAsc={mesesAsc} cor={cor} onEdit={(it) => setForm({ editing: it })} />
-        </> : linhas.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Sem gastos em {catSel} em {anoSel}. Toque no + para detalhar.</p>
-        ) : <>
-          <p style={{ fontSize: 11.5, color: '#bbb', margin: '0 0 10px' }}>total por mês (ainda não detalhado — toque no + para listar os itens)</p>
-          {linhas.map(l => (
+        <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
+        <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px', textTransform: 'capitalize' }}>{mesAtual ? fmtMesAno(mesAtual) : anoSel} · total <V>{fmtR(catTotalMes)}</V></p>
+        {unica ? <>
+          <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', margin: '0 0 12px' }}>Categoria única — sem subcategorias. Total por mês:</p>
+          {linhas.length === 0 ? <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic' }}>Sem gastos em {catSel} em {anoSel}.</p> : linhas.map(l => (
             <div key={l.mes} style={{ marginBottom: 9 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
                 <span style={{ color: '#555', textTransform: 'capitalize' }}>{fmtMesAno(l.mes)}</span>
@@ -394,8 +417,7 @@ export default function GastosDetalhado({ onBack, oculto }) {
               </div>
             </div>
           ))}
-        </>}
-        {form && <GastoItemForm editing={form.editing} categoria={catSel} onClose={() => setForm(null)} />}
+        </> : <SubcatForm cat={catSel} mes={mesAtual} catTotalMes={catTotalMes} cor={cor} />}
       </div>
     );
   };

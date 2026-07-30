@@ -36,7 +36,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} }, trechos: [], albuns: [] };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} }, trechos: [], albuns: [], gastoSubcats: {} };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -1238,6 +1238,33 @@ function ensureGastos2026Detalhe(d) {
   return out;
 }
 
+// Subcategorias fixas de cada categoria de Gastos (a Mari edita: cria/exclui).
+// "outros" NÃO entra aqui — é sempre o resto automático (total − soma das subs),
+// menos em Uber e Mãe, que são únicas (lista vazia = sem subs, sem "outros").
+const GASTO_SUBCATS_SEED = {
+  'Fixos': ['Aluguel', 'Contas casa', 'Academia/personal', 'Streaming/assinaturas', 'Mãe', 'Transporte'],
+  'Mercado': ['Mercado', 'Nutricar', 'Livup', 'Performance'],
+  'Uber': [],
+  'Trabalho': ['Uber', 'Almoço'],
+  'Mãe': [],
+  'Saúde': ['Farmácia', 'Dentista', 'Psiquiatra', 'Consulta', 'Exames', 'Estética', 'Academia'],
+  'Viagem': ['NY', 'FLIP', 'Trilhas', 'Olinda', 'Europa', 'Rio', 'Carnaval BH', 'Salvador'],
+  'Coisas': ['Óculos', 'Câmera/foto', 'Arte', 'Casa', 'Livros', 'Cabelo', 'Papelaria', 'Acessórios'],
+  'Roupa': ['Roupa', 'Fantasias', 'Bolsas', 'Ajustes', 'Esporte', 'Sapatos'],
+  'Skin care': ['Cabelo', 'Pele', 'Maquiagem'],
+  'Bobeira': ['Comida salgado', 'Comida doce', 'Água'],
+  'Rolês': ['Bares', 'Restaurante', 'Shows', 'Festas', 'Aniversário', 'Cultura', 'Corrida', 'Dates', 'Diversos'],
+  'Presentes': ['Westwing', 'Doação', 'Milena', 'Posto praia', 'Sorvete Raul', 'Pedágio'],
+};
+function ensureGastoSubcats(d) {
+  if (d.gastoSubcatsSeeded) return d;
+  // só preenche categorias que a Mari ainda não personalizou (merge não-destrutivo)
+  const atual = d.gastoSubcats || {};
+  const next = { ...atual };
+  Object.keys(GASTO_SUBCATS_SEED).forEach(cat => { if (!next[cat]) next[cat] = [...GASTO_SUBCATS_SEED[cat]]; });
+  return { ...d, gastoSubcatsSeeded: true, gastoSubcats: next };
+}
+
 // Aplica todos os seeds idempotentes do Life, na ordem (primeiro→último).
 // Primeiro livro do Acompanhamento de leituras: Anna Kariênina (começou em 25/06/2026).
 // O GUIA é texto curado/verificado por mim (Wikipédia PT/EN), SEM NENHUM SPOILER do enredo:
@@ -1582,7 +1609,7 @@ function ensureCarteiraMesAtual(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -2040,6 +2067,29 @@ export function LifeProvider({ children }) {
     : [...gastosItens, { ...it, id: uid('gi') }] });
   const deleteGastoItem = (id) => persist({ ...data, gastosItens: gastosItens.filter(x => x.id !== id) });
 
+  // ---- Subcategorias de gastos (lista editável por categoria) ----
+  const gastoSubcats = data.gastoSubcats || {};
+  const addGastoSubcat = (cat, nome) => {
+    const n = (nome || '').trim(); if (!n) return;
+    const lista = gastoSubcats[cat] || [];
+    if (lista.some(x => x.toLowerCase() === n.toLowerCase())) return; // já existe (a menos de caixa)
+    persist({ ...data, gastoSubcats: { ...gastoSubcats, [cat]: [...lista, n] } });
+  };
+  // Excluir subcategoria: some da lista E apaga os lançamentos dela (o dinheiro
+  // passa a compor "outros"). Feito num persist só.
+  const deleteGastoSubcat = (cat, nome) => {
+    const lista = (gastoSubcats[cat] || []).filter(x => x !== nome);
+    persist({ ...data, gastoSubcats: { ...gastoSubcats, [cat]: lista }, gastosItens: gastosItens.filter(x => !(x.categoria === cat && x.nome === nome)) });
+  };
+  // Valor de UMA subcategoria num mês: 1 lançamento por (cat, mês, nome). Remove os
+  // que houver e recria com o novo valor (0/vazio = fica sem lançamento).
+  const setGastoSubItem = (cat, mes, nome, valor) => {
+    const v = Number(valor) || 0;
+    const semEsse = gastosItens.filter(x => !(x.categoria === cat && x.mes === mes && x.nome === nome));
+    const novos = v > 0 ? [...semEsse, { id: uid('gi'), categoria: cat, mes, nome, valor: v }] : semEsse;
+    persist({ ...data, gastosItens: novos });
+  };
+
   // ---- VR (vale-refeição): ciclo dia 27→26. Por ciclo: { total, gastos:[{id,valor,data,nota?}] }.
   // Chave do ciclo = ymd do dia 27 que o inicia. "Pode gastar por dia" = (total − gasto) / dias até o 26.
   const vr = (data.vr && data.vr.ciclos) ? data.vr : { ciclos: {} };
@@ -2158,6 +2208,7 @@ export function LifeProvider({ children }) {
     ingles, saveInglesEntry, deleteInglesEntry,
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
+    gastoSubcats, addGastoSubcat, deleteGastoSubcat, setGastoSubItem,
     vr, setVrTotal, addVrGasto, deleteVrGasto,
     possoGastar, setPgBudget, addPgGasto, deletePgGasto, updatePgGasto,
     trechos, saveTrecho, deleteTrecho,
