@@ -728,6 +728,56 @@ function PossoGastarHoje() {
   );
 }
 
+// Acompanhamento do dia: a Mari preenche todo dia (sono, trabalho, exercício, fio
+// dental, leitura). Salva no calendarStore (chave do dia); o histórico aparece na
+// Retrospectiva › Acompanhamento. Números guardam a hora (aceita 7,5); os três
+// hábitos são liga/desliga.
+function TrackingHoje() {
+  const cal = useCalendar();
+  const k = ymd(hojeMid());
+  const t = (cal.data.tracking || {})[k] || {};
+  const cor = '#3fb6a8';
+  // Horas em hh:mm (7:30 = sete e meia). Guarda em horas DECIMAIS por dentro (bom
+  // pra tirar média na Retrospectiva); mostra e edita em hh:mm. Aceita também só o
+  // número ("8" = 8:00). Texto local pra digitar sem o parse atrapalhar.
+  const fmtHM = (v) => { if (v == null) return ''; const tot = Math.round(v * 60); return `${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, '0')}`; };
+  const parseHM = (s) => { const str = String(s).trim(); if (!str) return undefined; if (str.includes(':')) { const [h, m] = str.split(':'); const v = (Number(h) || 0) + (Number(m) || 0) / 60; return isFinite(v) ? v : undefined; } const n = Number(str.replace(',', '.')); return isFinite(n) ? n : undefined; };
+  const [sono, setSono] = useState(fmtHM(t.sono));
+  const [trab, setTrab] = useState(fmtHM(t.trabalho));
+  const salvarNum = (campo, txt) => { cal.setTracking(k, { [campo]: parseHM(txt) }); };
+  const numLabel = { fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: 4, fontWeight: 700 };
+  const numInput = { width: '100%', padding: '8px 10px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 15, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
+  const toggle = (campo, label) => {
+    const on = !!t[campo];
+    return (
+      <button onClick={() => cal.setTracking(k, { [campo]: !on })} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+        border: '1px solid ' + (on ? cor : '#e2e2e2'), background: on ? cor + '1c' : '#fff', color: on ? '#1a7a6e' : '#999',
+      }}>{on ? '✓' : '○'} {label}</button>
+    );
+  };
+  return (
+    <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '14px 16px' }}>
+      <div style={{ fontSize: 11, color: '#2f746d', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 12 }}>Acompanhamento do dia</div>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ flex: 1 }}>
+          <label style={numLabel}>Sono (h)</label>
+          <input type="text" inputMode="text" value={sono} onChange={e => { setSono(e.target.value); salvarNum('sono', e.target.value); }} placeholder="ex.: 7:30" style={numInput} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={numLabel}>Trabalho (h)</label>
+          <input type="text" inputMode="text" value={trab} onChange={e => { setTrab(e.target.value); salvarNum('trabalho', e.target.value); }} placeholder="ex.: 8:00" style={numInput} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {toggle('exercicio', 'Exercício')}
+        {toggle('fioDental', 'Fio dental')}
+        {toggle('leu', 'Leitura')}
+      </div>
+    </div>
+  );
+}
+
 function Feed({ isWide }) {
   // Capa (Hoje) — enxuta, a pedido da Mari: saudação · neste dia · seu dia
   // (humor + diário) · antecipação (viagem/prova/compra + cultura acabando) ·
@@ -748,6 +798,7 @@ function Feed({ isWide }) {
         <PossoGastarViagem />
         <VRHoje />
         <PossoGastarHoje />
+        <TrackingHoje />
       </div>
     </div>
   );

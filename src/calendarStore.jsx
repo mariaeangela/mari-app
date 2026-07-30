@@ -16,7 +16,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE } from './cloud';
 
 const KEY = 'diagonal_calendario';
-const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {} };
+const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {} };
 const CalContext = createContext(null);
 
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -115,7 +115,8 @@ export function CalendarProvider({ children }) {
       if (!cloud) {
         // nuvem LIDA e vazia: se já há algo local, empurra pra cima (migração 1ª vez)
         const hasLocal = local.events.length || local.exercicios.length || local.tasks.length ||
-          local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length;
+          local.cultura.length || local.roles.length || Object.keys(local.moods).length || Object.keys(local.diary).length ||
+          Object.keys(local.tracking || {}).length;
         const seeded = runSeeds(local);
         const { next, changed } = rolarAtrasadas(seeded.tasks, hojeKey());
         const f = changed ? { ...seeded, tasks: next } : seeded;
@@ -261,6 +262,17 @@ export function CalendarProvider({ children }) {
     patch({ bilhetes });
   };
 
+  // Acompanhamento diário (chave 'YYYY-MM-DD' → { sono, trabalho, exercicio, fioDental, leu }).
+  // Números vazios / booleans falsos são removidos pra não guardar lixo; dia sem
+  // nenhum campo some do objeto.
+  const setTracking = (dayKey, patchObj) => {
+    const tracking = { ...(data.tracking || {}) };
+    const cur = { ...(tracking[dayKey] || {}), ...patchObj };
+    Object.keys(cur).forEach(k => { const v = cur[k]; if (v === undefined || v === null || v === '' || v === false) delete cur[k]; });
+    if (Object.keys(cur).length) tracking[dayKey] = cur; else delete tracking[dayKey];
+    patch({ tracking });
+  };
+
   // ---- Metas do mês (chave 'YYYY-MM' → [{id, texto, feito}]) ----
   const addMeta = (mesKey, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: [...(data.metas?.[mesKey] || []), { id: uid('m'), texto: t, feito: false }] } }); };
   const toggleMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, feito: !m.feito } : m) } });
@@ -270,7 +282,7 @@ export function CalendarProvider({ children }) {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, deleteMeta, salvarAgora,
+    addMeta, toggleMeta, deleteMeta, salvarAgora, setTracking,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

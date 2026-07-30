@@ -50,6 +50,7 @@ const CARDS = [
   { id: 'musica', label: 'Música', desc: 'o que tocou no seu ano', cor: '#1db954', pronto: true },
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'terapia, consultas, exames', cor: '#d96459', pronto: true },
+  { id: 'habitos', label: 'Acompanhamento', desc: 'sono, trabalho e hábitos do dia', cor: '#3fb6a8', pronto: true },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'trilhas', label: 'Trilhas', desc: 'seus percursos na natureza', cor: '#6b8e5a', pronto: true },
   { id: 'amorosa', label: 'Amorosa', desc: 'dates, beijos e afins', cor: '#c2548f', pronto: true },
@@ -74,6 +75,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'quem') return <QuemRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'saude') return <SaudeRetro onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'habitos') return <HabitosRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
 }
@@ -1483,6 +1485,64 @@ function ViagemForm({ editing, onClose }) {
 }
 
 // ---- Card: Gastos (por categoria; Coisas reusa a retrospectiva de Compras) ----
+// Acompanhamento (retrospectiva): o que a Mari preenche todo dia na Tela Hoje —
+// sono, trabalho, exercício, fio dental, leitura. Guardado em calendarStore.tracking
+// (chave 'YYYY-MM-DD'). Aqui: médias e contagens do mês + o dia a dia.
+const COR_HAB = '#3fb6a8';
+function HabitosRetro({ onBack, isWide }) {
+  const cal = useCalendar();
+  const tracking = cal.data.tracking || {};
+  const dias = Object.keys(tracking);
+  const meses = [...new Set(dias.map(d => d.slice(0, 7)))].sort().reverse();
+  const [mesSel, setMesSel] = useState(null);
+  const mesAtual = (mesSel && meses.includes(mesSel)) ? mesSel : meses[0];
+  const regs = dias.filter(d => d.slice(0, 7) === mesAtual).sort().reverse().map(d => ({ d, ...tracking[d] }));
+  const media = (campo) => { const vs = regs.map(r => r[campo]).filter(v => typeof v === 'number'); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; };
+  const conta = (campo) => regs.filter(r => r[campo]).length;
+  // Horas guardadas em decimal; exibidas em hh:mm (7,5 → 7:30). Média também.
+  const fmtH = (v) => { if (v == null) return '—'; const tot = Math.round(v * 60); return `${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, '0')}`; };
+  const plur = (n) => n + (n === 1 ? ' dia' : ' dias');
+  const HABS = [['exercicio', 'Exercício', '🏃'], ['fioDental', 'Fio dental', '🦷'], ['leu', 'Leitura', '📖']];
+  const selStyle = { padding: '9px 12px', borderRadius: 12, border: '1px solid ' + COR_HAB + '55', background: COR_HAB + '10', color: '#26645d', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', textTransform: 'capitalize', cursor: 'pointer', marginBottom: 16 };
+  const statBox = (label, valor, sub, chave) => (
+    <div key={chave} style={{ background: COR_HAB + '10', border: '1px solid ' + COR_HAB + '22', borderRadius: 14, padding: '12px 14px' }}>
+      <div style={{ fontSize: 10.5, color: '#7a9a95', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700 }}>{label}</div>
+      <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: '#1a4d47', marginTop: 2 }}>{valor}</div>
+      {sub && <div style={{ fontSize: 10.5, color: '#aaa', marginTop: 1 }}>{sub}</div>}
+    </div>
+  );
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_HAB, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Acompanhamento</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu dia a dia · sono, trabalho e hábitos</p>
+      {!meses.length ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada ainda. Preencha o “Acompanhamento do dia” no fim da Tela Hoje que o histórico aparece aqui.</p>
+      ) : <>
+        <div><select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>{meses.map(m => <option key={m} value={m}>{fmtMesAno(m)}</option>)}</select></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+          {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => typeof r.sono === 'number').length))}
+          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => typeof r.trabalho === 'number').length))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
+          {HABS.map(([campo, label, emoji]) => statBox(label, conta(campo), conta(campo) === 1 ? 'dia' : 'dias', campo))}
+        </div>
+        <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>dia a dia</p>
+        {regs.map(r => (
+          <div key={r.d} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+            <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>
+            <span style={{ fontSize: 12.5, color: '#777', width: 96, flexShrink: 0 }}>😴 {fmtH(r.sono)} · 💼 {fmtH(r.trabalho)}</span>
+            <span style={{ fontSize: 14, display: 'flex', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
+              {HABS.map(([campo, label, emoji]) => <span key={campo} title={label} style={{ opacity: r[campo] ? 1 : 0.22, filter: r[campo] ? 'none' : 'grayscale(1)' }}>{emoji}</span>)}
+            </span>
+          </div>
+        ))}
+      </>}
+    </div>
+  );
+}
+
 const COR_GASTOS = '#6b7a99';
 const GASTO_CATS = ['Fixos', 'Mercado', 'Uber', 'Trabalho', 'Mãe', 'Saúde', 'Viagem', 'Coisas', 'Roupa', 'Skin care', 'Bobeira', 'Rolês', 'Presentes'];
 const fmtBRLr = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
