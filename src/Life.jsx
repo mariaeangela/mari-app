@@ -550,6 +550,11 @@ function fmtFuncionamento(f) {
 
 function CulturalForm({ editing, onClose }) {
   const life = useLife();
+  const cal = useCalendar();
+  // "Quando ir": vira um evento no Calendário (categoria Cultura). O id do evento
+  // fica guardado no item (`eventoId`) pra reeditar/apagar em vez de duplicar.
+  const [quandoIr, setQuandoIr] = useState(editing?.quandoIr || '');
+  const [horaIr, setHoraIr] = useState(editing?.horaIr || '');
   const [nome, setNome] = useState(editing?.nome || '');
   const [tipo, setTipo] = useState(editing?.tipo || 'exposicao');
   const [cidade, setCidade] = useState(editing?.cidade || '');
@@ -566,12 +571,19 @@ function CulturalForm({ editing, onClose }) {
   const salvar = () => {
     if (!podeSalvar) return;
     const func = (dias.length || abre || fecha) ? { dias: [...dias].sort((a, b) => a - b), abre: abre || undefined, fecha: fecha || undefined } : undefined;
+    // Cria/atualiza (ou apaga) o evento do "quando ir" no Calendário.
+    let eventoId = editing?.eventoId;
+    if (quandoIr) {
+      if (!eventoId) eventoId = 'e-cult-' + Date.now().toString(36);
+      cal.saveEvent({ id: eventoId, titulo: nome.trim(), categoria: 'cultura', inicio: quandoIr, horaInicio: horaIr || undefined, local: local.trim() || undefined });
+    } else if (eventoId) { cal.deleteEvent(eventoId); eventoId = undefined; }
     life.saveCulturalItem({
       id: editing?.id, nome: nome.trim(), tipo,
       cidade: cidade.trim() || undefined, local: local.trim() || undefined,
       dataMax: dataMax || undefined, preco: preco.trim() || undefined,
       link: link.trim() || undefined,
       funcionamento: func,
+      quandoIr: quandoIr || undefined, horaIr: horaIr || undefined, eventoId,
     });
     onClose();
   };
@@ -594,6 +606,12 @@ function CulturalForm({ editing, onClose }) {
         <input value={local} onChange={e => setLocal(e.target.value)} placeholder="ex.: MASP" style={inputStyle} />
         <label style={labelStyle}>Em cartaz até (opcional)</label>
         <input type="date" value={dataMax} onChange={e => setDataMax(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Quando ir (vai pro Calendário)</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input type="date" value={quandoIr} onChange={e => setQuandoIr(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 0 }} />
+          <input type="time" value={horaIr} onChange={e => setHoraIr(e.target.value)} style={{ ...inputStyle, width: 110, flexShrink: 0 }} />
+        </div>
+        {quandoIr && <p style={{ fontSize: 11.5, color: COR_CULTURAL, margin: '5px 0 0' }}>✓ vai aparecer no Calendário em {quandoIr.slice(8, 10)}/{quandoIr.slice(5, 7)}{horaIr ? ' às ' + horaIr : ''}</p>}
         <label style={labelStyle}>Preço (opcional)</label>
         <input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: R$ 40 · grátis" style={inputStyle} />
         <label style={labelStyle}>Link (opcional)</label>

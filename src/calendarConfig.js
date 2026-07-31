@@ -10,6 +10,8 @@ export const CATEGORIES = [
   { id: 'aniversarios', label: 'Aniversários',   cor: '#ff5d8f' },
   { id: 'saude',        label: 'Saúde',          cor: '#54c08a' },
   { id: 'pessoais',     label: 'Datas pessoais', cor: '#f4b740' },
+  // Criada pelo "quando ir" do calendário cultural (exposições, teatro, shows).
+  { id: 'cultura',      label: 'Cultura',        cor: '#c2548f', aguardado: true },
 ];
 export const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 

@@ -283,10 +283,8 @@ export function AddSheet({ initialDate, editing, onClose }) {
               <input type="checkbox" checked={semDataChk} onChange={e => setSemDataChk(e.target.checked)} />
               Sem data (vai para a lista "Tarefas sem data")
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 13, color: '#444', cursor: 'pointer' }}>
-              <input type="checkbox" checked={trabalho} onChange={e => setTrabalho(e.target.checked)} />
-              Tarefa de trabalho
-            </label>
+            {/* "Tarefa de trabalho" saiu do formulário: a Mari faz o trabalho por
+                Planos. O campo continua sendo preservado nas tarefas antigas. */}
           </>
         )}
         {!(tipo === 'tarefa' && semDataChk) && (

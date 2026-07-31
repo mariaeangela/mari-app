@@ -559,6 +559,44 @@ function SubcatTabela({ cat, meses, catTotalDe }) {
   );
 }
 
+// Barras por mês do total de uma categoria (usado nas categorias únicas — Uber e
+// Mãe —, que não têm subcategorias pra quebrar). Eixo em múltiplos de 500.
+function BarrasMes({ meses, valorDe, cor }) {
+  const blur = useBlur();
+  const [hi, setHi] = useState(null);
+  if (!meses.length) return null;
+  const W = 320, H = 150, padL = 40, padR = 10, padT = 12, padB = 26;
+  const max = Math.max(...meses.map(valorDe), 1);
+  const step = Math.max(500, Math.ceil(max / 4 / 500) * 500);
+  const axisMax = Math.max(500, Math.ceil(max / step) * step);
+  const y = (v) => (H - padB) - (v / axisMax) * (H - padT - padB);
+  const ticks = []; for (let t = 0; t <= axisMax; t += step) ticks.push(t);
+  const bandW = (W - padL - padR) / meses.length;
+  const xc = (i) => padL + bandW * (i + 0.5);
+  const barW = Math.min(30, bandW * 0.55);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', marginBottom: 10 }}>
+      {ticks.map((t, i) => (
+        <g key={i}>
+          <line x1={padL} y1={y(t)} x2={W - padR} y2={y(t)} stroke="#f0f0f0" strokeWidth="1" />
+          <text x={padL - 4} y={y(t) + 3} textAnchor="end" fontSize="7.5" fill="#bbb" style={blur}>{fmtR(t)}</text>
+        </g>
+      ))}
+      {meses.map((m, i) => {
+        const v = valorDe(m), h = (v / axisMax) * (H - padT - padB);
+        return (
+          <g key={m}>
+            {h > 0.3 && <rect x={xc(i) - barW / 2} y={y(v)} width={barW} height={h} rx="2" fill={cor} opacity={hi == null || hi === i ? 1 : 0.45}
+              style={{ cursor: 'pointer' }} onMouseEnter={() => setHi(i)} onMouseLeave={() => setHi(null)} onClick={() => setHi(hi === i ? null : i)} />}
+            <text x={xc(i)} y={H - 8} textAnchor="middle" fontSize="8" fill="#bbb">{MESES[+m.slice(5, 7) - 1].slice(0, 3)}</text>
+            {hi === i && <text x={xc(i)} y={Math.max(9, y(v) - 4)} textAnchor="middle" fontSize="8" fontWeight="700" fill="#111" style={blur}>{fmtR(v)}</text>}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 // Acompanhamento: os principais números pra Mari controlar a vida financeira.
 // Primeira leva (dá pra crescer): média do aluguel, maiores gastos do grupo
 // "coisas" (Coisas/Roupa/Skin care/Bobeira/Presentes) e Rolês mais caros. Tudo
@@ -586,9 +624,11 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
   // 3) top 5 categorias do ano
   const topCats = GASTO_CATS.map(cat => ({ cat, total: catTotalAno(cat) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
   // 4) essenciais vs extras
-  const ESSENCIAIS = ['Fixos', 'Mercado', 'Saúde'], EXTRAS = ['Rolês', 'Bobeira', 'Coisas'];
+  const ESSENCIAIS = ['Fixos', 'Mercado', 'Saúde'], EXTRAS = ['Rolês', 'Bobeira', 'Coisas'], VIAGEM = ['Viagem'];
+  // "outros" = as 13 que não caem em nenhum grupo acima (fica explícito na tela).
+  const OUTROS = GASTO_CATS.filter(c => !ESSENCIAIS.includes(c) && !EXTRAS.includes(c) && !VIAGEM.includes(c));
   const somaG = (arr) => arr.reduce((a, c) => a + catTotalAno(c), 0);
-  const essT = somaG(ESSENCIAIS), extT = somaG(EXTRAS), outT = Math.max(0, totalAno - essT - extT);
+  const essT = somaG(ESSENCIAIS), extT = somaG(EXTRAS), viaT = somaG(VIAGEM), outT = somaG(OUTROS);
   const pct = (v) => totalAno ? Math.round(v / totalAno * 100) : 0;
   // 5) maior gasto único
   const maiorItem = itensAno.slice().sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0))[0];
@@ -620,18 +660,24 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
       )}
       {totalAno > 0 && (
         <div style={box}>
-          <div style={titulo}>Essenciais × extras · {anoSel}</div>
+          <div style={titulo}>Para onde vai · {anoSel}</div>
           <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
             <div style={{ width: pct(essT) + '%', background: '#54c08a' }} />
             <div style={{ width: pct(extT) + '%', background: '#ff8a3d' }} />
+            <div style={{ width: pct(viaT) + '%', background: '#19b3a6' }} />
             <div style={{ width: pct(outT) + '%', background: '#d8d8d8' }} />
           </div>
           <div style={{ fontSize: 12, color: '#666', display: 'flex', flexWrap: 'wrap', gap: '2px 12px' }}>
             <span><b style={{ color: '#3a9c6e' }}>{pct(essT)}%</b> essenciais</span>
             <span><b style={{ color: '#d4762a' }}>{pct(extT)}%</b> extras</span>
+            <span><b style={{ color: '#14867d' }}>{pct(viaT)}%</b> viagem</span>
             <span><b style={{ color: '#999' }}>{pct(outT)}%</b> outros</span>
           </div>
-          <div style={{ fontSize: 10.5, color: '#bbb', marginTop: 4 }}>essenciais: fixos, mercado, saúde · extras: rolês, bobeira, coisas</div>
+          <div style={{ fontSize: 10.5, color: '#bbb', marginTop: 5, lineHeight: 1.55 }}>
+            essenciais: {ESSENCIAIS.join(', ').toLowerCase()}<br />
+            extras: {EXTRAS.join(', ').toLowerCase()}<br />
+            outros: {OUTROS.join(', ').toLowerCase()}
+          </div>
         </div>
       )}
       {desvios.length > 0 && (
@@ -724,7 +770,8 @@ export default function GastosDetalhado({ onBack, oculto }) {
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: '#111', margin: '0 0 4px' }}>{catSel}</h2>
         <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px', textTransform: 'capitalize' }}>{mesAtual ? fmtMesAno(mesAtual) : anoSel} · total <V>{fmtR(catTotalMes)}</V></p>
         {unica ? <>
-          <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', margin: '0 0 12px' }}>Categoria única — sem subcategorias. Total por mês:</p>
+          <p style={{ fontSize: 12.5, color: '#bbb', fontStyle: 'italic', margin: '0 0 12px' }}>Categoria única — sem subcategorias. Evolução mês a mês:</p>
+          {linhas.length > 0 && <BarrasMes meses={[...linhas].map(l => l.mes).sort()} valorDe={(m) => (linhas.find(l => l.mes === m)?.valor || 0)} cor={cor} />}
           {linhas.length === 0 ? <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic' }}>Sem gastos em {catSel} em {anoSel}.</p> : linhas.map(l => (
             <div key={l.mes} style={{ marginBottom: 9 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>

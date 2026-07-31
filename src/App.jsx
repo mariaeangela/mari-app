@@ -120,7 +120,7 @@ function Header({ tab, setTab }) {
           { id: 'calendar', label: 'Calendário' },
           { id: 'explore', label: 'Explorar', icone: <IconeBussola /> },
           { id: 'life', label: 'Life' },
-          { id: 'vf', label: 'VF' },
+          { id: 'vf', label: 'Finanças' },
           { id: 'retrospectiva', label: 'Retrospectiva' },
           { id: 'saved', label: 'Salvos' },
         ].map(t => (

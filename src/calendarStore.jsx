@@ -178,9 +178,11 @@ export function CalendarProvider({ children }) {
   }, []); // eslint-disable-line
 
   // ---- Eventos ----
+  // Upsert: com id que já existe, atualiza; com id novo (ex.: o "quando ir" do
+  // cultural, que escolhe o próprio id pra poder reeditar depois), insere.
   const saveEvent = (ev) => {
-    if (ev.id) patch({ events: data.events.map(e => e.id === ev.id ? ev : e) });
-    else patch({ events: [...data.events, { ...ev, id: uid('e') }] });
+    if (ev.id && data.events.some(e => e.id === ev.id)) patch({ events: data.events.map(e => e.id === ev.id ? ev : e) });
+    else patch({ events: [...data.events, { ...ev, id: ev.id || uid('e') }] });
   };
   const deleteEvent = (id) => patch({ events: data.events.filter(e => e.id !== id) });
   // Apaga só UMA ocorrência de um evento recorrente (adiciona o dia às exceções).
