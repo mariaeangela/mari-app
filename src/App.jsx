@@ -999,7 +999,6 @@ export default function App() {
   const goTab = (id) => { if (id === tab) setHomeNonce(n => n + 1); setTab(id); };
   const [retroSec, setRetroSec] = useState(null);
   const goRetro = (sec, cat) => { setRetroSec(cat ? sec + ':' + cat : sec); goTab('retrospectiva'); };
-  const goRetroCompras = () => goRetro('gastos', 'Coisas');
   const [viagemInicial, setViagemInicial] = useState(null);
   const goViagem = (id) => { setViagemInicial(id); goTab('life'); };
   const [comprasInicial, setComprasInicial] = useState(null);
@@ -1013,7 +1012,7 @@ export default function App() {
     <SavedProvider>
       <CalendarProvider>
         <LifeProvider>
-          <NavContext.Provider value={{ goRetro, goRetroCompras, goViagem, goCompras }}>
+          <NavContext.Provider value={{ goRetro, goViagem, goCompras }}>
           <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
