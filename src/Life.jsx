@@ -3574,18 +3574,40 @@ function flipHoraMin(m) {
   return x ? (+x[1]) * 60 + (x[2] ? +x[2] : 0) : 9999;
 }
 
+// Endereços úteis da viagem: como ela classifica cada lugar.
+const TIPOS_END = [
+  { id: 'turistico', label: 'Ponto turístico', emoji: '🗺️' },
+  { id: 'restaurante', label: 'Restaurante', emoji: '🍽️' },
+  { id: 'loja', label: 'Loja', emoji: '🛍️' },
+  { id: 'hospedagem', label: 'Hospedagem', emoji: '🏨' },
+];
+const tipoEnd = (id) => TIPOS_END.find(t => t.id === id) || null;
+// Link do Maps: o que ela colou, ou uma busca pelo nome + endereço.
+const mapsUrlEnd = (e) => e.maps || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([e.nome, e.endereco].filter(Boolean).join(' ')));
+// Tópicos livres antigos (sem `local`) moram dentro de Listas, que é onde estavam.
+const localSecao = (s) => s.local || 'listas';
+// As quatro listas fixas da viagem, na ordem em que aparecem no card "Listas".
+const CAMPOS_LISTA = [['levar', 'O que levar'], ['comprar', 'Comprar pra viagem'], ['comprasViagem', 'Comprar na viagem'], ['fazer', 'Coisas para fazer']];
+
 function ViagemDetail({ trip, onBack }) {
   const life = useLife();
   const nav = useNav();
   const [form, setForm] = useState(null);     // editar a viagem
   const [mesaForm, setMesaForm] = useState(null); // {mesa} editar link da mesa
   const [progForm, setProgForm] = useState(null); // null | {} novo | {item} editar item da programação
-  const [secaoForm, setSecaoForm] = useState(false); // criar tópico livre
+  const [secaoForm, setSecaoForm] = useState(null); // null | { local } criar tópico livre
   const [orcForm, setOrcForm] = useState(false);  // moeda + câmbio do orçamento
   const [catForm, setCatForm] = useState(null);   // null | {} nova categoria | {cat} editar
   const [novoLevar, setNovoLevar] = useState('');
   const [novoComprar, setNovoComprar] = useState('');
   const [novoComprasV, setNovoComprasV] = useState('');
+  const [novoFazer, setNovoFazer] = useState('');
+  // Capa da viagem = hospedagem/passagens + os cards. `aba` diz qual card está aberto
+  // (null = capa; 'sec:<id>' = um card livre criado por ela).
+  const [aba, setAba] = useState(null);
+  const [endForm, setEndForm] = useState(null);   // null | {} novo | {end} editar
+  const [fEndTipo, setFEndTipo] = useState('todos');
+  const [fEndFav, setFEndFav] = useState(false);
   const [editItem, setEditItem] = useState(null); // { campo, id } item de lista (levar/comprar) em edição
   const [editItemTxt, setEditItemTxt] = useState('');
   const [novoSecItem, setNovoSecItem] = useState({}); // texto do "adicionar" por seção (chave = id da seção)
@@ -3598,6 +3620,14 @@ function ViagemDetail({ trip, onBack }) {
   const [fBusca, setFBusca] = useState('');
   const st = statusViagem(trip);
   const salvar = (patch) => life.saveViagemFutura({ ...trip, ...patch });
+  useEffect(() => { window.scrollTo(0, 0); }, [aba]);   // abrir/fechar um card volta pro topo
+  // ---- Endereços úteis: lugares com endereço, link do Maps, tipo e ★ favorito ----
+  const enderecos = trip.enderecos || [];
+  const saveEndereco = (e) => salvar({ enderecos: e.id && enderecos.some(x => x.id === e.id)
+    ? enderecos.map(x => x.id === e.id ? { ...x, ...e } : x)
+    : [...enderecos, { ...e, id: 'end' + Date.now().toString(36) }] });
+  const delEndereco = (id) => salvar({ enderecos: enderecos.filter(x => x.id !== id) });
+  const toggleEndFav = (id) => salvar({ enderecos: enderecos.map(x => x.id === id ? { ...x, favorito: !x.favorito } : x) });
   const addItem = (campo, texto, limpar) => { const t = texto.trim(); if (!t) return; salvar({ [campo]: [...(trip[campo] || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false }] }); limpar(''); };
   const toggleItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).map(c => c.id === id ? { ...c, feito: !c.feito } : c) });
   const delItem = (campo, id) => salvar({ [campo]: (trip[campo] || []).filter(c => c.id !== id) });
@@ -3749,114 +3779,191 @@ function ViagemDetail({ trip, onBack }) {
   const totalFav = todasMesas.filter(m => m.favorito).length;
   const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || fFav || !!qBusca;
 
-  return (
+  // ---- Telas internas: a capa mostra hospedagem/passagens + os cards; cada card
+  // abre a sua tela. Os formulários (modais) ficam disponíveis em todas elas.
+  const modais = (
+    <>
+      {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
+      {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
+      {progForm && <ProgItemForm trip={trip} item={progForm.item} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
+      {secaoForm && <SecaoForm localInicial={secaoForm.local} onSave={(sec) => { setSecoes(ss => [...ss, sec]); if (sec.local === 'card') setAba('sec:' + sec.id); }} onClose={() => setSecaoForm(null)} />}
+      {orcForm && <OrcamentoViagemForm trip={trip} oc={oc} onClose={() => setOrcForm(false)} />}
+      {catForm && <CategoriaOrcForm trip={trip} cat={catForm.cat} moeda={oc.moeda} onClose={() => setCatForm(null)} />}
+      {endForm && <EnderecoForm end={endForm.end} onSave={saveEndereco} onDelete={delEndereco} onClose={() => setEndForm(null)} />}
+    </>
+  );
+  const btnVoltar = { background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 };
+  const tela = (titulo, sub, conteudo) => (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Viagens</button>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 10 }} />
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, color: '#111', margin: 0 }}>{trip.titulo}</h2>
-          <div style={{ fontSize: 13, color: '#888', marginTop: 5 }}>{[trip.cidade, fmtIntervalo(trip.inicio, trip.fim)].filter(Boolean).join(' · ')}</div>
-          <div style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: st.cor, borderRadius: 12, padding: '3px 10px' }}>{st.label}</div>
-        </div>
-        <button onClick={() => setForm({ editing: trip })} title="editar" style={{ flexShrink: 0, background: '#fff', border: '1px solid #e2e2e2', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 700, color: '#555', cursor: 'pointer' }}>✎ Editar</button>
+      <button onClick={() => setAba(null)} style={btnVoltar}>&larr; {trip.titulo}</button>
+      <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 10 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>{titulo}</h2>
+      {sub && <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>{sub}</p>}
+      {conteudo}
+      {modais}
+    </div>
+  );
+
+  // ---- Endereços úteis ----
+  const endsFiltrados = enderecos.filter(e => (fEndTipo === 'todos' || e.tipo === fEndTipo) && (!fEndFav || e.favorito));
+  const endFavs = enderecos.filter(e => e.favorito).length;
+  const chipEnd = (ativo) => ({ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (ativo ? COR_VIAGEM : '#e2e2e2'), background: ativo ? COR_VIAGEM + '1c' : '#fff', color: ativo ? '#1a7a6e' : '#888' });
+  const viewEnderecos = () => (
+    <div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+        {[['todos', 'Todos'], ...TIPOS_END.map(t => [t.id, t.label])].map(([v, lbl]) => (
+          <button key={v} onClick={() => setFEndTipo(v)} style={chipEnd(fEndTipo === v)}>{lbl}</button>
+        ))}
       </div>
-
-      {trip.link && <div style={{ marginTop: 14 }}><a href={trip.link} target="_blank" rel="noopener noreferrer" style={{ color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>site oficial ↗</a></div>}
-
-      {bloco('Hospedagem', anotavel(trip.hospedagem))}
-      {bloco('Passagens', anotavel(trip.passagens))}
-      {bloco('Orçamento', blocoOrcamento())}
-
-      {trip.homenageada && bloco('Autora homenageada', (
-        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#111' }}>{trip.homenageada.nome}</div>
-          {trip.homenageada.texto && <div style={{ fontSize: 13, color: '#444', lineHeight: 1.6, marginTop: 6 }}>{trip.homenageada.texto}</div>}
-          {trip.homenageada.link && <a href={trip.homenageada.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 8, color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>saiba mais ↗</a>}
-        </div>
-      ))}
-
-      {bloco('Programação', (
-        <div>
-          {temParalela && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                {[['todas', 'Todas'], ['principal', 'Principais'], ['paralela', 'Paralelas']].map(([v, lbl]) => (
-                  <button key={v} onClick={() => setFTipo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fTipo === v ? COR_VIAGEM : '#e2e2e2'), background: fTipo === v ? COR_VIAGEM : '#fff', color: fTipo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
-                ))}
+      {endFavs > 0 && (
+        <button onClick={() => setFEndFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fEndFav ? '#f0b400' : '#e2e2e2'), background: fEndFav ? '#fff8e6' : '#fff', color: fEndFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fEndFav ? '★ mostrando favoritos' : `☆ Só favoritos (${endFavs})`}</button>
+      )}
+      {endsFiltrados.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0', lineHeight: 1.6 }}>
+          {enderecos.length === 0 ? 'Nenhum endereço ainda. Toque em + endereço pra guardar os lugares da viagem — com link do Google Maps, tipo e ★.' : 'Nenhum endereço com esse filtro.'}
+        </p>
+      ) : endsFiltrados.map(e => {
+        const t = tipoEnd(e.tipo);
+        return (
+          <div key={e.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '11px 13px', marginBottom: 8 }}>
+            <div onClick={() => setEndForm({ end: e })} title="tocar pra editar" style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#222' }}>{e.nome}</span>
+                {t && <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.4px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, background: COR_VIAGEM + '18', color: '#1a7a6e' }}>{t.emoji} {t.label}</span>}
               </div>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                {[['todos', 'Dia todo'], ['manha', 'Manhã'], ['tarde', 'Tarde'], ['noite', 'Noite']].map(([v, lbl]) => (
-                  <button key={v} onClick={() => setFPeriodo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fPeriodo === v ? COR_VIAGEM : '#e2e2e2'), background: fPeriodo === v ? COR_VIAGEM : '#fff', color: fPeriodo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <select value={fDia} onChange={e => setFDia(e.target.value)} style={{ ...inputStyle, width: 128, marginBottom: 0 }}>
-                  <option value="">Todos os dias</option>
-                  {diasDisp.map(d => <option key={d} value={d}>{rotuloDia(d)}</option>)}
-                </select>
-                <select value={fCasa} onChange={e => setFCasa(e.target.value)} style={{ ...inputStyle, flex: 1, marginBottom: 0 }}>
-                  <option value="">Todas as casas ({casasList.length})</option>
-                  {casasList.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <input value={fBusca} onChange={e => setFBusca(e.target.value)} placeholder="buscar por título, autor ou casa…" style={{ ...inputStyle, marginTop: 8, marginBottom: 0 }} />
-              <button onClick={() => setFFav(v => !v)} style={{ width: '100%', marginTop: 8, padding: '8px 0', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★' : '☆'} Só favoritos{totalFav > 0 ? ` (${totalFav})` : ''}</button>
-              <div style={{ fontSize: 11.5, color: '#999', marginTop: 8 }}>
-                {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFDia(''); setFPeriodo('todos'); setFFav(false); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
-              </div>
+              {e.endereco && <div style={{ fontSize: 12.5, color: '#888', marginTop: 4, lineHeight: 1.45 }}>{e.endereco}</div>}
             </div>
-          )}
-          {!temParalela && totalFav > 0 && (
-            <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
-          )}
-          {dias.map(dia => {
-            const dt = new Date(dia + 'T00:00:00');
-            const wd = DIAS_LONGOS[dt.getDay()];
-            const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
-            const ms = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
-            return (
-              <div key={dia} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
-                {ms.map(m => (
-                  <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
-                    <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
-                    <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
-                      {temParalela && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, ...(m.tipo === 'paralela' ? { background: '#f0ecf7', color: '#8a6fb0' } : { background: COR_VIAGEM, color: '#fff' }) }}>{m.tipo === 'paralela' ? 'paralela' : 'principal'}</span>
-                          {m.casa && <span style={{ fontSize: 11.5, color: '#888', fontWeight: 600 }}>{m.casa}</span>}
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                        {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
-                        <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
-                        {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
-                        {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
-                      </div>
-                      {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
-                      {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5 }}>{m.desc}</div>}
-                      {(m.abertura || m.preco) && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
-                          {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
-                          {m.preco && <span style={{ fontSize: 11.5, color: '#888' }}>💲 {m.preco}</span>}
-                        </div>
-                      )}
+            <a href={mapsUrlEnd(e)} target="_blank" rel="noopener noreferrer" title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 17, flexShrink: 0, lineHeight: 1.1 }}>📍</a>
+            <span onClick={() => toggleEndFav(e.id)} title={e.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: e.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.1 }}>{e.favorito ? '★' : '☆'}</span>
+          </div>
+        );
+      })}
+      <button onClick={() => setEndForm({})} style={{ ...btnPontilhado, marginTop: 6 }}>+ endereço</button>
+    </div>
+  );
+
+  // ---- Programação (o roteiro por dia; na FLIP, as sessões com filtros) ----
+  const viewProgramacao = () => (
+    <div>
+      {temParalela && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            {[['todas', 'Todas'], ['principal', 'Principais'], ['paralela', 'Paralelas']].map(([v, lbl]) => (
+              <button key={v} onClick={() => setFTipo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fTipo === v ? COR_VIAGEM : '#e2e2e2'), background: fTipo === v ? COR_VIAGEM : '#fff', color: fTipo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            {[['todos', 'Dia todo'], ['manha', 'Manhã'], ['tarde', 'Tarde'], ['noite', 'Noite']].map(([v, lbl]) => (
+              <button key={v} onClick={() => setFPeriodo(v)} style={{ flex: 1, padding: '7px 0', borderRadius: 9, border: '1px solid ' + (fPeriodo === v ? COR_VIAGEM : '#e2e2e2'), background: fPeriodo === v ? COR_VIAGEM : '#fff', color: fPeriodo === v ? '#fff' : '#666', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>{lbl}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <select value={fDia} onChange={e => setFDia(e.target.value)} style={{ ...inputStyle, width: 128, marginBottom: 0 }}>
+              <option value="">Todos os dias</option>
+              {diasDisp.map(d => <option key={d} value={d}>{rotuloDia(d)}</option>)}
+            </select>
+            <select value={fCasa} onChange={e => setFCasa(e.target.value)} style={{ ...inputStyle, flex: 1, marginBottom: 0 }}>
+              <option value="">Todas as casas ({casasList.length})</option>
+              {casasList.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <input value={fBusca} onChange={e => setFBusca(e.target.value)} placeholder="buscar por título, autor ou casa…" style={{ ...inputStyle, marginTop: 8, marginBottom: 0 }} />
+          <button onClick={() => setFFav(v => !v)} style={{ width: '100%', marginTop: 8, padding: '8px 0', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★' : '☆'} Só favoritos{totalFav > 0 ? ` (${totalFav})` : ''}</button>
+          <div style={{ fontSize: 11.5, color: '#999', marginTop: 8 }}>
+            {mesasFiltradas.length} {mesasFiltradas.length === 1 ? 'sessão' : 'sessões'}{filtroAtivo && <button onClick={() => { setFTipo('todas'); setFCasa(''); setFDia(''); setFPeriodo('todos'); setFFav(false); setFBusca(''); }} style={{ marginLeft: 8, background: 'none', border: 'none', color: COR_VIAGEM, fontWeight: 700, fontSize: 11.5, cursor: 'pointer', padding: 0 }}>limpar filtros</button>}
+          </div>
+        </div>
+      )}
+      {!temParalela && totalFav > 0 && (
+        <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
+      )}
+      {dias.map(dia => {
+        const dt = new Date(dia + 'T00:00:00');
+        const wd = DIAS_LONGOS[dt.getDay()];
+        const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
+        const ms = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
+        return (
+          <div key={dia} style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
+            {ms.map(m => (
+              <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+                <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
+                <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
+                  {temParalela && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, ...(m.tipo === 'paralela' ? { background: '#f0ecf7', color: '#8a6fb0' } : { background: COR_VIAGEM, color: '#fff' }) }}>{m.tipo === 'paralela' ? 'paralela' : 'principal'}</span>
+                      {m.casa && <span style={{ fontSize: 11.5, color: '#888', fontWeight: 600 }}>{m.casa}</span>}
                     </div>
-                    <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
+                    <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
+                    {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
+                    {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
                   </div>
-                ))}
+                  {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
+                  {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5 }}>{m.desc}</div>}
+                  {(m.abertura || m.preco) && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
+                      {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
+                      {m.preco && <span style={{ fontSize: 11.5, color: '#888' }}>💲 {m.preco}</span>}
+                    </div>
+                  )}
+                </div>
+                <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
               </div>
-            );
-          })}
-          {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
-          <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
+            ))}
+          </div>
+        );
+      })}
+      {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
+      <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
+    </div>
+  );
+
+  // ---- Um tópico livre (lista com ☑ ou nota solta) ----
+  const conteudoSecao = (s) => s.tipo === 'lista' ? (
+    <div>
+      {(s.itens || []).map(c => (
+        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span onClick={() => secaoToggle(s.id, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
+          {emEdicaoSec(s.id, c.id) ? (
+            <>
+              <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') cancelEditItem(); }} style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
+            </>
+          ) : (
+            <>
+              <span onClick={() => abrirEditSec(s.id, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
+              <button onClick={() => abrirEditSec(s.id, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+              <button onClick={() => secaoDel(s.id, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+            </>
+          )}
         </div>
       ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <input value={novoSecItem[s.id] || ''} onChange={e => setNovoSecItem(v => ({ ...v, [s.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && secaoAddItem(s.id)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+        <button onClick={() => secaoAddItem(s.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+      </div>
+    </div>
+  ) : (
+    <textarea value={s.texto || ''} onChange={e => setSecaoTexto(s.id, e.target.value)} rows={4} placeholder="escreva aqui…" style={{ ...inputStyle, resize: 'vertical', width: '100%' }} />
+  );
+  // Renomear/apagar o tópico — ao apagar um card livre, volta pra capa.
+  const acoesSecao = (s, aoApagar) => (
+    <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+      <button onClick={() => { const t = window.prompt('Renomear tópico:', s.titulo); if (t && t.trim()) renameSecao(s.id, t.trim()); }} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: 0 }}>✎ renomear</button>
+      <button onClick={() => { if (window.confirm(`Apagar o tópico "${s.titulo}"?`)) { delSecao(s.id); aoApagar && aoApagar(); } }} style={{ background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: 0 }}>apagar tópico</button>
+    </div>
+  );
 
+  // ---- Listas: as quatro fixas, uma embaixo da outra, + os tópicos dela ----
+  const secoesListas = (trip.secoes || []).filter(s => localSecao(s) === 'listas');
+  const viewListas = () => (
+    <div>
       {bloco('O que levar', listaCheck('levar', novoLevar, setNovoLevar))}
       {bloco('Comprar pra viagem', listaCheck('comprar', novoComprar, setNovoComprar))}
-      {bloco('Compras na viagem', trip.comprasLinkId ? (() => {
+      {bloco('Comprar na viagem', trip.comprasLinkId ? (() => {
         const nome = [...LISTAS_FIXAS, ...(life.compras.listas || [])].find(l => l.id === trip.comprasLinkId)?.nome || 'lista';
         const its = (life.compras.itens || []).filter(i => i.listaId === trip.comprasLinkId);
         const feitos = its.filter(i => i.comprado).length;
@@ -3881,55 +3988,84 @@ function ViagemDetail({ trip, onBack }) {
           </div>
         </div>
       ))}
+      {bloco('Coisas para fazer', listaCheck('fazer', novoFazer, setNovoFazer))}
 
-      {/* Tópicos livres criados pela Mari (ex.: "fantasias pra fazer", "dicas gerais") */}
-      {(trip.secoes || []).map(s => (
+      {/* Tópicos livres que ela criou aqui dentro */}
+      {secoesListas.map(s => (
         <div key={s.id} style={{ marginTop: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <div style={{ flex: 1, fontSize: 11, color: COR_VIAGEM, letterSpacing: '0.4px', textTransform: 'uppercase', fontWeight: 700 }}>{s.titulo}</div>
             <button onClick={() => { const t = window.prompt('Renomear tópico:', s.titulo); if (t && t.trim()) renameSecao(s.id, t.trim()); }} title="renomear" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13 }}>✎</button>
             <button onClick={() => { if (window.confirm(`Apagar o tópico "${s.titulo}"?`)) delSecao(s.id); }} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16 }}>×</button>
           </div>
-          {s.tipo === 'lista' ? (
-            <div>
-              {(s.itens || []).map(c => (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
-                  <span onClick={() => secaoToggle(s.id, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
-                  {emEdicaoSec(s.id, c.id) ? (
-                    <>
-                      <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') cancelEditItem(); }} style={{ ...inputStyle, flex: 1 }} />
-                      <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
-                    </>
-                  ) : (
-                    <>
-                      <span onClick={() => abrirEditSec(s.id, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
-                      <button onClick={() => abrirEditSec(s.id, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
-                      <button onClick={() => secaoDel(s.id, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
-                    </>
-                  )}
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                <input value={novoSecItem[s.id] || ''} onChange={e => setNovoSecItem(v => ({ ...v, [s.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && secaoAddItem(s.id)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
-                <button onClick={() => secaoAddItem(s.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
-              </div>
-            </div>
-          ) : (
-            <textarea value={s.texto || ''} onChange={e => setSecaoTexto(s.id, e.target.value)} rows={3} placeholder="escreva aqui…" style={{ ...inputStyle, resize: 'vertical', width: '100%' }} />
-          )}
+          {conteudoSecao(s)}
+        </div>
+      ))}
+      <div style={{ marginTop: 24 }}>
+        <button onClick={() => setSecaoForm({ local: 'listas' })} style={{ width: '100%', padding: '11px 0', borderRadius: 11, border: '1px dashed #ccc', background: '#fff', color: '#777', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico aqui</button>
+      </div>
+    </div>
+  );
+
+  if (aba === 'enderecos') return tela('Endereços úteis', `os lugares de ${trip.cidade || trip.titulo}`, viewEnderecos());
+  if (aba === 'programacao') return tela('Programação', 'o roteiro por dia', viewProgramacao());
+  if (aba === 'orcamento') return tela('Orçamento', 'categorias e limites da viagem', blocoOrcamento());
+  if (aba === 'listas') return tela('Listas', 'levar, comprar e fazer', viewListas());
+  const secAberta = (aba || '').startsWith('sec:') ? (trip.secoes || []).find(s => s.id === aba.slice(4)) : null;
+  if (secAberta) return tela(secAberta.titulo, null, <>{conteudoSecao(secAberta)}{acoesSecao(secAberta, () => setAba(null))}</>);
+
+  // ---- Capa da viagem ----
+  const cardsLivres = (trip.secoes || []).filter(s => localSecao(s) === 'card');
+  const cardBotao = (emoji, titulo, direita, onClick) => (
+    <button key={titulo} onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', gap: 8, background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 14, padding: '13px 16px', marginBottom: 10, cursor: 'pointer' }}>
+      <span><span style={{ fontSize: 15 }}>{emoji}</span> <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, fontWeight: 700, color: '#222' }}>{titulo}</span></span>
+      <span style={{ fontSize: 12, color: '#999', flexShrink: 0 }}>{direita}</span>
+    </button>
+  );
+  const nEnd = enderecos.length;
+  const nProg = todasMesas.length;
+  const itensListas = CAMPOS_LISTA.reduce((s, [campo]) => s + (trip[campo] || []).length, 0);
+  const feitosListas = CAMPOS_LISTA.reduce((s, [campo]) => s + (trip[campo] || []).filter(i => i.feito).length, 0);
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={btnVoltar}>&larr; Viagens</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_VIAGEM, borderRadius: 4, marginBottom: 10 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 27, color: '#111', margin: 0 }}>{trip.titulo}</h2>
+          <div style={{ fontSize: 13, color: '#888', marginTop: 5 }}>{[trip.cidade, fmtIntervalo(trip.inicio, trip.fim)].filter(Boolean).join(' · ')}</div>
+          <div style={{ display: 'inline-block', marginTop: 8, fontSize: 11, fontWeight: 700, color: '#fff', background: st.cor, borderRadius: 12, padding: '3px 10px' }}>{st.label}</div>
+        </div>
+        <button onClick={() => setForm({ editing: trip })} title="editar" style={{ flexShrink: 0, background: '#fff', border: '1px solid #e2e2e2', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 700, color: '#555', cursor: 'pointer' }}>✎ Editar</button>
+      </div>
+
+      {trip.link && <div style={{ marginTop: 14 }}><a href={trip.link} target="_blank" rel="noopener noreferrer" style={{ color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>site oficial ↗</a></div>}
+
+      {bloco('Hospedagem', anotavel(trip.hospedagem))}
+      {bloco('Passagens', anotavel(trip.passagens))}
+
+      {trip.homenageada && bloco('Autora homenageada', (
+        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: '#111' }}>{trip.homenageada.nome}</div>
+          {trip.homenageada.texto && <div style={{ fontSize: 13, color: '#444', lineHeight: 1.6, marginTop: 6 }}>{trip.homenageada.texto}</div>}
+          {trip.homenageada.link && <a href={trip.homenageada.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 8, color: COR_VIAGEM, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>saiba mais ↗</a>}
         </div>
       ))}
 
-      <div style={{ marginTop: 24 }}>
-        <button onClick={() => setSecaoForm(true)} style={{ width: '100%', padding: '11px 0', borderRadius: 11, border: '1px dashed #ccc', background: '#fff', color: '#777', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      <div style={{ marginTop: 26 }}>
+        {cardBotao('📍', 'Endereços úteis', nEnd ? `${nEnd} ${nEnd === 1 ? 'endereço' : 'endereços'} ›` : '›', () => setAba('enderecos'))}
+        {cardBotao('🗓️', 'Programação', nProg ? `${nProg} ${temParalela ? 'sessões' : (nProg === 1 ? 'lugar' : 'lugares')} ›` : '›', () => setAba('programacao'))}
+        {cardBotao('💰', 'Orçamento', oc.categorias.length ? `${oc.categorias.length} ${oc.categorias.length === 1 ? 'categoria' : 'categorias'} ›` : 'definir ›', () => setAba('orcamento'))}
+        {cardBotao('📋', 'Listas', itensListas ? `${feitosListas}/${itensListas} ›` : '›', () => setAba('listas'))}
+        {cardsLivres.map(s => cardBotao('✷', s.titulo, s.tipo === 'lista' ? `${(s.itens || []).filter(i => i.feito).length}/${(s.itens || []).length} ›` : '›', () => setAba('sec:' + s.id)))}
       </div>
 
-      {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
-      {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
-      {progForm && <ProgItemForm trip={trip} item={progForm.item} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
-      {secaoForm && <SecaoForm onSave={(sec) => setSecoes(ss => [...ss, sec])} onClose={() => setSecaoForm(false)} />}
-      {orcForm && <OrcamentoViagemForm trip={trip} oc={oc} onClose={() => setOrcForm(false)} />}
-      {catForm && <CategoriaOrcForm trip={trip} cat={catForm.cat} moeda={oc.moeda} onClose={() => setCatForm(null)} />}
+      <div style={{ marginTop: 14 }}>
+        <button onClick={() => setSecaoForm({ local: 'card' })} style={{ width: '100%', padding: '11px 0', borderRadius: 11, border: '1px dashed #ccc', background: '#fff', color: '#777', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      </div>
+
+      {modais}
     </div>
   );
 }
@@ -4083,13 +4219,61 @@ function CategoriaOrcForm({ trip, cat, moeda, onClose }) {
   );
 }
 
-function SecaoForm({ onSave, onClose }) {
+// Um endereço útil da viagem: nome, endereço, tipo (ponto turístico / restaurante /
+// loja / hospedagem), ★ favorito e link do Maps. Sem link colado, o 📍 da lista abre
+// uma busca no Google Maps pelo nome + endereço.
+function EnderecoForm({ end, onSave, onDelete, onClose }) {
+  const [nome, setNome] = useState(end?.nome || '');
+  const [endereco, setEndereco] = useState(end?.endereco || '');
+  const [tipo, setTipo] = useState(end?.tipo || 'turistico');
+  const [maps, setMaps] = useState(end?.maps || '');
+  const [favorito, setFavorito] = useState(!!end?.favorito);
+  const podeSalvar = nome.trim().length > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    onSave({ id: end?.id, nome: nome.trim(), endereco: endereco.trim() || undefined, tipo, maps: maps.trim() || undefined, favorito });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{end ? 'Editar' : 'Novo'} endereço</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Lugar</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: The Met · Katz's Delicatessen" style={inputStyle} autoFocus={!end} />
+        <label style={labelStyle}>Endereço</label>
+        <textarea value={endereco} onChange={e => setEndereco(e.target.value)} rows={2} placeholder="ex.: 1000 5th Ave, New York, NY 10028" style={{ ...inputStyle, resize: 'vertical' }} />
+        <label style={labelStyle}>O que é</label>
+        <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
+          {TIPOS_END.map(t => <option key={t.id} value={t.id}>{t.emoji} {t.label}</option>)}
+        </select>
+        <label style={labelStyle}>Link do Google Maps (opcional)</label>
+        <input value={maps} onChange={e => setMaps(e.target.value)} placeholder="cole o link — sem ele, o 📍 busca pelo nome" style={inputStyle} />
+        <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 8, textTransform: 'none', letterSpacing: 0, fontSize: 13, color: '#444', cursor: 'pointer' }}>
+          <input type="checkbox" checked={favorito} onChange={e => setFavorito(e.target.checked)} /> ★ Favorito
+        </label>
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {end && <button onClick={() => { onDelete(end.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{end ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Tópico livre da viagem. `local` decide onde ele mora: um card próprio na capa da
+// viagem (ao lado de Endereços/Programação/Orçamento/Listas) ou mais um tópico
+// dentro de Listas, embaixo das quatro fixas.
+function SecaoForm({ localInicial = 'card', onSave, onClose }) {
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState('lista');
+  const [local, setLocal] = useState(localInicial);
   const podeSalvar = titulo.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
-    onSave({ id: 'sec' + Date.now().toString(36), titulo: titulo.trim(), tipo, texto: '', itens: [] });
+    onSave({ id: 'sec' + Date.now().toString(36), titulo: titulo.trim(), tipo, local, texto: '', itens: [] });
     onClose();
   };
   return (
@@ -4105,6 +4289,11 @@ function SecaoForm({ onSave, onClose }) {
         <select value={tipo} onChange={e => setTipo(e.target.value)} style={inputStyle}>
           <option value="lista">Lista de itens (com ☑ pra marcar)</option>
           <option value="nota">Nota livre (texto)</option>
+        </select>
+        <label style={labelStyle}>Onde fica</label>
+        <select value={local} onChange={e => setLocal(e.target.value)} style={inputStyle}>
+          <option value="card">Card próprio na capa da viagem</option>
+          <option value="listas">Dentro de Listas, embaixo das quatro</option>
         </select>
         <button onClick={salvar} disabled={!podeSalvar} style={{ width: '100%', marginTop: 22, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Criar</button>
       </div>
