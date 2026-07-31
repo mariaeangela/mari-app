@@ -620,15 +620,32 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
   const mediasFixos = (subcats['Fixos'] || []).map(sub => { const n = subMeses('Fixos', sub); return { sub, media: n ? subTotal('Fixos', sub) / n : 0 }; }).filter(x => x.media > 0).sort((a, b) => b.media - a.media);
   // 2) este mês vs média (das outras ocorrências)
   const catMediaOutras = (cat) => { const vals = mesesAno.filter(m => m !== mesAtual).map(m => catValMes(cat, m)).filter(v => v > 0); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; };
-  const desvios = mesAtual ? GASTO_CATS.map(cat => { const v = catValMes(cat, mesAtual); const med = catMediaOutras(cat); if (med <= 0 || v <= 0) return null; return { cat, dev: (v - med) / med }; }).filter(Boolean).filter(x => Math.abs(x.dev) >= 0.15).sort((a, b) => Math.abs(b.dev) - Math.abs(a.dev)).slice(0, 4) : [];
+  // TODAS as 13, do maior desvio pro menor. Sem base de comparação (categoria que
+  // só apareceu neste mês, ou nunca) fica no fim, marcada — não é desvio, é estreia.
+  const desvios = mesAtual ? GASTO_CATS.map(cat => {
+    const v = catValMes(cat, mesAtual), med = catMediaOutras(cat);
+    if (med > 0) return { cat, dev: (v - med) / med };
+    return { cat, dev: null, novo: v > 0 };  // sem histórico pra comparar
+  }).sort((a, b) => {
+    if (a.dev == null && b.dev == null) return (b.novo ? 1 : 0) - (a.novo ? 1 : 0);
+    if (a.dev == null) return 1;
+    if (b.dev == null) return -1;
+    return Math.abs(b.dev) - Math.abs(a.dev);
+  }) : [];
   // 3) top 5 categorias do ano
   const topCats = GASTO_CATS.map(cat => ({ cat, total: catTotalAno(cat) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
   // 4) essenciais vs extras
-  const ESSENCIAIS = ['Fixos', 'Mercado', 'Saúde'], EXTRAS = ['Rolês', 'Bobeira', 'Coisas'], VIAGEM = ['Viagem'];
-  // "outros" = as 13 que não caem em nenhum grupo acima (fica explícito na tela).
-  const OUTROS = GASTO_CATS.filter(c => !ESSENCIAIS.includes(c) && !EXTRAS.includes(c) && !VIAGEM.includes(c));
+  // Grupos definidos pela Mari. Viagem fica no seu próprio grupo (pedido anterior);
+  // juntos, os 5 cobrem as 13 categorias — não sobra "outros".
+  const GRUPOS = [
+    { id: 'ess', nome: 'essenciais', cor: '#54c08a', txt: '#3a9c6e', cats: ['Fixos', 'Mercado', 'Saúde'] },
+    { id: 'ext', nome: 'extras', cor: '#ff8a3d', txt: '#d4762a', cats: ['Bobeira', 'Uber', 'Trabalho', 'Mãe', 'Presentes'] },
+    { id: 'coi', nome: 'coisas', cor: '#c77dff', txt: '#8b4bbf', cats: ['Coisas', 'Roupa', 'Skin care'] },
+    { id: 'rol', nome: 'rolês', cor: '#c2548f', txt: '#a03a71', cats: ['Rolês'] },
+    { id: 'via', nome: 'viagem', cor: '#19b3a6', txt: '#14867d', cats: ['Viagem'] },
+  ];
   const somaG = (arr) => arr.reduce((a, c) => a + catTotalAno(c), 0);
-  const essT = somaG(ESSENCIAIS), extT = somaG(EXTRAS), viaT = somaG(VIAGEM), outT = somaG(OUTROS);
+  const grupos = GRUPOS.map(g => ({ ...g, total: somaG(g.cats) }));
   const pct = (v) => totalAno ? Math.round(v / totalAno * 100) : 0;
   // 5) maior gasto único
   const maiorItem = itensAno.slice().sort((a, b) => (Number(b.valor) || 0) - (Number(a.valor) || 0))[0];
@@ -662,21 +679,13 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
         <div style={box}>
           <div style={titulo}>Para onde vai · {anoSel}</div>
           <div style={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
-            <div style={{ width: pct(essT) + '%', background: '#54c08a' }} />
-            <div style={{ width: pct(extT) + '%', background: '#ff8a3d' }} />
-            <div style={{ width: pct(viaT) + '%', background: '#19b3a6' }} />
-            <div style={{ width: pct(outT) + '%', background: '#d8d8d8' }} />
+            {grupos.map(g => <div key={g.id} style={{ width: pct(g.total) + '%', background: g.cor }} />)}
           </div>
           <div style={{ fontSize: 12, color: '#666', display: 'flex', flexWrap: 'wrap', gap: '2px 12px' }}>
-            <span><b style={{ color: '#3a9c6e' }}>{pct(essT)}%</b> essenciais</span>
-            <span><b style={{ color: '#d4762a' }}>{pct(extT)}%</b> extras</span>
-            <span><b style={{ color: '#14867d' }}>{pct(viaT)}%</b> viagem</span>
-            <span><b style={{ color: '#999' }}>{pct(outT)}%</b> outros</span>
+            {grupos.map(g => <span key={g.id}><b style={{ color: g.txt }}>{pct(g.total)}%</b> {g.nome}</span>)}
           </div>
           <div style={{ fontSize: 10.5, color: '#bbb', marginTop: 5, lineHeight: 1.55 }}>
-            essenciais: {ESSENCIAIS.join(', ').toLowerCase()}<br />
-            extras: {EXTRAS.join(', ').toLowerCase()}<br />
-            outros: {OUTROS.join(', ').toLowerCase()}
+            {grupos.filter(g => g.cats.length > 1).map(g => <span key={g.id}>{g.nome}: {g.cats.join(', ').toLowerCase()}<br /></span>)}
           </div>
         </div>
       )}
@@ -686,7 +695,11 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
           {desvios.map(x => (
             <div key={x.cat} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
               <span>{x.cat}</span>
-              <span style={{ fontWeight: 700, color: x.dev > 0 ? '#c0392b' : '#3a9c6e', whiteSpace: 'nowrap' }}>{x.dev > 0 ? '▲' : '▼'} {Math.abs(Math.round(x.dev * 100))}% {x.dev > 0 ? 'acima' : 'abaixo'}</span>
+              {x.dev == null
+                ? <span style={{ fontSize: 12, color: '#bbb', whiteSpace: 'nowrap', fontStyle: 'italic' }}>{x.novo ? 'só neste mês' : 'sem gasto'}</span>
+                : <span style={{ fontWeight: 700, color: Math.abs(x.dev) < 0.05 ? '#999' : (x.dev > 0 ? '#c0392b' : '#3a9c6e'), whiteSpace: 'nowrap' }}>
+                    {Math.abs(x.dev) < 0.05 ? '≈ na média' : `${x.dev > 0 ? '▲' : '▼'} ${Math.abs(Math.round(x.dev * 100))}% ${x.dev > 0 ? 'acima' : 'abaixo'}`}
+                  </span>}
             </div>
           ))}
         </div>

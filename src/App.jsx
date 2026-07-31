@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, getCategoryDaily, getCategoryRandom, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { CONTENT_TYPES, CARD_PALETTES, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
@@ -7,10 +7,22 @@ import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva, MOEDAS, simboloMoeda } from './lifeStore.jsx';
-import LifePage, { CulturalSection, AssistirSection, LeiturasSection, PlanoCheckSheet } from './Life.jsx';
-import RetrospectivaPage from './Retrospectiva.jsx';
-import VFPage from './VF.jsx';
-import EsportesSection from './Esportes.jsx';
+// Telas pesadas carregam SÓ quando abertas (Life ~330 KB, Retrospectiva ~150 KB,
+// Gastos detalhados ~65 KB). Antes tudo vinha junto na abertura, mesmo pra ficar
+// na Tela Hoje — era o principal motivo da demora no celular.
+const lazyDe = (imp, nome) => lazy(() => imp().then(m => ({ default: nome ? m[nome] : m.default })));
+const LifePage = lazyDe(() => import('./Life.jsx'));
+const CulturalSection = lazyDe(() => import('./Life.jsx'), 'CulturalSection');
+const AssistirSection = lazyDe(() => import('./Life.jsx'), 'AssistirSection');
+const LeiturasSection = lazyDe(() => import('./Life.jsx'), 'LeiturasSection');
+const PlanoCheckSheet = lazyDe(() => import('./Life.jsx'), 'PlanoCheckSheet');
+const RetrospectivaPage = lazyDe(() => import('./Retrospectiva.jsx'));
+const VFPage = lazyDe(() => import('./VF.jsx'));
+const EsportesSection = lazyDe(() => import('./Esportes.jsx'));
+// Card de conteúdo: puxa a biblioteca dos cards (~230 KB) só ao abrir um tema.
+const CardWithContent = lazyDe(() => import('./CardWithContent.jsx'));
+// Enquanto o pedaço chega (só na 1ª vez que abre a aba).
+const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0', fontStyle: 'italic' }}>carregando…</p>;
 import { NavContext, useNav } from './nav.jsx';
 import { getLastSyncError, onSyncStatus } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
@@ -42,17 +54,6 @@ function useIsWide(bp = 860) {
 
 // Estilo da grade de 3 colunas (somente desktop).
 const GRID_3 = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, alignItems: 'start' };
-
-// `type` controla a EXIBIÇÃO (rótulo, emoji, cor e id de salvamento);
-// `contentType` controla de onde vem o CONTEÚDO. Para o slot "Cultura" eles
-// diferem: exibe sempre "Cultura", mas o texto vem de cinema/artista/música/conexões.
-function CardWithContent({ type, offset = 0, tile = false, showReload = true }) {
-  const info = CONTENT_TYPES.find(t => t.id === type);
-  const palette = CARD_PALETTES[type] || CARD_PALETTES.texto;
-  const [content, setContent] = useState(() => getCategoryDaily(type, offset));
-  const reload = () => setContent(getCategoryRandom(type));
-  return <ContentCard type={type} typeLabel={info?.label} typeEmoji={info?.emoji} palette={palette} content={content} onReload={showReload ? reload : undefined} tile={tile} />;
-}
 
 // Indicador MINÚSCULO de sincronização (canto do cabeçalho): ✓ sincronizado ·
 // ↻ sincronizando/puxando · ⚠ offline ou não-sincronizado. Discreto de propósito.
@@ -388,7 +389,7 @@ function HojeAgenda() {
         </div>
       ))}
       {editing && <AddSheet editing={editing} onClose={() => setEditing(null)} />}
-      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
+      {editCheck && <Suspense fallback={null}><PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} /></Suspense>}
     </div>
   );
 }
@@ -817,26 +818,12 @@ function Feed({ isWide }) {
 
 function ExplorePage({ isWide }) {
   const [selectedType, setSelectedType] = useState(null);
-  if (selectedType === 'cultural') return (
+  const sub = { cultural: CulturalSection, assistir: AssistirSection, leituras: LeiturasSection, esportes: EsportesSection }[selectedType];
+  if (sub) { const Sub = sub; return (
     <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <CulturalSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
+      <Suspense fallback={<Carregando />}><Sub onBack={() => setSelectedType(null)} backLabel="Explorar" /></Suspense>
     </div>
-  );
-  if (selectedType === 'assistir') return (
-    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <AssistirSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
-    </div>
-  );
-  if (selectedType === 'leituras') return (
-    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <LeiturasSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
-    </div>
-  );
-  if (selectedType === 'esportes') return (
-    <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <EsportesSection onBack={() => setSelectedType(null)} backLabel="Explorar" />
-    </div>
-  );
+  ); }
   return (
     <div style={{ padding: '24px 20px 80px' }}>
       {!selectedType ? (
@@ -877,7 +864,7 @@ function ExplorePage({ isWide }) {
             &larr; voltar
           </button>
           {/* key por edição: o card do Explorar também remonta às 6h e às 14h */}
-          <CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} tile={isWide} />
+          <Suspense fallback={<Carregando />}><CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} tile={isWide} /></Suspense>
         </div>
       )}
     </div>
@@ -1037,9 +1024,11 @@ export default function App() {
             {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
             {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
             {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
-            {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
-            {tab === 'vf' && <VFPage key={homeNonce} isWide={isWide} />}
-            {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
+            <Suspense fallback={<Carregando />}>
+              {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
+              {tab === 'vf' && <VFPage key={homeNonce} isWide={isWide} />}
+              {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
+            </Suspense>
           </div>
           <SalvarFAB />
           <SyncAlerta />

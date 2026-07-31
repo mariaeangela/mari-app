@@ -1,10 +1,12 @@
 // Aba Calendário. Tipos: Evento, Exercício (treino/corrida), Tarefa, Rolê,
 // Cultura + Humor e Diário por dia. Visões: Mês, Agenda, Exercício, Humor.
 // "+" no topo adiciona escolhendo a data no formulário.
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife, simboloMoeda } from './lifeStore.jsx';
-import { PlanoCheckSheet } from './Life.jsx';
+// Sob demanda: o Life é grande (~330 KB) e este é só um modal que abre ao tocar
+// num item de plano. Importá-lo direto arrastava o Life inteiro pra abertura do app.
+const PlanoCheckSheet = lazy(() => import('./Life.jsx').then(m => ({ default: m.PlanoCheckSheet })));
 import {
   CATEGORIES, CAT_BY_ID, EXERCICIO_SUBTIPOS, EXERCICIO_BY_ID,
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
@@ -495,7 +497,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
 
         <button onClick={() => onAdd(key)} style={dashedBtn}>+ adicionar neste dia</button>
       </div>
-      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
+      {editCheck && <Suspense fallback={null}><PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} /></Suspense>}
     </div>
   );
 }
@@ -1052,7 +1054,7 @@ export default function Calendario({ isWide }) {
 
       {dayModal && <DayModal date={dayModal} onClose={() => setDayModal(null)} onAdd={(k) => { setDayModal(null); setAddSheet({ date: k }); }} onEdit={(it) => { setDayModal(null); setAddSheet({ editing: it }); }} />}
       {addSheet && <AddSheet initialDate={addSheet.date} editing={addSheet.editing} onClose={() => setAddSheet(null)} />}
-      {editCheck && <PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} />}
+      {editCheck && <Suspense fallback={null}><PlanoCheckSheet item={editCheck} onClose={() => setEditCheck(null)} /></Suspense>}
     </div>
   );
 }
