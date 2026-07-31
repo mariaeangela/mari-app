@@ -1655,6 +1655,30 @@ export function getViagemAtivaCache() {
   } catch { return null; }
 }
 
+// Orçamento da viagem já normalizado:
+//   { moeda, cambio, categorias: [{ id, nome, limite, gastos: [{ id, valor, nome?, data }] }] }
+// Limites e gastos ficam SEMPRE na moeda da viagem (a do lugar); `cambio` é quantos
+// reais vale 1 unidade dela — serve só pra mostrar o equivalente em R$ (0 = não mostra).
+// Compat: viagens antigas tinham um orçamento único em reais no campo `gastoViagem`;
+// ele vira uma categoria "Geral" em R$. O campo antigo continua no documento — nada
+// é apagado; a partir da 1ª edição o app passa a gravar em `orcamento`.
+export function getOrcamentoViagem(v) {
+  const oc = v && v.orcamento;
+  if (oc && Array.isArray(oc.categorias)) {
+    return { moeda: oc.moeda || 'BRL', cambio: Number(oc.cambio) || 0, categorias: oc.categorias.map(c => ({ ...c, gastos: c.gastos || [] })) };
+  }
+  const gv = (v && v.gastoViagem) || null;
+  const temLegado = gv && ((Number(gv.budget) || 0) > 0 || (gv.gastos || []).length > 0);
+  if (!temLegado) return { moeda: 'BRL', cambio: 0, categorias: [] };
+  return {
+    moeda: 'BRL', cambio: 0,
+    categorias: [{
+      id: 'oc-geral', nome: 'Geral', limite: Number(gv.budget) || 0,
+      gastos: (gv.gastos || []).map(g => ({ id: g.id, valor: Number(g.valor) || 0, nome: g.nome, data: g.data })),
+    }],
+  };
+}
+
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { ...DEFAULT }; }
@@ -1820,12 +1844,25 @@ export function LifeProvider({ children }) {
     ? viagensFuturas.map(x => x.id === v.id ? v : x)
     : [...viagensFuturas, { ...v, id: uid('vf') }] });
   const deleteViagemFutura = (id) => persist({ ...data, viagensFuturas: viagensFuturas.filter(x => x.id !== id) });
-  // "Posso gastar" da viagem: orçamento + gastos guardados NA viagem (campo `gastoViagem`),
-  // isolado do slice possoGastar (que é por ciclo 27→26 e alimenta a Retrospectiva).
-  const _gvDe = (id) => { const v = viagensFuturas.find(x => x.id === id); return v ? { v, gv: v.gastoViagem || { budget: 0, gastos: [] } } : null; };
-  const setViagemBudget = (id, budget) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, budget: Number(budget) || 0 } }); };
-  const addViagemGasto = (id, g) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, gastos: [...(r.gv.gastos || []), { ...g, id: uid('vg') }] } }); };
-  const deleteViagemGasto = (id, gid) => { const r = _gvDe(id); if (!r) return; saveViagemFutura({ ...r.v, gastoViagem: { ...r.gv, gastos: (r.gv.gastos || []).filter(x => x.id !== gid) } }); };
+  // Orçamento da viagem: as categorias e os limites saem daqui (definidos em Life ›
+  // Viagens) e o "Posso gastar em <cidade>" da Tela Hoje só lança os gastos neles.
+  // Guardado NA viagem, isolado do slice possoGastar (que é por ciclo 27→26).
+  const _ocDe = (id) => { const v = viagensFuturas.find(x => x.id === id); return v ? { v, oc: getOrcamentoViagem(v) } : null; };
+  const _salvarOc = (r, oc) => saveViagemFutura({ ...r.v, orcamento: oc });
+  const _mapCats = (r, fn) => _salvarOc(r, { ...r.oc, categorias: r.oc.categorias.map(fn) });
+  // moeda da viagem + câmbio (R$ por 1 unidade; 0/vazio = não mostra conversão)
+  const setViagemOrcamento = (id, patch) => { const r = _ocDe(id); if (!r) return; _salvarOc(r, { ...r.oc, ...patch }); };
+  const saveViagemCategoria = (id, cat) => {
+    const r = _ocDe(id); if (!r) return;
+    const existe = cat.id && r.oc.categorias.some(c => c.id === cat.id);
+    _salvarOc(r, { ...r.oc, categorias: existe
+      ? r.oc.categorias.map(c => c.id === cat.id ? { ...c, ...cat } : c)
+      : [...r.oc.categorias, { gastos: [], ...cat, id: uid('oc') }] });
+  };
+  const deleteViagemCategoria = (id, catId) => { const r = _ocDe(id); if (!r) return; _salvarOc(r, { ...r.oc, categorias: r.oc.categorias.filter(c => c.id !== catId) }); };
+  const addViagemCatGasto = (id, catId, g) => { const r = _ocDe(id); if (!r) return; _mapCats(r, c => c.id === catId ? { ...c, gastos: [...(c.gastos || []), { ...g, id: uid('vg') }] } : c); };
+  const updateViagemCatGasto = (id, catId, gid, patch) => { const r = _ocDe(id); if (!r) return; _mapCats(r, c => c.id === catId ? { ...c, gastos: (c.gastos || []).map(x => x.id === gid ? { ...x, ...patch } : x) } : c); };
+  const deleteViagemCatGasto = (id, catId, gid) => { const r = _ocDe(id); if (!r) return; _mapCats(r, c => c.id === catId ? { ...c, gastos: (c.gastos || []).filter(x => x.id !== gid) } : c); };
 
   // ---- Próximas leituras (livros a ler; tema em vez de sinopse, sem spoiler) ----
   // leitura = { id, titulo, autor?, pais?, ano?, genero?, temas:[string], nota?, lido? }
@@ -2164,7 +2201,8 @@ export function LifeProvider({ children }) {
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
-    viagensFuturas, saveViagemFutura, deleteViagemFutura, setViagemBudget, addViagemGasto, deleteViagemGasto,
+    viagensFuturas, saveViagemFutura, deleteViagemFutura,
+    setViagemOrcamento, saveViagemCategoria, deleteViagemCategoria, addViagemCatGasto, updateViagemCatGasto, deleteViagemCatGasto,
     leituras, saveLeitura, deleteLeitura, toggleLeituraLido,
     acompLeituras, saveAcompLeitura, deleteAcompLeitura, savePersonagem, deletePersonagem, saveNotaLeitura, deleteNotaLeitura,
     legendas, addLegGrupo, renameLegGrupo, deleteLegGrupo, moveLegGrupo, saveLegenda, deleteLegenda,

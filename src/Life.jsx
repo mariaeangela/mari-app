@@ -1,7 +1,7 @@
 // Aba "Life": hub pessoal. Seção "Listas de compras" funcional; demais seções
 // ainda em placeholder (vamos desenhar uma a uma).
 import { useState, useEffect, createContext, useContext } from 'react';
-import { useLife, MOEDAS, simboloMoeda } from './lifeStore.jsx';
+import { useLife, MOEDAS, simboloMoeda, getOrcamentoViagem } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
@@ -3581,6 +3581,8 @@ function ViagemDetail({ trip, onBack }) {
   const [mesaForm, setMesaForm] = useState(null); // {mesa} editar link da mesa
   const [progForm, setProgForm] = useState(null); // null | {} novo | {item} editar item da programação
   const [secaoForm, setSecaoForm] = useState(false); // criar tópico livre
+  const [orcForm, setOrcForm] = useState(false);  // moeda + câmbio do orçamento
+  const [catForm, setCatForm] = useState(null);   // null | {} nova categoria | {cat} editar
   const [novoLevar, setNovoLevar] = useState('');
   const [novoComprar, setNovoComprar] = useState('');
   const [novoComprasV, setNovoComprasV] = useState('');
@@ -3637,6 +3639,63 @@ function ViagemDetail({ trip, onBack }) {
   const anotavel = (txt) => txt
     ? <div style={{ fontSize: 13.5, color: '#333', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{txt}</div>
     : <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic' }}>vazio — toque em ✎ Editar pra anotar.</div>;
+
+  // ---- Orçamento: as categorias, os limites e a moeda da viagem ficam AQUI. É daqui
+  // que sai o "Posso gastar em <cidade>" da Tela Hoje — lá só se lançam os gastos,
+  // na moeda do lugar e no dia em que aconteceram.
+  const oc = getOrcamentoViagem(trip);
+  const fmtOc = (v) => simboloMoeda(oc.moeda) + ' ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const gastoDaCat = (c) => (c.gastos || []).reduce((s, g) => s + (Number(g.valor) || 0), 0);
+  const btnPontilhado = { width: '100%', padding: '10px 0', borderRadius: 11, border: '1px dashed ' + COR_VIAGEM + '77', background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' };
+  const blocoOrcamento = () => {
+    if (!trip.orcamento && oc.categorias.length === 0) {
+      return (
+        <div>
+          <p style={{ fontSize: 13, color: '#999', lineHeight: 1.55, margin: '0 0 10px' }}>
+            Crie as categorias da viagem (hotel, comida, roupas…) com o limite de cada uma e a moeda do lugar.
+            Enquanto a viagem estiver rolando, elas viram o “Posso gastar em {trip.cidade || trip.titulo}” da Tela Hoje, onde você lança os gastos.
+          </p>
+          <button onClick={() => setOrcForm(true)} style={btnPontilhado}>definir orçamento</button>
+        </div>
+      );
+    }
+    const limiteTotal = oc.categorias.reduce((s, c) => s + (Number(c.limite) || 0), 0);
+    const gastoTotal = oc.categorias.reduce((s, c) => s + gastoDaCat(c), 0);
+    return (
+      <div>
+        <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>
+          moeda <b style={{ color: '#555' }}>{simboloMoeda(oc.moeda)}</b>
+          {oc.cambio > 0 && <> · câmbio R$ {oc.cambio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} por {simboloMoeda(oc.moeda)} 1</>}
+          <b onClick={() => setOrcForm(true)} style={{ color: COR_VIAGEM, cursor: 'pointer', marginLeft: 6 }}>✎</b>
+        </div>
+        {oc.categorias.map(c => {
+          const g = gastoDaCat(c);
+          const limite = Number(c.limite) || 0;
+          const pct = limite > 0 ? Math.min(100, (g / limite) * 100) : 0;
+          const estourou = g > limite && limite > 0;
+          return (
+            <div key={c.id} onClick={() => setCatForm({ cat: c })} title="tocar pra editar" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '11px 13px', marginBottom: 8, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#222' }}>{c.nome}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#555', flexShrink: 0 }}>{fmtOc(limite)}</span>
+              </div>
+              <div style={{ height: 6, background: '#f0f0f0', borderRadius: 4, margin: '7px 0 5px' }}>
+                <div style={{ width: pct + '%', height: '100%', background: estourou ? '#c0392b' : COR_VIAGEM, borderRadius: 4 }} />
+              </div>
+              <div style={{ fontSize: 11.5, color: '#999' }}>gastou {fmtOc(g)} · {estourou ? <b style={{ color: '#c0392b' }}>passou {fmtOc(g - limite)}</b> : <>resta {fmtOc(limite - g)}</>}</div>
+            </div>
+          );
+        })}
+        <button onClick={() => setCatForm({})} style={{ ...btnPontilhado, marginTop: 4 }}>+ categoria</button>
+        {oc.categorias.length > 0 && (
+          <div style={{ fontSize: 12, color: '#999', marginTop: 10, display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+            <span>total: <b style={{ color: '#555' }}>{fmtOc(limiteTotal)}</b> · gastou {fmtOc(gastoTotal)}</span>
+            {oc.cambio > 0 && <span>≈ R$ {(limiteTotal * oc.cambio).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>}
+          </div>
+        )}
+      </div>
+    );
+  };
   const listaCheck = (campo, novo, setNovo) => {
     const itens = trip[campo] || [];
     return (
@@ -3707,6 +3766,7 @@ function ViagemDetail({ trip, onBack }) {
 
       {bloco('Hospedagem', anotavel(trip.hospedagem))}
       {bloco('Passagens', anotavel(trip.passagens))}
+      {bloco('Orçamento', blocoOrcamento())}
 
       {trip.homenageada && bloco('Autora homenageada', (
         <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
@@ -3868,6 +3928,8 @@ function ViagemDetail({ trip, onBack }) {
       {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
       {progForm && <ProgItemForm trip={trip} item={progForm.item} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
       {secaoForm && <SecaoForm onSave={(sec) => setSecoes(ss => [...ss, sec])} onClose={() => setSecaoForm(false)} />}
+      {orcForm && <OrcamentoViagemForm trip={trip} oc={oc} onClose={() => setOrcForm(false)} />}
+      {catForm && <CategoriaOrcForm trip={trip} cat={catForm.cat} moeda={oc.moeda} onClose={() => setCatForm(null)} />}
     </div>
   );
 }
@@ -3948,6 +4010,79 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
 }
 
 // Tópico livre novo: título + tipo (lista de itens OU nota livre).
+// Moeda e câmbio da viagem. A moeda vale pro orçamento inteiro (limites e gastos);
+// o câmbio é só pra ver o equivalente em reais — deixar vazio esconde a conversão.
+function OrcamentoViagemForm({ trip, oc, onClose }) {
+  const life = useLife();
+  const [moeda, setMoeda] = useState(oc.moeda || 'BRL');
+  const [cambio, setCambio] = useState(oc.cambio ? String(oc.cambio) : '');
+  const nCambio = Number(String(cambio).replace(',', '.')) || 0;
+  const salvar = () => {
+    life.setViagemOrcamento(trip.id, { moeda, cambio: moeda === 'BRL' ? 0 : nCambio });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Orçamento da viagem</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <p style={{ fontSize: 12.5, color: '#999', lineHeight: 1.5, margin: '4px 0 0' }}>Os limites e os gastos ficam todos nesta moeda.</p>
+        <label style={labelStyle}>Moeda do lugar</label>
+        <select value={moeda} onChange={e => setMoeda(e.target.value)} style={inputStyle}>
+          {MOEDAS.map(m => <option key={m.id} value={m.id}>{m.simbolo} — {m.id}</option>)}
+        </select>
+        {moeda !== 'BRL' && (
+          <>
+            <label style={labelStyle}>Câmbio (opcional)</label>
+            <input type="text" inputMode="decimal" value={cambio} onChange={e => setCambio(e.target.value)} placeholder={`quantos reais vale ${simboloMoeda(moeda)} 1`} style={inputStyle} />
+            <p style={{ fontSize: 12, color: '#bbb', margin: '6px 0 0' }}>{nCambio > 0 ? `${simboloMoeda(moeda)} 1 = R$ ${nCambio.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} — mostro o equivalente em reais junto dos valores.` : 'Sem câmbio, mostro só na moeda do lugar.'}</p>
+          </>
+        )}
+        <button onClick={salvar} style={{ width: '100%', marginTop: 22, padding: '12px 0', borderRadius: 11, border: 'none', background: '#111', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Salvar</button>
+      </div>
+    </div>
+  );
+}
+
+// Uma categoria do orçamento: nome + limite (na moeda da viagem). Apagar leva junto
+// os gastos já lançados nela, por isso o aviso com a quantidade.
+function CategoriaOrcForm({ trip, cat, moeda, onClose }) {
+  const life = useLife();
+  const [nome, setNome] = useState(cat?.nome || '');
+  const [limite, setLimite] = useState(cat?.limite != null ? String(cat.limite) : '');
+  const nLimite = Number(String(limite).replace(',', '.')) || 0;
+  const qtdGastos = (cat?.gastos || []).length;
+  const podeSalvar = nome.trim().length > 0 && nLimite > 0;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveViagemCategoria(trip.id, { id: cat?.id, nome: nome.trim(), limite: nLimite });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{cat ? 'Editar' : 'Nova'} categoria</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Categoria</label>
+        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Hotel · Comida · Roupas" style={inputStyle} autoFocus={!cat} />
+        <label style={labelStyle}>Limite ({simboloMoeda(moeda)})</label>
+        <input type="text" inputMode="decimal" value={limite} onChange={e => setLimite(e.target.value)} placeholder="ex.: 800" style={inputStyle} />
+        {cat && qtdGastos > 0 && (
+          <p style={{ fontSize: 12, color: '#c0392b', lineHeight: 1.5, margin: '14px 0 0' }}>Esta categoria tem {qtdGastos} {qtdGastos === 1 ? 'gasto lançado' : 'gastos lançados'} — apagar leva {qtdGastos === 1 ? 'ele' : 'eles'} junto.</p>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {cat && <button onClick={() => { life.deleteViagemCategoria(trip.id, cat.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{cat ? 'Salvar' : 'Criar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SecaoForm({ onSave, onClose }) {
   const [titulo, setTitulo] = useState('');
   const [tipo, setTipo] = useState('lista');

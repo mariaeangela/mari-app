@@ -6,7 +6,7 @@ import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
-import { LifeProvider, useLife, getViagemAtiva, MOEDAS, simboloMoeda } from './lifeStore.jsx';
+import { LifeProvider, useLife, getViagemAtiva, getOrcamentoViagem, simboloMoeda } from './lifeStore.jsx';
 // Telas pesadas carregam SÓ quando abertas (Life ~330 KB, Retrospectiva ~150 KB,
 // Gastos detalhados ~65 KB). Antes tudo vinha junto na abertura, mesmo pra ficar
 // na Tela Hoje — era o principal motivo da demora no celular.
@@ -410,7 +410,7 @@ const agruparPorDia = (gastos) => {
 };
 
 // Cabeçalho de um dia na lista agrupada:  ▸ 28/07 ter 3×  ....  R$ 76,30
-function LinhaDia({ dia, qtd, soma, aberto, cor, onClick }) {
+function LinhaDia({ dia, qtd, soma, aberto, cor, onClick, fmt = fmtR$ }) {
   return (
     <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '6px 0', fontSize: 12.5, color: '#666', cursor: 'pointer' }}>
       <span>
@@ -419,7 +419,7 @@ function LinhaDia({ dia, qtd, soma, aberto, cor, onClick }) {
         {dia && <span style={{ color: '#aaa', marginLeft: 5 }}>{DIA_ABREV[parseYmd(dia).getDay()]}</span>}
         <span style={{ color: '#c4c4c4', marginLeft: 6, fontSize: 11 }}>{qtd}×</span>
       </span>
-      <span style={{ color: '#444', fontWeight: 600 }}>{fmtR$(soma)}</span>
+      <span style={{ color: '#444', fontWeight: 600 }}>{fmt(soma)}</span>
     </div>
   );
 }
@@ -623,96 +623,141 @@ function PossoBucket({ ck, bucket, label }) {
   );
 }
 
-// Posso gastar na viagem: só aparece no Modo Viagem, no topo da seção de dinheiro.
-// Orçamento próprio da viagem + gastos (guardado na viagem, campo `gastoViagem`),
-// pra controlar o gasto do rolê sem misturar com o "Posso gastar" do mês.
-function PossoGastarViagem() {
+// Valor na moeda da viagem (US$ 40,00). Os limites e os gastos da viagem ficam
+// sempre na moeda do lugar; o câmbio só serve pra mostrar o equivalente em reais.
+const fmtMoedaVal = (v, moeda) => simboloMoeda(moeda) + ' ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// Uma categoria do orçamento da viagem (Hotel, Comida, Roupas…). Mesmo desenho das
+// caixas do Posso gastar do mês: limite, gastos lançados no +, e "resta" = limite −
+// gasto. O limite NÃO se edita aqui — vem do orçamento definido em Life › Viagens.
+function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
   const life = useLife();
-  const viagem = getViagemAtiva(life.viagensFuturas);
   const [addOpen, setAddOpen] = useState(false);
   const [val, setVal] = useState('');
-  const [moeda, setMoeda] = useState('BRL');
-  const [cambio, setCambio] = useState('');
-  const [editB, setEditB] = useState(false);
-  const [bTxt, setBTxt] = useState('');
-  if (!viagem) return null;
-  const gv = viagem.gastoViagem || { budget: 0, gastos: [] };
-  const gastos = gv.gastos || [];
-  const gasto = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);   // sempre em R$
-  const budget = Number(gv.budget) || 0;
-  const resta = budget - gasto;
-  const temBudget = budget > 0;
-  const onde = viagem.cidade || viagem.titulo;
-  const cor = '#19b3a6';
-  // último câmbio usado nessa moeda (pra pré-preencher e não redigitar).
-  const ultimoCambio = (m) => { const g = [...gastos].reverse().find(x => x.moeda === m && x.cambio); return g ? String(g.cambio) : ''; };
-  const trocaMoeda = (m) => { setMoeda(m); setCambio(m === 'BRL' ? '' : ultimoCambio(m)); };
-  const nVal = Number(String(val).replace(',', '.')) || 0;
-  const nCambio = Number(String(cambio).replace(',', '.')) || 0;
-  const valorBRL = moeda === 'BRL' ? nVal : nVal * nCambio;               // convertido pra R$
-  const podeAdd = nVal > 0 && (moeda === 'BRL' || nCambio > 0);
+  const [nome, setNome] = useState('');
+  const [data, setData] = useState(ymd(hojeMid()));
+  const [editId, setEditId] = useState(null);
+  const [eNome, setENome] = useState('');
+  const [eVal, setEVal] = useState('');
+  const [eData, setEData] = useState('');
+  const [verDias, setVerDias] = useState(false);
+  const [diaExp, setDiaExp] = useState(null);
+  const gastos = cat.gastos || [];
+  const gasto = gastos.reduce((s, g) => s + (Number(g.valor) || 0), 0);
+  const limite = Number(cat.limite) || 0;
+  const resta = limite - gasto;
+  const fmt = (v) => fmtMoedaVal(v, moeda);
+  const emReais = (v) => cambio > 0 ? fmtR$((Number(v) || 0) * cambio) : null;
+  const gastosPorDia = agruparPorDia(gastos);
   const add = () => {
-    if (!podeAdd) return;
-    const g = moeda === 'BRL'
-      ? { valor: nVal, moeda: 'BRL', data: ymd(hojeMid()) }
-      : { valor: valorBRL, moeda, valorOrig: nVal, cambio: nCambio, data: ymd(hojeMid()) };
-    life.addViagemGasto(viagem.id, g);
-    setVal(''); setAddOpen(false);
+    const v = Number(String(val).replace(',', '.'));
+    if (!v) return;
+    life.addViagemCatGasto(viagemId, cat.id, { valor: v, nome: nome.trim() || undefined, data: data || ymd(hojeMid()) });
+    setVal(''); setNome(''); setData(ymd(hojeMid())); setAddOpen(false);
   };
-  const salvarB = () => { life.setViagemBudget(viagem.id, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
-  const selStyle = { ...capaInput, flex: '0 0 auto', width: 68, padding: '0 6px', cursor: 'pointer' };
+  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || ''); setEVal(String(g.valor ?? '')); setEData(g.data || ymd(hojeMid())); };
+  const salvarEdit = (id) => {
+    life.updateViagemCatGasto(viagemId, cat.id, id, { valor: Number(String(eVal).replace(',', '.')) || 0, nome: eNome.trim() || undefined, data: eData || undefined });
+    setEditId(null);
+  };
+  const btnOk = { border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer', flexShrink: 0 };
+  const btnX = { border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer', flexShrink: 0 };
   return (
-    <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '12px 16px' }}>
-      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>✈ Posso gastar em {onde}</div>
-      <div style={{ padding: '10px 0 2px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#555' }}>{viagem.titulo}</span>
-          {temBudget && !editB && <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, fontWeight: 700, color: resta < 0 ? '#c0392b' : cor }}>{fmtR$(resta)}</span>}
-        </div>
-        {!temBudget || editB ? (
-          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`quanto posso gastar em ${onde}? (R$)`} style={{ ...capaInput, flex: 1 }} />
-            <button onClick={salvarB} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>salvar</button>
+    <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: '#555' }}>{cat.nome}</span>
+        <span style={{ textAlign: 'right', flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, fontWeight: 700, color: resta < 0 ? '#c0392b' : cor }}>{fmt(resta)}</span>
+          {cambio > 0 && <span style={{ display: 'block', fontSize: 10.5, color: '#aaa' }}>≈ {emReais(resta)}</span>}
+        </span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 2 }}>
+        <span style={{ fontSize: 11.5, color: '#999' }}>limite <b style={{ color: cor }}>{fmt(limite)}</b> · gastou {fmt(gasto)}</span>
+        {!addOpen && <button onClick={() => setAddOpen(true)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 9, background: '#fff', color: cor, fontSize: 12, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', flexShrink: 0 }}>+ gasto</button>}
+      </div>
+      {addOpen && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input type="date" value={data} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, flex: '0 0 auto', width: 140 }} />
+            <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
           </div>
-        ) : (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 2 }}>
-              <span style={{ fontSize: 11.5, color: '#999' }}>orçamento <b onClick={() => { setBTxt(String(budget)); setEditB(true); }} style={{ color: cor, cursor: 'pointer' }}>{fmtR$(budget)} ✎</b> · gastou {fmtR$(gasto)}</span>
-              {!addOpen && <button onClick={() => setAddOpen(true)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 9, background: '#fff', color: cor, fontSize: 12, fontWeight: 700, padding: '5px 12px', cursor: 'pointer', flexShrink: 0 }}>+ gasto</button>}
-            </div>
-            {addOpen && (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <select value={moeda} onChange={e => trocaMoeda(e.target.value)} style={selStyle}>
-                    {MOEDAS.map(m => <option key={m.id} value={m.id}>{m.simbolo}</option>)}
-                  </select>
-                  <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`quanto gastou? (${simboloMoeda(moeda)})`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
-                  <button onClick={add} disabled={!podeAdd} style={{ border: 'none', borderRadius: 10, background: podeAdd ? cor : '#ccc', color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: podeAdd ? 'pointer' : 'default' }}>ok</button>
-                  <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
-                </div>
-                {moeda !== 'BRL' && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
-                    <input type="text" inputMode="decimal" value={cambio} onChange={e => setCambio(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`câmbio: R$ por 1 ${simboloMoeda(moeda)}`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
-                    <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{valorBRL > 0 ? '= ' + fmtR$(valorBRL) : ''}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`quanto gastou? (${simboloMoeda(moeda)})`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+            <button onClick={add} style={btnOk}>ok</button>
+            <button onClick={() => { setAddOpen(false); setVal(''); setNome(''); }} style={btnX}>×</button>
+          </div>
+        </div>
+      )}
+      {gastos.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <BotaoPorDia aberto={verDias} onClick={() => setVerDias(v => !v)} />
+          {verDias && gastosPorDia.map(d => {
+            const diaAberto = diaExp === d.dia;
+            return (
+              <div key={d.dia || 'sem-data'} style={{ borderTop: '1px solid ' + cor + '1a' }}>
+                <LinhaDia dia={d.dia} qtd={d.itens.length} soma={d.soma} aberto={diaAberto} cor={cor} fmt={fmt} onClick={() => setDiaExp(diaAberto ? null : d.dia)} />
+                {diaAberto && (
+                  <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
+                    {d.itens.map(g => editId === g.id ? (
+                      <div key={g.id} style={{ padding: '3px 0' }}>
+                        <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
+                          <input type="date" value={eData} onChange={e => setEData(e.target.value)} style={{ ...capaInput, flex: '0 0 auto', width: 132, fontSize: 12, padding: '6px 9px' }} />
+                          <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <input value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                          <button onClick={() => salvarEdit(g.id)} style={{ ...btnOk, fontSize: 12, padding: '0 11px', borderRadius: 9 }}>ok</button>
+                          <button onClick={() => setEditId(null)} style={{ ...btnX, fontSize: 16, padding: '0 9px', borderRadius: 9 }}>×</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
+                        <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}>{g.nome || '—'}</span>
+                        <span onClick={() => abrirEdit(g)} title="tocar pra editar" style={{ flexShrink: 0, cursor: 'pointer' }}>{fmt(g.valor)}</span>
+                        <span onClick={() => life.deleteViagemCatGasto(viagemId, cat.id, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            )}
-            {gastos.length > 0 && (
-              <div style={{ marginTop: 10, borderTop: '1px solid ' + cor + '22', paddingTop: 6 }}>
-                {gastos.slice().reverse().map(g => (
-                  <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
-                    <span>{g.moeda && g.moeda !== 'BRL'
-                      ? `${simboloMoeda(g.moeda)} ${g.valorOrig} → ${fmtR$(g.valor)}`
-                      : fmtR$(g.valor)}</span>
-                    <span onClick={() => life.deleteViagemGasto(viagem.id, g.id)} title="apagar" style={{ cursor: 'pointer', color: '#ccc', fontSize: 15, flexShrink: 0 }}>×</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Posso gastar na viagem: só aparece no Modo Viagem, acima do Posso gastar do mês
+// (os dois convivem). As CATEGORIAS, os limites, a moeda e o câmbio vêm do orçamento
+// definido em Life › Viagens › a viagem ("definir orçamento"); aqui só se lança o
+// gasto — na moeda do lugar e no dia em que ele aconteceu.
+function PossoGastarViagem() {
+  const life = useLife();
+  const nav = useNav();
+  const viagem = getViagemAtiva(life.viagensFuturas);
+  if (!viagem) return null;
+  const oc = getOrcamentoViagem(viagem);
+  const cor = '#19b3a6';
+  const onde = viagem.cidade || viagem.titulo;
+  const fmt = (v) => fmtMoedaVal(v, oc.moeda);
+  const limiteTotal = oc.categorias.reduce((s, c) => s + (Number(c.limite) || 0), 0);
+  const gastoTotal = oc.categorias.reduce((s, c) => s + (c.gastos || []).reduce((a, g) => a + (Number(g.valor) || 0), 0), 0);
+  return (
+    <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '12px 16px 8px' }}>
+      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>✈ Posso gastar em {onde}</div>
+      {oc.categorias.length === 0 ? (
+        <div style={{ padding: '10px 0 6px' }}>
+          <p style={{ fontSize: 12.5, color: '#888', lineHeight: 1.55, margin: '0 0 10px' }}>Esta viagem ainda não tem orçamento. As categorias (hotel, comida, roupas…), os limites e a moeda são definidos na viagem, em Life › Viagens.</p>
+          <button onClick={() => nav.goViagem(viagem.id)} style={{ border: '1px dashed ' + cor + '66', borderRadius: 10, background: '#fff', color: cor, fontSize: 12.5, fontWeight: 700, padding: '8px 14px', cursor: 'pointer' }}>definir orçamento →</button>
+        </div>
+      ) : <>
+        {oc.categorias.map(c => <ViagemBucket key={c.id} viagemId={viagem.id} cat={c} moeda={oc.moeda} cambio={oc.cambio} cor={cor} />)}
+        <div style={{ borderTop: '1px solid ' + cor + '22', paddingTop: 7, marginTop: 4, fontSize: 11.5, color: '#999', display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+          <span>na viagem toda: gastou <b style={{ color: '#555' }}>{fmt(gastoTotal)}</b> de {fmt(limiteTotal)}</span>
+          {oc.cambio > 0 && <span>≈ {fmtR$(gastoTotal * oc.cambio)} · câmbio {fmtR$(oc.cambio)}</span>}
+        </div>
+      </>}
     </div>
   );
 }
