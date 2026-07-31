@@ -624,10 +624,13 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
   // só apareceu neste mês, ou nunca) fica no fim, marcada — não é desvio, é estreia.
   const desvios = mesAtual ? GASTO_CATS.map(cat => {
     const v = catValMes(cat, mesAtual), med = catMediaOutras(cat);
-    if (med > 0) return { cat, dev: (v - med) / med };
-    return { cat, dev: null, novo: v > 0 };  // sem histórico pra comparar
+    // Sem gasto no mês não é "100% abaixo" — não há o que comparar (ainda mais
+    // num mês que mal começou). Idem sem histórico: é estreia, não desvio.
+    if (v <= 0) return { cat, dev: null, nota: 'sem gasto' };
+    if (med <= 0) return { cat, dev: null, nota: 'só neste mês' };
+    return { cat, dev: (v - med) / med };
   }).sort((a, b) => {
-    if (a.dev == null && b.dev == null) return (b.novo ? 1 : 0) - (a.novo ? 1 : 0);
+    if (a.dev == null && b.dev == null) return a.nota === b.nota ? 0 : (a.nota === 'só neste mês' ? -1 : 1);
     if (a.dev == null) return 1;
     if (b.dev == null) return -1;
     return Math.abs(b.dev) - Math.abs(a.dev);
@@ -696,7 +699,7 @@ function AcompanhamentoInsights({ anoSel, mesAtual }) {
             <div key={x.cat} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 13, color: '#444' }}>
               <span>{x.cat}</span>
               {x.dev == null
-                ? <span style={{ fontSize: 12, color: '#bbb', whiteSpace: 'nowrap', fontStyle: 'italic' }}>{x.novo ? 'só neste mês' : 'sem gasto'}</span>
+                ? <span style={{ fontSize: 12, color: '#bbb', whiteSpace: 'nowrap', fontStyle: 'italic' }}>{x.nota}</span>
                 : <span style={{ fontWeight: 700, color: Math.abs(x.dev) < 0.05 ? '#999' : (x.dev > 0 ? '#c0392b' : '#3a9c6e'), whiteSpace: 'nowrap' }}>
                     {Math.abs(x.dev) < 0.05 ? '≈ na média' : `${x.dev > 0 ? '▲' : '▼'} ${Math.abs(Math.round(x.dev * 100))}% ${x.dev > 0 ? 'acima' : 'abaixo'}`}
                   </span>}
