@@ -36,7 +36,7 @@ const DEFAULT_PESOS = [
   P('p22', '2026-06-09', 86.80, 'Smart Fit Teodoro', 'pos', 'manha'),
   P('p23', '2026-06-11', 85.50, 'Smart Fit Teodoro', 'pos', 'manha'),
 ];
-const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, comprasFeitas: [], musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} }, trechos: [], albuns: [], gastoSubcats: {} };
+const DEFAULT = { compras: { listas: [], itens: [] }, cultural: { itens: [] }, recorrentes: [], financas: { snapshots: [], usdRate: null }, saude: { pesos: DEFAULT_PESOS, remedios: [], vacinas: [], menstruacao: [] }, musica: [], assistir: [], marcos: [], coisasCaras: [], viagens: [], viagensFuturas: [], leituras: [], gastosItens: [], acompLeituras: [], legendas: [{ id: 'leg-gerais', nome: 'Gerais', itens: [] }], viagensQuero: [], planosViagem: [], ingles: [], amorosa: [], vr: { ciclos: {} }, possoGastar: { ciclos: {} }, trechos: [], albuns: [], gastoSubcats: {} };
 
 // Moedas (item da compra guarda a `moeda`; padrão BRL).
 export const MOEDAS = [
@@ -486,29 +486,6 @@ function ensureNY26(d) {
     .map((it, i) => ({ id: 'ny' + i, listaId, comprado: false, moeda: 'USD', grupo: it.grupo, titulo: it.titulo, orcamento: it.orcamento }))
     .filter(it => !have.has(it.id));
   return { ...d, ny26SeededV2: true, compras: { ...compras, listas, itens: [...compras.itens, ...novos] } };
-}
-
-// Histórico de compras feitas (Retrospectiva → Compras). Valores em R$. Semeado uma vez.
-const CF_SEED = [
-  ['2026-01', 'Vinil Cícero', 150], ['2026-01', 'Livro "A Vegetariana"', 52.30],
-  ['2026-02', 'Óculos (grau)', 6182.80], ['2026-02', 'Livro "A Insustentável Leveza do Ser"', 37.90],
-  ['2026-02', 'Potes de creme de cabelo', 17.90], ['2026-02', 'Blindagem', 19], ['2026-02', 'Óculos de sol', 251.10],
-  ['2026-02', 'Creme de cabelo', 57.75], ['2026-02', 'Havaianas', 44.99],
-  ['2026-03', 'Plantas (Ceagesp)', 170.35], ['2026-03', 'Filme analógico', 120], ['2026-03', 'Capa de tablet', 31.60],
-  ['2026-03', 'Caixas (Kalunga)', 68.70], ['2026-03', 'Faixa de cabelo', 20.99], ['2026-03', 'Óculos Zerezes', 340],
-  ['2026-03', 'Câmera analógica', 110], ['2026-03', 'Adaptador SD', 19.89], ['2026-03', 'Livro', 32.29],
-  ['2026-04', 'Sapateiro', 30], ['2026-04', 'Estante', 74.17], ['2026-04', 'Banco de planta', 160],
-  ['2026-04', 'Revelação de fotos', 130], ['2026-04', 'Relógio', 100], ['2026-04', 'Câmera analógica (×3)', 378],
-  ['2026-04', 'Filme analógico (×4)', 149], ['2026-04', 'Revelação de fotos', 17.50],
-  ['2026-05', 'Bolsa', 60], ['2026-05', 'Livro Tâmara I', 41.20], ['2026-05', 'Livro Tâmara II', 69.90],
-  ['2026-06', 'Filme analógico', 92.36], ['2026-06', 'Mosquetão', 58.43],
-];
-function ensureComprasFeitas(d) {
-  if (d.comprasFeitasSeeded) return d;
-  const have = new Set((d.comprasFeitas || []).map(c => c.id));
-  const novos = CF_SEED.map(([mes, titulo, valor], i) => ({ id: 'cf' + i, titulo, data: mes + '-15', valor, moeda: 'BRL' }))
-    .filter(c => !have.has(c.id));
-  return { ...d, comprasFeitasSeeded: true, comprasFeitas: [...(d.comprasFeitas || []), ...novos] };
 }
 
 // Retrospectiva → Música (Spotify por mês): [mes, minutos, top artista, top música]. Semeado uma vez.
@@ -1127,14 +1104,6 @@ function ensureGastosPresentes(d) {
   return { ...d, gastosPresentesSeeded: true, gastosItens: [...(d.gastosItens || []), ...novos] };
 }
 
-// Limpeza única: remove de comprasFeitas os itens que vazaram da lista de compras (botão antigo
-// "limpar comprados"), pelos títulos exatos confirmados pela Mari. Roda uma vez (flag).
-function ensureLimparVazados(d) {
-  if (d.limparVazados1) return d;
-  const nomes = new Set(['Escova secadora', 'Protetor térmico', 'Depilação buço', 'Creme depilatório', 'Sabonete academia']);
-  return { ...d, limparVazados1: true, comprasFeitas: (d.comprasFeitas || []).filter(c => !nomes.has((c.titulo || '').trim())) };
-}
-
 // Exposições que a Mari quer ver (calendário cultural). Dados verificados nos sites oficiais
 // das galerias (jul/2026). `dias` = dias abertos (0=Dom..6=Sáb); horário varia por dia,
 // então não fixo abre/fecha pra não passar info errada. Ids estáveis + flag (não duplica; se
@@ -1621,7 +1590,7 @@ function ensureCarteiraMesAtual(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureComprasFeitas, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureLimparVazados, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
@@ -2021,21 +1990,6 @@ export function LifeProvider({ children }) {
   };
   const deleteSaudeItem = (tipo, id) => persist({ ...data, saude: { ...DEFAULT.saude, ...saude, [tipo]: (saude[tipo] || []).filter(x => x.id !== id) } });
 
-  // ---- Compras feitas (histórico só da Retrospectiva; não entra nas listas) ----
-  const comprasFeitas = data.comprasFeitas || [];
-  const saveCompraFeita = (c) => persist({ ...data, comprasFeitas: c.id && comprasFeitas.some(x => x.id === c.id)
-    ? comprasFeitas.map(x => x.id === c.id ? c : x)
-    : [...comprasFeitas, { ...c, id: uid('cf') }] });
-  const deleteCompraFeita = (id) => persist({ ...data, comprasFeitas: comprasFeitas.filter(x => x.id !== id) });
-  // Arquiva os itens já comprados de uma lista: saem da lista e viram histórico (comprasFeitas),
-  // pra continuarem contando na Retrospectiva/Vida Financeira.
-  const arquivarComprados = (listaId, listaNome) => {
-    const compradosL = (compras.itens || []).filter(i => i.listaId === listaId && i.comprado);
-    if (!compradosL.length) return;
-    const feitas = compradosL.map(i => ({ id: uid('cf'), titulo: i.titulo, data: i.compradoEm || hojeISO(), valor: i.orcamento ? Number(i.orcamento) : undefined, moeda: i.moeda || 'BRL', categoria: i.grupo || listaNome || undefined }));
-    persist({ ...data, compras: { ...compras, itens: compras.itens.filter(i => !(i.listaId === listaId && i.comprado)) }, comprasFeitas: [...comprasFeitas, ...feitas] });
-  };
-
   // ---- Música (Retrospectiva): 1 registro por mês ----
   const musica = data.musica || [];
   const saveMusica = (m) => persist({ ...data, musica: m.id && musica.some(x => x.id === m.id)
@@ -2205,7 +2159,6 @@ export function LifeProvider({ children }) {
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight, setTerapiaTemas,
-    comprasFeitas, saveCompraFeita, deleteCompraFeita, arquivarComprados,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
     marcos, saveMarco, deleteMarco,
