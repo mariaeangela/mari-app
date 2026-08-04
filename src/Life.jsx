@@ -2714,17 +2714,18 @@ function SaudeSection({ onBack }) {
     .sort().reverse();
   const exAtualMes = (exMes && exMeses.includes(exMes)) ? exMes : exMeses[0];
   const exDoMes = exercicios.filter(x => (x.data || '').slice(0, 7) === exAtualMes);
-  const porTipo = {};
-  exDoMes.forEach(x => { porTipo[x.subtipo] = (porTipo[x.subtipo] || 0) + 1; });
-  const tiposOrd = Object.entries(porTipo)
-    .map(([id, n]) => ({ id, n, label: EXERCICIO_BY_ID[id]?.label || id, cor: EXERCICIO_BY_ID[id]?.cor || '#999' }))
-    .sort((a, b) => b.n - a.n);
   const kmMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((acc, x) => acc + (Number(x.distancia) || 0), 0);
-  const maxN = Math.max(...tiposOrd.map(t => t.n), 1);
   const muscMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length;
   const corrMes = exDoMes.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').length;
   const anoEx = (exAtualMes || '').slice(0, 4);
   const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx) && (x.data || '').slice(0, 7) <= mesAtualKey);
+  // A quebra por tipo (Perna, Corrida rua…) é do ANO — o mês fica só no resumo de cima.
+  const porTipo = {};
+  exAno.forEach(x => { porTipo[x.subtipo] = (porTipo[x.subtipo] || 0) + 1; });
+  const tiposOrd = Object.entries(porTipo)
+    .map(([id, n]) => ({ id, n, label: EXERCICIO_BY_ID[id]?.label || id, cor: EXERCICIO_BY_ID[id]?.cor || '#999' }))
+    .sort((a, b) => b.n - a.n);
+  const maxN = Math.max(...tiposOrd.map(t => t.n), 1);
   const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
   // "treino" (grupo) = só musculação; corrida/trilha/outros são grupos próprios. Os
   // rótulos abaixo dizem sempre de que período é cada número — as barras e o resumo
@@ -2814,6 +2815,7 @@ function SaudeSection({ onBack }) {
             {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{fmtKm(kmMes)} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
           </div>
           <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>musculação <b style={{ color: '#555' }}>{muscMes}×</b> · corrida <b style={{ color: '#555' }}>{corrMes}×</b></div>
+          <div style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, margin: '18px 0 2px' }}>por tipo · no ano de {anoEx}</div>
           {tiposOrd.map(t => (
             <div key={t.id} style={{ padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
