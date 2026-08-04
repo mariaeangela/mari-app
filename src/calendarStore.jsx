@@ -177,6 +177,25 @@ export function CalendarProvider({ children }) {
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncCal); };
   }, []); // eslint-disable-line
 
+  // Re-roda o "puxar tarefa atrasada pra hoje" CONTINUAMENTE (não só no boot): ao
+  // voltar pro app e a cada minuto. Sem isso a tarefa de sábado ficava presa em
+  // sábado — o `rolarAtrasadas` do boot já tinha rodado, e o do resync só entra
+  // quando a NUVEM está mais nova que o aparelho, o que quase nunca é o caso.
+  // Mesma solução que os Planos e as Compras já usam no lifeStore.
+  useEffect(() => {
+    const roll = () => setData(prev => {
+      const { next, changed } = rolarAtrasadas(prev.tasks, hojeKey());
+      if (!changed) return prev;
+      const f = stampRev({ ...prev, tasks: next });   // mudou -> carimba e persiste (local + nuvem)
+      writeLocal(f); pushCalendario(f);
+      return f;
+    });
+    const onVis = () => { if (document.visibilityState === 'visible') roll(); };
+    document.addEventListener('visibilitychange', onVis);
+    const id = setInterval(roll, 60000);
+    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(id); };
+  }, []); // eslint-disable-line
+
   // ---- Eventos ----
   // Upsert: com id que já existe, atualiza; com id novo (ex.: o "quando ir" do
   // cultural, que escolhe o próprio id pra poder reeditar depois), insere.
