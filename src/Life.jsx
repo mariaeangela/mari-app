@@ -2726,8 +2726,11 @@ function SaudeSection({ onBack }) {
   const anoEx = (exAtualMes || '').slice(0, 4);
   const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx) && (x.data || '').slice(0, 7) <= mesAtualKey);
   const kmAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').reduce((a, x) => a + (Number(x.distancia) || 0), 0);
-  // "treinos" = só musculação (grupo 'treino'), pra bater com a Retrospectiva; corrida/outros vão à parte.
+  // "treino" (grupo) = só musculação; corrida/trilha/outros são grupos próprios. Os
+  // rótulos abaixo dizem sempre de que período é cada número — as barras e o resumo
+  // são do MÊS escolhido nos chips, e a última linha é do ANO até hoje.
   const treinoAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length;
+  const corrAno = exAno.filter(x => EXERCICIO_BY_ID[x.subtipo]?.grupo === 'corrida').length;
   const barrasEx = [...exMeses].reverse().map(mm => ({ label: fmtMes(mm), full: fmtMesLongo(mm), valor: exercicios.filter(x => (x.data || '').slice(0, 7) === mm && EXERCICIO_BY_ID[x.subtipo]?.grupo === 'treino').length }));
 
   // Próximas metas: provas (corrida prova) futuras, do calendário; meta de tempo editável.
@@ -2801,9 +2804,13 @@ function SaudeSection({ onBack }) {
               <button key={mm} onClick={() => setExMes(mm)} style={{ whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0, border: '1px solid ' + (exAtualMes === mm ? COR_SAUDE : '#e2e2e2'), background: exAtualMes === mm ? COR_SAUDE + '18' : '#fff', color: exAtualMes === mm ? COR_SAUDE : '#888' }}>{fmtMes(mm)}</button>
             ))}
           </div>
-          {exMeses.length > 1 && <BarrasSalario barras={barrasEx} fmt={(v) => v + (v === 1 ? ' treino' : ' treinos')} />}
-          <div style={{ display: 'flex', gap: 20, margin: '10px 0 6px' }}>
-            <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{muscMes}</span> <span style={{ fontSize: 12, color: '#999' }}>treinos no mês</span></div>
+          {exMeses.length > 1 && <>
+            <div style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, marginBottom: 4 }}>musculação por mês</div>
+            <BarrasSalario barras={barrasEx} fmt={(v) => v + (v === 1 ? ' treino' : ' treinos')} />
+          </>}
+          <div style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: 700, margin: '14px 0 4px' }}>em {fmtMesLongo(exAtualMes)}</div>
+          <div style={{ display: 'flex', gap: 20, margin: '0 0 6px' }}>
+            <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{exDoMes.length}</span> <span style={{ fontSize: 12, color: '#999' }}>{exDoMes.length === 1 ? 'exercício' : 'exercícios'}</span></div>
             {kmMes > 0 && <div><span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: '#111' }}>{fmtKm(kmMes)} km</span> <span style={{ fontSize: 12, color: '#999' }}>corridos</span></div>}
           </div>
           <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>musculação <b style={{ color: '#555' }}>{muscMes}×</b> · corrida <b style={{ color: '#555' }}>{corrMes}×</b></div>
@@ -2819,7 +2826,7 @@ function SaudeSection({ onBack }) {
               </div>
             </div>
           ))}
-          <p style={{ fontSize: 12, color: '#999', marginTop: 10 }}>No ano de {anoEx}: <b style={{ color: '#555' }}>{treinoAno}</b> treinos{kmAno > 0 ? ' · ' + fmtKm(kmAno) + ' km corridos' : ''}</p>
+          <p style={{ fontSize: 12, color: '#999', marginTop: 10, lineHeight: 1.6 }}>No ano de {anoEx}, até hoje: <b style={{ color: '#555' }}>{exAno.length}</b> {exAno.length === 1 ? 'exercício' : 'exercícios'} — {treinoAno} de musculação, {corrAno} de corrida{kmAno > 0 ? ` (${fmtKm(kmAno)} km)` : ''}</p>
         </>}</>)}
 
       {bloco('Peso', 'peso', <>

@@ -775,10 +775,10 @@ function PossoGastarHoje() {
   );
 }
 
-// Acompanhamento do dia: a Mari preenche todo dia (sono, trabalho, exercício, fio
-// dental, leitura). Salva no calendarStore (chave do dia); o histórico aparece na
-// Retrospectiva › Acompanhamento. Números guardam a hora (aceita 7,5); os três
-// hábitos são liga/desliga.
+// Acompanhamento do dia: a Mari preenche todo dia (sono, trabalho, exercício, comida
+// saudável, fio dental, leitura). Salva no calendarStore (chave do dia); o histórico
+// aparece na Retrospectiva › Acompanhamento, onde também dá pra editar dias passados.
+// Números guardam a hora (aceita 7,5); os hábitos são liga/desliga.
 function TrackingHoje() {
   const cal = useCalendar();
   const hojeK = ymd(hojeMid());
@@ -828,6 +828,7 @@ function TrackingHoje() {
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {toggle('exercicio', 'Exercício')}
+        {toggle('comidaSaudavel', 'Comida saudável')}
         {toggle('fioDental', 'Fio dental')}
         {toggle('leu', 'Leitura')}
       </div>

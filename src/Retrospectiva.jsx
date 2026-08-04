@@ -1347,9 +1347,72 @@ function ViagemForm({ editing, onClose }) {
 }
 
 // Acompanhamento (retrospectiva): o que a Mari preenche todo dia na Tela Hoje —
-// sono, trabalho, exercício, fio dental, leitura. Guardado em calendarStore.tracking
-// (chave 'YYYY-MM-DD'). Aqui: médias e contagens do mês + o dia a dia.
+// sono, trabalho e os hábitos. Guardado em calendarStore.tracking (chave
+// 'YYYY-MM-DD'). Aqui: médias e contagens do mês + o dia a dia, e dá pra editar
+// qualquer dia ou preencher um que ficou pra trás.
 const COR_HAB = '#3fb6a8';
+// Os hábitos liga/desliga, na mesma ordem da Tela Hoje.
+const HABS_TRACK = [['exercicio', 'Exercício', '🏃'], ['comidaSaudavel', 'Comida saudável', '🥗'], ['fioDental', 'Fio dental', '🦷'], ['leu', 'Leitura', '📖']];
+// Horas guardadas em decimal, mostradas em hh:mm (7,5 → 7:30). Aceita só o número.
+const fmtHoraHM = (v) => { if (v == null) return ''; const tot = Math.round(v * 60); return `${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, '0')}`; };
+const parseHoraHM = (s) => {
+  const str = String(s).trim();
+  if (!str) return undefined;
+  if (str.includes(':')) { const [h, m] = str.split(':'); const v = (Number(h) || 0) + (Number(m) || 0) / 60; return isFinite(v) ? v : undefined; }
+  const n = Number(str.replace(',', '.'));
+  return isFinite(n) ? n : undefined;
+};
+
+// Editar um dia do acompanhamento — ou preencher um que ela esqueceu. Salva a cada
+// mudança (igual à Tela Hoje); trocar a data no topo carrega o que houver naquele dia.
+function DiaTrackForm({ dia, escolherData, onClose }) {
+  const cal = useCalendar();
+  const hoje = new Date();
+  const hojeK = `${hoje.getFullYear()}-${pad2(hoje.getMonth() + 1)}-${pad2(hoje.getDate())}`;
+  const [k, setK] = useState(dia || hojeK);
+  const t = (cal.data.tracking || {})[k] || {};
+  const [sono, setSono] = useState(fmtHoraHM(t.sono));
+  const [trab, setTrab] = useState(fmtHoraHM(t.trabalho));
+  // Ao trocar o dia, os campos recarregam os valores daquele dia.
+  useEffect(() => { const d = (cal.data.tracking || {})[k] || {}; setSono(fmtHoraHM(d.sono)); setTrab(fmtHoraHM(d.trabalho)); }, [k]); // eslint-disable-line
+  const salvarNum = (campo, txt) => cal.setTracking(k, { [campo]: parseHoraHM(txt) });
+  const numLabel = { fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'block', marginBottom: 4, fontWeight: 700 };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{escolherData ? 'Preencher um dia' : `Dia ${k.slice(8, 10)}/${k.slice(5, 7)}`}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Dia</label>
+        <input type="date" value={k} max={hojeK} onChange={e => setK(e.target.value || hojeK)} style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+          <div style={{ flex: 1 }}>
+            <label style={numLabel}>Sono (h)</label>
+            <input type="text" value={sono} onChange={e => { setSono(e.target.value); salvarNum('sono', e.target.value); }} placeholder="ex.: 7:30" style={inputStyle} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={numLabel}>Trabalho (h)</label>
+            <input type="text" value={trab} onChange={e => { setTrab(e.target.value); salvarNum('trabalho', e.target.value); }} placeholder="ex.: 8:00" style={inputStyle} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 18 }}>
+          {HABS_TRACK.map(([campo, label]) => {
+            const on = !!t[campo];
+            return (
+              <button key={campo} onClick={() => cal.setTracking(k, { [campo]: !on })} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                border: '1px solid ' + (on ? COR_HAB : '#e2e2e2'), background: on ? COR_HAB + '1c' : '#fff', color: on ? '#1a7a6e' : '#999',
+              }}>{on ? '✓' : '○'} {label}</button>
+            );
+          })}
+        </div>
+        <p style={{ fontSize: 11.5, color: '#bbb', margin: '14px 0 0', lineHeight: 1.5 }}>Salva sozinho. Um dia sem nada preenchido some da lista.</p>
+        <button onClick={onClose} style={{ width: '100%', marginTop: 18, padding: '12px 0', borderRadius: 11, border: 'none', background: '#111', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Pronto</button>
+      </div>
+    </div>
+  );
+}
 function HabitosRetro({ onBack, isWide }) {
   const cal = useCalendar();
   const tracking = cal.data.tracking || {};
@@ -1367,7 +1430,8 @@ function HabitosRetro({ onBack, isWide }) {
   // Horas guardadas em decimal; exibidas em hh:mm (7,5 → 7:30). Média também.
   const fmtH = (v) => { if (v == null) return '—'; const tot = Math.round(v * 60); return `${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, '0')}`; };
   const plur = (n) => n + (n === 1 ? ' dia' : ' dias');
-  const HABS = [['exercicio', 'Exercício', '🏃'], ['fioDental', 'Fio dental', '🦷'], ['leu', 'Leitura', '📖']];
+  const HABS = HABS_TRACK;
+  const [editDia, setEditDia] = useState(null);   // { dia } editar | { novo: true } preencher um dia esquecido
   const selStyle = { padding: '9px 12px', borderRadius: 12, border: '1px solid ' + COR_HAB + '55', background: COR_HAB + '10', color: '#26645d', fontSize: 13.5, fontWeight: 700, fontFamily: 'inherit', textTransform: 'capitalize', cursor: 'pointer', marginBottom: 16 };
   const statBox = (label, valor, sub, chave) => (
     <div key={chave} style={{ background: COR_HAB + '10', border: '1px solid ' + COR_HAB + '22', borderRadius: 14, padding: '12px 14px' }}>
@@ -1379,21 +1443,26 @@ function HabitosRetro({ onBack, isWide }) {
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
-      <div style={{ width: 36, height: 4, background: COR_HAB, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Acompanhamento</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu dia a dia · sono, trabalho e hábitos</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_HAB, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Acompanhamento</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>seu dia a dia · sono, trabalho e hábitos</p>
+        </div>
+        <button onClick={() => setEditDia({ novo: true })} title="preencher um dia" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
       {!meses.length ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada ainda. Preencha o “Acompanhamento do dia” no fim da Tela Hoje que o histórico aparece aqui.</p>
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada ainda. Preencha o “Acompanhamento do dia” no fim da Tela Hoje — ou toque no + pra lançar um dia aqui mesmo.</p>
       ) : <>
         <div><select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>{meses.map(m => <option key={m} value={m}>{fmtMesAno(m)}</option>)}</select></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => typeof r.sono === 'number').length), 'med-sono')}
           {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => typeof r.trabalho === 'number').length), 'med-trab')}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
           {HABS.map(([campo, label, emoji]) => statBox(label, conta(campo), conta(campo) === 1 ? 'dia' : 'dias', campo))}
         </div>
-        <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>dia a dia</p>
+        <p style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700, margin: '0 0 8px' }}>dia a dia <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 400, color: '#ccc' }}>· toque num dia pra editar</span></p>
         <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
           {[['sono', 'Sono'], ['trabalho', 'Trabalho']].map(([m, l]) => (
             <button key={m} onClick={() => setMetric(m)} style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (metric === m ? COR_HAB : '#e2e2e2'), background: metric === m ? COR_HAB + '1c' : '#fff', color: metric === m ? '#1a4d47' : '#999' }}>{l}</button>
@@ -1425,7 +1494,7 @@ function HabitosRetro({ onBack, isWide }) {
           );
         })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.</p>}
         {regs.map(r => (
-          <div key={r.d} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <div key={r.d} onClick={() => setEditDia({ dia: r.d })} title="tocar pra editar" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
             <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>
             <span style={{ fontSize: 12.5, color: '#777', whiteSpace: 'nowrap', flexShrink: 0 }}>😴 {fmtH(r.sono)} · 💼 {fmtH(r.trabalho)}</span>
             {/* só mostra o emoji do hábito que a Mari fez (nada de cinza pra o que não fez) */}
@@ -1435,6 +1504,7 @@ function HabitosRetro({ onBack, isWide }) {
           </div>
         ))}
       </>}
+      {editDia && <DiaTrackForm dia={editDia.dia} escolherData={editDia.novo} onClose={() => setEditDia(null)} />}
     </div>
   );
 }
