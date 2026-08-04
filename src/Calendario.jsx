@@ -92,6 +92,32 @@ export function itemsForDay(data, date, planos) {
   return { events, exercicios, tasks, roles, cultura, planoItens, all };
 }
 
+// Tarefas que REPETEM (todo dia 1, toda segunda…) e ficaram pra trás sem serem
+// marcadas. Elas NÃO podem ser puxadas pra hoje como as tarefas soltas: a data é a
+// âncora da repetição, mudá-la moveria a série inteira ("todo dia 1" viraria "todo
+// dia 4"). Então a ocorrência vencida aparece no Hoje sinalizada com o dia em que
+// venceu, e marcar dá baixa no dia certo (`_doneKey` continua sendo o dia original).
+// Devolve no máximo a ÚLTIMA ocorrência vencida de cada tarefa — se ela já foi
+// marcada, não há nada atrasado.
+export function tarefasRecorrentesAtrasadas(data, hoje, diasAtras = 62) {
+  const base = new Date(hoje); base.setHours(0, 0, 0, 0);
+  const out = [];
+  (data.tasks || []).forEach(t => {
+    if (!t.data || !t.repetir || t.repetir === 'nao') return;
+    for (let i = 1; i <= diasAtras; i++) {
+      const d = new Date(base); d.setDate(d.getDate() - i);
+      const key = ymd(d);
+      if (key < t.data) break;                       // antes de a tarefa existir
+      if (!taskOccursOn(t, d)) continue;             // não é dia dela (nem exceção)
+      if (!(t.feitas || []).includes(key)) {
+        out.push({ ...t, _tipo: 'tarefa', _cor: t.trabalho ? '#4f7cff' : TAREFA_COR, _titulo: t.titulo, _doneKey: key, _dia: key, feita: false, _atrasadaDe: key });
+      }
+      break;                                         // só a ocorrência mais recente
+    }
+  });
+  return out;
+}
+
 // Itens do dia para as visões Mês/Agenda: exclui os treinos de grupo muscular
 // (que só aparecem na visão Exercício). Corrida e "outros" permanecem.
 export function itemsGeral(data, date, planos) {

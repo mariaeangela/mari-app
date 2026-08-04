@@ -4,7 +4,7 @@ import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
-import Calendario, { itemsForDay, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
+import Calendario, { itemsForDay, tarefasRecorrentesAtrasadas, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
 import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva, getOrcamentoViagem, simboloMoeda } from './lifeStore.jsx';
 // Telas pesadas carregam SÓ quando abertas (Life ~330 KB, Retrospectiva ~150 KB,
@@ -370,19 +370,24 @@ function HojeAgenda() {
   const [editCheck, setEditCheck] = useState(null);
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
   // passa life.planos → itens do checklist com prazo == hoje entram aqui (não em "próximos")
-  const items = itemsForDay(cal.data, hoje, life.planos).all;
+  // Antes dos itens de hoje vêm as tarefas que REPETEM e ficaram pra trás (ex.: a de
+  // todo dia 1): elas não podem ser movidas — a data é a âncora da repetição —, então
+  // aparecem aqui marcadas com o dia em que venceram.
+  const atrasadas = tarefasRecorrentesAtrasadas(cal.data, hoje);
+  const items = [...atrasadas, ...itemsForDay(cal.data, hoje, life.planos).all];
   if (!items.length) return null;
   return (
     <div style={{ marginBottom: 24 }}>
       <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>hoje</p>
       {items.map(it => (
-        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
+        <div key={it._atrasadaDe ? it.id + it._atrasadaDe : it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
           {it._tipo === 'tarefa'
             ? <span onClick={() => cal.toggleTask(it.id, it._doneKey)} style={{ fontSize: 18, color: it.feita ? '#54c08a' : '#ccc', cursor: 'pointer' }}>{it.feita ? '☑' : '☐'}</span>
             : it._tipo === 'plano'
               ? <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer', flexShrink: 0 }}>☐</span>
               : <span style={{ width: 9, height: 9, borderRadius: '50%', background: it._cor, flexShrink: 0 }} />}
           <span onClick={() => it._tipo === 'plano' ? setEditCheck(it) : setEditing(it)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: it.feita ? 'line-through' : 'none', opacity: it.feita ? 0.5 : 1, cursor: 'pointer' }}>{it._titulo}</span>
+          {it._atrasadaDe && <span style={{ fontSize: 10.5, fontWeight: 700, color: '#c0392b', background: '#c0392b14', borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>atrasada · {it._atrasadaDe.slice(8, 10)}/{it._atrasadaDe.slice(5, 7)}</span>}
           {it._tipo === 'plano' && <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700, flexShrink: 0 }}>{it._planoNome}</span>}
           {it.trabalho && <span style={trabTag}>trabalho</span>}
           {it.horaInicio && <span style={{ fontSize: 12, color: '#999' }}>{it.horaInicio}</span>}
