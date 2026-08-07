@@ -3192,12 +3192,15 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor =
         <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}{nota.temas ? <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: cor }}>{'  ·  ' + nota.temas}</span> : null}</span>
         {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: cor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
         {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: cor, fontWeight: 700, background: cor + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
-        {ordenando ? (
+        {ordenando && (
           <span style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
             <button onClick={() => onMove(nota.id, -1)} disabled={primeiro} title="subir" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: primeiro ? '#ddd' : '#777', cursor: primeiro ? 'default' : 'pointer', width: 26, height: 26, fontSize: 13, padding: 0 }}>↑</button>
             <button onClick={() => onMove(nota.id, 1)} disabled={ultimo} title="descer" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: ultimo ? '#ddd' : '#777', cursor: ultimo ? 'default' : 'pointer', width: 26, height: 26, fontSize: 13, padding: 0 }}>↓</button>
           </span>
-        ) : <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>}
+        )}
+        {/* o ▸ FICA mesmo ordenando: é abrindo a anotação que se chega nas setas
+            dos tópicos de dentro — sem ele, parecia que só a lista de fora ordenava */}
+        <span style={{ color: '#bbb', fontSize: 13, flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
         <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
@@ -3269,7 +3272,7 @@ function TopicoView({ topico, onBack, cad }) {
       </div>
 
       {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>{c.comQuando ? 'Sem anotações ainda.' : 'Sem notas ainda.'}</p>}
-      {ordenando && <p style={{ fontSize: 12, color: c.cor, margin: '0 0 10px' }}>Use ↑ ↓ pra arrumar a ordem — vale também pros tópicos abertos dentro de uma anotação.</p>}
+      {ordenando && <p style={{ fontSize: 12, color: c.cor, margin: '0 0 10px', lineHeight: 1.5 }}>Use ↑ ↓ pra arrumar a ordem. Pra mexer nos <b>tópicos de dentro</b>, toque no ▸ e abra a anotação — cada nível ordena entre os seus.</p>}
       {topo.map((nota, i) => (
         <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle} cor={c.cor} maxNivel={c.maxNivel || 0}
           ordenando={ordenando} onMove={c.moverNota} primeiro={i === 0} ultimo={i === topo.length - 1}
