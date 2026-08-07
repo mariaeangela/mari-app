@@ -455,17 +455,29 @@ function VRHoje() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [val, setVal] = useState('');
+  const [data, setData] = useState(ymd(today));
   const [editTotal, setEditTotal] = useState(false);
   const [totalTxt, setTotalTxt] = useState('');
   // A lista crua de gastos crescia demais até o fim do ciclo. Agora ela nasce
   // fechada e, aberta, mostra UMA linha por dia com o valor somado; tocar no dia
-  // abre os lançamentos daquele dia (é lá que dá pra apagar um).
+  // abre os lançamentos daquele dia (é lá que dá pra corrigir ou apagar um).
   const [verDias, setVerDias] = useState(false);
   const [diaExp, setDiaExp] = useState(null);
+  const [editId, setEditId] = useState(null);   // gasto em edição (data + valor)
+  const [eVal, setEVal] = useState('');
+  const [eData, setEData] = useState('');
   const gastosPorDia = agruparPorDia(gastos);
 
-  const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: ymd(today) }); setVal(''); setAddOpen(false); };
+  // A data é só "em que dia DESTE ciclo o gasto aconteceu" — o gasto pertence ao
+  // ciclo aberto de qualquer jeito. Então o campo só anda entre o dia 27 (início
+  // do ciclo) e hoje; `noCiclo` trava também quem digitar a data na mão.
+  const hojeK = ymd(today);
+  const noCiclo = (d) => (!d ? hojeK : d < cycleKey ? cycleKey : d > hojeK ? hojeK : d);
+
+  const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: noCiclo(data) }); setVal(''); setData(hojeK); setAddOpen(false); };
   const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
+  const abrirEdit = (g) => { setEditId(g.id); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
+  const salvarEdit = (id) => { life.updateVrGasto(cycleKey, id, { valor: Number(String(eVal).replace(',', '.')) || 0, data: noCiclo(eData) }); setEditId(null); };
 
   const cor = '#1a7a4f';
   return (
@@ -496,10 +508,13 @@ function VRHoje() {
           </div>
 
           {addOpen ? (
-            <div style={{ display: 'flex', gap: 8, marginBottom: gastos.length ? 10 : 0 }}>
-              <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGasto()} placeholder="quanto gastou? ex.: 50" style={{ ...capaInput, flex: 1 }} />
-              <button onClick={addGasto} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>ok</button>
-              <button onClick={() => { setAddOpen(false); setVal(''); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 12px', cursor: 'pointer' }}>×</button>
+            <div style={{ marginBottom: gastos.length ? 10 : 0 }}>
+              <input type="date" value={data} min={cycleKey} max={hojeK} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, width: 140, marginBottom: 8 }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGasto()} placeholder="quanto gastou? ex.: 50" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+                <button onClick={addGasto} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                <button onClick={() => { setAddOpen(false); setVal(''); setData(hojeK); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 12px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+              </div>
             </div>
           ) : (
             <button onClick={() => setAddOpen(true)} style={{ display: 'block', width: '100%', border: '1px dashed ' + cor + '66', borderRadius: 10, background: '#fff', color: cor, fontSize: 13, fontWeight: 700, padding: '10px 0', cursor: 'pointer' }}>+ lançar gasto</button>
@@ -515,10 +530,17 @@ function VRHoje() {
                     <LinhaDia dia={d.dia} qtd={d.itens.length} soma={d.soma} aberto={aberto} cor={cor} onClick={() => setDiaExp(aberto ? null : d.dia)} />
                     {aberto && (
                       <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
-                        {d.itens.map(g => (
+                        {d.itens.map(g => editId === g.id ? (
+                          <div key={g.id} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '3px 0' }}>
+                            <input type="date" value={eData} min={cycleKey} max={hojeK} onChange={e => setEData(e.target.value)} style={{ ...capaInput, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 9px' }} />
+                            <input autoFocus value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                            <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                            <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+                          </div>
+                        ) : (
                           <div key={g.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '3px 0', fontSize: 12, color: '#8a8a8a' }}>
-                            <span>{fmtR$(g.valor)}</span>
-                            <button onClick={() => life.deleteVrGasto(cycleKey, g.id)} style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 15, cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>
+                            <span onClick={() => abrirEdit(g)} title="tocar pra editar (dia e valor)" style={{ cursor: 'pointer' }}>{fmtR$(g.valor)}</span>
+                            <button onClick={() => life.deleteVrGasto(cycleKey, g.id)} title="apagar" style={{ border: 'none', background: 'none', color: '#ccc', fontSize: 15, cursor: 'pointer', lineHeight: 1, padding: 0 }}>×</button>
                           </div>
                         ))}
                       </div>

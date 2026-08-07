@@ -2101,6 +2101,9 @@ export function LifeProvider({ children }) {
   const setVrTotal = (ck, total) => setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...vrCicloDe(ck), total: Number(total) || 0 } } });
   const addVrGasto = (ck, g) => { const c = vrCicloDe(ck); setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: [...c.gastos, { ...g, id: uid('vg') }] } } }); };
   const deleteVrGasto = (ck, id) => { const c = vr.ciclos[ck]; if (!c) return; setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: c.gastos.filter(x => x.id !== id) } } }); };
+  // Corrigir um gasto já lançado (valor e/ou data) — o gasto continua no MESMO
+  // ciclo, a data só diz em que dia dele aconteceu. Mesmo formato do updatePgGasto.
+  const updateVrGasto = (ck, id, patch) => { const c = vr.ciclos[ck]; if (!c) return; setVr({ ...vr, ciclos: { ...vr.ciclos, [ck]: { ...c, gastos: c.gastos.map(x => x.id === id ? { ...x, ...patch } : x) } } }); };
 
   // ---- Posso gastar: orçamento do mês (ciclo 27→26), 2 caixas INDEPENDENTES:
   // 'total' e 'mercado'. Cada uma { budget, gastos:[...] }. Resta = budget − gasto.
@@ -2212,7 +2215,7 @@ export function LifeProvider({ children }) {
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
     gastoSubcats, addGastoSubcat, deleteGastoSubcat, setGastoSubItem,
-    vr, setVrTotal, addVrGasto, deleteVrGasto,
+    vr, setVrTotal, addVrGasto, deleteVrGasto, updateVrGasto,
     possoGastar, setPgBudget, addPgGasto, deletePgGasto, updatePgGasto,
     trechos, saveTrecho, deleteTrecho,
     albuns, saveAlbum, deleteAlbum, setAlbunsCapas,
