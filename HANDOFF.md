@@ -343,6 +343,13 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   setas ↑↓ em cada card (`moveEstudoNota` troca com a IRMÃ — mesmo tópico e mesmo pai, vale também
   dentro de uma anotação). Nota nova entra no FIM. Aninhamento: `maxNivel` = nível mais fundo que ainda
   recebe filhos — Aprendizados 0, Estudos 1 (**anotação → tópico → subtópico**).
+  **Texto dos itens (vale nos DOIS cadernos):** o `NotaForm` preserva a **linha em branco** entre
+  parágrafos (item `''`, renderizado como espaço com `listStyle:'none'`, sem bolinha) e o **recuo** do
+  começo da linha (`whiteSpace:'pre-wrap'`) — antes um `.trim()`+`.filter(Boolean)` comia os dois e o
+  texto saía grudado. Só o espaço do fim da linha e as linhas vazias das pontas somem. Formatação
+  inline por **`formatarInline(txt)`** (Life.jsx): `**negrito**` → `<strong>`, `__itálico__` → `<em>`,
+  `~~riscado~~` → `<s>`; parser recursivo próprio (nada de innerHTML), aceita aninhar
+  (`**negrito com __itálico__**`) e deixa marca sem par como texto literal.
   Cards com tela própria:
   - **Acompanhamento de leituras** (`AcompLeiturasSection`/`LivroAcompDetail`) — acompanhar a leitura
     EM CURSO de perto (≠ "Próximas leituras" da Explorar, que é o catálogo/estante do Skoob). Slice

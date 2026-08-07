@@ -3027,8 +3027,15 @@ function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
   const podeSalvar = titulo.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
-    const itens = texto.split('\n').map(l => l.trim()).filter(Boolean);
-    c.salvarNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens, ...(c.comQuando ? { quando: quando.trim() || undefined } : {}) });
+    // Uma linha = um item, MAS a linha em branco entre parágrafos é preservada
+    // (vira um respiro na leitura, sem bolinha) e o recuo do começo da linha
+    // também — antes um `.trim()` + `.filter(Boolean)` comia os dois, e o texto
+    // salvo saía todo grudado. Só o espaço do FIM da linha e as linhas vazias
+    // das PONTAS são descartados.
+    const linhas = texto.split('\n').map(l => l.replace(/\s+$/, ''));
+    while (linhas.length && !linhas[0].trim()) linhas.shift();
+    while (linhas.length && !linhas[linhas.length - 1].trim()) linhas.pop();
+    c.salvarNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens: linhas, ...(c.comQuando ? { quando: quando.trim() || undefined } : {}) });
     onClose();
   };
   return (
@@ -3049,6 +3056,10 @@ function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
         )}
         <label style={labelStyle}>Itens (um por linha)</label>
         <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder={c.comQuando ? 'uma anotação por linha' : 'um aprendizado por linha'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <p style={{ fontSize: 11, color: '#bbb', margin: '5px 2px 0', lineHeight: 1.6 }}>
+          <b style={{ color: '#999' }}>**negrito**</b> · <b style={{ color: '#999' }}>__itálico__</b> · <b style={{ color: '#999' }}>~~riscado~~</b><br />
+          Linha em branco vira um espaço entre os parágrafos.
+        </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { c.apagarNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
@@ -3137,6 +3148,30 @@ function ComprasMirror({ listaId, grupo }) {
   );
 }
 
+// Formatação simples dentro do item de uma nota: **negrito**, __itálico__ e
+// ~~riscado~~. Parser próprio (nada de lib nem de innerHTML — o texto é dela, mas
+// injetar HTML aqui abriria a porta pra qualquer coisa colada de fora): varre a
+// linha, corta no primeiro par de marcas e recursa no que está dentro, então
+// **negrito com __itálico__** funciona. Marca sem par fecha nada e fica literal.
+const MARCA_RE = /(\*\*|__|~~)(.+?)\1/;
+function formatarInline(txt) {
+  const out = [];
+  let resto = String(txt == null ? '' : txt);
+  let i = 0;
+  while (resto) {
+    const m = resto.match(MARCA_RE);
+    if (!m) { out.push(resto); break; }
+    if (m.index > 0) out.push(resto.slice(0, m.index));
+    const dentro = formatarInline(m[2]);
+    const k = 'f' + (i++);
+    if (m[1] === '**') out.push(<strong key={k}>{dentro}</strong>);
+    else if (m[1] === '__') out.push(<em key={k}>{dentro}</em>);
+    else out.push(<s key={k} style={{ color: '#999' }}>{dentro}</s>);
+    resto = resto.slice(m.index + m[0].length);
+  }
+  return out;
+}
+
 // Card de nota; renderiza recursivamente as sub-notas (1 nível = grupo → itens).
 // Notas tipo 'vinho' têm layout próprio (país/região/uva/data + informações).
 function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor = COR_APREND, maxNivel = 0, ordenando, onMove, primeiro, ultimo }) {
@@ -3172,7 +3207,11 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor =
             <>
               {nota.itens.length > 0 && (
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  {nota.itens.map((it, i) => <li key={i} style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', marginBottom: 4 }}>{it}</li>)}
+                  {/* linha em branco = respiro entre parágrafos: mantém o espaço e NÃO ganha
+                      bolinha. `pre-wrap` preserva o recuo/os espaços que ela digitou. */}
+                  {nota.itens.map((it, i) => it.trim()
+                    ? <li key={i} style={{ fontFamily: "'Lora', serif", fontSize: 14, lineHeight: 1.65, color: '#333', marginBottom: 4, whiteSpace: 'pre-wrap' }}>{formatarInline(it)}</li>
+                    : <li key={i} aria-hidden="true" style={{ listStyle: 'none', height: 9 }} />)}
                 </ul>
               )}
               {subs.length > 0 && (
