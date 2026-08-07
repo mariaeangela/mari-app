@@ -2152,6 +2152,28 @@ export function LifeProvider({ children }) {
     ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) } // merge preserva criadoEm
     : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n'), criadoEm: Date.now() }] });
   const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
+
+  // ---- Estudos › tópicos da Mari (mesmo formato dos Aprendizados: tópicos + notas) ----
+  // Slice PRÓPRIO (`estudoTemas`), separado dos Aprendizados de propósito: lá é "o
+  // que já aprendi", aqui é o que ela está estudando. A UI é a mesma (TopicoView/
+  // NotaCard), trocando só o caderno. Começa vazio — sem seed.
+  const estudoTemas = data.estudoTemas || { topicos: [], notas: [] };
+  const setEstudoTemas = (next) => persist({ ...data, estudoTemas: next });
+  const addEstudoTopico = (nome) => { const id = uid('et'); setEstudoTemas({ ...estudoTemas, topicos: [...estudoTemas.topicos, { id, nome }] }); return id; };
+  const deleteEstudoTopico = (id) => setEstudoTemas({ topicos: estudoTemas.topicos.filter(t => t.id !== id), notas: estudoTemas.notas.filter(n => n.topicoId !== id) });
+  const moveEstudoTopico = (id, dir) => {
+    const arr = [...estudoTemas.topicos];
+    const i = arr.findIndex(t => t.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setEstudoTemas({ ...estudoTemas, topicos: arr });
+  };
+  const renameEstudoTopico = (id, nome) => setEstudoTemas({ ...estudoTemas, topicos: estudoTemas.topicos.map(t => t.id === id ? { ...t, nome } : t) });
+  const saveEstudoNota = (nota) => setEstudoTemas(nota.id && estudoTemas.notas.some(n => n.id === nota.id)
+    ? { ...estudoTemas, notas: estudoTemas.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) }   // merge preserva criadoEm
+    : { ...estudoTemas, notas: [...estudoTemas.notas, { ...nota, id: uid('en'), criadoEm: Date.now() }] });
+  const deleteEstudoNota = (id) => setEstudoTemas({ ...estudoTemas, notas: estudoTemas.notas.filter(n => n.id !== id) });
   // Insight de terapia do dia: acha (ou cria) o tópico "Terapia Insights" e a nota
   // com o dia (dataLabel) como título, e adiciona o aprendizado dentro — tudo num
   // único save (atômico). Usado pela caixa da Tela Hoje nos dias de terapia.
@@ -2199,6 +2221,7 @@ export function LifeProvider({ children }) {
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight, setTerapiaTemas,
+    estudoTemas, addEstudoTopico, deleteEstudoTopico, moveEstudoTopico, renameEstudoTopico, saveEstudoNota, deleteEstudoNota,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
     marcos, saveMarco, deleteMarco,

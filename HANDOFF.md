@@ -325,9 +325,17 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   (dinheiro/saúde/sentimentos/viagem) e **Maquiagem** (conhecimento + "Para comprar" espelhando a lista de
   Compras **Maquiagem**, semeada idempotente por `ensureMaquiagem`/flag `maquiagemSeeded` por causa do
   merge raso; "Para provar" só referência). Adicionar tópico/nota/sub-nota/vinho pela própria UI.
-- **Estudos** (`EstudosPage` hub + cards, em Life.jsx) — a aba virou um **hub** (grade de cards, como o
-  hub da Life), porque vai abrigar várias coisas. Por ora só **1 card** (grade vira `1fr` com 1 card,
-  `1fr 1fr` com 2+). Card atual:
+- **Estudos** (`EstudosPage` hub + cards, em Life.jsx) — a aba é um **hub** (grade de cards, como o
+  hub da Life). Dois cards **FIXOS** (Acompanhamento de leituras · Inglês, que têm tela própria) +
+  os **tópicos que a Mari cria** ali mesmo: "+ novo tópico" e ⚙ (renomear tocando no nome / reordenar /
+  apagar; os fixos não entram no ⚙). Cada tópico dela abre o **`TopicoView`** com notas — MESMA UI dos
+  Aprendizados, slice diferente: `estudoTemas:{topicos:[{id,nome}],notas:[{id,topicoId,paiId?,titulo,
+  itens[],criadoEm}]}` no `lifeStore` (CRUD `addEstudoTopico`/`renameEstudoTopico`/`moveEstudoTopico`/
+  `deleteEstudoTopico`/`saveEstudoNota`/`deleteEstudoNota`; ids `et-`/`en-`; começa VAZIO, sem seed).
+  O compartilhamento da UI é feito pelo **"caderno"** (`cadAprend(life)`/`cadEstudos(life)` em Life.jsx):
+  um objeto `{dados, cor, voltar, salvarNota, apagarNota, apagarTopico}` passado como prop `cad` para
+  `TopicoView`/`NotaForm` (sem `cad` = Aprendizados, o padrão). `NotaCard` ganhou prop `cor`.
+  Cards com tela própria:
   - **Acompanhamento de leituras** (`AcompLeiturasSection`/`LivroAcompDetail`) — acompanhar a leitura
     EM CURSO de perto (≠ "Próximas leituras" da Explorar, que é o catálogo/estante do Skoob). Slice
     `acompLeituras:[{id,titulo,autor?,ano?,pais?,inicio?,status:'lendo'|'pausado'|'concluido',

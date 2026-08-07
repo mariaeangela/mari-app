@@ -2995,8 +2995,21 @@ function SaudeForm({ tipo, editing, onClose }) {
 // ---- Aprendizados (tópicos + notas) ----
 const COR_APREND = '#c78a3a';
 
-function NotaForm({ topicoId, paiId, editing, onClose }) {
+// Um "caderno" = tópicos + notas. Aprendizados e Estudos guardam o MESMO formato
+// de dado e usam a MESMA UI (TopicoView/NotaCard/NotaForm) — muda só o slice do
+// store, a cor e o rótulo do voltar. `cadAprend`/`cadEstudos` montam esse par.
+const cadAprend = (life) => ({
+  dados: life.aprendizados, cor: COR_APREND, voltar: 'Aprendizados', vinho: true,
+  salvarNota: life.saveAprendNota, apagarNota: life.deleteAprendNota, apagarTopico: life.deleteAprendTopico,
+});
+const cadEstudos = (life) => ({
+  dados: life.estudoTemas, cor: COR_ESTUDO, voltar: 'Estudos', vinho: false,
+  salvarNota: life.saveEstudoNota, apagarNota: life.deleteEstudoNota, apagarTopico: life.deleteEstudoTopico,
+});
+
+function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
   const life = useLife();
+  const c = cad || cadAprend(life);
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [texto, setTexto] = useState((editing?.itens || []).join('\n'));
   const pai = editing ? editing.paiId : paiId;
@@ -3004,7 +3017,7 @@ function NotaForm({ topicoId, paiId, editing, onClose }) {
   const salvar = () => {
     if (!podeSalvar) return;
     const itens = texto.split('\n').map(l => l.trim()).filter(Boolean);
-    life.saveAprendNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens });
+    c.salvarNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens });
     onClose();
   };
   return (
@@ -3019,7 +3032,7 @@ function NotaForm({ topicoId, paiId, editing, onClose }) {
         <label style={labelStyle}>Itens (um por linha)</label>
         <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder="um aprendizado por linha" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-          {editing && <button onClick={() => { life.deleteAprendNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          {editing && <button onClick={() => { c.apagarNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </div>
@@ -3108,7 +3121,7 @@ function ComprasMirror({ listaId, grupo }) {
 
 // Card de nota; renderiza recursivamente as sub-notas (1 nível = grupo → itens).
 // Notas tipo 'vinho' têm layout próprio (país/região/uva/data + informações).
-function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
+function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor = COR_APREND }) {
   const open = !!aberta[nota.id];
   const subs = filhos(nota.id);
   const isVinho = nota.tipo === 'vinho';
@@ -3117,9 +3130,9 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
   return (
     <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
       <div onClick={() => toggle(nota.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: nivel ? '10px 12px' : '12px 14px', cursor: 'pointer' }}>
-        <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}{nota.temas ? <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: COR_APREND }}>{'  ·  ' + nota.temas}</span> : null}</span>
-        {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: COR_APREND, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
-        {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: COR_APREND, fontWeight: 700, background: COR_APREND + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
+        <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}{nota.temas ? <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: cor }}>{'  ·  ' + nota.temas}</span> : null}</span>
+        {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: cor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
+        {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: cor, fontWeight: 700, background: cor + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
         <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>
       </div>
       {open && (
@@ -3140,7 +3153,7 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
               )}
               {subs.length > 0 && (
                 <div style={{ marginTop: nota.itens.length ? 12 : 0 }}>
-                  {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} />)}
+                  {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} cor={cor} />)}
                 </div>
               )}
             </>
@@ -3157,33 +3170,36 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel }) {
   );
 }
 
-function TopicoView({ topico, onBack }) {
+// `cad` (caderno) diz de qual slice vêm as notas — Aprendizados por padrão,
+// Estudos quando aberto pelo hub de Estudos.
+function TopicoView({ topico, onBack, cad }) {
   const life = useLife();
+  const c = cad || cadAprend(life);
   const [notaForm, setNotaForm] = useState(null);
   const [wineForm, setWineForm] = useState(null);
   const [aberta, setAberta] = useState({});
-  const todas = life.aprendizados.notas.filter(n => n.topicoId === topico.id);
+  const todas = c.dados.notas.filter(n => n.topicoId === topico.id);
   // notas de topo: mais novas primeiro (por criadoEm); as antigas/sem data ficam na ordem original abaixo.
   const topo = todas.filter(n => !n.paiId).sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
   const filhos = (id) => todas.filter(n => n.paiId === id);
   const toggle = (id) => setAberta(a => ({ ...a, [id]: !a[id] }));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Aprendizados</button>
-      <div style={{ width: 36, height: 4, background: COR_APREND, borderRadius: 4, marginBottom: 12 }} />
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {c.voltar}</button>
+      <div style={{ width: 36, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 14px' }}>{topico.nome}</h2>
 
       {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>Sem notas ainda.</p>}
       {topo.map(nota => (
-        <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle}
+        <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle} cor={c.cor}
           onEdit={(nt) => nt.tipo === 'vinho' ? setWineForm({ editing: nt }) : setNotaForm({ editing: nt })}
           onAddSub={(parent) => parent.grupoVinho ? setWineForm({ paiId: parent.id }) : setNotaForm({ paiId: parent.id })} nivel={0} />
       ))}
       <button onClick={() => setNotaForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ nota</button>
 
-      <button onClick={() => { if (window.confirm(`Apagar o tópico "${topico.nome}" e todas as suas notas?`)) { life.deleteAprendTopico(topico.id); onBack(); } }} style={{ display: 'block', margin: '20px auto 0', background: 'none', border: 'none', color: '#ccc', fontSize: 12, cursor: 'pointer' }}>apagar tópico</button>
+      <button onClick={() => { if (window.confirm(`Apagar o tópico "${topico.nome}" e todas as suas notas?`)) { c.apagarTopico(topico.id); onBack(); } }} style={{ display: 'block', margin: '20px auto 0', background: 'none', border: 'none', color: '#ccc', fontSize: 12, cursor: 'pointer' }}>apagar tópico</button>
 
-      {notaForm && <NotaForm topicoId={topico.id} paiId={notaForm.paiId} editing={notaForm.editing} onClose={() => setNotaForm(null)} />}
+      {notaForm && <NotaForm topicoId={topico.id} paiId={notaForm.paiId} editing={notaForm.editing} cad={c} onClose={() => setNotaForm(null)} />}
       {wineForm && <WineForm topicoId={topico.id} paiId={wineForm.paiId} editing={wineForm.editing} onClose={() => setWineForm(null)} />}
     </div>
   );
@@ -4761,30 +4777,101 @@ function AcompLeiturasSection({ onBack }) {
 }
 
 // ===== Estudos — hub (cards: acompanhamento de leituras; outros virão) =====
+// Hub de Estudos: 2 cards FIXOS (Acompanhamento de leituras e Inglês, que têm
+// tela própria) + os tópicos que a Mari cria aqui — cada um vira um card com
+// notas (mesmo formato dos Aprendizados). Fixos não se apagam nem se renomeiam;
+// o ⚙ só mexe nos dela.
 function EstudosPage({ onBack }) {
   const life = useLife();
   const [sec, setSec] = useState(null);
+  const [topicoSel, setTopicoSel] = useState(null);
+  const [novo, setNovo] = useState('');
+  const [adicionando, setAdicionando] = useState(false);
+  const [gerenciar, setGerenciar] = useState(false);
+  const [renomeando, setRenomeando] = useState(null);   // {id, nome} no painel ⚙
+  const cad = cadEstudos(life);
+  const topicos = cad.dados.topicos || [];
+  const topico = topicos.find(t => t.id === topicoSel);
   if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
   if (sec === 'ingles') return <InglesSection onBack={() => setSec(null)} />;
-  const cards = [
+  if (topico) return <TopicoView topico={topico} cad={cad} onBack={() => setTopicoSel(null)} />;
+  const addTopico = () => { const nome = novo.trim(); if (!nome) return; const id = life.addEstudoTopico(nome); setNovo(''); setAdicionando(false); setTopicoSel(id); };
+  const countNotas = (id) => (cad.dados.notas || []).filter(n => n.topicoId === id && !n.paiId).length;
+  const fixos = [
     { id: 'acomp', label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: COR_ACOMP, n: (life.acompLeituras || []).length, sufixo: 'leitura' },
     { id: 'ingles', label: 'Inglês', desc: 'dicionário de palavras', cor: COR_INGLES, n: (life.ingles || []).length, sufixo: 'palavra' },
   ];
+  const cardStyle = (cor) => ({ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' });
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Estudos</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>aulas, leituras e cursos</p>
-      <div style={{ display: 'grid', gridTemplateColumns: cards.length > 1 ? '1fr 1fr' : '1fr', gap: 12 }}>
-        {cards.map(c => (
-          <button key={c.id} onClick={() => setSec(c.id)} style={{ background: c.cor + '12', border: '1px solid ' + c.cor + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Estudos</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>aulas, leituras e cursos</p>
+        </div>
+        {topicos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar / apagar tópicos" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {fixos.map(c => (
+          <button key={c.id} onClick={() => setSec(c.id)} style={cardStyle(c.cor)}>
             <div style={{ width: 24, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c.label}</div>
             <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{c.n ? `${c.n} ${c.sufixo}${c.n === 1 ? '' : 's'}` : c.desc}</div>
           </button>
         ))}
+        {topicos.map(t => {
+          const n = countNotas(t.id);
+          return (
+            <button key={t.id} onClick={() => setTopicoSel(t.id)} style={cardStyle(COR_ESTUDO)}>
+              <div style={{ width: 24, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{t.nome}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{n ? `${n} ${n === 1 ? 'nota' : 'notas'}` : 'sem notas ainda'}</div>
+            </button>
+          );
+        })}
       </div>
+
+      {adicionando ? (
+        <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+          <input value={novo} autoFocus onChange={e => setNovo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addTopico(); if (e.key === 'Escape') { setAdicionando(false); setNovo(''); } }} placeholder="novo tópico (ex.: Astronomia)" style={inputStyle} />
+          <button onClick={addTopico} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
+        </div>
+      ) : (
+        <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+      )}
+
+      {gerenciar && (
+        <div onClick={() => { setGerenciar(false); setRenomeando(null); }} style={overlay}>
+          <div onClick={e => e.stopPropagation()} style={sheet}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar tópicos</h3>
+              <button onClick={() => { setGerenciar(false); setRenomeando(null); }} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+            </div>
+            {topicos.map((t, idx) => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+                {renomeando?.id === t.id ? (
+                  <>
+                    <input value={renomeando.nome} autoFocus onChange={e => setRenomeando({ id: t.id, nome: e.target.value })}
+                      onKeyDown={e => { if (e.key === 'Enter' && renomeando.nome.trim()) { life.renameEstudoTopico(t.id, renomeando.nome.trim()); setRenomeando(null); } if (e.key === 'Escape') setRenomeando(null); }}
+                      style={{ ...inputStyle, flex: 1, padding: '7px 10px' }} />
+                    <button onClick={() => { if (renomeando.nome.trim()) life.renameEstudoTopico(t.id, renomeando.nome.trim()); setRenomeando(null); }} style={{ border: 'none', borderRadius: 8, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 12px', height: 30, fontSize: 12, fontWeight: 700 }}>ok</button>
+                  </>
+                ) : (
+                  <>
+                    <span onClick={() => setRenomeando({ id: t.id, nome: t.nome })} title="tocar pra renomear" style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600, cursor: 'pointer' }}>{t.nome} <span style={{ color: '#ccc', fontSize: 12 }}>✎</span></span>
+                    <button onClick={() => life.moveEstudoTopico(t.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                    <button onClick={() => life.moveEstudoTopico(t.id, 1)} disabled={idx === topicos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === topicos.length - 1 ? '#ddd' : '#777', cursor: idx === topicos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                    <button onClick={() => { if (window.confirm(`Apagar o tópico "${t.nome}" e todas as suas notas?`)) life.deleteEstudoTopico(t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+                  </>
+                )}
+              </div>
+            ))}
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia. ↑ ↓ reordenam. Apagar remove o tópico e todas as suas notas. (Acompanhamento de leituras e Inglês não entram aqui — são fixos.)</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
