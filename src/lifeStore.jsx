@@ -2174,6 +2174,21 @@ export function LifeProvider({ children }) {
     ? { ...estudoTemas, notas: estudoTemas.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) }   // merge preserva criadoEm
     : { ...estudoTemas, notas: [...estudoTemas.notas, { ...nota, id: uid('en'), criadoEm: Date.now() }] });
   const deleteEstudoNota = (id) => setEstudoTemas({ ...estudoTemas, notas: estudoTemas.notas.filter(n => n.id !== id) });
+  // Ordem MANUAL das anotações: troca a nota de lugar com a IRMÃ vizinha (mesmo
+  // tópico e mesmo pai), mexendo direto no array `notas` — a tela lê na ordem do
+  // array, sem ordenar. Vale pros dois níveis (anotação e tópico dentro dela).
+  const moveEstudoNota = (id, dir) => {
+    const arr = [...estudoTemas.notas];
+    const nota = arr.find(n => n.id === id);
+    if (!nota) return;
+    const irmas = arr.filter(n => n.topicoId === nota.topicoId && (n.paiId || null) === (nota.paiId || null));
+    const pos = irmas.findIndex(n => n.id === id);
+    const alvo = irmas[pos + dir];
+    if (!alvo) return;
+    const i = arr.indexOf(nota), j = arr.indexOf(alvo);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setEstudoTemas({ ...estudoTemas, notas: arr });
+  };
   // Insight de terapia do dia: acha (ou cria) o tópico "Terapia Insights" e a nota
   // com o dia (dataLabel) como título, e adiciona o aprendizado dentro — tudo num
   // único save (atômico). Usado pela caixa da Tela Hoje nos dias de terapia.
@@ -2221,7 +2236,7 @@ export function LifeProvider({ children }) {
     gastos, saveGastoMes, deleteGastoMes,
     saude, saveSaudeItem, deleteSaudeItem,
     aprendizados, addAprendTopico, deleteAprendTopico, moveAprendTopico, saveAprendNota, deleteAprendNota, addTerapiaInsight, setTerapiaTemas,
-    estudoTemas, addEstudoTopico, deleteEstudoTopico, moveEstudoTopico, renameEstudoTopico, saveEstudoNota, deleteEstudoNota,
+    estudoTemas, addEstudoTopico, deleteEstudoTopico, moveEstudoTopico, renameEstudoTopico, saveEstudoNota, deleteEstudoNota, moveEstudoNota,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
     marcos, saveMarco, deleteMarco,

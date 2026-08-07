@@ -2998,13 +2998,21 @@ const COR_APREND = '#c78a3a';
 // Um "caderno" = tópicos + notas. Aprendizados e Estudos guardam o MESMO formato
 // de dado e usam a MESMA UI (TopicoView/NotaCard/NotaForm) — muda só o slice do
 // store, a cor e o rótulo do voltar. `cadAprend`/`cadEstudos` montam esse par.
+// `quando` = campo LIVRE de "quando isso foi", em texto (a Mari pediu flexibilidade:
+// num tema é o ano do acontecimento — "1547", "1917–1922", "séc. XVI" —, noutro pode
+// ser "aula 3" ou nada). NÃO é um seletor de data de propósito: data de calendário não
+// cabe em período histórico. `ordemManual` = a lista sai na ordem do array e ela
+// reordena com ↑↓ (sem regra automática). `maxNivel` = o nível MAIS FUNDO que ainda
+// recebe filhos: Aprendizados 0 (só a nota de topo aninha); Estudos 1 (anotação →
+// tópico → subtópico, e para por aí).
 const cadAprend = (life) => ({
-  dados: life.aprendizados, cor: COR_APREND, voltar: 'Aprendizados', vinho: true,
+  dados: life.aprendizados, cor: COR_APREND, voltar: 'Aprendizados', comQuando: false, ordemManual: false, maxNivel: 0,
   salvarNota: life.saveAprendNota, apagarNota: life.deleteAprendNota, apagarTopico: life.deleteAprendTopico,
 });
 const cadEstudos = (life) => ({
-  dados: life.estudoTemas, cor: COR_ESTUDO, voltar: 'Estudos', vinho: false,
+  dados: life.estudoTemas, cor: COR_ESTUDO, voltar: 'Estudos', comQuando: true, ordemManual: true, maxNivel: 1,
   salvarNota: life.saveEstudoNota, apagarNota: life.deleteEstudoNota, apagarTopico: life.deleteEstudoTopico,
+  moverNota: life.moveEstudoNota,
 });
 
 function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
@@ -3013,24 +3021,34 @@ function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
   const [titulo, setTitulo] = useState(editing?.titulo || '');
   const [texto, setTexto] = useState((editing?.itens || []).join('\n'));
   const pai = editing ? editing.paiId : paiId;
+  // "Quando" vale em qualquer nível (a guerra tem ano, o tópico dentro dela também
+  // pode ter). Sempre opcional — em branco, o card simplesmente não mostra nada.
+  const [quando, setQuando] = useState(editing?.quando || '');
   const podeSalvar = titulo.trim().length > 0;
   const salvar = () => {
     if (!podeSalvar) return;
     const itens = texto.split('\n').map(l => l.trim()).filter(Boolean);
-    c.salvarNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens });
+    c.salvarNota({ id: editing?.id, topicoId, paiId: pai || undefined, titulo: titulo.trim(), itens, ...(c.comQuando ? { quando: quando.trim() || undefined } : {}) });
     onClose();
   };
   return (
     <div onClick={onClose} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={sheet}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Nova'} nota</h3>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : (c.comQuando ? (pai ? 'Novo tópico' : 'Nova anotação') : 'Nova nota')}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
         </div>
         <label style={labelStyle}>Título</label>
-        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="ex.: Receita clássica" style={inputStyle} />
+        <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={c.comQuando ? (pai ? 'ex.: Cerco de Leningrado' : 'ex.: Segunda Guerra') : 'ex.: Receita clássica'} style={inputStyle} />
+        {c.comQuando && (
+          <>
+            <label style={labelStyle}>Quando (opcional)</label>
+            <input value={quando} onChange={e => setQuando(e.target.value)} placeholder="ex.: 1941–1944 · séc. XVI · anos 1930" style={inputStyle} />
+            <p style={{ fontSize: 11, color: '#bbb', margin: '5px 2px 0', lineHeight: 1.5 }}>Escreva do jeito que fizer sentido pro tema — ano, período, século, ou nada.</p>
+          </>
+        )}
         <label style={labelStyle}>Itens (um por linha)</label>
-        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder="um aprendizado por linha" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder={c.comQuando ? 'uma anotação por linha' : 'um aprendizado por linha'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { c.apagarNota(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
@@ -3121,7 +3139,7 @@ function ComprasMirror({ listaId, grupo }) {
 
 // Card de nota; renderiza recursivamente as sub-notas (1 nível = grupo → itens).
 // Notas tipo 'vinho' têm layout próprio (país/região/uva/data + informações).
-function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor = COR_APREND }) {
+function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor = COR_APREND, maxNivel = 0, ordenando, onMove, primeiro, ultimo }) {
   const open = !!aberta[nota.id];
   const subs = filhos(nota.id);
   const isVinho = nota.tipo === 'vinho';
@@ -3130,10 +3148,16 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor =
   return (
     <div style={{ background: '#fff', border: '1px solid ' + (nivel ? '#f0f0f0' : '#eee'), borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
       <div onClick={() => toggle(nota.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: nivel ? '10px 12px' : '12px 14px', cursor: 'pointer' }}>
+        {nota.quando && <span style={{ fontSize: 11.5, fontWeight: 700, color: cor, flexShrink: 0 }}>{nota.quando}</span>}
         <span style={{ flex: 1, fontFamily: "'Playfair Display', serif", fontSize: nivel ? 14 : 15, fontWeight: 700, color: '#222' }}>{nota.titulo}{nota.temas ? <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 700, color: cor }}>{'  ·  ' + nota.temas}</span> : null}</span>
         {isVinho && nota.pais && <span style={{ fontSize: 10, fontWeight: 700, color: cor, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{nota.pais}</span>}
         {!isVinho && subs.length > 0 && <span style={{ fontSize: 11, color: cor, fontWeight: 700, background: cor + '18', borderRadius: 10, padding: '1px 7px' }}>{subs.length}</span>}
-        <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>
+        {ordenando ? (
+          <span style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => onMove(nota.id, -1)} disabled={primeiro} title="subir" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: primeiro ? '#ddd' : '#777', cursor: primeiro ? 'default' : 'pointer', width: 26, height: 26, fontSize: 13, padding: 0 }}>↑</button>
+            <button onClick={() => onMove(nota.id, 1)} disabled={ultimo} title="descer" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: ultimo ? '#ddd' : '#777', cursor: ultimo ? 'default' : 'pointer', width: 26, height: 26, fontSize: 13, padding: 0 }}>↓</button>
+          </span>
+        ) : <span style={{ color: '#bbb', fontSize: 13 }}>{open ? '▾' : '▸'}</span>}
       </div>
       {open && (
         <div style={{ padding: nivel ? '0 12px 12px' : '0 14px 14px' }}>
@@ -3153,7 +3177,8 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor =
               )}
               {subs.length > 0 && (
                 <div style={{ marginTop: nota.itens.length ? 12 : 0 }}>
-                  {subs.map(s => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} cor={cor} />)}
+                  {subs.map((s, i) => <NotaCard key={s.id} nota={s} filhos={filhos} aberta={aberta} toggle={toggle} onEdit={onEdit} onAddSub={onAddSub} nivel={nivel + 1} cor={cor} maxNivel={maxNivel}
+                    ordenando={ordenando} onMove={onMove} primeiro={i === 0} ultimo={i === subs.length - 1} />)}
                 </div>
               )}
             </>
@@ -3161,7 +3186,7 @@ function NotaCard({ nota, filhos, aberta, toggle, onEdit, onAddSub, nivel, cor =
           {!isCompras && (
             <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
               <button onClick={() => onEdit(nota)} style={apLink}>editar</button>
-              {nivel === 0 && <button onClick={() => onAddSub(nota)} style={apLink}>{nota.grupoVinho ? '+ adicionar vinho' : '+ adicionar dentro'}</button>}
+              {nivel <= maxNivel && <button onClick={() => onAddSub(nota)} style={apLink}>{nota.grupoVinho ? '+ adicionar vinho' : (nivel === 0 ? '+ adicionar dentro' : '+ subtópico')}</button>}
             </div>
           )}
         </div>
@@ -3178,24 +3203,36 @@ function TopicoView({ topico, onBack, cad }) {
   const [notaForm, setNotaForm] = useState(null);
   const [wineForm, setWineForm] = useState(null);
   const [aberta, setAberta] = useState({});
+  const [ordenando, setOrdenando] = useState(false);
   const todas = c.dados.notas.filter(n => n.topicoId === topico.id);
-  // notas de topo: mais novas primeiro (por criadoEm); as antigas/sem data ficam na ordem original abaixo.
-  const topo = todas.filter(n => !n.paiId).sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+  // Ordem MANUAL (Estudos): sai na ordem do array, do jeito que ela arrumou com ↑↓.
+  // Sem ordem manual (Aprendizados): segue como era, mais novas primeiro por criadoEm
+  // — as antigas/sem data ficam na ordem original abaixo.
+  const topo = c.ordemManual
+    ? todas.filter(n => !n.paiId)
+    : todas.filter(n => !n.paiId).sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
   const filhos = (id) => todas.filter(n => n.paiId === id);
   const toggle = (id) => setAberta(a => ({ ...a, [id]: !a[id] }));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {c.voltar}</button>
       <div style={{ width: 36, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 14px' }}>{topico.nome}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0 }}>{topico.nome}</h2>
+        {c.ordemManual && todas.length > 1 && (
+          <button onClick={() => setOrdenando(v => !v)} title="mudar a ordem das anotações" style={{ flexShrink: 0, border: '1px solid ' + (ordenando ? c.cor : '#e2e2e2'), borderRadius: 20, background: ordenando ? c.cor + '15' : '#fff', color: ordenando ? c.cor : '#999', cursor: 'pointer', padding: '6px 12px', fontSize: 12, fontWeight: 700 }}>{ordenando ? 'pronto' : '⇅ ordenar'}</button>
+        )}
+      </div>
 
-      {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>Sem notas ainda.</p>}
-      {topo.map(nota => (
-        <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle} cor={c.cor}
+      {topo.length === 0 && <p style={{ color: '#bbb', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>{c.comQuando ? 'Sem anotações ainda.' : 'Sem notas ainda.'}</p>}
+      {ordenando && <p style={{ fontSize: 12, color: c.cor, margin: '0 0 10px' }}>Use ↑ ↓ pra arrumar a ordem — vale também pros tópicos abertos dentro de uma anotação.</p>}
+      {topo.map((nota, i) => (
+        <NotaCard key={nota.id} nota={nota} filhos={filhos} aberta={aberta} toggle={toggle} cor={c.cor} maxNivel={c.maxNivel || 0}
+          ordenando={ordenando} onMove={c.moverNota} primeiro={i === 0} ultimo={i === topo.length - 1}
           onEdit={(nt) => nt.tipo === 'vinho' ? setWineForm({ editing: nt }) : setNotaForm({ editing: nt })}
           onAddSub={(parent) => parent.grupoVinho ? setWineForm({ paiId: parent.id }) : setNotaForm({ paiId: parent.id })} nivel={0} />
       ))}
-      <button onClick={() => setNotaForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ nota</button>
+      <button onClick={() => setNotaForm({})} style={{ width: '100%', marginTop: 8, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{c.comQuando ? '+ anotação' : '+ nota'}</button>
 
       <button onClick={() => { if (window.confirm(`Apagar o tópico "${topico.nome}" e todas as suas notas?`)) { c.apagarTopico(topico.id); onBack(); } }} style={{ display: 'block', margin: '20px auto 0', background: 'none', border: 'none', color: '#ccc', fontSize: 12, cursor: 'pointer' }}>apagar tópico</button>
 
@@ -4827,7 +4864,7 @@ function EstudosPage({ onBack }) {
             <button key={t.id} onClick={() => setTopicoSel(t.id)} style={cardStyle(COR_ESTUDO)}>
               <div style={{ width: 24, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{t.nome}</div>
-              <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{n ? `${n} ${n === 1 ? 'nota' : 'notas'}` : 'sem notas ainda'}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{n ? `${n} ${n === 1 ? 'anotação' : 'anotações'}` : 'sem anotações ainda'}</div>
             </button>
           );
         })}

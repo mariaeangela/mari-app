@@ -330,11 +330,19 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   os **tópicos que a Mari cria** ali mesmo: "+ novo tópico" e ⚙ (renomear tocando no nome / reordenar /
   apagar; os fixos não entram no ⚙). Cada tópico dela abre o **`TopicoView`** com notas — MESMA UI dos
   Aprendizados, slice diferente: `estudoTemas:{topicos:[{id,nome}],notas:[{id,topicoId,paiId?,titulo,
-  itens[],criadoEm}]}` no `lifeStore` (CRUD `addEstudoTopico`/`renameEstudoTopico`/`moveEstudoTopico`/
-  `deleteEstudoTopico`/`saveEstudoNota`/`deleteEstudoNota`; ids `et-`/`en-`; começa VAZIO, sem seed).
+  itens[],quando?,criadoEm}]}` no `lifeStore` (CRUD `addEstudoTopico`/`renameEstudoTopico`/`moveEstudoTopico`/
+  `deleteEstudoTopico`/`saveEstudoNota`/`deleteEstudoNota`/`moveEstudoNota`; ids `et-`/`en-`; começa VAZIO, sem seed).
   O compartilhamento da UI é feito pelo **"caderno"** (`cadAprend(life)`/`cadEstudos(life)` em Life.jsx):
-  um objeto `{dados, cor, voltar, salvarNota, apagarNota, apagarTopico}` passado como prop `cad` para
-  `TopicoView`/`NotaForm` (sem `cad` = Aprendizados, o padrão). `NotaCard` ganhou prop `cor`.
+  um objeto `{dados, cor, voltar, comQuando, ordemManual, maxNivel, salvarNota, apagarNota, apagarTopico,
+  moverNota}` passado como prop `cad` para `TopicoView`/`NotaForm` (sem `cad` = Aprendizados, o padrão).
+  `NotaCard` ganhou props `cor`, `maxNivel`, `ordenando`/`onMove`/`primeiro`/`ultimo`.
+  Diferenças do caderno de Estudos (decisões da Mari, ago/2026): campo **`quando`** é **TEXTO LIVRE**
+  ("1547", "1917–1922", "séc. XVI", "aula 3", ou vazio) — é o **quando o fato aconteceu**, NÃO o dia em
+  que ela anotou; um seletor de data foi tentado e descartado porque período histórico não cabe nele.
+  A **ordem é MANUAL** (`ordemManual`): a lista sai na ordem do array e o botão **"⇅ ordenar"** liga as
+  setas ↑↓ em cada card (`moveEstudoNota` troca com a IRMÃ — mesmo tópico e mesmo pai, vale também
+  dentro de uma anotação). Nota nova entra no FIM. Aninhamento: `maxNivel` = nível mais fundo que ainda
+  recebe filhos — Aprendizados 0, Estudos 1 (**anotação → tópico → subtópico**).
   Cards com tela própria:
   - **Acompanhamento de leituras** (`AcompLeiturasSection`/`LivroAcompDetail`) — acompanhar a leitura
     EM CURSO de perto (≠ "Próximas leituras" da Explorar, que é o catálogo/estante do Skoob). Slice
