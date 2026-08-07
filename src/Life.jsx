@@ -6,6 +6,8 @@ import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
+import { useSaved } from './savedStore.jsx';
+import { exportarTexto, exportarJSON } from './exportar.js';
 // Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
@@ -5201,6 +5203,48 @@ function SubPlaceholder({ secao, onBack }) {
   );
 }
 
+// Levar os dados embora: dois arquivos gerados no próprio navegador (ver
+// `exportar.js`). Fica no fim do hub da Life, discreto — é coisa de vez em quando,
+// não pode competir com os cards.
+function ExportarBloco() {
+  const life = useLife();
+  const cal = useCalendar();
+  const saved = useSaved();
+  const [feito, setFeito] = useState(null);
+  const btn = {
+    flex: 1, minWidth: 0, padding: '11px 12px', borderRadius: 11, border: '1px solid #e2e2e2',
+    background: '#fff', color: '#555', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+  };
+  const marcar = (q) => { setFeito(q); setTimeout(() => setFeito(null), 3000); };
+  // Pro TEXTO, usa os valores JÁ RESOLVIDOS do store (e não o documento cru): uma
+  // seção que ainda esteja no padrão, por nunca ter sido editada, não existe em
+  // `data` e sumiria do arquivo. O BACKUP continua levando o documento cru — é ele
+  // que representa fielmente o que está na nuvem e permite restaurar.
+  const paraTexto = () => ({
+    ...life.data,
+    planos: life.planos, aprendizados: life.aprendizados, estudoTemas: life.estudoTemas,
+    leituras: life.leituras, legendas: life.legendas, acompLeituras: life.acompLeituras,
+    ingles: life.ingles, viagensFuturas: life.viagensFuturas,
+  });
+  return (
+    <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid #eee' }}>
+      <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Seus dados</div>
+      <p style={{ fontSize: 12, color: '#999', margin: '0 0 10px', lineHeight: 1.6 }}>
+        Baixe quando quiser: os arquivos são montados aqui no seu aparelho e são seus.
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={() => { exportarTexto(paraTexto(), cal.data); marcar('texto'); }} style={btn}>⤓ Textos (.md)</button>
+        <button onClick={() => { exportarJSON(life.data, cal.data, saved.items); marcar('backup'); }} style={btn}>⤓ Backup (.json)</button>
+      </div>
+      <p style={{ fontSize: 11, color: feito ? '#1a7a4f' : '#bbb', margin: '8px 0 0', lineHeight: 1.6 }}>
+        {feito === 'texto' ? 'Pronto — arquivo baixado. Abre no Word, no Docs ou em qualquer editor.'
+          : feito === 'backup' ? 'Pronto — backup baixado. É o arquivo que reconstrói tudo.'
+          : 'Textos = o que você escreve (estudos, aprendizados, diário, legendas, leituras, viagens), pra ler ou abrir no Word. Backup = tudo, inclusive finanças, pra guardar.'}
+      </p>
+    </div>
+  );
+}
+
 export default function LifePage({ isWide, viagemInicial, onConsumeViagem, comprasInicial, onConsumeCompras }) {
   const [sec, setSec] = useState(null);
   const [viagemId, setViagemId] = useState(null);
@@ -5237,6 +5281,7 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
           </button>
         ))}
       </div>
+      <ExportarBloco />
     </div>
   );
   return content;

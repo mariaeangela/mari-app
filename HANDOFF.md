@@ -103,6 +103,16 @@ localStorage, que o iOS apagava). Camada:
   **Com a variável configurada, a senha do bundle deixa de valer** (testado: servidor protegido
   recusa `taylor13` e só aceita o valor da env). Um GET que volta 401 continua sendo `UNREACHABLE`
   ("não consegui ler"), NUNCA "nuvem vazia" — senão o local seria empurrado por cima.
+- **EXPORTAR (`src/exportar.js` + `ExportarBloco` no fim do hub da Life)** — com o `/api/data`
+  protegido, abrir o endereço no navegador não devolve mais nada, então é o app que entrega os
+  arquivos. Tudo é montado NO NAVEGADOR (Blob + `<a download>`), sem servidor no meio. Dois formatos:
+  **`.md`** (`exportarTexto`) = o que ela ESCREVE — Estudos, Aprendizados, Acompanhamento de leituras,
+  Inglês, Diário, Legendas, Planos, Leituras, Viagens —, com a hierarquia virando níveis de título e o
+  `quando` em itálico; **de fora, de propósito: Vida Financeira e Amorosa** (é arquivo pra circular).
+  **`.json`** (`exportarJSON`) = TUDO (life+calendario+saved), o que restaura/migra. O `.md` recebe os
+  slices JÁ RESOLVIDOS do store (`paraTexto()`), não o `data` cru: seção nunca editada ainda está no
+  DEFAULT e não existe em `data` — sairia faltando (pegou Aprendizados e Planos no teste). O `.json`
+  leva o `data` cru de propósito: é o espelho do que está na nuvem.
 - `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +
   **flush imediato** no `visibilitychange`(hidden)/`pagehide` (no mobile, trocar de app pode
   matar o `setTimeout` e perder o save — o flush manda o pendente na hora).
