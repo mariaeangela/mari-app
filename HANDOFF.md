@@ -347,9 +347,11 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
   parágrafos (item `''`, renderizado como espaço com `listStyle:'none'`, sem bolinha) e o **recuo** do
   começo da linha (`whiteSpace:'pre-wrap'`) — antes um `.trim()`+`.filter(Boolean)` comia os dois e o
   texto saía grudado. Só o espaço do fim da linha e as linhas vazias das pontas somem. Formatação
-  inline por **`formatarInline(txt)`** (Life.jsx): `**negrito**` → `<strong>`, `__itálico__` → `<em>`,
-  `~~riscado~~` → `<s>`; parser recursivo próprio (nada de innerHTML), aceita aninhar
-  (`**negrito com __itálico__**`) e deixa marca sem par como texto literal.
+  inline por **`formatarInline(txt)`** (Life.jsx): `*negrito*` → `<strong>`, `_itálico_` → `<em>`,
+  `~riscado~` → `<s>` — **UMA marca de cada lado** (a Mari pediu assim); a forma dobrada (`**`/`__`/`~~`)
+  segue funcionando calada, por isso o `MARCA_RE` testa o par duplo ANTES do simples e o branch olha só
+  o caractere (`m[1][0]`). Parser recursivo próprio (nada de innerHTML), aceita aninhar
+  (`*negrito com _itálico_*`) e deixa marca sem par como texto literal ("5 * 2").
   Cards com tela própria:
   - **Acompanhamento de leituras** (`AcompLeiturasSection`/`LivroAcompDetail`) — acompanhar a leitura
     EM CURSO de perto (≠ "Próximas leituras" da Explorar, que é o catálogo/estante do Skoob). Slice

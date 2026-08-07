@@ -3057,7 +3057,7 @@ function NotaForm({ topicoId, paiId, editing, onClose, cad }) {
         <label style={labelStyle}>Itens (um por linha)</label>
         <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} placeholder={c.comQuando ? 'uma anotação por linha' : 'um aprendizado por linha'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <p style={{ fontSize: 11, color: '#bbb', margin: '5px 2px 0', lineHeight: 1.6 }}>
-          <b style={{ color: '#999' }}>**negrito**</b> · <b style={{ color: '#999' }}>__itálico__</b> · <b style={{ color: '#999' }}>~~riscado~~</b><br />
+          <b style={{ color: '#999' }}>*negrito*</b> · <b style={{ color: '#999' }}>_itálico_</b> · <b style={{ color: '#999' }}>~riscado~</b><br />
           Linha em branco vira um espaço entre os parágrafos.
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
@@ -3148,12 +3148,15 @@ function ComprasMirror({ listaId, grupo }) {
   );
 }
 
-// Formatação simples dentro do item de uma nota: **negrito**, __itálico__ e
-// ~~riscado~~. Parser próprio (nada de lib nem de innerHTML — o texto é dela, mas
-// injetar HTML aqui abriria a porta pra qualquer coisa colada de fora): varre a
-// linha, corta no primeiro par de marcas e recursa no que está dentro, então
-// **negrito com __itálico__** funciona. Marca sem par fecha nada e fica literal.
-const MARCA_RE = /(\*\*|__|~~)(.+?)\1/;
+// Formatação simples dentro do item de uma nota: *negrito*, _itálico_ e ~riscado~
+// — UMA marca de cada lado (preferência da Mari). A forma dobrada (**, __, ~~)
+// continua valendo em silêncio, pra não quebrar o que ela já escreveu; por isso a
+// alternância testa o par duplo ANTES do simples.
+// Parser próprio (nada de lib nem de innerHTML — o texto é dela, mas injetar HTML
+// aqui abriria a porta pra qualquer coisa colada de fora): varre a linha, corta no
+// primeiro par de marcas e recursa no que está dentro, então *negrito com _itálico_*
+// funciona. Marca sem par não fecha nada e fica literal ("5 * 2" segue texto).
+const MARCA_RE = /(\*\*|__|~~|\*|_|~)(.+?)\1/;
 function formatarInline(txt) {
   const out = [];
   let resto = String(txt == null ? '' : txt);
@@ -3164,8 +3167,10 @@ function formatarInline(txt) {
     if (m.index > 0) out.push(resto.slice(0, m.index));
     const dentro = formatarInline(m[2]);
     const k = 'f' + (i++);
-    if (m[1] === '**') out.push(<strong key={k}>{dentro}</strong>);
-    else if (m[1] === '__') out.push(<em key={k}>{dentro}</em>);
+    // olha só o CARACTERE da marca (`*`, `_` ou `~`), então tanto faz uma ou duas
+    const marca = m[1][0];
+    if (marca === '*') out.push(<strong key={k}>{dentro}</strong>);
+    else if (marca === '_') out.push(<em key={k}>{dentro}</em>);
     else out.push(<s key={k} style={{ color: '#999' }}>{dentro}</s>);
     resto = resto.slice(m.index + m[0].length);
   }
