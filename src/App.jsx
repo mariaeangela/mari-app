@@ -474,7 +474,10 @@ function VRHoje() {
   const hojeK = ymd(today);
   const noCiclo = (d) => (!d ? hojeK : d < cycleKey ? cycleKey : d > hojeK ? hojeK : d);
 
-  const addGasto = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addVrGasto(cycleKey, { valor: v, data: noCiclo(data) }); setVal(''); setData(hojeK); setAddOpen(false); };
+  // Sem valor numérico o "ok" fica apagado (em vez de o toque não fazer nada).
+  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  const podeAdd = numVal(val) != null;
+  const addGasto = () => { const v = numVal(val); if (v == null) return; life.addVrGasto(cycleKey, { valor: v, data: noCiclo(data) }); setVal(''); setData(hojeK); setAddOpen(false); };
   const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
   const abrirEdit = (g) => { setEditId(g.id); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
   const salvarEdit = (id) => { life.updateVrGasto(cycleKey, id, { valor: Number(String(eVal).replace(',', '.')) || 0, data: noCiclo(eData) }); setEditId(null); };
@@ -512,7 +515,7 @@ function VRHoje() {
               <input type="date" value={data} min={cycleKey} max={hojeK} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, width: 140, marginBottom: 8 }} />
               <div style={{ display: 'flex', gap: 8 }}>
                 <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && addGasto()} placeholder="quanto gastou? ex.: 50" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
-                <button onClick={addGasto} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                <button onClick={addGasto} disabled={!podeAdd} title={podeAdd ? '' : 'falta o valor (só números)'} style={{ border: 'none', borderRadius: 10, background: podeAdd ? cor : '#ddd', color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: podeAdd ? 'pointer' : 'default', flexShrink: 0 }}>ok</button>
                 <button onClick={() => { setAddOpen(false); setVal(''); setData(hojeK); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 12px', cursor: 'pointer', flexShrink: 0 }}>×</button>
               </div>
             </div>
@@ -589,7 +592,13 @@ function PossoBucket({ ck, bucket, label }) {
   // trava também quem digitar a data na mão.
   const hojeK = ymd(hojeMid());
   const noCiclo = (d) => (!d ? hojeK : d < ck ? ck : d > hojeK ? hojeK : d);
-  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: noCiclo(data) }); setVal(''); setNome(nomeDefault); setData(hojeK); setAddOpen(false); };
+  // O "ok" só grava com um valor numérico. Antes ele apenas não fazia nada quando
+  // o campo não era número — e num toque errado (valor e descrição trocados de
+  // campo) parecia que o app tinha travado. Agora o botão fica apagado e a linha
+  // diz o que falta.
+  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  const podeAdd = numVal(val) != null;
+  const add = () => { const v = numVal(val); if (v == null) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: noCiclo(data) }); setVal(''); setNome(nomeDefault); setData(hojeK); setAddOpen(false); };
   const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
   const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || nomeDefault); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
   const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, { valor: v, data: noCiclo(eData), ...(comNome ? { nome: eNome.trim() || undefined } : {}) }); setEditId(null); };
@@ -612,15 +621,18 @@ function PossoBucket({ ck, bucket, label }) {
           </div>
           {addOpen && (
             <div style={{ marginTop: 8 }}>
+              {/* dia + QUANTO em cima, o que foi embaixo: o campo largo da última
+                  linha (do lado do "ok") é o que a mão procura por último. */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <input type="date" value={data} min={ck} max={hojeK} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, width: 140, flexShrink: 0 }} />
-                {comNome && <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />}
+                <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
-                <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
-                <button onClick={() => { setAddOpen(false); setVal(''); setNome(nomeDefault); setData(hojeK); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+                {comNome && <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />}
+                <button onClick={add} disabled={!podeAdd} title={podeAdd ? '' : 'falta o valor (só números)'} style={{ border: 'none', borderRadius: 10, background: podeAdd ? cor : '#ddd', color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: podeAdd ? 'pointer' : 'default', flexShrink: 0 }}>ok</button>
+                <button onClick={() => { setAddOpen(false); setVal(''); setNome(nomeDefault); setData(hojeK); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>×</button>
               </div>
+              {val.trim() && !podeAdd && <p style={{ fontSize: 11.5, color: '#c0392b', margin: '6px 0 0' }}>o valor tem que ser um número (ex.: 23,80) — a descrição vai no campo de baixo.</p>}
             </div>
           )}
           {(b.gastos || []).length > 0 && (
@@ -635,12 +647,13 @@ function PossoBucket({ ck, bucket, label }) {
                       <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
                         {d.itens.map(g => editId === g.id ? (
                           <div key={g.id} style={{ padding: '3px 0' }}>
+                            {/* mesma ordem do lançamento: dia + valor, depois o que foi */}
                             <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
                               <input type="date" value={eData} min={ck} max={hojeK} onChange={e => setEData(e.target.value)} style={{ ...capaInput, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 9px' }} />
-                              {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
+                              <input autoFocus value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
                             </div>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                              <input autoFocus value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                              {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
                               <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
                               <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
                             </div>
@@ -691,9 +704,13 @@ function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
   const fmt = (v) => fmtMoedaVal(v, moeda);
   const emReais = (v) => cambio > 0 ? fmtR$((Number(v) || 0) * cambio) : null;
   const gastosPorDia = agruparPorDia(gastos);
+  // Mesma trava do Posso gastar: sem valor numérico o "ok" fica apagado, em vez
+  // de o toque simplesmente não fazer nada.
+  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  const podeAdd = numVal(val) != null;
   const add = () => {
-    const v = Number(String(val).replace(',', '.'));
-    if (!v) return;
+    const v = numVal(val);
+    if (v == null) return;
     life.addViagemCatGasto(viagemId, cat.id, { valor: v, nome: nome.trim() || undefined, data: data || ymd(hojeMid()) });
     setVal(''); setNome(''); setData(ymd(hojeMid())); setAddOpen(false);
   };
@@ -719,15 +736,17 @@ function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
       </div>
       {addOpen && (
         <div style={{ marginTop: 8 }}>
+          {/* dia + quanto em cima, o que foi embaixo (mesma ordem do Posso gastar) */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <input type="date" value={data} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, flex: '0 0 auto', width: 140 }} />
-            <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+            <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`quanto gastou? (${simboloMoeda(moeda)})`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={`quanto gastou? (${simboloMoeda(moeda)})`} style={{ ...capaInput, flex: 1, minWidth: 0 }} />
-            <button onClick={add} style={btnOk}>ok</button>
+            <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
+            <button onClick={add} disabled={!podeAdd} title={podeAdd ? '' : 'falta o valor (só números)'} style={{ ...btnOk, background: podeAdd ? cor : '#ddd', cursor: podeAdd ? 'pointer' : 'default' }}>ok</button>
             <button onClick={() => { setAddOpen(false); setVal(''); setNome(''); }} style={btnX}>×</button>
           </div>
+          {val.trim() && !podeAdd && <p style={{ fontSize: 11.5, color: '#c0392b', margin: '6px 0 0' }}>o valor tem que ser um número — a descrição vai no campo de baixo.</p>}
         </div>
       )}
       {gastos.length > 0 && (
@@ -744,10 +763,10 @@ function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
                       <div key={g.id} style={{ padding: '3px 0' }}>
                         <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
                           <input type="date" value={eData} onChange={e => setEData(e.target.value)} style={{ ...capaInput, flex: '0 0 auto', width: 132, fontSize: 12, padding: '6px 9px' }} />
-                          <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />
+                          <input autoFocus value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
                         </div>
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                          <input value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                          <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />
                           <button onClick={() => salvarEdit(g.id)} style={{ ...btnOk, fontSize: 12, padding: '0 11px', borderRadius: 9 }}>ok</button>
                           <button onClick={() => setEditId(null)} style={{ ...btnX, fontSize: 16, padding: '0 9px', borderRadius: 9 }}>×</button>
                         </div>
