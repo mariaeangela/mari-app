@@ -4,15 +4,42 @@ import { getViagemAtivaCache } from './lifeStore.jsx';
 import { getCidadeFato } from './cidadeFatos.js';
 import { setApiKey, pingProtegido, checarSenha } from './cloud.js';
 
-// Senha conferida AQUI na tela — só usada enquanto a proteção do servidor não
-// estiver ligada (variável `DIAGONAL_API_SECRET` na Vercel) e como plano B quando
-// o aparelho está offline. Com a proteção ligada, quem decide é o servidor: a
-// senha vira a chave do /api/data e nem precisa mais existir aqui dentro.
-const SENHA_LOCAL = 'taylor13';
+// A senha NÃO existe mais dentro do app publicado: quem confere é o servidor
+// (`DIAGONAL_API_SECRET` na Vercel, desde ago/2026). Sobraram dois casos sem
+// servidor pra perguntar, e nenhum deles traz a senha de volta pro bundle:
+//
+//  1) OFFLINE — depois de uma entrada bem-sucedida, o aparelho guarda o **hash**
+//     (SHA-256) da senha em `diagonal_hash`. Sem internet, compara-se o hash: a
+//     senha continua não estando escrita em lugar nenhum. Aparelho que nunca
+//     entrou não tem marca e, offline, não entra mesmo (avisa o porquê).
+//  2) `npm run dev` LOCAL — não existe `/api`, então vale uma senha de
+//     desenvolvimento. Ela é comparada pelo HASH (`SENHA_DEV_HASH`), nunca em
+//     texto: assim o build de produção não carrega a senha nem por descuido do
+//     minificador — que, testado, NÃO some com `const X='...'` só porque o ramo
+//     que a usa é inalcançável.
+const SENHA_DEV_HASH = 'face5b507d92efb51795f474cc6d0eb7b39263977b0b130e3385960a2fd5b9d6';
+const MARCA = 'diagonal_hash';
+
+async function sha256(txt) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+// Confere a senha contra a marca deste aparelho (uso offline).
+async function conferirMarca(senha) {
+  try {
+    const marca = localStorage.getItem(MARCA);
+    if (!marca) return false;
+    return (await sha256(senha)) === marca;
+  } catch { return false; }
+}
+async function gravarMarca(senha) {
+  try { localStorage.setItem(MARCA, await sha256(senha)); } catch { /* ignora */ }
+}
 
 export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [msg, setMsg] = useState('senha incorreta. tente novamente.');
   const [shaking, setShaking] = useState(false);
   const [entrando, setEntrando] = useState(false);
 
@@ -35,7 +62,8 @@ export default function Login({ onLogin }) {
   const viagem = getViagemAtivaCache();
   const fatoCidade = viagem ? getCidadeFato(viagem.cidade, now) : null;
 
-  const recusar = () => {
+  const recusar = (texto) => {
+    setMsg(texto || 'senha incorreta. tente novamente.');
     setError(true);
     setShaking(true);
     setTimeout(() => setShaking(false), 500);
@@ -49,12 +77,29 @@ export default function Login({ onLogin }) {
     setEntrando(true);
     try {
       const protegido = await pingProtegido();
-      // Servidor protegido: ele valida. Sem proteção (ou sem resposta, caso do
-      // offline e do `npm run dev` local, que não tem /api): confere aqui.
-      let ok = protegido ? await checarSenha(senha) : (senha === SENHA_LOCAL);
-      if (ok === null) ok = (senha === SENHA_LOCAL);
+      const dev = !!import.meta.env.DEV;
+      let ok;
+      if (protegido === true) {
+        // Caso normal: quem decide é o servidor. Se a rede cair no meio da
+        // pergunta (null), cai na marca deste aparelho.
+        ok = await checarSenha(senha);
+        if (ok === null) ok = await conferirMarca(senha);
+      } else if (protegido === false) {
+        // Servidor respondeu que NÃO está protegido (variável removida da Vercel):
+        // não há o que conferir lá; vale a marca do aparelho, a senha de dev, ou
+        // entra — pra nunca trancar a Mari do lado de fora por causa de config.
+        ok = true;
+      } else {
+        // Não deu pra perguntar: offline, ou `npm run dev` (sem /api).
+        ok = (await conferirMarca(senha)) || (dev && (await sha256(senha)) === SENHA_DEV_HASH);
+        if (!ok) {
+          const semMarca = (() => { try { return !localStorage.getItem(MARCA); } catch { return true; } })();
+          if (semMarca) { recusar('sem internet — este aparelho ainda não entrou nenhuma vez.'); return; }
+        }
+      }
       if (!ok) { recusar(); return; }
-      setApiKey(senha);   // vira a chave de toda chamada ao /api/data nesta sessão
+      setApiKey(senha);      // vira a chave de toda chamada ao /api/data nesta sessão
+      gravarMarca(senha);    // permite entrar offline neste aparelho da próxima vez
       onLogin();
     } finally {
       setEntrando(false);
@@ -135,7 +180,7 @@ export default function Login({ onLogin }) {
           />
         </div>
 
-        {error && <p style={{ color: '#e53935', fontSize: 12, marginBottom: 8 }}>senha incorreta. tente novamente.</p>}
+        {error && <p style={{ color: '#e53935', fontSize: 12, marginBottom: 8 }}>{msg}</p>}
 
         <button onClick={handleSubmit} disabled={entrando} style={{ width: '100%', padding: '14px', background: theme.accent, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, cursor: entrando ? 'default' : 'pointer', letterSpacing: '1.5px', textTransform: 'uppercase', boxShadow: `0 4px 16px ${theme.accent}40`, opacity: entrando ? 0.7 : 1 }}>
           {entrando ? 'entrando…' : 'entrar →'}
