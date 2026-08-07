@@ -90,6 +90,19 @@ localStorage, que o iOS apagava). Camada:
   de salvar silenciosamente** — seeds mascaravam porque reaplicam a cada load.) O GET junta
   o `diagonal:data` LEGADO + os por-seção (estes têm prioridade), então dados antigos migram
   sozinhos ao serem salvos.
+- **PROTEÇÃO do `/api/data` (ago/2026)** — antes o endereço respondia a QUALQUER UM que o
+  conhecesse (a senha da tela era só client-side, e o `cloud.js` não mandava chave nenhuma).
+  Agora: a senha digitada no Login vira a **chave** mandada no cabeçalho `x-diagonal-key` em toda
+  chamada (`setApiKey` guarda no `sessionStorage`, que casa com o login ser por sessão). No servidor,
+  `DIAGONAL_API_SECRET` (env da Vercel) é comparada com o cabeçalho — **enquanto a variável não
+  existir, nada é exigido** (o app funciona igual, sem proteção). Duas rotas novas em `api/data.js`:
+  `GET ?ping=1` (SEM chave, devolve só `{protegido:true|false}`) e `GET ?auth=1` (passa pela trava,
+  devolve `{ok:true}` — é a conferência de senha do Login, sem baixar o documento). O Login pergunta
+  o `ping`: protegido → quem valida é o servidor (`checarSenha`); sem proteção ou sem resposta
+  (offline / `npm run dev`, que não tem `/api`) → cai na constante `SENHA_LOCAL` da própria tela.
+  **Com a variável configurada, a senha do bundle deixa de valer** (testado: servidor protegido
+  recusa `taylor13` e só aceita o valor da env). Um GET que volta 401 continua sendo `UNREACHABLE`
+  ("não consegui ler"), NUNCA "nuvem vazia" — senão o local seria empurrado por cima.
 - `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +
   **flush imediato** no `visibilitychange`(hidden)/`pagehide` (no mobile, trocar de app pode
   matar o `setTimeout` e perder o save — o flush manda o pendente na hora).

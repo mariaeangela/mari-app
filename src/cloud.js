@@ -3,6 +3,40 @@
 // sem internet), falha em silêncio e o app segue no localStorage.
 const ENDPOINT = '/api/data';
 
+// ---- Chave de acesso ao /api/data ----
+// A senha digitada na tela de entrada vira a chave mandada em TODA chamada
+// (cabeçalho `x-diagonal-key`), e o servidor só responde a quem tem ela — sem
+// isso o endereço fica aberto e qualquer um que o descubra lê tudo.
+// Fica no `sessionStorage` porque o login já é por sessão (recarregou, entra de
+// novo); assim a senha não fica gravada no aparelho depois que a aba fecha.
+let apiKey = null;
+try { apiKey = sessionStorage.getItem('diagonal_key') || null; } catch { /* sem storage */ }
+export function setApiKey(k) {
+  apiKey = k || null;
+  try { k ? sessionStorage.setItem('diagonal_key', k) : sessionStorage.removeItem('diagonal_key'); } catch { /* ignora */ }
+}
+const authHeaders = () => (apiKey ? { 'x-diagonal-key': apiKey } : {});
+
+// A proteção está ligada no servidor? (não exige chave, não devolve dado)
+// true/false, ou null se não deu pra perguntar (offline / sem /api no dev local).
+export async function pingProtegido() {
+  try {
+    const res = await fetch(ENDPOINT + '?ping=1');
+    if (!res.ok) return null;
+    const j = await res.json();
+    return !!(j && j.protegido);
+  } catch { return null; }
+}
+
+// A senha confere? true/false, ou null se não deu pra perguntar (offline).
+export async function checarSenha(senha) {
+  try {
+    const res = await fetch(ENDPOINT + '?auth=1', { headers: { 'x-diagonal-key': senha } });
+    if (res.status === 401) return false;
+    return res.ok ? true : null;
+  } catch { return null; }
+}
+
 // Sentinela para "não consegui LER a nuvem" (offline, erro HTTP, timeout do
 // serverless frio). É DIFERENTE de "a nuvem respondeu e a seção está vazia".
 // Distinguir os dois é CRÍTICO: se o app trata uma falha de leitura como
@@ -41,10 +75,15 @@ async function doPost(payload, opts) {
   try {
     const res = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body,
       ...(keepalive ? { keepalive: true } : {}),
     });
+    if (res.status === 401) {
+      lastError = 'sem permissão: entre de novo com a senha (a sessão expirou ou a senha mudou)';
+      emit('error');
+      return 'fail';
+    }
     if (res.status === 409) {
       lastError = 'ignorado: a nuvem já tinha dados mais novos (esta tela estava desatualizada)';
       emit('conflict');
@@ -80,7 +119,9 @@ function getDoc() {
   if (inflight) return inflight;
   inflight = (async () => {
     try {
-      const res = await fetch(ENDPOINT, { method: 'GET' });
+      // 401 (chave errada/ausente) também é UNREACHABLE: "não consegui LER" —
+      // NUNCA "a nuvem está vazia". Tratar como vazia empurraria o local por cima.
+      const res = await fetch(ENDPOINT, { method: 'GET', headers: authHeaders() });
       return res.ok ? await res.json() : UNREACHABLE;
     } catch {
       return UNREACHABLE;

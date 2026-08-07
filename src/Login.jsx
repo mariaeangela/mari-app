@@ -2,11 +2,19 @@ import { useState, useEffect } from 'react';
 import { getSeason, SEASON_THEMES, getGreeting, getDayName, getTodayFact } from './contentLibrary.js';
 import { getViagemAtivaCache } from './lifeStore.jsx';
 import { getCidadeFato } from './cidadeFatos.js';
+import { setApiKey, pingProtegido, checarSenha } from './cloud.js';
+
+// Senha conferida AQUI na tela — só usada enquanto a proteção do servidor não
+// estiver ligada (variável `DIAGONAL_API_SECRET` na Vercel) e como plano B quando
+// o aparelho está offline. Com a proteção ligada, quem decide é o servidor: a
+// senha vira a chave do /api/data e nem precisa mais existir aqui dentro.
+const SENHA_LOCAL = 'taylor13';
 
 export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shaking, setShaking] = useState(false);
+  const [entrando, setEntrando] = useState(false);
 
   // Mantém estação, saudação e data atualizadas ao vivo enquanto a tela fica aberta.
   const [, setTick] = useState(0);
@@ -27,15 +35,29 @@ export default function Login({ onLogin }) {
   const viagem = getViagemAtivaCache();
   const fatoCidade = viagem ? getCidadeFato(viagem.cidade, now) : null;
 
-  const handleSubmit = () => {
-    if (password === 'taylor13') {
+  const recusar = () => {
+    setError(true);
+    setShaking(true);
+    setTimeout(() => setShaking(false), 500);
+    setTimeout(() => setError(false), 2500);
+    setPassword('');
+  };
+
+  const handleSubmit = async () => {
+    if (entrando) return;
+    const senha = password;
+    setEntrando(true);
+    try {
+      const protegido = await pingProtegido();
+      // Servidor protegido: ele valida. Sem proteção (ou sem resposta, caso do
+      // offline e do `npm run dev` local, que não tem /api): confere aqui.
+      let ok = protegido ? await checarSenha(senha) : (senha === SENHA_LOCAL);
+      if (ok === null) ok = (senha === SENHA_LOCAL);
+      if (!ok) { recusar(); return; }
+      setApiKey(senha);   // vira a chave de toda chamada ao /api/data nesta sessão
       onLogin();
-    } else {
-      setError(true);
-      setShaking(true);
-      setTimeout(() => setShaking(false), 500);
-      setTimeout(() => setError(false), 2500);
-      setPassword('');
+    } finally {
+      setEntrando(false);
     }
   };
 
@@ -115,8 +137,8 @@ export default function Login({ onLogin }) {
 
         {error && <p style={{ color: '#e53935', fontSize: 12, marginBottom: 8 }}>senha incorreta. tente novamente.</p>}
 
-        <button onClick={handleSubmit} style={{ width: '100%', padding: '14px', background: theme.accent, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '1.5px', textTransform: 'uppercase', boxShadow: `0 4px 16px ${theme.accent}40` }}>
-          entrar →
+        <button onClick={handleSubmit} disabled={entrando} style={{ width: '100%', padding: '14px', background: theme.accent, border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, cursor: entrando ? 'default' : 'pointer', letterSpacing: '1.5px', textTransform: 'uppercase', boxShadow: `0 4px 16px ${theme.accent}40`, opacity: entrando ? 0.7 : 1 }}>
+          {entrando ? 'entrando…' : 'entrar →'}
         </button>
       </div>
 

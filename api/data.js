@@ -45,8 +45,25 @@ function revOf(sec, value, savedRev) {
 
 module.exports = async function handler(req, res) {
   const secret = process.env.DIAGONAL_API_SECRET;
+
+  // PING (sem chave): só diz se a proteção está ligada — nenhum dado sai daqui.
+  // A tela de senha usa isto pra saber se valida a senha no servidor (protegido)
+  // ou na própria tela (enquanto a variável não estiver configurada na Vercel).
+  if (req.method === 'GET' && req.query && req.query.ping) {
+    res.status(200).json({ protegido: !!secret });
+    return;
+  }
+
+  // Daqui pra baixo, tudo exige a chave quando ela existe.
   if (secret && req.headers['x-diagonal-key'] !== secret) {
     res.status(401).json({ error: 'unauthorized' });
+    return;
+  }
+
+  // Conferência de senha da tela de login: passou pela trava acima, então a chave
+  // está certa. Responde só "ok" (sem trazer o documento inteiro à toa).
+  if (req.method === 'GET' && req.query && req.query.auth) {
+    res.status(200).json({ ok: true });
     return;
   }
 
