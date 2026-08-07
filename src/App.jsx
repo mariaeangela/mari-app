@@ -574,6 +574,8 @@ function PossoBucket({ ck, bucket, label }) {
   const [editId, setEditId] = useState(null); // gasto em edição na lista
   const [eNome, setENome] = useState('');
   const [eVal, setEVal] = useState('');
+  const [data, setData] = useState(ymd(hojeMid()));   // dia do gasto que está sendo lançado
+  const [eData, setEData] = useState('');             // dia do gasto em edição
   // Mesma lógica do VR: a lista nasce fechada e mostra 1 linha por dia (data +
   // dia da semana + quantas compras + soma); abrir o dia revela cada gasto.
   const [verDias, setVerDias] = useState(false);
@@ -582,10 +584,15 @@ function PossoBucket({ ck, bucket, label }) {
   const cor = '#b06d1e';
   const comNome = true;                   // Total e Mercado ganham descrição + lista
   const nomeDefault = bucket === 'mercado' ? 'mercado' : ''; // Mercado já vem preenchido (a Mari troca se quiser)
-  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: ymd(hojeMid()) }); setVal(''); setNome(nomeDefault); setAddOpen(false); };
+  // Igual ao VR: a data só diz em que dia DESTE ciclo o gasto aconteceu (o gasto
+  // pertence ao ciclo aberto), então anda só entre o dia 27 e hoje — `noCiclo`
+  // trava também quem digitar a data na mão.
+  const hojeK = ymd(hojeMid());
+  const noCiclo = (d) => (!d ? hojeK : d < ck ? ck : d > hojeK ? hojeK : d);
+  const add = () => { const v = Number(String(val).replace(',', '.')); if (!v) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: noCiclo(data) }); setVal(''); setNome(nomeDefault); setData(hojeK); setAddOpen(false); };
   const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
-  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || nomeDefault); setEVal(String(g.valor ?? '')); };
-  const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, comNome ? { valor: v, nome: eNome.trim() || undefined } : { valor: v }); setEditId(null); };
+  const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || nomeDefault); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
+  const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, { valor: v, data: noCiclo(eData), ...(comNome ? { nome: eNome.trim() || undefined } : {}) }); setEditId(null); };
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -605,11 +612,14 @@ function PossoBucket({ ck, bucket, label }) {
           </div>
           {addOpen && (
             <div style={{ marginTop: 8 }}>
-              {comNome && <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, width: '100%', marginBottom: 8 }} />}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input type="date" value={data} min={ck} max={hojeK} onChange={e => setData(e.target.value)} title="que dia foi" style={{ ...capaInput, width: 140, flexShrink: 0 }} />
+                {comNome && <input type="text" value={nome} onChange={e => setNome(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="o que foi? (opcional)" style={{ ...capaInput, flex: 1, minWidth: 0 }} />}
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input autoFocus type="text" inputMode="decimal" value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="quanto gastou?" style={{ ...capaInput, flex: 1, minWidth: 0 }} />
                 <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>ok</button>
-                <button onClick={() => { setAddOpen(false); setVal(''); setNome(nomeDefault); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
+                <button onClick={() => { setAddOpen(false); setVal(''); setNome(nomeDefault); setData(hojeK); }} style={{ border: '1px solid #e2e2e2', borderRadius: 10, background: '#fff', color: '#999', fontSize: 18, padding: '0 11px', cursor: 'pointer' }}>×</button>
               </div>
             </div>
           )}
@@ -624,11 +634,16 @@ function PossoBucket({ ck, bucket, label }) {
                     {diaAberto && (
                       <div style={{ paddingLeft: 16, paddingBottom: 5 }}>
                         {d.itens.map(g => editId === g.id ? (
-                          <div key={g.id} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '3px 0' }}>
-                            {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
-                            <input autoFocus={!comNome} value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, ...(comNome ? { width: 66 } : { flex: 1, minWidth: 0 }), fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
-                            <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
-                            <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+                          <div key={g.id} style={{ padding: '3px 0' }}>
+                            <div style={{ display: 'flex', gap: 6, marginBottom: 5 }}>
+                              <input type="date" value={eData} min={ck} max={hojeK} onChange={e => setEData(e.target.value)} style={{ ...capaInput, width: 128, flexShrink: 0, fontSize: 12, padding: '6px 9px' }} />
+                              {comNome && <input value={eNome} onChange={e => setENome(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="o que foi?" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px' }} />}
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                              <input autoFocus value={eVal} onChange={e => setEVal(e.target.value)} inputMode="decimal" onKeyDown={e => { if (e.key === 'Enter') salvarEdit(g.id); if (e.key === 'Escape') setEditId(null); }} placeholder="valor" style={{ ...capaInput, flex: 1, minWidth: 0, fontSize: 12, padding: '6px 9px', textAlign: 'right' }} />
+                              <button onClick={() => salvarEdit(g.id)} style={{ border: 'none', borderRadius: 9, background: cor, color: '#fff', fontSize: 12, fontWeight: 700, padding: '0 11px', cursor: 'pointer', flexShrink: 0 }}>ok</button>
+                              <button onClick={() => setEditId(null)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#999', fontSize: 16, padding: '0 9px', cursor: 'pointer', flexShrink: 0 }}>×</button>
+                            </div>
                           </div>
                         ) : (
                           <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, fontSize: 11.5, color: '#888', padding: '3px 0' }}>
