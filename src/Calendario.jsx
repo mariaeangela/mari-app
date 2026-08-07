@@ -688,7 +688,9 @@ function DiarioList({ refDate, setRefDate, data, onDayClick }) {
 }
 
 // ---------------- Visão Agenda (Próximos / Passado) ----------------
-function AgendaView({ onEdit }) {
+// `onEditCheck` abre o `PlanoCheckSheet` (editar texto/prazo/apagar) pros itens de
+// checklist de Planos que aparecem aqui — igual ao Mês, ao DayModal e à Tela Hoje.
+function AgendaView({ onEdit, onEditCheck }) {
   const cal = useCalendar();
   const life = useLife();
   const [modo, setModo] = useState('proximos');
@@ -716,7 +718,7 @@ function AgendaView({ onEdit }) {
             {all.map(it => it._tipo === 'plano' ? (
               <div key={it.id} style={rowBtn}>
                 <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: '#ccc', cursor: 'pointer' }}>☐</span>
-                <span style={{ flex: 1, fontSize: 14, color: '#222' }}>{it._titulo}</span>
+                <span onClick={() => onEditCheck && onEditCheck(it)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#222', cursor: 'pointer' }}>{it._titulo}</span>
                 <span style={{ fontSize: 11.5, color: PLANO_COR, fontWeight: 700 }}>{it._planoNome}</span>
               </div>
             ) : it._tipo === 'tarefa' ? (
@@ -924,7 +926,7 @@ export default function Calendario({ isWide }) {
         <button onClick={() => setAddSheet({ date: ymd(today) })} style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
       </div>
 
-      {view === 'agenda' && <AgendaView onEdit={(it) => setAddSheet({ editing: it })} />}
+      {view === 'agenda' && <AgendaView onEdit={(it) => setAddSheet({ editing: it })} onEditCheck={setEditCheck} />}
       {view === 'exercicio' && <ExSummary data={cal.data} />}
       {/* Exercício: alterna entre calendário (pontinhos) e lista editável */}
       {view === 'exercicio' && (

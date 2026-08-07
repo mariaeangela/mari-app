@@ -1611,7 +1611,11 @@ function FinancasForm({ editing, snaps, onClose }) {
   const delRow = (i) => setRows(rows.filter((_, j) => j !== i));
 
   const limpos = rows.filter(r => r.nome.trim() && evalValor(r.valor) > 0);
-  const podeSalvar = mes && limpos.length > 0;
+  // Conta escrita errada devolve NaN, que não passa no `> 0` acima — sem esta trava
+  // a linha do ativo era DESCARTADA em silêncio ao salvar (mesmo bug já corrigido
+  // nos Salários e no GastoForm). Melhor travar o Salvar e avisar.
+  const temContaInvalida = rows.some(r => contaInvalida(r.valor));
+  const podeSalvar = mes && limpos.length > 0 && !temContaInvalida;
 
   const salvar = () => {
     if (!podeSalvar) return;
@@ -1670,6 +1674,7 @@ function FinancasForm({ editing, snaps, onClose }) {
           </div>
         ))}
         <button onClick={addRow} style={{ background: 'none', border: '1px dashed #ccc', borderRadius: 9, padding: '9px 0', width: '100%', color: '#999', fontSize: 13, cursor: 'pointer', marginTop: 2 }}>+ ativo</button>
+        {temContaInvalida && <p style={{ fontSize: 12, color: '#c0392b', margin: '10px 0 0', textAlign: 'center' }}>Tem uma conta escrita errado — corrija pra poder salvar.</p>}
 
         {temUSDrow && (
           <>
