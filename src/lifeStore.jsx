@@ -979,19 +979,22 @@ const NYC_V2 = [
   { d: '2026-09-15', hora: '20:00', t: 'Drinks: Employees Only / PDT / Attaboy', desc: 'Employees Only: fachada de vidente, art déco, sempre cheio — chegue antes das 19h ou espere. PDT: entra-se por uma cabine telefônica dentro da lanchonete Crif Dogs; só com reserva por telefone às 15h. Attaboy: sem cardápio, você diz o que gosta e eles inventam; sem reserva, fila na porta.', ab: 'Noite, até ~2h–4h', pr: 'Coquetéis US$ 18–24', mq: 'Employees Only 510 Hudson St New York' },
 
   // ---------- Qua 16/09 — Grand Central, Central Park, Frick ----------
+  { d: '2026-09-16', hora: '07:30', t: 'Correr no Riverside Park', desc: 'O parque comprido na beira do Hudson, do lado oeste do Upper West Side — 6,5 km de caminho contínuo à beira d’água, sem cruzamento de rua. Trecho mais bonito: da 72nd (marina de barcos-casa) até a 96th. Bebedouros e banheiros ao longo do percurso; de manhã é só corredor local.\n\nDe Gramercy: linha 1 até a 72nd St, ~25 min.', ab: 'Todos os dias 6h–1h', pr: 'Grátis', mq: 'Riverside Park 72nd Street New York' },
+  { d: '2026-09-16', hora: '10:00', t: 'Museu Americano de História Natural', desc: 'A baleia azul pendurada no teto, os dinossauros do 4º andar e os dioramas antigos — e agora a ala Gilder, de vidro ondulado, com o insetário e o borboletário. Enorme: escolha duas alas, ~2h30. Fica na borda oeste do Central Park, colado no Riverside/UWS.\n\n⚠ Dia cheio: se quiser o museu com calma, vale trocar o Empire State (opcional, à noite) por mais tempo aqui.', ab: 'Todos os dias 10h–17h30', pr: 'US$ 28 (entrada geral) · nova-iorquino paga quanto quiser', link: 'https://www.amnh.org/', mq: 'American Museum of Natural History New York' },
   { d: '2026-09-16', t: 'Grand Central Terminal', desc: 'A estação de 1913 com o teto de constelações pintado ao contrário (erro que nunca corrigiram). Veja a galeria dos sussurros (fale num canto do arco e alguém ouve no outro) e o relógio de latão do saguão.', ab: 'Todos os dias 5h15–2h', pr: 'Grátis', mq: 'Grand Central Terminal New York' },
   { d: '2026-09-16', t: 'Ruas do Upper West Side', desc: 'Caminhada pelo bairro: as brownstones da 70th a 80th, o Dakota (onde Lennon morava, na 72nd com Central Park West) e a Columbus Avenue.', ab: '24h', pr: 'Grátis', mq: 'Upper West Side New York' },
   { d: '2026-09-16', t: 'Cruzar o Central Park', desc: 'Do lado oeste ao leste, na altura da 72nd: Strawberry Fields, Bethesda Terrace, o lago e o Conservatory Water. ~40 min sem parar.', ab: 'Todos os dias 6h–1h', pr: 'Grátis', mq: 'Bethesda Terrace Central Park New York' },
   { d: '2026-09-16', hora: '13:30', t: 'The Frick Collection', desc: '⚠ HOJE É QUARTA E ENTRE 13h30 E 17h30 A ENTRADA É "PAGUE QUANTO QUISER" — você escolhe o valor, inclusive US$ 1. Chegue perto das 13h30: a fila do pague-quanto-quiser cresce, e os ingressos desse horário também podem ser reservados online com antecedência.\n\nA mansão do magnata Henry Frick com o acervo que ele juntou: Vermeer, Rembrandt, Bellini, Goya — pendurados como numa casa, não como num museu. A mansão reformada reabriu em 2025. ~2h bastam.', ab: 'Qua–Dom · fecha seg e ter', pr: 'US$ 30 · hoje (quarta) 13h30–17h30: pague quanto quiser', link: 'https://www.frick.org/tickets', mq: 'The Frick Collection 1 E 70th St New York' },
   { d: '2026-09-16', t: 'Empire State (opcional)', desc: 'Se quiser um segundo mirante: o 86º andar é o clássico ao ar livre. Como você já sobe o Top of the Rock no dia 13, dá pra pular sem culpa.', ab: 'Todos os dias 9h–24h', pr: 'US$ 47–60 (86º) · +US$ 20 pelo 102º', link: 'https://www.esbnyc.com/', mq: 'Empire State Building New York' },
+  { d: '2026-09-16', hora: '21:00', t: 'Shrine — música ao vivo no Harlem', desc: 'Bar-palco no Harlem que emenda várias bandas por noite, cada uma ~45 min: afrobeat, jazz, reggae, rock africano. Paredes cobertas de capas de disco, entrada quase sempre de graça (às vezes chapéu passando), público do bairro. Não precisa reservar — chegue e entre.\n\nCai bem hoje: o Harlem fica logo acima do Upper West Side. Da 116th, a linha 2/3 traz você de volta a Gramercy em ~30 min.', ab: 'Todos os dias, shows a partir de ~19h até tarde', pr: 'Entrada geralmente grátis · drinks US$ 8–14', link: 'https://www.shrinenyc.com/', mq: 'Shrine World Music Venue 2271 Adam Clayton Powell Blvd New York' },
   { d: '2026-09-16', hora: '18:30', t: 'Roosevelt Island Tramway (opcional)', desc: 'O bondinho que cruza o East River pendurado ao lado da Queensboro Bridge — 4 minutos de travessia, a vista de Manhattan de perfil. Passa o metrô normal: é só o MetroCard/OMNY, sem ingresso de atração.', ab: 'Todos os dias ~6h–2h', pr: 'US$ 2,90 (tarifa de metrô)', mq: 'Roosevelt Island Tramway 59th St New York' },
 
   // ---------- Qui 17/09 — bate e volta (duas opções) ----------
-  { d: '2026-09-17', hora: '07:30', t: 'OPÇÃO 1 · Amtrak para a Filadélfia', desc: 'Sai da Moynihan/Penn Station e chega na 30th Street em ~1h20. Trens de meia em meia hora. Compre com antecedência: a tarifa "Value" cai muito quando se compra cedo.', ab: 'Trens a partir de ~5h', pr: 'US$ 28–60 ida (a partir de US$ 10 se comprar cedo)', link: 'https://www.amtrak.com/', mq: 'Moynihan Train Hall New York' },
-  { d: '2026-09-17', t: 'OPÇÃO 1 · Independence Hall', desc: 'Onde a Declaração de Independência e a Constituição foram assinadas. A visita é guiada por ranger, 30 min. Ingresso é grátis, mas precisa reservar horário no recreation.gov (US$ 1 de taxa) — faça semanas antes.', ab: 'Todos os dias 9h–17h', pr: 'Grátis (+US$ 1 de reserva)', link: 'https://www.nps.gov/inde/', mq: 'Independence Hall Philadelphia' },
-  { d: '2026-09-17', t: 'OPÇÃO 1 · Old City a pé', desc: 'O centro histórico inteiro cabe a pé: Liberty Bell (grátis, sem reserva), Elfreth’s Alley (a rua residencial mais antiga do país, de 1703), Christ Church e as ruas de tijolo em volta. Cafés e livrarias no caminho.', ab: 'Ruas 24h · atrações ~9h–17h', pr: 'Grátis', mq: "Elfreth's Alley Philadelphia" },
-  { d: '2026-09-17', t: 'OPÇÃO 1 · Museus da Filadélfia', desc: 'Se sobrar tempo: Philadelphia Museum of Art (a escada do Rocky) e a Barnes Foundation, com uma das maiores coleções de Renoir e Cézanne do mundo. Ficam juntos, ~25 min a pé do Old City.', ab: 'Qua–Seg (fecha ter)', pr: 'PMA US$ 30 · Barnes US$ 30', mq: 'Philadelphia Museum of Art' },
-  { d: '2026-09-17', hora: '08:30', t: 'OPÇÃO 2 · Woodbury Common', desc: 'O outlet grande, a 1h de Nova York: 250 lojas, das grifes ao básico. Ônibus sai do Port Authority (Shortline, ala sul, entrada na 41st com 8th Ave) — chegue 20 min antes. Pegue o cupom book no Marketing Center ao chegar.', ab: 'Todos os dias ~10h–21h', pr: 'Ônibus US$ 40 ida e volta', link: 'https://www.premiumoutlets.com/outlet/woodbury-common', mq: 'Woodbury Common Premium Outlets Central Valley NY' },
+  { d: '2026-09-17', op: 'Opção 1 — Filadélfia', hora: '07:30', t: 'Amtrak para a Filadélfia', desc: 'Sai da Moynihan/Penn Station e chega na 30th Street em ~1h20. Trens de meia em meia hora. Compre com antecedência: a tarifa "Value" cai muito quando se compra cedo.', ab: 'Trens a partir de ~5h', pr: 'US$ 28–60 ida (a partir de US$ 10 se comprar cedo)', link: 'https://www.amtrak.com/', mq: 'Moynihan Train Hall New York' },
+  { d: '2026-09-17', op: 'Opção 1 — Filadélfia', t: 'Independence Hall', desc: 'Onde a Declaração de Independência e a Constituição foram assinadas. A visita é guiada por ranger, 30 min. Ingresso é grátis, mas precisa reservar horário no recreation.gov (US$ 1 de taxa) — faça semanas antes.', ab: 'Todos os dias 9h–17h', pr: 'Grátis (+US$ 1 de reserva)', link: 'https://www.nps.gov/inde/', mq: 'Independence Hall Philadelphia' },
+  { d: '2026-09-17', op: 'Opção 1 — Filadélfia', t: 'Old City a pé', desc: 'O centro histórico inteiro cabe a pé: Liberty Bell (grátis, sem reserva), Elfreth’s Alley (a rua residencial mais antiga do país, de 1703), Christ Church e as ruas de tijolo em volta. Cafés e livrarias no caminho.', ab: 'Ruas 24h · atrações ~9h–17h', pr: 'Grátis', mq: "Elfreth's Alley Philadelphia" },
+  { d: '2026-09-17', op: 'Opção 1 — Filadélfia', t: 'Museus da Filadélfia', desc: 'Se sobrar tempo: Philadelphia Museum of Art (a escada do Rocky) e a Barnes Foundation, com uma das maiores coleções de Renoir e Cézanne do mundo. Ficam juntos, ~25 min a pé do Old City.', ab: 'Qua–Seg (fecha ter)', pr: 'PMA US$ 30 · Barnes US$ 30', mq: 'Philadelphia Museum of Art' },
+  { d: '2026-09-17', op: 'Opção 2 — Outlet', hora: '08:30', t: 'Woodbury Common', desc: 'O outlet grande, a 1h de Nova York: 250 lojas, das grifes ao básico. Ônibus sai do Port Authority (Shortline, ala sul, entrada na 41st com 8th Ave) — chegue 20 min antes. Pegue o cupom book no Marketing Center ao chegar.', ab: 'Todos os dias ~10h–21h', pr: 'Ônibus US$ 40 ida e volta', link: 'https://www.premiumoutlets.com/outlet/woodbury-common', mq: 'Woodbury Common Premium Outlets Central Valley NY' },
 
   // ---------- Sex 18/09 — Chelsea, High Line, Broadway ----------
   { d: '2026-09-18', hora: '17:00', t: 'Whitney Museum of American Art', desc: '⚠ HOJE É SEXTA E A PARTIR DAS 17h A ENTRADA É "PAGUE QUANTO QUISER" — por isso ficou no fim da tarde. A sexta é o dia longo do museu (até 22h), então dá pra ver com calma.\n\nSó arte americana, do século XX pra cá — Hopper, Georgia O’Keeffe, Basquiat. Os terraços escalonados do prédio do Renzo Piano têm vista do Hudson e da High Line, que começa na porta.\n\nSe for ao musical às 20h, saia daqui ~19h15: são ~25 min de metrô (linha A/C/E da 14th St até a 42nd) até a Broadway.', ab: 'Qua–Seg 10h30–18h · SEXTA até 22h · fecha terça', pr: 'US$ 30 · hoje a partir das 17h: pague quanto quiser', link: 'https://whitney.org/visit', mq: 'Whitney Museum 99 Gansevoort St New York' },
@@ -1020,7 +1023,9 @@ const NYC_V2 = [
   { d: '2026-09-25', t: 'DUMBO + Washington Street', desc: 'Down Under the Manhattan Bridge Overpass: paralelepípedo, armazéns de tijolo e a foto — na Washington St com Water St, o arco da ponte emoldura o Empire State. Cuidado com os carros na hora da foto.', ab: '24h', pr: 'Grátis', mq: 'Washington Street DUMBO Brooklyn' },
   { d: '2026-09-25', t: 'Brooklyn Bridge Park', desc: 'O parque na beira do East River, embaixo das duas pontes, com a melhor vista frontal de Manhattan. Tem o carrossel Jane’s (de 1922, dentro de uma caixa de vidro) e píeres com gramado.', ab: 'Todos os dias 6h–1h', pr: 'Grátis', mq: 'Brooklyn Bridge Park Brooklyn' },
   { d: '2026-09-25', t: 'Staten Island Ferry (se der tempo)', desc: 'A balsa de graça que passa ao lado da Estátua da Liberdade, ida e volta em ~50 min. Sente do lado direito na ida. Sai do Whitehall Terminal, coladinho no Charging Bull.', ab: '24h, a cada 15–30 min', pr: 'Grátis', mq: 'Staten Island Ferry Whitehall Terminal New York' },
-  { d: '2026-09-25', hora: '19:00', t: 'Rooftop no fim do dia', desc: 'Westlight (Williamsburg, 22º andar): a melhor vista de Manhattan inteira, do outro lado do rio. The Crown (Lower East Side): vista das pontes, mais chique. 230 Fifth: o mais famoso e o mais turístico, com o Empire State de frente e mantas no inverno.', ab: 'Noite, até ~1h–2h', pr: 'Coquetéis US$ 18–25', mq: 'Westlight Brooklyn New York' },
+  { d: '2026-09-25', hora: '17:00', t: 'Balsa DUMBO → Williamsburg', desc: 'A NYC Ferry, linha East River, encosta no Fulton Ferry Landing (DUMBO) e sobe até North Williamsburg em ~10 min, passando debaixo das duas pontes. É o melhor passeio barato da cidade — fique no convés de cima, atrás.\n\nA mesma linha liga o Financial District: Pier 11 (Wall St) → DUMBO em 8 min, → North Williamsburg em ~15 min. Se quiser cortar caminho de manhã, dá pra ir de balsa em vez de atravessar a ponte a pé — mas aí você perde a travessia, que vale por si.', ab: 'Todos os dias · a cada 20–30 min', pr: 'US$ 4,50 por trecho (passe de 2 dias US$ 15)', link: 'https://www.ferry.nyc/routes-and-schedules/east-river/', mq: 'NYC Ferry Fulton Ferry Landing DUMBO Brooklyn' },
+  { d: '2026-09-25', hora: '17:30', t: 'Williamsburg sem rumo', desc: 'O bairro pra andar sem destino: Bedford Ave é a espinha (lojas, sebos, café), e as ruas em volta — N 6th, Wythe, Berry — têm brechó, disco de vinil, mural em prédio inteiro. Desça até a Domino Park, na beira do rio, pra ver Manhattan de frente no fim da tarde.\n\nDica: o Artists & Fleas (70 N 7th St) é o mercado de brechó e design local, fins de semana.', ab: 'Lojas ~11h–20h · bares até tarde', pr: 'Grátis (andar)', mq: 'Bedford Avenue Williamsburg Brooklyn' },
+  { d: '2026-09-25', hora: '19:30', t: 'Rooftop no fim do dia', desc: 'O Westlight fica em Williamsburg, no 22º andar — ou seja, é a continuação natural do fim de tarde: você já está no bairro. Vista de Manhattan inteira do outro lado do rio.\n\nAlternativas se preferir voltar pra Manhattan: The Crown (Lower East Side), vista das pontes, mais chique; 230 Fifth, o mais famoso e turístico, com o Empire State de frente.', ab: 'Noite, até ~1h–2h', pr: 'Coquetéis US$ 18–25', mq: 'Westlight 111 N 12th St Brooklyn' },
 
   // ---------- Sáb 26/09 — último dia (voo 20h30) ----------
   { d: '2026-09-26', hora: '10:00', t: 'Chinatown', desc: 'Mercados de rua, ervas, peixarias e o melhor dim sum barato da cidade. Canal Street pras bugigangas, Mott e Bayard pra comer de verdade.', ab: 'Lojas ~10h–19h', pr: 'Refeição US$ 10–25', mq: 'Chinatown Manhattan New York' },
@@ -1085,6 +1090,13 @@ const NYC_ENDS = [
   { n: 'Staten Island Ferry', e: '4 Whitehall St', c: 'turistico' },
   { n: 'Chinatown', e: 'Mott St & Canal St', c: 'turistico' },
   { n: 'Doyers Street', e: 'Doyers St', c: 'turistico' },
+  { n: 'Riverside Park (corrida)', e: 'Riverside Dr & W 72nd St', c: 'turistico' },
+  { n: 'Museu de História Natural', e: '200 Central Park West', c: 'museu' },
+  { n: 'Shrine (música ao vivo, Harlem)', e: '2271 Adam Clayton Powell Jr Blvd', c: 'restaurante' },
+  { n: 'Williamsburg (Bedford Ave)', e: 'Bedford Ave, Brooklyn', c: 'turistico' },
+  { n: 'Domino Park', e: '300 Kent Ave, Brooklyn', c: 'turistico' },
+  { n: 'NYC Ferry — Fulton Landing (DUMBO)', e: '1 Water St, Brooklyn', c: 'turistico' },
+  { n: 'NYC Ferry — Pier 11 (Wall St)', e: '11 South St', c: 'turistico' },
   { n: 'Moynihan Train Hall (Amtrak)', e: '351 W 31st St', c: 'turistico' },
   { n: 'Port Authority (ônibus do outlet)', e: '625 8th Ave', c: 'turistico' },
   // Restaurantes, cafés e bares
@@ -1117,9 +1129,11 @@ const NYC_ENDS = [
 // esgota primeiro vem primeiro). Vira um card de checklist na capa da viagem.
 const NYC_RESERVAS = [
   'Independence Hall (17/09, se for a Opção 1) — grátis + US$ 1 de taxa, só no recreation.gov. É o que esgota mais cedo: reserve JÁ.',
-  'Musicais da Broadway (18 e 19/09) — considere trocar um pra terça 15 ou quarta 16: 40–60% mais barato.',
+  'Musicais da Broadway (18 e 19/09) — considere TROCAR COM O OFF-BROADWAY: Broadway na segunda 14 (40–60% mais barato) e Public/SoHo Playhouse na sexta e no sábado (o off-Broadway custa quase o mesmo em qualquer dia).',
+  'Museu de História Natural (16/09) — ingresso com horário; entrada geral US$ 28.',
   'Top of the Rock (13/09, ~17h) — entrada por horário marcado; o pôr do sol esgota com semanas.',
-  'Village Vanguard (13/09, 20h) — reserva online, sets 20h e 22h. US$ 25–30 + 1 drink.',
+  'Village Vanguard (13/09, 20h) — É O ÚNICO JAZZ QUE PRECISA RESERVAR. Online, sets 20h e 22h. US$ 25–30 + 1 drink. (Smalls e Mezzrow aceitam entrar na hora; domingo à noite enche, chegue 30–45 min antes.)',
+  'Teatro off-Broadway do dia 14 (Public / Joe’s Pub / SoHo Playhouse) — ingresso online, US$ 25–100. Bem mais barato que Broadway, inclusive no fim de semana.',
   'The Frick (16/09, 13h30) — quarta é pague quanto quiser; dá pra garantir o horário online.',
   'The MET (14/09) — ingresso com horário; comprar online evita a fila da escadaria.',
   'MoMA (19/09) — horário marcado; sábado de manhã lota.',
@@ -1137,7 +1151,7 @@ const NYC_RESERVAS = [
 
 const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
 function ensureNYRoteiroV2(d) {
-  if (d.nyRoteiroV5) return d;
+  if (d.nyRoteiroV6) return d;
   const viagens = d.viagensFuturas || [];
   const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
   if (i < 0) return d;                       // viagem não carregou: não faz nada
@@ -1167,6 +1181,7 @@ function ensureNYRoteiroV2(d) {
     titulo: x.t, desc: x.desc,
     abertura: x.ab || undefined, preco: x.pr || undefined,
     maps: gmap(x.mq || (x.t + ' New York')), link: x.link,
+    opcao: x.op || undefined,          // roteiros alternativos do mesmo dia (17/09)
     ...(marcas[x.t] || {}),
   }));
   // Os dois voos Brasil↔Nova York eu REPUS porque meu patch anterior os apagou.
@@ -1196,21 +1211,28 @@ function ensureNYRoteiroV2(d) {
   const secReservas = { id: 'sec-reservas-ny', titulo: '🎟️ Reservar antes de ir', tipo: 'lista', local: 'card', texto: '', itens: itensRes };
   const novasSecoes = jaRes ? secoes.map(s => (s.id === 'sec-reservas-ny' ? secReservas : s)) : [...secoes, secReservas];
 
-  // Hospedagem: o "Upper West Side" era invenção MINHA, do seed de julho — a Mari
-  // nunca disse isso, e eu ainda usei como base pra sugerir café e mercado perto.
-  // O certo é o que ela mandou.
-  const hospedagem = 'American Dream — 168 E 24th St, Gramercy, Nova York, NY 10010.\n'
+  // CAMPOS DE TEXTO (hospedagem, passagens): só escrevo por cima se o que está lá
+  // for MEU (vazio ou uma das versões que eu mesma gravei). Se a Mari escreveu ou
+  // editou, fica o dela — foi assim que apaguei as 3 hospedagens dela, deixando só
+  // a que ela tinha me citado. Regra irmã da dos itens: não mexo no que é dela.
+  // REGRA: campo de texto que a Mari escreve (hospedagem, passagens) SÓ é
+  // preenchido quando está VAZIO. Nunca por cima — foi assim que apaguei as três
+  // hospedagens dela (duas em Nova York e uma em Chicago), deixando só a que ela
+  // tinha me citado no chat. Se ela apagar o campo, eu repovoo; se tiver
+  // qualquer coisa escrita, não encosto.
+  const soSeVazio = (atual, novo) => ((atual || '').trim() ? atual : novo);
+  const hospedagem = soSeVazio(trip.hospedagem,
+    'American Dream — 168 E 24th St, Gramercy, Nova York, NY 10010.\n'
     + 'Check-in costuma ser ~15h (no dia 13 você chega de manhã: deixe as malas e saia leve).\n'
     + 'A pé: Madison Square Park 5 min · Flatiron 8 min · Union Square 10 min · Eataly 8 min.\n'
-    + 'Metrô: 23rd St (linha 6) a 5 min; 23rd St (linhas N/R/W e F/M) a 8 min.';
-
-  // Passagens: os voos de Chicago já têm horário, então some o "a confirmar".
-  const passagens = 'Chegada ~7h40 no JFK (13/09). Volta: voo 20h30 (26/09), saída do hotel ~17h30.\n'
+    + 'Metrô: 23rd St (linha 6) a 5 min; 23rd St (linhas N/R/W e F/M) a 8 min.');
+  const passagens = soSeVazio(trip.passagens,
+    'Chegada ~7h40 no JFK (13/09). Volta: voo 20h30 (26/09), saída do hotel ~17h30.\n'
     + 'NY → Chicago (20/09): sai 06:45 de LGA, chega 08:50 em ORD.\n'
-    + 'Chicago → NY (24/09): sai 05:45 de ORD, chega 09:30 em LGA.';
+    + 'Chicago → NY (24/09): sai 05:45 de ORD, chega 09:30 em LGA.');
 
   const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds], secoes: novasSecoes, passagens, hospedagem };
-  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, nyRoteiroV6: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
 }
 
 function ensureNYChicago2026(d) {

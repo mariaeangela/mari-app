@@ -3998,14 +3998,22 @@ function ViagemDetail({ trip, onBack }) {
       {!temParalela && totalFav > 0 && (
         <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
       )}
-      {dias.map(dia => {
+      {/* Um dia pode ter ROTEIROS ALTERNATIVOS (item com `opcao`): aí ele aparece
+          repetido, um bloco por opção, como se fossem dois dias — foi o que a Mari
+          pediu pro 17/09 (Filadélfia OU outlet). Sem `opcao`, nada muda. */}
+      {dias.flatMap(dia => {
         const dt = new Date(dia + 'T00:00:00');
         const wd = DIAS_LONGOS[dt.getDay()];
         const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
-        const ms = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
-        return (
-          <div key={dia} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: 6 }}>{cab}</div>
+        const doDia = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
+        const opcoes = [...new Set(doDia.map(m => m.opcao).filter(Boolean))];
+        const blocos = opcoes.length
+          ? opcoes.map(op => ({ chave: dia + '#' + op, sub: op, ms: doDia.filter(m => m.opcao === op) }))
+          : [{ chave: dia, sub: null, ms: doDia }];
+        return blocos.map(({ chave, sub, ms }) => (
+          <div key={chave} style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: sub ? 2 : 6 }}>{cab}</div>
+            {sub && <div style={{ fontSize: 11.5, fontWeight: 700, color: COR_VIAGEM, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{sub}</div>}
             {ms.map(m => (
               <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
                 <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
@@ -4035,7 +4043,7 @@ function ViagemDetail({ trip, onBack }) {
               </div>
             ))}
           </div>
-        );
+        ));
       })}
       {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
       <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
