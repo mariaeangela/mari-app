@@ -940,6 +940,207 @@ const NYC_ROTEIRO = [
   { d: '2026-09-26', t: 'Brechós de fim de semana (opcional)', desc: 'Artists & Fleas em Williamsburg (metrô J/M/Z de Essex St) ou Chelsea Flea, em Manhattan. Pule se quiser um último dia mais leve.', ab: 'Fins de semana', pr: 'Grátis (entrada)', mq: 'Artists and Fleas Williamsburg Brooklyn' },
   { d: '2026-09-26', t: 'Saída para o JFK', desc: 'Voo 20h30 → saída do hotel para o JFK ~17h30. Manhã e início de tarde livres; depois pegar as malas e seguir.', ab: '', pr: '', mq: 'John F Kennedy International Airport', hora: '17:30' },
 ];
+// ---- Roteiro de Nova York, versão da Mari (ago/2026) ----
+// Ela mandou a lista dia a dia; aqui cada lugar ganha descrição, horário, preço e
+// Maps. Preços/horários conferidos na web em ago/2026 — o que não deu pra
+// confirmar está marcado como "confira no site" em vez de chutado.
+// NÃO entra nada de 20 a 24/09 (Chicago): aqueles itens são dela e ficam intactos.
+const NYC_V2 = [
+  // ---------- Dom 13/09 — chegada (JFK 7h40), Midtown ----------
+  { d: '2026-09-13', hora: '10:00', t: 'Chegar e tomar banho', desc: 'Check-in real só ~15h: deixe as malas no hotel, tome um banho se der e saia leve. Não marque nada com hora hoje.', ab: '', pr: '', mq: 'Upper West Side New York' },
+  { d: '2026-09-13', hora: '11:00', t: 'Café da manhã: Barney Greengrass', desc: 'Deli judaico de 1908 no Upper West Side, famoso pelo salmão e pelo sturgeon defumados. Alternativas na mesma região: Zabar’s (mais rápido, bom café) e Absolute Bagels.', ab: 'Ter–Dom 8h30–16h · fecha segunda · só dinheiro', pr: 'US$ 25–40', mq: 'Barney Greengrass 541 Amsterdam Ave New York' },
+  { d: '2026-09-13', t: 'Madison Square Park', desc: 'Praça arborizada com vista do Flatiron. O Shake Shack original fica aqui, num quiosque no parque.', ab: 'Todos os dias 6h–23h', pr: 'Grátis', mq: 'Madison Square Park New York' },
+  { d: '2026-09-13', t: 'Descer a Quinta Avenida', desc: 'Caminhada da Madison Square Park subindo a 5ª até o Rockefeller: Flatiron, Empire State (fachada), Biblioteca e as vitrines. ~40 min a pé sem paradas.', ab: '24h', pr: 'Grátis', mq: 'Fifth Avenue New York' },
+  { d: '2026-09-13', t: 'Comprar calçado de caminhada', desc: 'Paragon Sports (Union Square) é a loja certa pra isso: esportiva de verdade, atendimento que mede seu pé. Fica no caminho entre Madison Square Park e a 5ª.', ab: 'Seg–Sáb 10h–20h · Dom 11h–19h', pr: 'Tênis de caminhada US$ 90–180', mq: 'Paragon Sports 867 Broadway New York' },
+  { d: '2026-09-13', hora: '17:00', t: 'Top of the Rock', desc: 'O mirante com a vista que Nova York inteira quer: o Empire State de frente e o Central Park inteiro atrás. Entrada por horário marcado — reserve com dias de antecedência, sobretudo o pôr do sol.', ab: 'Todos os dias 8h–24h', pr: 'A partir de US$ 45 (Beam a partir de US$ 73)', link: 'https://www.rockefellercenter.com/tickets/top-of-the-rock-observation-deck', mq: 'Top of the Rock 30 Rockefeller Plaza New York' },
+  { d: '2026-09-13', t: 'Rockefeller Center', desc: 'O complexo art déco embaixo do mirante: a praça rebaixada, o Prometeu dourado, o Atlas e os murais do lobby do 30 Rock. Dá pra ver de graça, sem ingresso.', ab: '24h (praça)', pr: 'Grátis', mq: 'Rockefeller Center New York' },
+  { d: '2026-09-13', t: "St. Patrick's Cathedral", desc: 'Catedral neogótica de 1878 na 5ª Avenida, em frente ao Rockefeller. Entrada livre; vale entrar pelos vitrais e pela nave.', ab: 'Todos os dias 6h30–20h45', pr: 'Grátis (doação sugerida)', mq: "St Patrick's Cathedral 5th Avenue New York" },
+  { d: '2026-09-13', t: "Trader Joe's", desc: 'Mercado americano de marca própria — bom pra levar pra casa: temperos, snacks, chocolate, sacolas. O da 72nd St fica perto do Upper West Side.', ab: 'Todos os dias 8h–22h', pr: 'Barato', mq: "Trader Joe's 2073 Broadway New York" },
+  { d: '2026-09-13', t: "Macy's Herald Square", desc: 'A loja de departamentos mais famosa do mundo, 10 andares. Peça o Visitor Savings Pass (10–15% de desconto pra turista) no balcão do Visitor Center.', ab: 'Seg–Sáb 10h–21h · Dom 11h–20h', pr: 'Entrada grátis', mq: "Macy's Herald Square 151 W 34th St New York" },
+  { d: '2026-09-13', hora: '20:00', t: 'Times Square', desc: 'O cartão-postal iluminado. Vale à noite, quando os letreiros fazem sentido. Dez minutos bastam.', ab: '24h', pr: 'Grátis', mq: 'Times Square New York' },
+  { d: '2026-09-13', hora: '20:30', t: 'Drink + jazz no Village', desc: 'Três casas históricas, todas no West Village, a caminhar entre si. Village Vanguard: a lendária, sets 20h e 22h, reserve online. Smalls: subsolo apertado e barato, vai até tarde. Mezzrow: piano e contrabaixo, quieto e íntimo (mesma dona do Smalls).', ab: 'Sets ~20h e 22h', pr: 'Vanguard ~US$ 25–30 + 1 drink · Smalls ~US$ 35', link: 'https://villagevanguard.com/', mq: 'Village Vanguard 178 7th Ave S New York' },
+
+  // ---------- Seg 14/09 — Upper East Side, MET, Soho, teatro ----------
+  { d: '2026-09-14', t: 'Upper East Side + Central Park', desc: 'Manhã pelas ruas do Upper East Side e pela borda leste do parque. O Museum Mile é a 5ª Avenida entre a 82nd e a 105th.', ab: 'Parque 6h–1h', pr: 'Grátis', mq: 'Upper East Side New York' },
+  { d: '2026-09-14', hora: '11:00', t: 'The MET', desc: 'O museu que não se vence num dia: escolha duas ou três alas (egípcia com o Templo de Dendur, europeia, americana). O rooftop tem bar e vista do parque — só na temporada quente, e setembro pega. A loja do térreo é ótima pra presente.', ab: 'Dom–Ter e Qui 10h–17h · Sex–Sáb 10h–21h · FECHA QUARTA', pr: 'US$ 30 (vale o mesmo dia pro Cloisters)', link: 'https://www.metmuseum.org', mq: 'Metropolitan Museum of Art New York' },
+  { d: '2026-09-14', hora: '15:00', t: 'Soho', desc: 'Tarde entre os prédios de ferro fundido (cast iron) e as lojas: Broadway pras grandes marcas, Prince e Spring pras pequenas. Greene St tem o quarteirão de ferro fundido mais bonito da cidade.', ab: 'Lojas ~11h–19h', pr: 'Grátis (andar)', mq: 'SoHo New York' },
+  { d: '2026-09-14', hora: '19:30', t: 'Teatro à noite (fora da Broadway)', desc: 'The Public Theater: onde nasceram Hamilton e A Chorus Line; teatro sério a preço civil. Joe’s Pub fica dentro do Public — música e cabaré, mesa com jantar. SoHo Playhouse: casa pequena de 1824, off-Broadway experimental.', ab: 'Sessões ~19h/20h', pr: 'Public US$ 40–100 · Joe’s Pub US$ 25–60', link: 'https://publictheater.org/', mq: 'The Public Theater 425 Lafayette St New York' },
+
+  // ---------- Ter 15/09 — West Village e Greenwich Village ----------
+  { d: '2026-09-15', t: 'West Village', desc: 'O bairro mais fotogênico de Manhattan: ruas tortas (as únicas que fogem da grade), brownstones de tijolo, portinhas com escada. Perca-se de propósito por Bleecker, Bank, Charles e Grove.', ab: '24h', pr: 'Grátis', mq: 'West Village New York' },
+  { d: '2026-09-15', t: '66 Perry St — casa da Carrie', desc: 'A escada de Sex and the City. É prédio residencial: os moradores pediram distância, tem corrente na escada e não se sobe. Foto da calçada, rápido, e siga.', ab: '24h (rua)', pr: 'Grátis', mq: '66 Perry Street New York' },
+  { d: '2026-09-15', t: 'Greenwich Village', desc: 'A vizinhança da NYU e da boemia dos anos 50–60: Dylan, Baldwin, os cafés de poesia. Colada no West Village, dá pra emendar a pé.', ab: '24h', pr: 'Grátis', mq: 'Greenwich Village New York' },
+  { d: '2026-09-15', t: 'Washington Square Park', desc: 'O arco, o chafariz, os pianos de rua e os enxadristas. Coração da NYU, sempre com gente tocando alguma coisa.', ab: 'Todos os dias 6h–24h', pr: 'Grátis', mq: 'Washington Square Park New York' },
+  { d: '2026-09-15', t: 'Cornelia Street', desc: 'Uma quadra só, entre Bleecker e W 4th. Ficou famosa pela música da Taylor Swift; o Cornelia Street Cafe do verso fechou em 2018, mas a rua e as portinhas continuam lá.', ab: '24h', pr: 'Grátis', mq: 'Cornelia Street New York' },
+  { d: '2026-09-15', t: 'The Strand Book Store', desc: '"18 milhas de livros" desde 1927 — a livraria de Nova York. Os carrinhos de US$ 1 na calçada, o andar de raros no 3º e a seção de arte valem o tempo.', ab: 'Todos os dias 10h–20h', pr: 'Entrada grátis', link: 'https://www.strandbooks.com/', mq: 'Strand Book Store 828 Broadway New York' },
+  { d: '2026-09-15', t: 'Housing Works Bookstore Cafe', desc: 'Sebo-café em salão de dois andares com mezanino de madeira, no Soho. Tudo doado e todo o lucro vai pra causa de HIV/aids e moradia. Um dos lugares mais bonitos pra sentar e ler na cidade.', ab: 'Seg–Sex 10h–21h · Sáb–Dom 10h–17h (confira no site)', pr: 'Café ~US$ 5', link: 'https://www.housingworks.org/bookstore', mq: 'Housing Works Bookstore Cafe 126 Crosby St New York' },
+  { d: '2026-09-15', t: 'Caffe Reggio', desc: 'De 1927, o café que trouxe o primeiro cappuccino aos EUA — a máquina original de 1902 ainda está no salão. Interior escuro, quadros do século XVI, mesinhas de mármore. Foi cenário do Poderoso Chefão II.', ab: 'Todos os dias ~9h–01h', pr: 'US$ 6–14', mq: 'Caffe Reggio 119 MacDougal St New York' },
+  { d: '2026-09-15', hora: '20:00', t: 'Drinks: Employees Only / PDT / Attaboy', desc: 'Employees Only: fachada de vidente, art déco, sempre cheio — chegue antes das 19h ou espere. PDT: entra-se por uma cabine telefônica dentro da lanchonete Crif Dogs; só com reserva por telefone às 15h. Attaboy: sem cardápio, você diz o que gosta e eles inventam; sem reserva, fila na porta.', ab: 'Noite, até ~2h–4h', pr: 'Coquetéis US$ 18–24', mq: 'Employees Only 510 Hudson St New York' },
+
+  // ---------- Qua 16/09 — Grand Central, Central Park, Frick ----------
+  { d: '2026-09-16', t: 'Grand Central Terminal', desc: 'A estação de 1913 com o teto de constelações pintado ao contrário (erro que nunca corrigiram). Veja a galeria dos sussurros (fale num canto do arco e alguém ouve no outro) e o relógio de latão do saguão.', ab: 'Todos os dias 5h15–2h', pr: 'Grátis', mq: 'Grand Central Terminal New York' },
+  { d: '2026-09-16', t: 'Ruas do Upper West Side', desc: 'Caminhada pelo bairro: as brownstones da 70th a 80th, o Dakota (onde Lennon morava, na 72nd com Central Park West) e a Columbus Avenue.', ab: '24h', pr: 'Grátis', mq: 'Upper West Side New York' },
+  { d: '2026-09-16', t: 'Cruzar o Central Park', desc: 'Do lado oeste ao leste, na altura da 72nd: Strawberry Fields, Bethesda Terrace, o lago e o Conservatory Water. ~40 min sem parar.', ab: 'Todos os dias 6h–1h', pr: 'Grátis', mq: 'Bethesda Terrace Central Park New York' },
+  { d: '2026-09-16', hora: '14:00', t: 'The Frick Collection', desc: 'A mansão do magnata Henry Frick com o acervo que ele juntou: Vermeer, Rembrandt, Bellini, Goya — pendurados como numa casa, não como num museu. A mansão reformada reabriu em 2025. ~2h bastam.', ab: 'Qua–Dom · fecha seg e ter', pr: 'US$ 30 · QUARTA 13h30–17h30 é pague quanto quiser — é hoje', link: 'https://www.frick.org/tickets', mq: 'The Frick Collection 1 E 70th St New York' },
+  { d: '2026-09-16', t: 'Empire State (opcional)', desc: 'Se quiser um segundo mirante: o 86º andar é o clássico ao ar livre. Como você já sobe o Top of the Rock no dia 13, dá pra pular sem culpa.', ab: 'Todos os dias 9h–24h', pr: 'US$ 47–60 (86º) · +US$ 20 pelo 102º', link: 'https://www.esbnyc.com/', mq: 'Empire State Building New York' },
+  { d: '2026-09-16', hora: '18:30', t: 'Roosevelt Island Tramway (opcional)', desc: 'O bondinho que cruza o East River pendurado ao lado da Queensboro Bridge — 4 minutos de travessia, a vista de Manhattan de perfil. Passa o metrô normal: é só o MetroCard/OMNY, sem ingresso de atração.', ab: 'Todos os dias ~6h–2h', pr: 'US$ 2,90 (tarifa de metrô)', mq: 'Roosevelt Island Tramway 59th St New York' },
+
+  // ---------- Qui 17/09 — bate e volta (duas opções) ----------
+  { d: '2026-09-17', hora: '07:30', t: 'OPÇÃO 1 · Amtrak para a Filadélfia', desc: 'Sai da Moynihan/Penn Station e chega na 30th Street em ~1h20. Trens de meia em meia hora. Compre com antecedência: a tarifa "Value" cai muito quando se compra cedo.', ab: 'Trens a partir de ~5h', pr: 'US$ 28–60 ida (a partir de US$ 10 se comprar cedo)', link: 'https://www.amtrak.com/', mq: 'Moynihan Train Hall New York' },
+  { d: '2026-09-17', t: 'OPÇÃO 1 · Independence Hall', desc: 'Onde a Declaração de Independência e a Constituição foram assinadas. A visita é guiada por ranger, 30 min. Ingresso é grátis, mas precisa reservar horário no recreation.gov (US$ 1 de taxa) — faça semanas antes.', ab: 'Todos os dias 9h–17h', pr: 'Grátis (+US$ 1 de reserva)', link: 'https://www.nps.gov/inde/', mq: 'Independence Hall Philadelphia' },
+  { d: '2026-09-17', t: 'OPÇÃO 1 · Old City a pé', desc: 'O centro histórico inteiro cabe a pé: Liberty Bell (grátis, sem reserva), Elfreth’s Alley (a rua residencial mais antiga do país, de 1703), Christ Church e as ruas de tijolo em volta. Cafés e livrarias no caminho.', ab: 'Ruas 24h · atrações ~9h–17h', pr: 'Grátis', mq: "Elfreth's Alley Philadelphia" },
+  { d: '2026-09-17', t: 'OPÇÃO 1 · Museus da Filadélfia', desc: 'Se sobrar tempo: Philadelphia Museum of Art (a escada do Rocky) e a Barnes Foundation, com uma das maiores coleções de Renoir e Cézanne do mundo. Ficam juntos, ~25 min a pé do Old City.', ab: 'Qua–Seg (fecha ter)', pr: 'PMA US$ 30 · Barnes US$ 30', mq: 'Philadelphia Museum of Art' },
+  { d: '2026-09-17', hora: '08:30', t: 'OPÇÃO 2 · Woodbury Common', desc: 'O outlet grande, a 1h de Nova York: 250 lojas, das grifes ao básico. Ônibus sai do Port Authority (Shortline, ala sul, entrada na 41st com 8th Ave) — chegue 20 min antes. Pegue o cupom book no Marketing Center ao chegar.', ab: 'Todos os dias ~10h–21h', pr: 'Ônibus US$ 40 ida e volta', link: 'https://www.premiumoutlets.com/outlet/woodbury-common', mq: 'Woodbury Common Premium Outlets Central Valley NY' },
+
+  // ---------- Sex 18/09 — Chelsea, High Line, Broadway ----------
+  { d: '2026-09-18', hora: '10:30', t: 'Whitney Museum of American Art', desc: 'Só arte americana, do século XX pra cá — Hopper, Georgia O’Keeffe, Basquiat. O prédio do Renzo Piano tem terraços escalonados com vista do Hudson e da High Line, que começa na porta.', ab: 'Qua–Seg 10h30–18h · sex até 22h · fecha terça', pr: 'US$ 30 · sexta a partir das 17h é pague quanto quiser', link: 'https://whitney.org/visit', mq: 'Whitney Museum 99 Gansevoort St New York' },
+  { d: '2026-09-18', t: 'Chelsea Market', desc: 'Antiga fábrica de biscoitos Nabisco (o Oreo nasceu aqui) virada em galeria de comida: tacos, lagosta, doces, especiarias. Tijolo aparente e canos à mostra. Lotado na hora do almoço.', ab: 'Seg–Sáb 7h–22h · Dom 8h–21h', pr: 'Almoço US$ 15–30', mq: 'Chelsea Market 75 9th Ave New York' },
+  { d: '2026-09-18', t: 'The High Line', desc: 'Linha de trem elevada dos anos 30 transformada em parque suspenso de 2,3 km, da Gansevoort à 34th. Jardins selvagens, bancos de madeira e a cidade vista de dez metros de altura.', ab: 'Todos os dias 7h–22h', pr: 'Grátis', link: 'https://www.thehighline.org/', mq: 'The High Line New York' },
+  { d: '2026-09-18', t: 'Galerias de Chelsea', desc: 'O maior conjunto de galerias de arte do mundo, entre a 20th e a 26th, da 10ª à 11ª Avenida. Entrada livre em todas — David Zwirner, Gagosian, Pace. Fecham domingo e segunda; sexta é dia bom.', ab: 'Ter–Sáb 10h–18h', pr: 'Grátis', mq: 'Chelsea Art Galleries West 24th Street New York' },
+  { d: '2026-09-18', t: 'Little Island', desc: 'Parque flutuante sobre o Hudson, apoiado em 132 "tulipas" de concreto. Pequeno, dá 30 min. Entrada grátis; em dias cheios pode pedir horário marcado à tarde.', ab: 'Todos os dias 6h–23h (varia por estação)', pr: 'Grátis', link: 'https://littleisland.org/', mq: 'Little Island Pier 55 New York' },
+  { d: '2026-09-18', t: 'Hudson Yards + Vessel', desc: 'O bairro novo de arranha-céus de vidro no fim da High Line. O Vessel é a escadaria de favo de mel, 154 lances — reabriu com redes de proteção; ingresso barato e rápido. O shopping tem as marcas todas.', ab: 'Vessel: todos os dias ~10h–21h', pr: 'Vessel US$ 10 (horário marcado) ou US$ 15 (livre)', link: 'https://www.hudsonyardsnewyork.com/discover/vessel', mq: 'Vessel Hudson Yards New York' },
+  { d: '2026-09-18', hora: '20:00', t: 'Musical da Broadway', desc: 'Reserve com semanas de antecedência. Pra baratear: TKTS na Times Square vende sobra do dia com 20–50% off (fila a partir das 15h), e cada produção tem loteria digital no app TodayTix por ~US$ 30.', ab: 'Sessões 19h ou 20h', pr: 'US$ 80–250 · TKTS 20–50% off', link: 'https://www.tdf.org/tkts/', mq: 'TKTS Times Square New York' },
+
+  // ---------- Sáb 19/09 — MoMA, Bryant Park, Morgan ----------
+  { d: '2026-09-19', hora: '10:30', t: 'Museum of Modern Art (MoMA)', desc: 'A Noite Estrelada, as Damoiselles de Picasso, os nenúfares do Monet numa sala inteira. Vá cedo: no meio da tarde o 5º andar fica impossível. O jardim de esculturas é o respiro.', ab: 'Todos os dias 10h30–17h30 · sáb até 19h', pr: 'US$ 30', link: 'https://www.moma.org/', mq: 'Museum of Modern Art 11 W 53rd St New York' },
+  { d: '2026-09-19', t: 'Chrysler Building', desc: 'O art déco mais bonito de Nova York (1930), com a coroa de aço e as gárgulas de radiador de carro. Só o lobby é visitável — mármore vermelho e o mural do teto. A torre se vê melhor de longe.', ab: 'Lobby seg–sex ~8h–18h', pr: 'Grátis (lobby)', mq: 'Chrysler Building 405 Lexington Ave New York' },
+  { d: '2026-09-19', t: 'New York Public Library', desc: 'Os leões Patience e Fortitude na escada e a Rose Reading Room: 24 metros de pé-direito, teto pintado e lustres de bronze. Entrada livre; a sala de leitura fecha pra eventos às vezes.', ab: 'Sáb 10h–18h', pr: 'Grátis', link: 'https://www.nypl.org/', mq: 'New York Public Library Stephen A Schwarzman Building New York' },
+  { d: '2026-09-19', t: 'The Morgan Library & Museum', desc: 'A biblioteca particular do banqueiro Pierpont Morgan: três andares de estantes de nogueira, teto pintado, uma Bíblia de Gutenberg e manuscritos de Dickens e Mozart. Pequeno e perfeito — 1h30.', ab: 'Ter–Dom 10h30–17h · sex até 20h · fecha segunda', pr: 'US$ 25', link: 'https://www.themorgan.org/visit', mq: 'Morgan Library and Museum 225 Madison Ave New York' },
+  { d: '2026-09-19', t: 'Bryant Park', desc: 'O gramado atrás da biblioteca, cercado de cadeirinhas verdes. Bom pra sentar entre um museu e outro; tem carrossel e quiosques.', ab: 'Todos os dias 7h–22h', pr: 'Grátis', mq: 'Bryant Park New York' },
+  { d: '2026-09-19', hora: '20:00', t: 'Musical da Broadway', desc: 'A segunda noite de teatro. Se a primeira foi um clássico, aqui cabe algo novo — ou o contrário.', ab: 'Sessões 19h ou 20h', pr: 'US$ 80–250', mq: 'Broadway Theatre District New York' },
+
+  // ---------- Sex 25/09 — Downtown e Brooklyn ----------
+  { d: '2026-09-25', t: 'Wall Street', desc: 'A rua estreita e sombreada do dinheiro: a Bolsa de fachada neoclássica (não se visita), o Federal Hall onde Washington tomou posse, e a Trinity Church no fim.', ab: '24h (rua)', pr: 'Grátis', mq: 'Wall Street New York' },
+  { d: '2026-09-25', t: 'Charging Bull', desc: 'O touro de bronze de 3,2 toneladas, posto ali clandestinamente em 1989 e nunca mais tirado. Fica no Bowling Green, não na Wall Street. Fila pra foto o dia todo — vá cedo.', ab: '24h', pr: 'Grátis', mq: 'Charging Bull Bowling Green New York' },
+  { d: '2026-09-25', t: 'Stone Street', desc: 'Uma quadra de paralelepípedo do século XVII, fechada pra carros, com mesas na rua e prédios baixos de tijolo. O contraste com os arranha-céus em volta é o encanto. Bom pra almoçar.', ab: 'Restaurantes ~11h–23h', pr: 'Almoço US$ 20–35', mq: 'Stone Street New York' },
+  { d: '2026-09-25', t: 'One World Trade Center', desc: 'A torre mais alta do hemisfério (541 m — 1776 pés, a data). O observatório fica nos andares 100–102 e o elevador sobe mostrando 500 anos da cidade em 47 segundos. Ao lado, as duas fontes quadradas do memorial (grátis).', ab: 'Todos os dias 9h–21h', pr: 'A partir de US$ 44', link: 'https://www.oneworldobservatory.com/', mq: 'One World Observatory New York' },
+  { d: '2026-09-25', t: 'Brookfield Place', desc: 'Do outro lado da rua do WTC: o Winter Garden, um átrio de vidro com palmeiras de verdade e vista da marina. Lojas boas e o Le District, mercado francês, no subsolo.', ab: 'Seg–Sáb 10h–20h · Dom 11h–19h', pr: 'Entrada grátis', mq: 'Brookfield Place 230 Vesey St New York' },
+  { d: '2026-09-25', hora: '16:00', t: 'Brooklyn Bridge a pé', desc: 'Atravesse de Manhattan pra Brooklyn (o sentido certo: a skyline vem crescendo nas suas costas e você a vê ao virar). 1,8 km, ~35 min. A passarela de madeira fica acima do trânsito.', ab: '24h', pr: 'Grátis', mq: 'Brooklyn Bridge New York' },
+  { d: '2026-09-25', t: 'DUMBO + Washington Street', desc: 'Down Under the Manhattan Bridge Overpass: paralelepípedo, armazéns de tijolo e a foto — na Washington St com Water St, o arco da ponte emoldura o Empire State. Cuidado com os carros na hora da foto.', ab: '24h', pr: 'Grátis', mq: 'Washington Street DUMBO Brooklyn' },
+  { d: '2026-09-25', t: 'Brooklyn Bridge Park', desc: 'O parque na beira do East River, embaixo das duas pontes, com a melhor vista frontal de Manhattan. Tem o carrossel Jane’s (de 1922, dentro de uma caixa de vidro) e píeres com gramado.', ab: 'Todos os dias 6h–1h', pr: 'Grátis', mq: 'Brooklyn Bridge Park Brooklyn' },
+  { d: '2026-09-25', t: 'Staten Island Ferry (se der tempo)', desc: 'A balsa de graça que passa ao lado da Estátua da Liberdade, ida e volta em ~50 min. Sente do lado direito na ida. Sai do Whitehall Terminal, coladinho no Charging Bull.', ab: '24h, a cada 15–30 min', pr: 'Grátis', mq: 'Staten Island Ferry Whitehall Terminal New York' },
+  { d: '2026-09-25', hora: '19:00', t: 'Rooftop no fim do dia', desc: 'Westlight (Williamsburg, 22º andar): a melhor vista de Manhattan inteira, do outro lado do rio. The Crown (Lower East Side): vista das pontes, mais chique. 230 Fifth: o mais famoso e o mais turístico, com o Empire State de frente e mantas no inverno.', ab: 'Noite, até ~1h–2h', pr: 'Coquetéis US$ 18–25', mq: 'Westlight Brooklyn New York' },
+
+  // ---------- Sáb 26/09 — último dia (voo 20h30) ----------
+  { d: '2026-09-26', hora: '10:00', t: 'Chinatown', desc: 'Mercados de rua, ervas, peixarias e o melhor dim sum barato da cidade. Canal Street pras bugigangas, Mott e Bayard pra comer de verdade.', ab: 'Lojas ~10h–19h', pr: 'Refeição US$ 10–25', mq: 'Chinatown Manhattan New York' },
+  { d: '2026-09-26', t: 'Doyers Street', desc: 'A curva de 90 graus mais famosa de Nova York — apelidada de "Bloody Angle" pelas brigas de gangue dos anos 1900. Hoje é um beco pintado, cheio de mural e de barbearia antiga.', ab: '24h', pr: 'Grátis', mq: 'Doyers Street New York' },
+  { d: '2026-09-26', t: 'Essex Market', desc: 'Mercado público de 1940 no Lower East Side, mudado em 2019 pro prédio novo em frente. Bancas de queijo, peixe, pupusas, café. Bom almoço de despedida.', ab: 'Seg–Sáb 8h–20h · Dom 10h–18h', pr: 'Almoço US$ 12–25', mq: 'Essex Market 88 Essex St New York' },
+  { d: '2026-09-26', t: 'ICP — International Center of Photography', desc: 'O museu de fotografia da cidade, fundado por Cornell Capa (irmão do Robert) pra defender a "fotografia preocupada". Fica na Essex St, dentro do mesmo complexo do mercado. Pequeno, 1h.', ab: 'Qua–Seg 11h–19h · qui até 21h · fecha terça', pr: 'US$ 16 · quinta 17h–20h por US$ 5', link: 'https://www.icp.org/visit', mq: 'International Center of Photography 84 Ludlow St New York' },
+  { d: '2026-09-26', hora: '17:30', t: 'Saída para o JFK', desc: 'Voo 20h30 → sair do hotel ~17h30. Pegue as malas e siga; o AirTrain + metrô leva ~1h15, táxi ~1h (mais no trânsito de sexta).', ab: '', pr: 'Táxi fixo JFK ~US$ 70 + pedágio', mq: 'John F Kennedy International Airport' },
+];
+
+// Todos os lugares acima também viram ENDEREÇO ÚTIL, com a categoria certa
+// (as 5 que a Mari definiu: turistico · museu · restaurante · loja · hospedagem).
+// `n` = nome curto pra lista, `e` = endereço, `c` = categoria, `q` = busca no Maps.
+const NYC_ENDS = [
+  // Museus e casas de espetáculo
+  { n: 'The MET', e: '1000 5th Ave', c: 'museu' },
+  { n: 'The Frick Collection', e: '1 E 70th St', c: 'museu' },
+  { n: 'Whitney Museum', e: '99 Gansevoort St', c: 'museu' },
+  { n: 'MoMA', e: '11 W 53rd St', c: 'museu' },
+  { n: 'The Morgan Library & Museum', e: '225 Madison Ave', c: 'museu' },
+  { n: 'New York Public Library', e: '476 5th Ave', c: 'museu' },
+  { n: 'ICP — Center of Photography', e: '84 Ludlow St', c: 'museu' },
+  { n: 'The Public Theater', e: '425 Lafayette St', c: 'museu' },
+  { n: "Joe's Pub", e: '425 Lafayette St', c: 'museu' },
+  { n: 'SoHo Playhouse', e: '15 Vandam St', c: 'museu' },
+  { n: 'Village Vanguard', e: '178 7th Ave S', c: 'museu' },
+  { n: 'Smalls Jazz Club', e: '183 W 10th St', c: 'museu' },
+  { n: 'Mezzrow', e: '163 W 10th St', c: 'museu' },
+  { n: 'TKTS Times Square (ingressos)', e: '47th St & Broadway', c: 'museu' },
+  // Pontos turísticos
+  { n: 'Top of the Rock', e: '30 Rockefeller Plaza', c: 'turistico' },
+  { n: 'Rockefeller Center', e: '45 Rockefeller Plaza', c: 'turistico' },
+  { n: "St. Patrick's Cathedral", e: '5th Ave & 50th St', c: 'turistico' },
+  { n: 'Times Square', e: 'Broadway & 7th Ave', c: 'turistico' },
+  { n: 'Madison Square Park', e: '11 Madison Ave', c: 'turistico' },
+  { n: 'Quinta Avenida', e: '5th Ave', c: 'turistico' },
+  { n: 'Central Park', e: 'Central Park', c: 'turistico' },
+  { n: 'Bethesda Terrace', e: 'Central Park, 72nd St', c: 'turistico' },
+  { n: 'Grand Central Terminal', e: '89 E 42nd St', c: 'turistico' },
+  { n: 'Empire State Building', e: '20 W 34th St', c: 'turistico' },
+  { n: 'Chrysler Building', e: '405 Lexington Ave', c: 'turistico' },
+  { n: 'Bryant Park', e: '5th Ave & 42nd St', c: 'turistico' },
+  { n: 'Roosevelt Island Tramway', e: '2nd Ave & E 59th St', c: 'turistico' },
+  { n: 'West Village', e: 'West Village', c: 'turistico' },
+  { n: '66 Perry St (Carrie)', e: '66 Perry St', c: 'turistico' },
+  { n: 'Greenwich Village', e: 'Greenwich Village', c: 'turistico' },
+  { n: 'Washington Square Park', e: 'Washington Square', c: 'turistico' },
+  { n: 'Cornelia Street', e: 'Cornelia St', c: 'turistico' },
+  { n: 'SoHo', e: 'SoHo', c: 'turistico' },
+  { n: 'The High Line', e: 'Gansevoort St & Washington St', c: 'turistico' },
+  { n: 'Little Island', e: 'Pier 55, 13th St & Hudson River', c: 'turistico' },
+  { n: 'Vessel / Hudson Yards', e: '20 Hudson Yards', c: 'turistico' },
+  { n: 'Galerias de Chelsea', e: 'W 24th St & 10th Ave', c: 'turistico' },
+  { n: 'Wall Street', e: 'Wall St', c: 'turistico' },
+  { n: 'Charging Bull', e: 'Bowling Green', c: 'turistico' },
+  { n: 'Stone Street', e: 'Stone St', c: 'turistico' },
+  { n: 'One World Observatory', e: '117 West St', c: 'turistico' },
+  { n: 'Brooklyn Bridge', e: 'Brooklyn Bridge', c: 'turistico' },
+  { n: 'DUMBO — Washington St', e: 'Washington St & Water St, Brooklyn', c: 'turistico' },
+  { n: 'Brooklyn Bridge Park', e: '334 Furman St, Brooklyn', c: 'turistico' },
+  { n: 'Staten Island Ferry', e: '4 Whitehall St', c: 'turistico' },
+  { n: 'Chinatown', e: 'Mott St & Canal St', c: 'turistico' },
+  { n: 'Doyers Street', e: 'Doyers St', c: 'turistico' },
+  { n: 'Moynihan Train Hall (Amtrak)', e: '351 W 31st St', c: 'turistico' },
+  { n: 'Port Authority (ônibus do outlet)', e: '625 8th Ave', c: 'turistico' },
+  // Restaurantes, cafés e bares
+  { n: 'Barney Greengrass', e: '541 Amsterdam Ave', c: 'restaurante' },
+  { n: 'Caffe Reggio', e: '119 MacDougal St', c: 'restaurante' },
+  { n: 'Employees Only', e: '510 Hudson St', c: 'restaurante' },
+  { n: "Please Don't Tell (PDT)", e: '113 St Marks Pl', c: 'restaurante' },
+  { n: 'Attaboy', e: '134 Eldridge St', c: 'restaurante' },
+  { n: 'Chelsea Market', e: '75 9th Ave', c: 'restaurante' },
+  { n: 'Essex Market', e: '88 Essex St', c: 'restaurante' },
+  { n: 'Westlight', e: '111 N 12th St, Brooklyn', c: 'restaurante' },
+  { n: 'The Crown', e: '50 Bowery', c: 'restaurante' },
+  { n: "Harriet's Rooftop", e: '60 Furman St, Brooklyn', c: 'restaurante' },
+  { n: '230 Fifth Rooftop', e: '230 5th Ave', c: 'restaurante' },
+  // Lojas
+  { n: "Trader Joe's (UWS)", e: '2073 Broadway', c: 'loja' },
+  { n: "Macy's Herald Square", e: '151 W 34th St', c: 'loja' },
+  { n: 'Paragon Sports (tênis)', e: '867 Broadway', c: 'loja' },
+  { n: 'The Strand Book Store', e: '828 Broadway', c: 'loja' },
+  { n: 'Housing Works Bookstore', e: '126 Crosby St', c: 'loja' },
+  { n: 'Brookfield Place', e: '230 Vesey St', c: 'loja' },
+  { n: 'Woodbury Common (outlet)', e: '498 Red Apple Ct, Central Valley', c: 'loja' },
+];
+
+// Aplica o roteiro novo da Mari SEM tocar em nada de Chicago (20 a 24/09), que
+// é dela: os voos LGA↔ORD e o marcador ficam exatamente onde estão.
+// Preserva os check de "visitado" e as estrelas dos lugares que continuam na
+// lista (casando pelo título), e não duplica endereço que ela já cadastrou.
+const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
+function ensureNYRoteiroV2(d) {
+  if (d.nyRoteiroV2) return d;
+  const viagens = d.viagensFuturas || [];
+  const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
+  if (i < 0) return d;                       // viagem não carregou: não faz nada
+  const trip = viagens[i];
+  const antigas = trip.mesas || [];
+  // o que é de Chicago (ou não tem data) fica intacto
+  const manter = antigas.filter(m => !m.dia || (m.dia >= CHI_INI && m.dia <= CHI_FIM));
+  // marcas dela nos itens de Nova York, pra não se perderem
+  const marcas = {};
+  antigas.forEach(m => { if (m.titulo && (m.visitado || m.favorito)) marcas[m.titulo] = { visitado: m.visitado, favorito: m.favorito }; });
+  const novas = NYC_V2.map((x, n) => ({
+    id: 'nyc2-' + n, n, dia: x.d, hora: x.hora || '',
+    titulo: x.t, desc: x.desc,
+    abertura: x.ab || undefined, preco: x.pr || undefined,
+    maps: gmap(x.mq || (x.t + ' New York')), link: x.link,
+    ...(marcas[x.t] || {}),
+  }));
+  const mesas = [...novas, ...manter].sort((a, b) => (a.dia || '').localeCompare(b.dia || '') || (a.hora || '').localeCompare(b.hora || ''));
+  // endereços: mantém os dela, acrescenta os que faltam (compara pelo nome)
+  const jaTem = new Set((trip.enderecos || []).map(e => (e.nome || '').toLowerCase().trim()));
+  const novosEnds = NYC_ENDS.filter(e => !jaTem.has(e.n.toLowerCase().trim())).map((e, n) => ({
+    id: 'nyend-' + n, nome: e.n, endereco: e.e + (e.e.includes('Brooklyn') || e.e.includes('Valley') ? '' : ', Nova York'),
+    tipo: e.c, maps: gmap((e.q || (e.n + ' ' + e.e)) + ' New York'),
+  }));
+  const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds] };
+  return { ...d, nyRoteiroV2: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+}
+
 function ensureNYChicago2026(d) {
   if (d.nyChicago2026Seeded) return d;
   const have = new Set((d.viagensFuturas || []).map(v => v.id));
@@ -1590,7 +1791,7 @@ function ensureCarteiraMesAtual(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureNYRoteiroV2, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
