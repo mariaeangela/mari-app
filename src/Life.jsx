@@ -8,6 +8,7 @@ import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
 import { useSaved } from './savedStore.jsx';
 import { exportarTexto, exportarJSON } from './exportar.js';
+import { lerLixeira } from './cloud.js';
 // Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
@@ -5241,6 +5242,43 @@ function ExportarBloco() {
           : feito === 'backup' ? 'Pronto — backup baixado. É o arquivo que reconstrói tudo.'
           : 'Textos = o que você escreve (estudos, aprendizados, diário, legendas, leituras, viagens), pra ler ou abrir no Word. Backup = tudo, inclusive finanças, pra guardar.'}
       </p>
+      <Lixeira />
+    </div>
+  );
+}
+
+// Cópias que o app guardou sozinho antes de deixar a nuvem substituir algo neste
+// aparelho. Só aparece quando existe alguma. Não restaura sozinho de propósito:
+// baixa o arquivo, a gente olha e decide — restaurar às cegas é como se perde
+// duas vezes.
+function Lixeira() {
+  const [itens, setItens] = useState(() => lerLixeira());
+  useEffect(() => { const id = setInterval(() => setItens(lerLixeira()), 10000); return () => clearInterval(id); }, []);
+  if (!itens.length) return null;
+  const quando = (ts) => new Date(ts).toLocaleString('pt-BR');
+  const baixar = (it) => {
+    const blob = new Blob([JSON.stringify(it.doc, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `diagonal-copia-${it.secao}-${new Date(it.ts).toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+  return (
+    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px dashed #e2e2e2' }}>
+      <div style={{ fontSize: 11, color: '#b06d1e', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Cópias guardadas</div>
+      <p style={{ fontSize: 11.5, color: '#999', margin: '0 0 8px', lineHeight: 1.6 }}>
+        Versões que estavam neste aparelho e foram substituídas pela nuvem. Guardadas por precaução — se sentir falta de algo, baixe e me mande.
+      </p>
+      {itens.map((it, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span style={{ flex: 1, fontSize: 12, color: '#555' }}>
+            <b>{it.secao}</b> · {quando(it.ts)}
+            <span style={{ display: 'block', fontSize: 10.5, color: '#aaa' }}>{it.motivo}</span>
+          </span>
+          <button onClick={() => baixar(it)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#555', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', padding: '6px 10px', flexShrink: 0 }}>⤓ baixar</button>
+        </div>
+      ))}
     </div>
   );
 }

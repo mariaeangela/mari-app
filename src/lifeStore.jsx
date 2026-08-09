@@ -6,7 +6,7 @@
 //     itens:  [{ id, titulo, listaId, dataLimite?, orcamento?, links: [], comprado }]
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE } from './cloud';
+import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
 
@@ -1695,6 +1695,7 @@ export function LifeProvider({ children }) {
   useEffect(() => onSyncStatus(setSyncStatus), []);
 
   useEffect(() => {
+    if (RESGATE) return;   // resgate: fica só com o local, sem ler nem adotar a nuvem
     let alive = true;
     (async () => {
       const local = readLocal();
@@ -1722,6 +1723,22 @@ export function LifeProvider({ children }) {
         writeLocal(nx); setData(nx); pushLife(nx);
         return;
       }
+      // PENDÊNCIA: este aparelho tem edição que a nuvem NUNCA confirmou. O `_rev`
+      // sozinho não protege — outro aparelho pode ter salvo depois (carimbo maior)
+      // com conteúdo velho, e foi exatamente assim que um dia inteiro se perdeu
+      // (ago/2026). Então o local VENCE e sobe, e a versão da nuvem vai pra
+      // lixeira antes — nenhuma das duas é jogada fora.
+      if (temPendente('life')) {
+        guardarNaLixeira('life-nuvem', merged, 'nuvem preterida: havia edição local não enviada');
+        // carimba mais alto que a nuvem pra este envio não ser recusado por versão
+        const base = runLifeSeeds(local);
+        const nx = { ...base, _rev: Math.max(Date.now(), (merged._rev || 0) + 1) };
+        writeLocal(nx); setData(nx); pushLife(nx);
+        return;
+      }
+      // Vai adotar a nuvem: guarda o que está saindo. Barato, e é a diferença
+      // entre "deu ruim" e "perdi tudo".
+      guardarNaLixeira('life-local', local, 'substituído pela versão da nuvem no boot');
       const next = runLifeSeeds(merged);
       writeLocal(next); setData(next);
       if (next !== merged) pushLife(next);
@@ -1741,13 +1758,18 @@ export function LifeProvider({ children }) {
   // de uma mudança mais recente de outro aparelho. Nunca descarta edição local mais
   // nova (o _rev dela é maior). O pushLife supera qualquer push pendente já velho.
   const resyncLife = async () => {
-    if (resyncing.current) return;
+    if (RESGATE || resyncing.current) return;
     resyncing.current = true;
     try {
       const cloud = await fetchLife();
       if (cloud === UNREACHABLE || !cloud) return;
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
+      // Com edição local não confirmada, NÃO adota a nuvem: reenvia o local. Sem
+      // isto, voltar pro app (visibilitychange) podia trocar o que está aqui por
+      // uma versão de fora e apagar o que ainda nem tinha subido.
+      if (temPendente('life')) { pushLife(dataRef.current); return; }
       if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
+        guardarNaLixeira('life-local', dataRef.current, 'substituído pela versão da nuvem ao voltar pro app');
         const next = runLifeSeeds(merged);
         writeLocal(next); setData(next); pushLife(next);
       }

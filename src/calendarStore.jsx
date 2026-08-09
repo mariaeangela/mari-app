@@ -13,7 +13,7 @@
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE } from './cloud';
+import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira } from './cloud';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {} };
@@ -98,6 +98,7 @@ export function CalendarProvider({ children }) {
   const dataRef = useRef(data); dataRef.current = data; // pro salvar manual pegar o estado atual
 
   useEffect(() => {
+    if (RESGATE) return;   // resgate: fica só com o local, sem ler nem adotar a nuvem
     let alive = true;
     (async () => {
       const local = readLocal();
@@ -137,6 +138,18 @@ export function CalendarProvider({ children }) {
         writeLocal(f); setData(f); pushCalendario(f);
         return;
       }
+      // Edição local que a nuvem nunca confirmou: o local vence e sobe (carimbado
+      // acima da nuvem), e a versão de lá vai pra lixeira. Mesma regra do `life`.
+      if (temPendente('calendario')) {
+        guardarNaLixeira('calendario-nuvem', merged, 'nuvem preterida: havia edição local não enviada');
+        const seededLocal = runSeeds(local);
+        const r = rolarAtrasadas(seededLocal.tasks, hojeKey());
+        const base = r.changed ? { ...seededLocal, tasks: r.next } : seededLocal;
+        const f = { ...base, _rev: Math.max(Date.now(), (merged._rev || 0) + 1) };
+        writeLocal(f); setData(f); pushCalendario(f);
+        return;
+      }
+      guardarNaLixeira('calendario-local', local, 'substituído pela versão da nuvem no boot');
       const { next, changed } = rolarAtrasadas(merged.tasks, hojeKey());
       const final = changed ? { ...merged, tasks: next } : merged;
       writeLocal(final);
@@ -157,13 +170,15 @@ export function CalendarProvider({ children }) {
   // mais nova que o local (via _rev). Fecha a fresta do aparelho desatualizado
   // empurrar por cima de mudança mais recente de outro aparelho.
   const resyncCal = async () => {
-    if (resyncing.current) return;
+    if (RESGATE || resyncing.current) return;
     resyncing.current = true;
     try {
       const cloud = await fetchCalendario();
       if (cloud === UNREACHABLE || !cloud) return;
       const merged = runSeeds({ ...DEFAULT, ...cloud });
+      if (temPendente('calendario')) { pushCalendario(dataRef.current); return; }
       if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
+        guardarNaLixeira('calendario-local', dataRef.current, 'substituído pela versão da nuvem ao voltar pro app');
         const r = rolarAtrasadas(merged.tasks, hojeKey());
         const f = r.changed ? { ...merged, tasks: r.next } : merged;
         writeLocal(f); setData(f); pushCalendario(f);

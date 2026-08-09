@@ -3,6 +3,15 @@
 // sem internet), falha em silêncio e o app segue no localStorage.
 const ENDPOINT = '/api/data';
 
+// ---- MODO RESGATE (`?resgate=1` na URL) ----
+// Trava TODO envio pra nuvem. Serve pra abrir o app num aparelho que ainda tem
+// uma cópia local boa sem correr o risco de ela ser substituída ou de empurrar
+// algo por cima da nuvem: dá pra olhar e EXPORTAR em paz (Life → Seus dados).
+// Os stores também pulam a leitura/adoção da nuvem quando isto está ligado.
+export const RESGATE = (() => {
+  try { return /[?&]resgate=1/.test(location.search); } catch { return false; }
+})();
+
 // ---- Chave de acesso ao /api/data ----
 // A senha digitada na tela de entrada vira a chave mandada em TODA chamada
 // (cabeçalho `x-diagonal-key`), e o servidor só responde a quem tem ela — sem
@@ -50,6 +59,48 @@ const listeners = new Set();
 export function onSyncStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 function emit(s) { listeners.forEach(fn => { try { fn(s); } catch { /* ignora */ } }); }
 
+// ---- Chave inválida (401): a sessão perdeu o direito de gravar ----
+// Foi ASSIM que um dia inteiro se perdeu (ago/2026): uma aba aberta desde antes
+// de a proteção entrar no ar não tinha chave, cada save voltava 401, e o app
+// seguiu como se nada fosse. Agora isso grita: quem escuta manda a Mari entrar
+// de novo, o que repõe a chave e destrava os envios pendentes.
+const semChaveL = new Set();
+export function onSemChave(fn) { semChaveL.add(fn); return () => semChaveL.delete(fn); }
+function avisarSemChave() { semChaveL.forEach(fn => { try { fn(); } catch { /* ignora */ } }); }
+
+// ---- PENDÊNCIA por seção (sobrevive a fechar o app) ----
+// Marca "esta seção tem edição que ainda NÃO foi confirmada pela nuvem". Só o
+// carimbo de tempo é guardado — o conteúdo já está no cache local da própria
+// seção, então não há nada a duplicar. Serve pra duas coisas: (1) no boot, o
+// store sabe que o local é precioso e NÃO pode ser substituído pela nuvem em
+// silêncio; (2) a tela consegue avisar "você tem coisa não salva desde as 14h".
+const PEND_KEY = 'diagonal_pendencias';
+function lerPend() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || '{}'); } catch { return {}; } }
+function escreverPend(p) { try { localStorage.setItem(PEND_KEY, JSON.stringify(p)); } catch { /* ignora */ } }
+function marcarPendente(field) { const p = lerPend(); if (!p[field]) { p[field] = Date.now(); escreverPend(p); } }
+function limparPendente(field) { const p = lerPend(); if (p[field]) { delete p[field]; escreverPend(p); } }
+export function temPendente(field) { return !!lerPend()[field]; }
+export function pendenteDesde(field) { return lerPend()[field] || 0; }
+export function pendenciasAbertas() { return Object.keys(lerPend()); }
+
+// ---- LIXEIRA local: nada é sobrescrito sem cópia ----
+// Regra nova e inegociável: antes de a nuvem substituir o cache local de uma
+// seção, o valor que está saindo vai pra cá. Se a decisão estiver errada (foi o
+// que aconteceu), a versão boa continua existindo no aparelho em vez de sumir.
+// Poucas cópias porque o `life` é grande (~240KB) e o localStorage é ~5MB: ao
+// estourar a cota, descarta as mais antigas até caber.
+const LIXO_KEY = 'diagonal_lixeira';
+const LIXO_MAX = 3;
+export function lerLixeira() { try { return JSON.parse(localStorage.getItem(LIXO_KEY) || '[]'); } catch { return []; } }
+export function guardarNaLixeira(secao, doc, motivo) {
+  if (!doc) return;
+  let lista = [{ ts: Date.now(), secao, motivo: motivo || '', doc }, ...lerLixeira()].slice(0, LIXO_MAX);
+  while (lista.length) {
+    try { localStorage.setItem(LIXO_KEY, JSON.stringify(lista)); return; }
+    catch { lista = lista.slice(0, lista.length - 1); }   // sem espaço: sacrifica a mais velha
+  }
+}
+
 // Guarda o detalhe do último erro de POST (código HTTP / mensagem), pra
 // diagnóstico: o botão Salvar mostra isso quando falha.
 let lastError = null;
@@ -82,6 +133,7 @@ async function doPost(payload, opts) {
     if (res.status === 401) {
       lastError = 'sem permissão: entre de novo com a senha (a sessão expirou ou a senha mudou)';
       emit('error');
+      avisarSemChave();     // a tela pede a senha de novo; o pendente sobe depois
       return 'fail';
     }
     if (res.status === 409) {
@@ -169,13 +221,15 @@ function runPush(field, keepalive) {
     // envio velho (não re-tenta); 'fail' = erro de rede, mantém `v` pra re-tentar.
     // Em ambos 'ok'/'conflict' o envio de `v` está resolvido; só re-agenda se um valor
     // MAIS NOVO chegou durante o envio (s.p !== v).
-    if (result !== 'fail' && s.p === v) s.p = null;
+    if (result !== 'fail' && s.p === v) { s.p = null; limparPendente(field); }
     if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), result === 'ok' ? 0 : RETRY);
   });
 }
 function schedule(field, payload) {
+  if (RESGATE) return;          // modo resgate: nada sai daqui
   const s = q[field];
   s.p = payload;                            // sobrescreve o pendente (payload atual da seção)
+  marcarPendente(field);                    // some só quando a nuvem confirmar
   if (s.t) clearTimeout(s.t);
   s.t = setTimeout(() => runPush(field), DEBOUNCE);
 }
@@ -200,11 +254,12 @@ export function pushLife(life) { schedule('life', { life }); }
 // Se FALHAR, deixa o valor no pendente pra o retry automático continuar tentando
 // (o botão mostra erro, mas o dado não é abandonado).
 async function saveNow(field, payload) {
+  if (RESGATE) return false;    // modo resgate: o botão Salvar também não envia
   const s = q[field];
   if (s.t) { clearTimeout(s.t); s.t = null; }
   const result = await doPost(payload);
-  if (result === 'ok') { if (s.p === payload) s.p = null; return true; }
-  if (result === 'conflict') { if (s.p === payload) s.p = null; return false; } // descarta o velho; o resync (ao focar) traz a versão nova
+  if (result === 'ok') { if (s.p === payload) s.p = null; limparPendente(field); return true; }
+  if (result === 'conflict') { if (s.p === payload) s.p = null; limparPendente(field); return false; } // descarta o velho; o resync (ao focar) traz a versão nova
   s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY);        // erro de rede: re-tenta
   return false;
 }

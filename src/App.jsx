@@ -24,7 +24,7 @@ const CardWithContent = lazyDe(() => import('./CardWithContent.jsx'));
 // Enquanto o pedaço chega (só na 1ª vez que abre a aba).
 const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0', fontStyle: 'italic' }}>carregando…</p>;
 import { NavContext, useNav } from './nav.jsx';
-import { getLastSyncError, onSyncStatus } from './cloud';
+import { getLastSyncError, onSyncStatus, onSemChave, pendenciasAbertas, pendenteDesde } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -1083,15 +1083,54 @@ function SalvarFAB() {
 function SyncAlerta() {
   const [show, setShow] = useState(false);
   const timer = useRef(null);
+  // Pendência REAL (sobrevive a fechar o app): enquanto existir, há edição que a
+  // nuvem nunca confirmou. Checa a cada 5s pra o aviso continuar de pé mesmo
+  // depois de recarregar — antes o alarme morria no reload e a Mari abria o app
+  // achando que estava tudo salvo.
+  const [pend, setPend] = useState(() => pendenciasAbertas());
+  useEffect(() => {
+    const id = setInterval(() => setPend(pendenciasAbertas()), 5000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => onSyncStatus((s) => {
-    if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setShow(false); }
+    if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setShow(false); setPend(pendenciasAbertas()); }
     else if (s === 'error') { if (!timer.current && !show) timer.current = setTimeout(() => { timer.current = null; setShow(true); }, 8000); }
   }), [show]);
-  if (!show) return null;
+  const desde = pend.length ? Math.min(...pend.map(f => pendenteDesde(f)).filter(Boolean)) : 0;
+  // O aviso aparece se o save está falhando AGORA ou se ficou pendência de antes.
+  if (!show && !pend.length) return null;
+  const hMin = desde ? Math.round((Date.now() - desde) / 60000) : 0;
+  const quando = !desde ? '' : hMin < 60 ? `há ${Math.max(1, hMin)} min` : `há ${Math.round(hMin / 60)}h`;
   return (
-    <div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 200, maxWidth: 340, width: 'calc(100% - 24px)',
-      background: '#fff4f4', border: '1px solid #d05050', color: '#8a2a2a', fontSize: 12, lineHeight: 1.45, padding: '8px 12px', borderRadius: 12, boxShadow: '0 3px 16px rgba(0,0,0,0.18)' }}>
-      ⚠ <b>Não estou conseguindo salvar na nuvem.</b> Suas mudanças estão guardadas neste aparelho e vou continuar tentando. Evite abrir em outro aparelho até isto sumir.
+    <div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 200, maxWidth: 380, width: 'calc(100% - 24px)',
+      background: '#fff4f4', border: '2px solid #d05050', color: '#8a2a2a', fontSize: 12.5, lineHeight: 1.5, padding: '10px 13px', borderRadius: 12, boxShadow: '0 3px 16px rgba(0,0,0,0.18)' }}>
+      ⚠ <b>Suas mudanças NÃO estão salvas na nuvem{quando ? ` (${quando})` : ''}.</b> Elas estão só neste aparelho.
+      <div style={{ marginTop: 5 }}>
+        <b>Não abra o app em outro aparelho</b> até isto sumir — o outro pode gravar por cima. Se for fechar, baixe uma cópia em Life → Seus dados.
+      </div>
+    </div>
+  );
+}
+
+// 401 = a sessão perdeu o direito de gravar (chave ausente/trocada). Era a falha
+// silenciosa que custou um dia inteiro: o app continuava usável e nada subia.
+// Agora ela para a tela e pede a senha; ao entrar, a chave volta e o pendente sobe.
+function PedirSenhaDeNovo({ onSair }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(255,255,255,0.97)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ maxWidth: 380, textAlign: 'center' }}>
+        <div style={{ fontSize: 34, marginBottom: 10 }}>🔒</div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: '#111', margin: '0 0 10px' }}>Preciso da senha de novo</h2>
+        <p style={{ fontSize: 13.5, color: '#555', lineHeight: 1.6, margin: '0 0 8px' }}>
+          Esta sessão perdeu o acesso e <b>o que você escrever agora não está sendo salvo na nuvem</b>.
+        </p>
+        <p style={{ fontSize: 12.5, color: '#777', lineHeight: 1.6, margin: '0 0 18px' }}>
+          Nada foi perdido: está tudo guardado neste aparelho e sobe assim que você entrar.
+        </p>
+        <button onClick={onSair} style={{ width: '100%', padding: '13px', background: '#111', border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          entrar de novo
+        </button>
+      </div>
     </div>
   );
 }
@@ -1113,8 +1152,13 @@ export default function App() {
   useMinuteTick();
   const isWide = useIsWide();
   useEffect(() => { try { sessionStorage.removeItem('diagonal_auth'); } catch {} }, []);
-  const handleLogin = () => { setLoggedIn(true); };
+  // Chave recusada pelo servidor: para tudo e pede a senha. O `loggedIn` volta a
+  // false e o Login repõe a chave — os envios pendentes destravam sozinhos.
+  const [semChave, setSemChave] = useState(false);
+  useEffect(() => onSemChave(() => setSemChave(true)), []);
+  const handleLogin = () => { setSemChave(false); setLoggedIn(true); };
   if (!loggedIn) return <Login onLogin={handleLogin} />;
+  if (semChave) return <PedirSenhaDeNovo onSair={() => { setSemChave(false); setLoggedIn(false); }} />;
   return (
     <SavedProvider>
       <CalendarProvider>

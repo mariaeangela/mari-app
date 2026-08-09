@@ -113,6 +113,27 @@ localStorage, que o iOS apagava). Camada:
   slices JÁ RESOLVIDOS do store (`paraTexto()`), não o `data` cru: seção nunca editada ainda está no
   DEFAULT e não existe em `data` — sairia faltando (pegou Aprendizados e Planos no teste). O `.json`
   leva o `data` cru de propósito: é o espelho do que está na nuvem.
+- **PERDA DE DADOS (ago/2026) — o que houve e as travas novas.** A Mari perdeu um dia inteiro de
+  edições feitas no celular. Cadeia: (1) a sessão do celular estava aberta desde ANTES de a proteção
+  do `/api/data` entrar no ar, então não tinha chave e **todo POST voltava 401** — nada subiu o dia
+  todo; (2) ela abriu no computador, que trouxe a versão velha da nuvem; (3) ao editar no computador,
+  ele carimbou `_rev` = agora e subiu → **a nuvem passou a ter conteúdo velho com carimbo novo**;
+  (4) ao reabrir o celular, `merged._rev > local._rev` e o boot **substituiu o cache local**, que era
+  a única cópia do dia. Lição: `_rev` é ordem de escrita, NÃO idade do conteúdo — sozinho ele não
+  protege. Travas adicionadas (cloud.js + os 2 stores):
+  - **Pendência persistida** (`diagonal_pendencias`, carimbo por seção): marcada em todo `schedule`,
+    limpa só quando a nuvem CONFIRMA. Sobrevive a fechar o app. `temPendente(sec)`/`pendenteDesde(sec)`.
+  - **Nuvem nunca vence pendência**: no boot E no resync, se a seção tem pendência, o local vence,
+    é recarimbado ACIMA da nuvem e sobe; a versão da nuvem vai pra lixeira.
+  - **Lixeira local** (`diagonal_lixeira`, 3 cópias, descarta as velhas se estourar a cota): NADA é
+    sobrescrito sem cópia — antes de adotar a nuvem, o local que está saindo é guardado. UI em
+    Life → Seus dados → "Cópias guardadas" (só baixa; não restaura sozinho de propósito).
+  - **401 para a tela**: `onSemChave` → `PedirSenhaDeNovo` (App.jsx). Entrar repõe a chave e o
+    pendente sobe. Era a falha silenciosa que causou tudo.
+  - **Aviso persistente**: o `SyncAlerta` agora também olha a pendência (não só o status em memória),
+    então continua de pé DEPOIS de recarregar, dizendo há quanto tempo ("há 3h").
+  - **`?resgate=1`**: modo que não lê nem escreve na nuvem — abrir um aparelho suspeito e exportar
+    sem risco de a cópia local ser substituída.
 - `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +
   **flush imediato** no `visibilitychange`(hidden)/`pagehide` (no mobile, trocar de app pode
   matar o `setTimeout` e perder o save — o flush manda o pendente na hora).
