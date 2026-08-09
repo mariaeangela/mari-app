@@ -947,6 +947,7 @@ const NYC_ROTEIRO = [
 // NÃO entra nada de 20 a 24/09 (Chicago): aqueles itens são dela e ficam intactos.
 const NYC_V2 = [
   // ---------- Dom 13/09 — chegada (JFK 7h40), Midtown ----------
+  { d: '2026-09-13', hora: '07:40', t: 'Chegada no JFK', desc: 'Voo do Brasil pousa ~7h40. Imigração costuma levar 40–90 min; depois AirTrain + metrô (~1h15) ou táxi (~1h, valor fixo ~US$ 70 + pedágio) até o Upper West Side.\n\n(Confira o horário e o número do voo — este item foi reposto por mim.)', ab: '', pr: '', mq: 'John F Kennedy International Airport' },
   { d: '2026-09-13', hora: '10:00', t: 'Chegar e tomar banho', desc: 'Check-in real só ~15h: deixe as malas no hotel, tome um banho se der e saia leve. Não marque nada com hora hoje.', ab: '', pr: '', mq: 'Upper West Side New York' },
   { d: '2026-09-13', hora: '11:00', t: 'Café da manhã gostoso', desc: 'Decida na hora, os três ficam no Upper West Side, perto do hotel:\n• Barney Greengrass (541 Amsterdam) — deli judaico de 1908, salmão e sturgeon defumados. Ter–Dom 8h30–16h, fecha segunda, SÓ DINHEIRO. US$ 25–40.\n• Zabar’s (2245 Broadway) — mercearia lendária com café no 2º andar; mais rápido e barato. Todos os dias 8h–19h30. US$ 10–20.\n• Absolute Bagels (2788 Broadway) — o bagel com cream cheese que vale a fila. Todos os dias 6h–21h, só dinheiro. US$ 6–12.', ab: 'Todos abrem cedo · Barney fecha segunda', pr: 'US$ 6–40, conforme o escolhido', mq: 'Barney Greengrass 541 Amsterdam Ave New York' },
   { d: '2026-09-13', t: 'Madison Square Park', desc: 'Praça arborizada com vista do Flatiron. O Shake Shack original fica aqui, num quiosque no parque.', ab: 'Todos os dias 6h–23h', pr: 'Grátis', mq: 'Madison Square Park New York' },
@@ -1027,6 +1028,7 @@ const NYC_V2 = [
   { d: '2026-09-26', t: 'Essex Market', desc: 'Mercado público de 1940 no Lower East Side, mudado em 2019 pro prédio novo em frente. Bancas de queijo, peixe, pupusas, café. Bom almoço de despedida.', ab: 'Seg–Sáb 8h–20h · Dom 10h–18h', pr: 'Almoço US$ 12–25', mq: 'Essex Market 88 Essex St New York' },
   { d: '2026-09-26', t: 'ICP — International Center of Photography', desc: 'O museu de fotografia da cidade, fundado por Cornell Capa (irmão do Robert) pra defender a "fotografia preocupada". Fica na Essex St, dentro do mesmo complexo do mercado. Pequeno, 1h.', ab: 'Qua–Seg 11h–19h · qui até 21h · fecha terça', pr: 'US$ 16 · quinta 17h–20h por US$ 5', link: 'https://www.icp.org/visit', mq: 'International Center of Photography 84 Ludlow St New York' },
   { d: '2026-09-26', hora: '17:30', t: 'Saída para o JFK', desc: 'Voo 20h30 → sair do hotel ~17h30. Pegue as malas e siga; o AirTrain + metrô leva ~1h15, táxi ~1h (mais no trânsito de sexta).', ab: '', pr: 'Táxi fixo JFK ~US$ 70 + pedágio', mq: 'John F Kennedy International Airport' },
+  { d: '2026-09-26', hora: '20:30', t: 'Voo de volta ao Brasil', desc: 'Decolagem 20h30 do JFK. Voo internacional: esteja no aeroporto ~3h antes, ou seja, por volta das 17h30.\n\n(Confira o horário e o número do voo — este item foi reposto por mim.)', ab: '', pr: '', mq: 'John F Kennedy International Airport' },
 ];
 
 // Todos os lugares acima também viram ENDEREÇO ÚTIL, com a categoria certa
@@ -1134,14 +1136,21 @@ const NYC_RESERVAS = [
 
 const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
 function ensureNYRoteiroV2(d) {
-  if (d.nyRoteiroV3) return d;
+  if (d.nyRoteiroV4) return d;
   const viagens = d.viagensFuturas || [];
   const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
   if (i < 0) return d;                       // viagem não carregou: não faz nada
   const trip = viagens[i];
   const antigas = trip.mesas || [];
-  // o que é de Chicago (ou não tem data) fica intacto
-  const manter = antigas.filter(m => !m.dia || (m.dia >= CHI_INI && m.dia <= CHI_FIM));
+  // REGRA (corrigida ago/2026): só descarto o que EU criei. A versão anterior
+  // guardava apenas o que estava entre 20 e 24/09 e apagou itens que a Mari tinha
+  // criado à mão fora dessa janela — os voos Brasil↔Nova York nos dias 12, 13 e 26.
+  // Agora: sai o que tem id de seed meu (`nyc2-`, e os `nyc-` do seed original que
+  // não sejam de Chicago); TUDO o que ela criou fica, em qualquer data.
+  const meuV2 = (m) => /^nyc2-/.test(m.id || '');
+  const seedVelho = (m) => /^nyc-/.test(m.id || '');
+  const ehChicago = (m) => !!m.dia && m.dia >= CHI_INI && m.dia <= CHI_FIM;
+  const manter = antigas.filter(m => !meuV2(m) && (ehChicago(m) || !seedVelho(m)));
   // marcas dela nos itens de Nova York, pra não se perderem
   const marcas = {};
   antigas.forEach(m => { if (m.titulo && (m.visitado || m.favorito)) marcas[m.titulo] = { visitado: m.visitado, favorito: m.favorito }; });
@@ -1159,7 +1168,15 @@ function ensureNYRoteiroV2(d) {
     maps: gmap(x.mq || (x.t + ' New York')), link: x.link,
     ...(marcas[x.t] || {}),
   }));
-  const mesas = [...novas, ...manter].sort((a, b) => (a.dia || '').localeCompare(b.dia || '') || (a.hora || '').localeCompare(b.hora || ''));
+  // Os dois voos Brasil↔Nova York eu REPUS porque meu patch anterior os apagou.
+  // Se o dela ainda estiver lá (ou ela repuser à mão), não duplico: o dela manda.
+  const jaTemVoo = (dia, re) => manter.some(m => m.dia === dia && re.test(m.titulo || ''));
+  const novasSemDuplicar = novas.filter(m => {
+    if (m.titulo === 'Chegada no JFK') return !jaTemVoo('2026-09-13', /jfk|chegad/i);
+    if (m.titulo === 'Voo de volta ao Brasil') return !jaTemVoo('2026-09-26', /voo|gru|brasil/i);
+    return true;
+  });
+  const mesas = [...novasSemDuplicar, ...manter].sort((a, b) => (a.dia || '').localeCompare(b.dia || '') || (a.hora || '').localeCompare(b.hora || ''));
   // endereços: mantém os dela, acrescenta os que faltam (compara pelo nome)
   const jaTem = new Set((trip.enderecos || []).map(e => (e.nome || '').toLowerCase().trim()));
   const novosEnds = NYC_ENDS.filter(e => !jaTem.has(e.n.toLowerCase().trim())).map((e, n) => ({
@@ -1184,7 +1201,7 @@ function ensureNYRoteiroV2(d) {
     + 'Chicago → NY (24/09): sai 05:45 de ORD, chega 09:30 em LGA.';
 
   const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds], secoes: novasSecoes, passagens };
-  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
 }
 
 function ensureNYChicago2026(d) {
