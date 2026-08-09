@@ -947,16 +947,16 @@ const NYC_ROTEIRO = [
 // NÃO entra nada de 20 a 24/09 (Chicago): aqueles itens são dela e ficam intactos.
 const NYC_V2 = [
   // ---------- Dom 13/09 — chegada (JFK 7h40), Midtown ----------
-  { d: '2026-09-13', hora: '07:40', t: 'Chegada no JFK', desc: 'Voo do Brasil pousa ~7h40. Imigração costuma levar 40–90 min; depois AirTrain + metrô (~1h15) ou táxi (~1h, valor fixo ~US$ 70 + pedágio) até o Upper West Side.\n\n(Confira o horário e o número do voo — este item foi reposto por mim.)', ab: '', pr: '', mq: 'John F Kennedy International Airport' },
-  { d: '2026-09-13', hora: '10:00', t: 'Chegar e tomar banho', desc: 'Check-in real só ~15h: deixe as malas no hotel, tome um banho se der e saia leve. Não marque nada com hora hoje.', ab: '', pr: '', mq: 'Upper West Side New York' },
-  { d: '2026-09-13', hora: '11:00', t: 'Café da manhã gostoso', desc: 'Decida na hora, os três ficam no Upper West Side, perto do hotel:\n• Barney Greengrass (541 Amsterdam) — deli judaico de 1908, salmão e sturgeon defumados. Ter–Dom 8h30–16h, fecha segunda, SÓ DINHEIRO. US$ 25–40.\n• Zabar’s (2245 Broadway) — mercearia lendária com café no 2º andar; mais rápido e barato. Todos os dias 8h–19h30. US$ 10–20.\n• Absolute Bagels (2788 Broadway) — o bagel com cream cheese que vale a fila. Todos os dias 6h–21h, só dinheiro. US$ 6–12.', ab: 'Todos abrem cedo · Barney fecha segunda', pr: 'US$ 6–40, conforme o escolhido', mq: 'Barney Greengrass 541 Amsterdam Ave New York' },
-  { d: '2026-09-13', t: 'Madison Square Park', desc: 'Praça arborizada com vista do Flatiron. O Shake Shack original fica aqui, num quiosque no parque.', ab: 'Todos os dias 6h–23h', pr: 'Grátis', mq: 'Madison Square Park New York' },
+  { d: '2026-09-13', hora: '07:40', t: 'Chegada no JFK', desc: 'Voo do Brasil pousa ~7h40. Imigração costuma levar 40–90 min. Até Gramercy (168 E 24th St):\n• Táxi: ~1h, tarifa fixa JFK↔Manhattan US$ 70 + pedágio e taxas (~US$ 85 no total).\n• AirTrain + metrô: ~1h20. AirTrain até Jamaica → linha E até a 23rd St/Lexington → 5 min a pé. US$ 8,50 + US$ 2,90.\n\n(Confira o horário e o número do voo — este item foi reposto por mim.)', ab: '', pr: 'Táxi ~US$ 85 · metrô ~US$ 11', mq: 'John F Kennedy International Airport' },
+  { d: '2026-09-13', hora: '10:00', t: 'Chegar e tomar banho', desc: 'American Dream — 168 E 24th St, Gramercy. Check-in costuma ser só ~15h: deixe as malas, tome um banho se der e saia leve. Não marque nada com hora hoje.\n\nA localização ajuda: Madison Square Park fica a 5 min a pé, o Flatiron a 8, e a linha 6 (23rd St) leva ao Upper East Side em 15 min.', ab: '', pr: '', mq: '168 East 24th Street New York NY 10010' },
+  { d: '2026-09-13', hora: '11:00', t: 'Café da manhã gostoso', desc: 'Decida na hora — os três ficam a menos de 10 min a pé de Gramercy:\n• Friend of a Farmer (77 Irving Pl) — casa de campo no meio da cidade, brunch caseiro e pão feito ali. Todos os dias 9h–16h. US$ 20–35. ~7 min.\n• Daily Provisions (103 E 19th St) — do Danny Meyer: cruller de baunilha e sanduíche de ovo. Todos os dias 7h–21h. US$ 10–20. ~9 min.\n• Eataly Flatiron (200 5th Ave) — café italiano em pé, cornetto e cappuccino, mercado inteiro em volta. Todos os dias 7h–23h. US$ 8–18. ~8 min.', ab: 'Todos abrem cedo · Friend of a Farmer só a partir das 9h', pr: 'US$ 8–35, conforme o escolhido', mq: 'Friend of a Farmer 77 Irving Place New York' },
+  { d: '2026-09-13', t: 'Madison Square Park', desc: 'A 5 minutos a pé da sua hospedagem — é o seu quintal nesta viagem. Praça arborizada com vista do Flatiron; o Shake Shack original fica aqui, num quiosque do parque.', ab: 'Todos os dias 6h–23h', pr: 'Grátis', mq: 'Madison Square Park New York' },
   { d: '2026-09-13', t: 'Descer a Quinta Avenida', desc: 'Caminhada da Madison Square Park subindo a 5ª até o Rockefeller: Flatiron, Empire State (fachada), Biblioteca e as vitrines. ~40 min a pé sem paradas.', ab: '24h', pr: 'Grátis', mq: 'Fifth Avenue New York' },
   { d: '2026-09-13', t: 'Comprar calçado de caminhada', desc: 'Opções no caminho entre a Madison Square Park e a 5ª Avenida:\n• Paragon Sports (867 Broadway, Union Square) — esportiva de verdade, atendimento que mede seu pé. Seg–Sáb 10h–20h, Dom 11h–19h.\n• On Running (Flatiron, 30 W 20th St) — a marca suíça de tênis leve; deixam testar na esteira.\n• Nike NYC (650 5th Ave) e Foot Locker (Herald Square) — em cima da hora, no caminho do Rockefeller.\nUS$ 90–180 no geral.', ab: 'Lojas ~10h–20h', pr: 'US$ 90–180', mq: 'Paragon Sports 867 Broadway New York' },
   { d: '2026-09-13', hora: '17:00', t: 'Top of the Rock', desc: 'O mirante com a vista que Nova York inteira quer: o Empire State de frente e o Central Park inteiro atrás. Entrada por horário marcado — reserve com dias de antecedência, sobretudo o pôr do sol.', ab: 'Todos os dias 8h–24h', pr: 'A partir de US$ 45 (Beam a partir de US$ 73)', link: 'https://www.rockefellercenter.com/tickets/top-of-the-rock-observation-deck', mq: 'Top of the Rock 30 Rockefeller Plaza New York' },
   { d: '2026-09-13', t: 'Rockefeller Center', desc: 'O complexo art déco embaixo do mirante: a praça rebaixada, o Prometeu dourado, o Atlas e os murais do lobby do 30 Rock. Dá pra ver de graça, sem ingresso.', ab: '24h (praça)', pr: 'Grátis', mq: 'Rockefeller Center New York' },
   { d: '2026-09-13', t: "St. Patrick's Cathedral", desc: 'Catedral neogótica de 1878 na 5ª Avenida, em frente ao Rockefeller. Entrada livre; vale entrar pelos vitrais e pela nave.', ab: 'Todos os dias 6h30–20h45', pr: 'Grátis (doação sugerida)', mq: "St Patrick's Cathedral 5th Avenue New York" },
-  { d: '2026-09-13', t: "Trader Joe's", desc: 'Mercado americano de marca própria — bom pra levar pra casa: temperos, snacks, chocolate, sacolas. O da 72nd St fica perto do Upper West Side.', ab: 'Todos os dias 8h–22h', pr: 'Barato', mq: "Trader Joe's 2073 Broadway New York" },
+  { d: '2026-09-13', t: "Trader Joe's", desc: 'Mercado americano de marca própria — bom pra levar pra casa: temperos, snacks, chocolate, as sacolas de pano. O mais perto de você é o de Chelsea (675 6th Ave, na altura da 21st), ~12 min a pé; tem outro na Union Square (142 E 14th St), ~15 min.', ab: 'Todos os dias 8h–21h', pr: 'Barato', mq: "Trader Joe's 675 6th Ave New York" },
   { d: '2026-09-13', t: "Macy's Herald Square", desc: 'A loja de departamentos mais famosa do mundo, 10 andares. Peça o Visitor Savings Pass (10–15% de desconto pra turista) no balcão do Visitor Center.', ab: 'Seg–Sáb 10h–21h · Dom 11h–20h', pr: 'Entrada grátis', mq: "Macy's Herald Square 151 W 34th St New York" },
   { d: '2026-09-13', hora: '20:00', t: 'Times Square', desc: 'O cartão-postal iluminado. Vale à noite, quando os letreiros fazem sentido. Dez minutos bastam.', ab: '24h', pr: 'Grátis', mq: 'Times Square New York' },
   { d: '2026-09-13', hora: '20:30', t: 'Drink + jazz no Village', desc: 'Três casas históricas, todas no West Village, a caminhar entre si. Village Vanguard: a lendária, sets 20h e 22h, reserve online. Smalls: subsolo apertado e barato, vai até tarde. Mezzrow: piano e contrabaixo, quieto e íntimo (mesma dona do Smalls).', ab: 'Sets ~20h e 22h', pr: 'Vanguard ~US$ 25–30 + 1 drink · Smalls ~US$ 35', link: 'https://villagevanguard.com/', mq: 'Village Vanguard 178 7th Ave S New York' },
@@ -1036,6 +1036,7 @@ const NYC_V2 = [
 // `n` = nome curto pra lista, `e` = endereço, `c` = categoria, `q` = busca no Maps.
 const NYC_ENDS = [
   // Museus e casas de espetáculo
+  { n: 'American Dream (hospedagem)', e: '168 E 24th St, Gramercy', c: 'hospedagem' },
   { n: 'The MET', e: '1000 5th Ave', c: 'museu' },
   { n: 'The Frick Collection', e: '1 E 70th St', c: 'museu' },
   { n: 'Whitney Museum', e: '99 Gansevoort St', c: 'museu' },
@@ -1136,7 +1137,7 @@ const NYC_RESERVAS = [
 
 const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
 function ensureNYRoteiroV2(d) {
-  if (d.nyRoteiroV4) return d;
+  if (d.nyRoteiroV5) return d;
   const viagens = d.viagensFuturas || [];
   const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
   if (i < 0) return d;                       // viagem não carregou: não faz nada
@@ -1195,13 +1196,21 @@ function ensureNYRoteiroV2(d) {
   const secReservas = { id: 'sec-reservas-ny', titulo: '🎟️ Reservar antes de ir', tipo: 'lista', local: 'card', texto: '', itens: itensRes };
   const novasSecoes = jaRes ? secoes.map(s => (s.id === 'sec-reservas-ny' ? secReservas : s)) : [...secoes, secReservas];
 
+  // Hospedagem: o "Upper West Side" era invenção MINHA, do seed de julho — a Mari
+  // nunca disse isso, e eu ainda usei como base pra sugerir café e mercado perto.
+  // O certo é o que ela mandou.
+  const hospedagem = 'American Dream — 168 E 24th St, Gramercy, Nova York, NY 10010.\n'
+    + 'Check-in costuma ser ~15h (no dia 13 você chega de manhã: deixe as malas e saia leve).\n'
+    + 'A pé: Madison Square Park 5 min · Flatiron 8 min · Union Square 10 min · Eataly 8 min.\n'
+    + 'Metrô: 23rd St (linha 6) a 5 min; 23rd St (linhas N/R/W e F/M) a 8 min.';
+
   // Passagens: os voos de Chicago já têm horário, então some o "a confirmar".
   const passagens = 'Chegada ~7h40 no JFK (13/09). Volta: voo 20h30 (26/09), saída do hotel ~17h30.\n'
     + 'NY → Chicago (20/09): sai 06:45 de LGA, chega 08:50 em ORD.\n'
     + 'Chicago → NY (24/09): sai 05:45 de ORD, chega 09:30 em LGA.';
 
-  const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds], secoes: novasSecoes, passagens };
-  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+  const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds], secoes: novasSecoes, passagens, hospedagem };
+  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
 }
 
 function ensureNYChicago2026(d) {
@@ -1212,7 +1221,7 @@ function ensureNYChicago2026(d) {
     id: 'vf-nychicago2026', titulo: 'Nova York & Chicago', cidade: 'Nova York · Chicago',
     inicio: '2026-09-13', fim: '2026-09-26',
     link: 'https://www.nyctourism.com/',
-    hospedagem: 'Upper West Side — no dia 13 o check-in real é só ~15h (deixe as malas antes e comece devagar).',
+    hospedagem: 'American Dream — 168 E 24th St, Gramercy, Nova York, NY 10010. Check-in ~15h.',
     passagens: 'Chegada ~7h40 no JFK (13/09). Volta: voo 20h30 (26/09), saída do hotel ~17h30. Trecho Nova York ↔ Chicago: a confirmar.',
     notas: 'Reservar com antecedência: musicais da Broadway (18 e 19), Frick (13), Top of the Rock (19), Amtrak + Independence Hall (16) e Village Vanguard (14). Sem dia fixo: Central Park (volte quantas vezes quiser) e compras (Macy’s, brechós e lojinhas — o outlet do dia 17 cobre o grosso). Dias 20–24: Chicago (roteiro a definir).',
     mesas: NYC_ROTEIRO.map((x, i) => ({
