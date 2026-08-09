@@ -37,6 +37,37 @@ export async function pingProtegido() {
   } catch { return null; }
 }
 
+// ---- Backups guardados no servidor (20 por seção) ----
+// Lista só metadados (índice + quando). Devolve [] se não der pra ler.
+export async function listarBackups(secao) {
+  try {
+    const res = await fetch(ENDPOINT + '?backups=' + encodeURIComponent(secao), { headers: authHeaders() });
+    if (!res.ok) return [];
+    const j = await res.json();
+    return Array.isArray(j && j.backups) ? j.backups : [];
+  } catch { return []; }
+}
+// Conteúdo de um backup, pra conferir/baixar ANTES de restaurar. null se falhar.
+export async function lerBackup(secao, i) {
+  try {
+    const res = await fetch(`${ENDPOINT}?backup=${encodeURIComponent(secao)}&i=${i}`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+// Restaura o backup `i` da seção. O servidor guarda o valor ATUAL antes de trocar
+// (dá pra desfazer) e sobe o `_rev`, pra os outros aparelhos receberem no próximo load.
+export async function restaurarBackup(secao, i) {
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ restore: { section: secao, i } }),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
 // A senha confere? true/false, ou null se não deu pra perguntar (offline).
 export async function checarSenha(senha) {
   try {

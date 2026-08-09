@@ -8,7 +8,7 @@ import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
 import { useSaved } from './savedStore.jsx';
 import { exportarTexto, exportarJSON } from './exportar.js';
-import { lerLixeira } from './cloud.js';
+import { lerLixeira, listarBackups, lerBackup, restaurarBackup } from './cloud.js';
 // Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
@@ -5243,6 +5243,112 @@ function ExportarBloco() {
           : 'Textos = o que você escreve (estudos, aprendizados, diário, legendas, leituras, viagens), pra ler ou abrir no Word. Backup = tudo, inclusive finanças, pra guardar.'}
       </p>
       <Lixeira />
+      <BackupsServidor />
+    </div>
+  );
+}
+
+// Resumo legível de um documento, pra dar pra reconhecer QUAL versão é a boa sem
+// abrir o JSON. Conta o que a Mari enxerga (eventos, tarefas…), não campos internos.
+function resumoDoc(secao, v) {
+  if (v == null) return 'vazio';
+  if (Array.isArray(v)) return `${v.length} itens`;
+  const n = (x) => (Array.isArray(x) ? x.length : (x && typeof x === 'object' ? Object.keys(x).length : 0));
+  if (secao.startsWith('calendario')) {
+    return [
+      `${n(v.events)} eventos`, `${n(v.tasks)} tarefas`, `${n(v.exercicios)} exercícios`,
+      `${n(v.cultura)} cultura`, `${n(v.roles)} rolês`, `${n(v.moods)} humores`, `${n(v.diary)} dias de diário`,
+    ].join(' · ');
+  }
+  if (secao.startsWith('life')) {
+    const p = v.planos || {};
+    return [
+      `${n(v.leituras)} leituras`, `${n((v.estudoTemas || {}).notas)} anotações de estudo`,
+      `${n((v.aprendizados || {}).notas)} notas`, `${n(p.itens)} itens de plano`,
+      `${n(v.viagensFuturas)} viagens`, `${n(v.gastosItens)} gastos detalhados`,
+    ].join(' · ');
+  }
+  return `${Object.keys(v).length} campos`;
+}
+
+// Versões que o SERVIDOR guardou sozinho (as 20 últimas de cada seção, gravadas
+// antes de cada sobrescrita). É a rede de segurança que existia desde julho mas
+// não tinha tela nenhuma — descoberto do pior jeito, quando fez falta.
+function BackupsServidor() {
+  const [secao, setSecao] = useState('calendario');
+  const [lista, setLista] = useState(null);   // null = ainda não buscou
+  const [carregando, setCarregando] = useState(false);
+  const [detalhe, setDetalhe] = useState({}); // i -> {ts, resumo, v}
+  const [msg, setMsg] = useState('');
+  const SECOES_BAK = [['calendario', 'Calendário'], ['life', 'Life'], ['saved', 'Salvos']];
+
+  const buscar = async (sec, manterMsg) => {
+    setCarregando(true); setDetalhe({});
+    if (!manterMsg) setMsg('');
+    const l = await listarBackups(sec);
+    setLista(l); setCarregando(false);
+  };
+  const ver = async (i) => {
+    setMsg('');
+    const b = await lerBackup(secao, i);
+    if (!b) { setMsg('não consegui ler essa versão.'); return; }
+    setDetalhe(d => ({ ...d, [i]: { ts: b.ts, resumo: resumoDoc(secao, b.v), v: b.v } }));
+  };
+  const baixar = (i) => {
+    const d = detalhe[i]; if (!d) return;
+    const blob = new Blob([JSON.stringify(d.v, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `diagonal-${secao}-versao-${i}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+  const restaurar = async (i) => {
+    const d = detalhe[i];
+    if (!window.confirm(`Restaurar esta versão de ${secao}?\n\n${d ? d.resumo : ''}\n\nO que está no ar agora vira backup também (dá pra desfazer). Depois recarregue o app.`)) return;
+    setMsg('restaurando…');
+    const ok = await restaurarBackup(secao, i);
+    if (ok) await buscar(secao, true);   // atualiza a lista SEM apagar o aviso abaixo
+    setMsg(ok ? '✓ restaurado. RECARREGUE o app agora (e os outros aparelhos) pra ver a versão de volta.' : 'não consegui restaurar.');
+  };
+
+  const btnPeq = { border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: '#666', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '5px 9px', flexShrink: 0 };
+  return (
+    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px dashed #e2e2e2' }}>
+      <div style={{ fontSize: 11, color: '#3f7cac', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Versões no servidor</div>
+      <p style={{ fontSize: 11.5, color: '#999', margin: '0 0 8px', lineHeight: 1.6 }}>
+        As 20 últimas versões de cada seção, guardadas automaticamente antes de cada gravação. Use "ver" pra conferir o conteúdo antes de restaurar.
+      </p>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {SECOES_BAK.map(([id, label]) => (
+          <button key={id} onClick={() => { setSecao(id); setLista(null); }} style={{
+            ...btnPeq, fontSize: 12, padding: '6px 12px',
+            border: '1px solid ' + (secao === id ? '#3f7cac' : '#e2e2e2'), background: secao === id ? '#3f7cac15' : '#fff', color: secao === id ? '#3f7cac' : '#888',
+          }}>{label}</button>
+        ))}
+      </div>
+      <button onClick={() => buscar(secao)} disabled={carregando} style={{ ...btnPeq, width: '100%', padding: '9px 0', fontSize: 12.5 }}>
+        {carregando ? 'buscando…' : `↻ ver versões de ${secao}`}
+      </button>
+      {msg && <p style={{ fontSize: 11.5, color: msg.startsWith('restaurado') ? '#1a7a4f' : '#c0392b', margin: '8px 0 0' }}>{msg}</p>}
+      {lista && !lista.length && <p style={{ fontSize: 11.5, color: '#bbb', margin: '8px 0 0', fontStyle: 'italic' }}>Nenhuma versão guardada nesta seção.</p>}
+      {lista && lista.map(b => {
+        const d = detalhe[b.i];
+        return (
+          <div key={b.i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ flex: 1, fontSize: 12, color: '#555' }}>
+                {b.ts ? new Date(b.ts).toLocaleString('pt-BR') : 'sem data'}
+                <span style={{ color: '#bbb', fontSize: 10.5 }}> · versão {b.i}</span>
+              </span>
+              <button onClick={() => ver(b.i)} style={btnPeq}>ver</button>
+              {d && <button onClick={() => baixar(b.i)} style={btnPeq}>⤓</button>}
+              {d && <button onClick={() => restaurar(b.i)} style={{ ...btnPeq, borderColor: '#f0c0c0', color: '#d05050' }}>restaurar</button>}
+            </div>
+            {d && <div style={{ fontSize: 11, color: '#777', marginTop: 4, lineHeight: 1.5 }}>{d.resumo}</div>}
+          </div>
+        );
+      })}
     </div>
   );
 }

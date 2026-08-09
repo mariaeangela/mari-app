@@ -79,6 +79,19 @@ module.exports = async function handler(req, res) {
         return;
       }
 
+      // Conteúdo de UM backup (`?backup=calendario&i=3`), pra dar pra CONFERIR
+      // antes de restaurar — listar só data/hora não diz qual versão é a boa.
+      if (req.query && req.query.backup) {
+        const sec = String(req.query.backup);
+        const i = Number(req.query.i) || 0;
+        let list = [];
+        try { list = await redis.lrange(BAK(sec), 0, -1); } catch { list = []; }
+        const bak = list && list[i];
+        if (!bak) { res.status(404).json({ error: 'backup não encontrado' }); return; }
+        res.status(200).json({ section: sec, i, ts: bak.ts || null, v: bak.v });
+        return;
+      }
+
       // GET normal: lê cada registro isolado; se um falhar, os outros ainda voltam.
       const safeGet = async (k) => { try { return await redis.get(k); } catch { return null; } };
       const [legacy, saved, calendario, life, projetos, savedRev] = await Promise.all([
