@@ -3692,9 +3692,13 @@ function flipHoraMin(m) {
 }
 
 // Endereços úteis da viagem: como ela classifica cada lugar.
+// As 5 categorias que a Mari definiu (ago/2026). Os `id` dos quatro antigos foram
+// MANTIDOS de propósito — endereços que ela já classificou continuam certos; só os
+// rótulos de 'restaurante' mudaram (agora inclui bar) e 'museu' é novo.
 const TIPOS_END = [
   { id: 'turistico', label: 'Ponto turístico', emoji: '🗺️' },
-  { id: 'restaurante', label: 'Restaurante', emoji: '🍽️' },
+  { id: 'museu', label: 'Museu/Teatro', emoji: '🏛️' },
+  { id: 'restaurante', label: 'Restaurante/Bar', emoji: '🍽️' },
   { id: 'loja', label: 'Loja', emoji: '🛍️' },
   { id: 'hospedagem', label: 'Hospedagem', emoji: '🏨' },
 ];
