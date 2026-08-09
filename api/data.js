@@ -131,6 +131,25 @@ module.exports = async function handler(req, res) {
         return;
       }
 
+      // GRAVAÇÃO PARCIAL do `life` (`{lifePatch:{...só as fatias que mudaram}}`).
+      // Motivo: o `life` inteiro tem ~240KB e subia a cada tecla — no celular, trocar
+      // de app podia matar o envio; e duas telas mexendo em coisas DIFERENTES viravam
+      // um duelo de documento inteiro, onde uma apagava a outra por completo.
+      // Aqui o servidor lê o que está guardado e sobrepõe SÓ as chaves recebidas.
+      // Sem trava de versão de propósito: um patch carrega fatias que só existem no
+      // aparelho que o mandou — recusar por `_rev` jogaria fora dado novo. O conflito
+      // fica reduzido à MESMA fatia editada em dois lugares (aí vence quem chegou por
+      // último), em vez de levar o documento todo junto.
+      if (body.lifePatch && typeof body.lifePatch === 'object') {
+        const atual = (await redis.get(K.life)) || {};
+        try { await redis.lpush(BAK('life'), { ts: Date.now(), v: atual }); await redis.ltrim(BAK('life'), 0, BAK_MAX - 1); } catch {}
+        const incomingRev = Number(body._rev) || 0;
+        const proximo = { ...atual, ...body.lifePatch, _rev: Math.max(Number(atual._rev) || 0, incomingRev, Date.now()) };
+        await redis.set(K.life, proximo);
+        res.status(200).json({ ok: true, merged: Object.keys(body.lifePatch).length, _rev: proximo._rev });
+        return;
+      }
+
       // Gravação normal: por seção, COM trava de versão + backup.
       const sections = [];
       if (Array.isArray(body.saved)) sections.push({ sec: 'saved', key: K.saved, value: body.saved, savedRev: body.savedRev });

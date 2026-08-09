@@ -6,7 +6,7 @@
 //     itens:  [{ id, titulo, listaId, dataLimite?, orcamento?, links: [], comprado }]
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira } from './cloud';
+import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife } from './cloud';
 import { LEITURAS_LIDOS_SEED, TEMA_CANON, NAOFICCAO_TITULOS, LEITURAS_CASA_SEED, LEITURAS_NAOTENHO_SEED, LEITURA_ESPANHOL, LEITURA_INGLES, LEITURAS_ANOS_SEED } from './leiturasSeed.js';
 import { GASTOS_ITENS_2026, GASTOS_TOTAIS_2026 } from './gastosSeed.js';
 
@@ -1741,6 +1741,10 @@ export function LifeProvider({ children }) {
       guardarNaLixeira('life-local', local, 'substituído pela versão da nuvem no boot');
       const next = runLifeSeeds(merged);
       writeLocal(next); setData(next);
+      // A nuvem e este aparelho estão iguais AGORA: fica sendo a base dos deltas
+      // (o que mudar daqui pra frente é o que sobe). Se `next !== merged`, os seeds
+      // mexeram em algo e esse envio já leva a diferença.
+      definirBaseLife(merged);
       if (next !== merged) pushLife(next);
     })();
     return () => { alive = false; };
@@ -1771,7 +1775,9 @@ export function LifeProvider({ children }) {
       if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
         guardarNaLixeira('life-local', dataRef.current, 'substituído pela versão da nuvem ao voltar pro app');
         const next = runLifeSeeds(merged);
-        writeLocal(next); setData(next); pushLife(next);
+        writeLocal(next); setData(next);
+        definirBaseLife(merged);   // acabou de vir de lá: é a nova base dos deltas
+        if (next !== merged) pushLife(next);
       }
     } finally { resyncing.current = false; }
   };

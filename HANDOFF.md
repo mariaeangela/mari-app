@@ -132,6 +132,17 @@ localStorage, que o iOS apagava). Camada:
     pendente sobe. Era a falha silenciosa que causou tudo.
   - **Aviso persistente**: o `SyncAlerta` agora também olha a pendência (não só o status em memória),
     então continua de pé DEPOIS de recarregar, dizendo há quanto tempo ("há 3h").
+  - **ENVIO PARCIAL do `life`** (o passo 2, ago/2026): o documento tem ~240KB e subia INTEIRO a cada
+    tecla — envio grande morre quando o celular troca de app, e dois aparelhos em fatias diferentes
+    brigavam pelo documento todo. Agora o `cloud.js` compara o doc com a `baseEnviada` (último estado
+    que a nuvem CONFIRMOU) por REFERÊNCIA de fatia (os stores são imutáveis, então fatia mexida =
+    objeto novo) e manda `{lifePatch:{só as fatias mudadas}, _rev}`; o servidor sobrepõe essas chaves
+    no que está guardado. Medido: editar Legendas virou **159 bytes** em vez de 240KB, e a edição de
+    `gastos` que outro aparelho tinha feito **sobreviveu** (antes, um dos dois perdia tudo). Detalhes
+    que importam: o patch **não passa pela trava de `_rev`** de propósito (recusar jogaria fora a
+    fatia nova); a `baseEnviada` só avança no OK, então envio que falha volta no próximo delta; chave
+    REMOVIDA ou patch > 60% do doc caem no envio inteiro; **o botão "Salvar" manda sempre INTEIRO**
+    (152KB), que é a garantia de convergência caso algum delta deixe passar algo.
   - **`?resgate=1`**: modo que não lê nem escreve na nuvem — abrir um aparelho suspeito e exportar
     sem risco de a cópia local ser substituída.
 - `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +

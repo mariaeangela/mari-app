@@ -239,15 +239,54 @@ export async function fetchSpotifyCover(url) {
 // volta OK; se falhar, mantém e re-tenta — save que caiu na rede não some.
 const DEBOUNCE = 200;
 const RETRY = 4000;
+
+// ---- Envio PARCIAL do `life` (só as fatias que mudaram) ----
+// O `life` tem ~240KB e ia inteiro a cada tecla: envio grande morre quando o
+// celular troca de app, e dois aparelhos mexendo em coisas diferentes brigavam
+// pelo documento todo. Como os stores atualizam de forma imutável (fatia mexida
+// = objeto NOVO), dá pra achar o que mudou comparando por referência.
+//
+// `baseEnviada` = último estado que a nuvem CONFIRMOU. O delta é sempre contra
+// ela: se um envio falha, as fatias continuam no próximo — nada some no meio.
+let baseEnviada = null;
+export function definirBaseLife(doc) { baseEnviada = doc || null; }   // usado no boot
+function deltaLife(doc) {
+  if (!doc || !baseEnviada) return null;                    // sem base: manda inteiro
+  const patch = {};
+  for (const k of Object.keys(doc)) {
+    if (k === '_rev') continue;
+    if (doc[k] !== baseEnviada[k]) patch[k] = doc[k];
+  }
+  // chave REMOVIDA do documento: patch não sabe apagar, então cai no envio inteiro
+  for (const k of Object.keys(baseEnviada)) if (!(k in doc)) return null;
+  const n = Object.keys(patch).length;
+  if (!n) return {};                                        // nada mudou
+  // Se mudou quase tudo, o patch não compensa (e o inteiro é mais simples de conferir).
+  if (JSON.stringify(patch).length > JSON.stringify(doc).length * 0.6) return null;
+  return patch;
+}
 const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
 function runPush(field, keepalive) {
   const s = q[field];
   s.t = null;
   if (s.sending || s.p == null) return;   // um envio de cada vez por seção
   const v = s.p;
+  // `life`: tenta mandar só o que mudou desde o último OK da nuvem.
+  let corpo = v;
+  let ehPatch = false;
+  if (field === 'life' && v && v.life) {
+    const patch = deltaLife(v.life);
+    if (patch && Object.keys(patch).length === 0) {   // nada mudou de fato
+      s.p = null; limparPendente(field); return;
+    }
+    if (patch) { corpo = { lifePatch: patch, _rev: v.life._rev }; ehPatch = true; }
+  }
   s.sending = true;
-  doPost(v, { keepalive }).then(result => {
+  doPost(corpo, { keepalive }).then(result => {
     s.sending = false;
+    // confirmou: esta passa a ser a base dos próximos deltas
+    if (result === 'ok' && field === 'life' && v.life) baseEnviada = v.life;
+    if (result === 'conflict' && ehPatch) baseEnviada = null;   // desencana do delta e manda inteiro
     // 'ok' = gravou; 'conflict' = a nuvem tinha dados mais novos, então DESCARTA este
     // envio velho (não re-tenta); 'fail' = erro de rede, mantém `v` pra re-tentar.
     // Em ambos 'ok'/'conflict' o envio de `v` está resolvido; só re-agenda se um valor
@@ -294,6 +333,9 @@ async function saveNow(field, payload) {
   s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY);        // erro de rede: re-tenta
   return false;
 }
-export async function saveLifeNow(life) { return saveNow('life', { life }); }
+// O botão "Salvar" manda o `life` INTEIRO de propósito: é a garantia de que a
+// nuvem fica idêntica ao aparelho, mesmo que algum delta tenha deixado passar
+// alguma coisa. Vale a pena o peso — é ela apertando, uma vez.
+export async function saveLifeNow(life) { const ok = await saveNow('life', { life }); if (ok) baseEnviada = life; return ok; }
 export async function saveCalendarioNow(cal) { return saveNow('calendario', { calendario: cal }); }
 export async function saveSavedNow(saved, savedRev) { return saveNow('saved', { saved, savedRev }); }
