@@ -323,13 +323,41 @@ export function pushLife(life) { schedule('life', { life }); }
 // ---- Salvar AGORA (aguardável) — pro botão manual; garante entrega + confirmação ----
 // Se FALHAR, deixa o valor no pendente pra o retry automático continuar tentando
 // (o botão mostra erro, mas o dado não é abandonado).
+// 409 no botão "Salvar": a nuvem está à frente deste aparelho. Antes isso virava
+// "⚠ Erro — tocar de novo" PARA SEMPRE, porque o aparelho nunca aprendia o carimbo
+// de lá e continuava chegando "velho" a cada toque.
+// O botão é um pedido explícito ("quero o que está AQUI"), então ele agora vence —
+// mas nada é jogado fora: a versão da nuvem vai pra lixeira antes de ser trocada.
+async function forcarDepoisDeConflito(field, payload) {
+  const d = await getDoc();
+  if (d === UNREACHABLE) return false;
+  const atual = field === 'life' ? d.life : field === 'calendario' ? d.calendario : null;
+  if (!atual) return false;
+  guardarNaLixeira(field + '-nuvem', atual, 'substituída pelo botão Salvar deste aparelho');
+  const rev = Math.max(Number(atual._rev) || 0, 0) + 1;
+  const doc = field === 'life' ? payload.life : payload.calendario;
+  const corpo = field === 'life'
+    ? { life: { ...doc, _rev: Math.max(Number(doc._rev) || 0, rev) } }
+    : { calendario: { ...doc, _rev: Math.max(Number(doc._rev) || 0, rev) } };
+  const r = await doPost(corpo);
+  if (r === 'ok' && field === 'life') baseEnviada = corpo.life;
+  return r === 'ok';
+}
+
 async function saveNow(field, payload) {
   if (RESGATE) return false;    // modo resgate: o botão Salvar também não envia
   const s = q[field];
   if (s.t) { clearTimeout(s.t); s.t = null; }
   const result = await doPost(payload);
   if (result === 'ok') { if (s.p === payload) s.p = null; limparPendente(field); return true; }
-  if (result === 'conflict') { if (s.p === payload) s.p = null; limparPendente(field); return false; } // descarta o velho; o resync (ao focar) traz a versão nova
+  if (result === 'conflict') {
+    // Salvar manual não pode virar um erro permanente: força, guardando a versão
+    // da nuvem na lixeira. (No envio automático o conflito segue sendo respeitado.)
+    const forcado = (field === 'life' || field === 'calendario') ? await forcarDepoisDeConflito(field, payload) : false;
+    if (s.p === payload) s.p = null;
+    limparPendente(field);
+    return forcado;
+  }
   s.p = payload; if (!s.t) s.t = setTimeout(() => runPush(field), RETRY);        // erro de rede: re-tenta
   return false;
 }

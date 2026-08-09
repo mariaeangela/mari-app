@@ -143,8 +143,16 @@ module.exports = async function handler(req, res) {
       if (body.lifePatch && typeof body.lifePatch === 'object') {
         const atual = (await redis.get(K.life)) || {};
         try { await redis.lpush(BAK('life'), { ts: Date.now(), v: atual }); await redis.ltrim(BAK('life'), 0, BAK_MAX - 1); } catch {}
+        // CARIMBO: usa o do aparelho que mandou, NUNCA a hora do servidor.
+        // Carimbar com `Date.now()` aqui punha a nuvem sempre à frente do aparelho,
+        // e o botão "Salvar" (que manda o documento inteiro e PASSA pela trava de
+        // versão) chegava "velho" e era recusado com 409 — todo save manual depois
+        // de qualquer digitação dava erro, mesmo com uma tela só aberta.
+        // Como cada edição carimba `Date.now()` no aparelho, o `incomingRev` já é
+        // maior que o guardado: a nuvem avança e os outros aparelhos percebem.
+        const atualRev = Number(atual._rev) || 0;
         const incomingRev = Number(body._rev) || 0;
-        const proximo = { ...atual, ...body.lifePatch, _rev: Math.max(Number(atual._rev) || 0, incomingRev, Date.now()) };
+        const proximo = { ...atual, ...body.lifePatch, _rev: incomingRev > 0 ? Math.max(atualRev, incomingRev) : Math.max(atualRev + 1, Date.now()) };
         await redis.set(K.life, proximo);
         res.status(200).json({ ok: true, merged: Object.keys(body.lifePatch).length, _rev: proximo._rev });
         return;

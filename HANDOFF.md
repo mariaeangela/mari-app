@@ -143,6 +143,15 @@ localStorage, que o iOS apagava). Camada:
     fatia nova); a `baseEnviada` só avança no OK, então envio que falha volta no próximo delta; chave
     REMOVIDA ou patch > 60% do doc caem no envio inteiro; **o botão "Salvar" manda sempre INTEIRO**
     (152KB), que é a garantia de convergência caso algum delta deixe passar algo.
+  - **CARIMBO do patch vem do APARELHO, nunca do servidor** (bug corrigido no mesmo dia): carimbar o
+    merge com `Date.now()` do servidor punha a nuvem sempre à frente, e o "Salvar" (que manda o doc
+    inteiro e PASSA pela trava de `_rev`) chegava velho → **409 em todo save manual**, com uma tela
+    só aberta. Agora `_rev = max(guardado, o que veio)`.
+  - **409 no "Salvar" se resolve sozinho**: mesmo com o carimbo certo, se a nuvem ficar à frente por
+    qualquer motivo, o aparelho NUNCA aprendia o `_rev` de lá e o botão virava "⚠ Erro" permanente.
+    `forcarDepoisDeConflito` (cloud.js): relê a nuvem, guarda a versão dela na LIXEIRA, recarimba
+    acima e regrava. O botão é pedido explícito ("quero o que está aqui") — vence, sem perder nada.
+    Vale só pro save MANUAL; no envio automático o 409 continua sendo respeitado.
   - **`?resgate=1`**: modo que não lê nem escreve na nuvem — abrir um aparelho suspeito e exportar
     sem risco de a cópia local ser substituída.
 - `src/cloud.js` — cliente GET/POST best-effort. POST com **debounce por seção (200ms)** +
