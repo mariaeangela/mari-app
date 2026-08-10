@@ -4031,7 +4031,10 @@ function ViagemDetail({ trip, onBack }) {
                     {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
                   </div>
                   {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
-                  {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5 }}>{m.desc}</div>}
+                  {/* `pre-wrap`: respeita as quebras de linha e a LINHA EM BRANCO
+                      entre parágrafos. Sem isso o texto era exibido tudo junto,
+                      mesmo tendo sido salvo com os espaços. */}
+                  {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.desc}</div>}
                   {(m.abertura || m.preco) && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
                       {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
@@ -4256,7 +4259,7 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
         <label style={labelStyle}>{mostrarTipo ? 'Título da sessão' : 'Lugar / atividade'}</label>
         <input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder={mostrarTipo ? 'ex.: Lançamento: …' : 'ex.: The Met · Top of the Rock'} style={inputStyle} />
         <label style={labelStyle}>Descrição (o que é)</label>
-        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="uma linha sobre o lugar, o que ver…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={6} placeholder={'o que ver, o que saber…\n\nDeixe uma linha em branco pra separar parágrafos — ela é mantida.'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10 }}>
           <div style={{ flex: 1 }}><label style={labelStyle}>Abertura (dias/horário)</label><input value={abertura} onChange={e => setAbertura(e.target.value)} placeholder="ex.: Ter–Dom, 10h–17h" style={inputStyle} /></div>
           <div style={{ flex: 1 }}><label style={labelStyle}>Entrada (preço)</label><input value={preco} onChange={e => setPreco(e.target.value)} placeholder="ex.: US$ 30 · grátis" style={inputStyle} /></div>
