@@ -3896,8 +3896,56 @@ function ViagemDetail({ trip, onBack }) {
     if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
     return true;
   });
-  const dias = [...new Set(mesasFiltradas.map(m => m.dia).filter(Boolean))].sort();
+  // ---- Dois blocos fixos, fora da linha do tempo ----
+  // TOPO: "Lojas para passar" (`bucket:'lojas'`) — não tem dia, é lista de passagem;
+  // ela marca conforme entra em cada uma.
+  // FIM: "Outras experiências" — o que ficou pra trás. Item de um dia JÁ PASSADO que
+  // ela não marcou como visitado desce pra cá sozinho, então a lista do dia mostra o
+  // que ela fez e o que não rolou não some nem atrapalha. É só apresentação: o item
+  // continua com a data dele, e marcar o check faz voltar pro dia.
+  const hojeProg = vgHoje();
+  const lojasProg = mesasFiltradas.filter(m => m.bucket === 'lojas');
+  const ficouPraTras = (m) => !m.bucket && m.dia && m.dia < hojeProg && !m.visitado;
+  const outrasProg = mesasFiltradas.filter(ficouPraTras);
+  const noRoteiro = mesasFiltradas.filter(m => !m.bucket && m.dia && !ficouPraTras(m));
+  const dias = [...new Set(noRoteiro.map(m => m.dia))].sort();
   const totalFav = todasMesas.filter(m => m.favorito).length;
+
+  // O cartão de um item da programação — mesmo desenho nos três blocos (dia,
+  // lojas e outras experiências). `diaAtras` põe a data original no canto, pra
+  // ela lembrar de quando o item era.
+  const cardProg = (m, diaAtras) => (
+    <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
+      <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
+      <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
+        {temParalela && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, ...(m.tipo === 'paralela' ? { background: '#f0ecf7', color: '#8a6fb0' } : { background: COR_VIAGEM, color: '#fff' }) }}>{m.tipo === 'paralela' ? 'paralela' : 'principal'}</span>
+            {m.casa && <span style={{ fontSize: 11.5, color: '#888', fontWeight: 600 }}>{m.casa}</span>}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
+          <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
+          {diaAtras && m.dia && <span style={{ fontSize: 10.5, color: '#bbb', flexShrink: 0 }}>era {fmtData(m.dia)}</span>}
+          {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
+          {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
+        </div>
+        {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
+        {/* `pre-wrap`: respeita as quebras de linha e a LINHA EM BRANCO entre
+            parágrafos. Sem isso o texto era exibido tudo junto, mesmo tendo
+            sido salvo com os espaços. */}
+        {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.desc}</div>}
+        {(m.abertura || m.preco) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
+            {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
+            {m.preco && <span style={{ fontSize: 11.5, color: '#888' }}>💲 {m.preco}</span>}
+          </div>
+        )}
+      </div>
+      <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
+    </div>
+  );
   const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || fFav || !!qBusca;
 
   // ---- Telas internas: a capa mostra hospedagem/passagens + os cards; cada card
@@ -3998,6 +4046,14 @@ function ViagemDetail({ trip, onBack }) {
       {!temParalela && totalFav > 0 && (
         <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
       )}
+      {/* TOPO — lojas pra passar: sem dia, marcadas conforme ela entra em cada uma. */}
+      {lojasProg.length > 0 && (
+        <div style={{ marginBottom: 16, background: '#fffaf4', border: '1px solid #ffd9b0', borderRadius: 12, padding: '10px 12px 6px' }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b06d1e', marginBottom: 2 }}>🛍️ Lojas para passar</div>
+          <div style={{ fontSize: 11, color: '#bb9066', marginBottom: 8 }}>sem dia marcado — vá marcando conforme passar</div>
+          {lojasProg.map(m => cardProg(m))}
+        </div>
+      )}
       {/* Um dia pode ter ROTEIROS ALTERNATIVOS (item com `opcao`): aí ele aparece
           repetido, um bloco por opção, como se fossem dois dias — foi o que a Mari
           pediu pro 17/09 (Filadélfia OU outlet). Sem `opcao`, nada muda. */}
@@ -4014,41 +4070,20 @@ function ViagemDetail({ trip, onBack }) {
           <div key={chave} style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: sub ? 2 : 6 }}>{cab}</div>
             {sub && <div style={{ fontSize: 11.5, fontWeight: 700, color: COR_VIAGEM, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{sub}</div>}
-            {ms.map(m => (
-              <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
-                <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
-                <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
-                  {temParalela && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 20, ...(m.tipo === 'paralela' ? { background: '#f0ecf7', color: '#8a6fb0' } : { background: COR_VIAGEM, color: '#fff' }) }}>{m.tipo === 'paralela' ? 'paralela' : 'principal'}</span>
-                      {m.casa && <span style={{ fontSize: 11.5, color: '#888', fontWeight: 600 }}>{m.casa}</span>}
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
-                    <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
-                    {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
-                    {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
-                  </div>
-                  {m.autores && <div style={{ fontSize: 12, color: '#999', marginTop: 3 }}>{m.autores}</div>}
-                  {/* `pre-wrap`: respeita as quebras de linha e a LINHA EM BRANCO
-                      entre parágrafos. Sem isso o texto era exibido tudo junto,
-                      mesmo tendo sido salvo com os espaços. */}
-                  {m.desc && <div style={{ fontSize: 12.5, color: '#666', marginTop: 6, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.desc}</div>}
-                  {(m.abertura || m.preco) && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 7 }}>
-                      {m.abertura && <span style={{ fontSize: 11.5, color: '#888' }}>🕒 {m.abertura}</span>}
-                      {m.preco && <span style={{ fontSize: 11.5, color: '#888' }}>💲 {m.preco}</span>}
-                    </div>
-                  )}
-                </div>
-                <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
-              </div>
-            ))}
+            {ms.map(cardProg)}
           </div>
         ));
       })}
-      {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
+      {/* FIM — o que ficou pra trás: dia já passou e não foi marcado. Some daqui
+          assim que ela marcar o ☑ (volta pro dia, riscado). */}
+      {outrasProg.length > 0 && (
+        <div style={{ marginTop: 18, background: '#f7f7f9', border: '1px solid #e6e6ec', borderRadius: 12, padding: '10px 12px 6px' }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Outras experiências</div>
+          <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>ficou pra trás e você não marcou — dá pra fazer noutro dia, ou marcar se acabou fazendo</div>
+          {outrasProg.map(m => cardProg(m, true))}
+        </div>
+      )}
+      {dias.length === 0 && lojasProg.length === 0 && outrasProg.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
       <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
     </div>
   );
@@ -4207,6 +4242,9 @@ function ViagemDetail({ trip, onBack }) {
 // já reagenda o lugar pra outra data da viagem (fica dentro do intervalo início–fim).
 function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose }) {
   const [dia, setDia] = useState(item?.dia || trip.inicio || '');
+  // 'dia' = entra no roteiro daquela data · 'lojas' = vai pro bloco "Lojas para
+  // passar", no topo, sem data (é lista de passagem, não compromisso).
+  const [onde, setOnde] = useState(item?.bucket === 'lojas' ? 'lojas' : 'dia');
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
   const [tipo, setTipo] = useState(item?.tipo || (mostrarTipo ? 'paralela' : ''));
@@ -4216,12 +4254,13 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
   const [preco, setPreco] = useState(item?.preco || '');
   const [maps, setMaps] = useState(item?.maps || '');
   const [link, setLink] = useState(item?.link || '');
-  const podeSalvar = titulo.trim().length > 0 && !!dia;
+  const ehLoja = onde === 'lojas';
+  const podeSalvar = titulo.trim().length > 0 && (ehLoja || !!dia);
   const salvar = () => {
     if (!podeSalvar) return;
     // horaMin recalculado a partir da hora digitada, p/ manter a ordenação por horário.
     const hx = /(\d{1,2})\s*h\s*(\d{2})?/.exec(hora.trim()) || /(\d{1,2}):(\d{2})/.exec(hora.trim());
-    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia, hora: hora.trim() || undefined, titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
+    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia: ehLoja ? '' : dia, bucket: ehLoja ? 'lojas' : undefined, hora: ehLoja ? undefined : (hora.trim() || undefined), titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
     if (mostrarTipo) {
       obj.tipo = tipo || 'paralela';
       obj.casa = casa.trim() || undefined;
@@ -4238,10 +4277,20 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
           <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{item ? 'Editar lugar' : 'Novo lugar'}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
-          <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label>{mostrarTipo ? <input value={hora} onChange={e => setHora(e.target.value)} placeholder="ex.: 16h" style={inputStyle} /> : <input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} />}</div>
+        <label style={labelStyle}>Onde entra</label>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[['dia', 'Num dia do roteiro'], ['lojas', '🛍️ Lojas para passar']].map(([v, lbl]) => (
+            <button key={v} onClick={() => setOnde(v)} style={{ flex: 1, padding: '8px 6px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (onde === v ? COR_VIAGEM : '#e2e2e2'), background: onde === v ? COR_VIAGEM + '1c' : '#fff', color: onde === v ? '#1a7a6e' : '#888' }}>{lbl}</button>
+          ))}
         </div>
+        {ehLoja ? (
+          <p style={{ fontSize: 11.5, color: '#aaa', margin: '6px 2px 0', lineHeight: 1.5 }}>Fica no bloco do topo, sem data — você marca conforme passar.</p>
+        ) : (
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
+            <div style={{ width: 120 }}><label style={labelStyle}>Hora (opcional)</label>{mostrarTipo ? <input value={hora} onChange={e => setHora(e.target.value)} placeholder="ex.: 16h" style={inputStyle} /> : <input type="time" value={hora} onChange={e => setHora(e.target.value)} style={inputStyle} />}</div>
+          </div>
+        )}
         {mostrarTipo && (
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ width: 140 }}><label style={labelStyle}>Tipo</label>

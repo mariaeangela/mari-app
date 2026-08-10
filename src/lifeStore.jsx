@@ -956,8 +956,12 @@ const NYC_V2 = [
   { d: '2026-09-13', hora: '17:00', t: 'Top of the Rock', desc: 'O mirante com a vista que Nova York inteira quer: o Empire State de frente e o Central Park inteiro atrás. Entrada por horário marcado — reserve com dias de antecedência, sobretudo o pôr do sol.', ab: 'Todos os dias 8h–24h', pr: 'A partir de US$ 45 (Beam a partir de US$ 73)', link: 'https://www.rockefellercenter.com/tickets/top-of-the-rock-observation-deck', mq: 'Top of the Rock 30 Rockefeller Plaza New York' },
   { d: '2026-09-13', t: 'Rockefeller Center', desc: 'O complexo art déco embaixo do mirante: a praça rebaixada, o Prometeu dourado, o Atlas e os murais do lobby do 30 Rock. Dá pra ver de graça, sem ingresso.', ab: '24h (praça)', pr: 'Grátis', mq: 'Rockefeller Center New York' },
   { d: '2026-09-13', t: "St. Patrick's Cathedral", desc: 'Catedral neogótica de 1878 na 5ª Avenida, em frente ao Rockefeller. Entrada livre; vale entrar pelos vitrais e pela nave.', ab: 'Todos os dias 6h30–20h45', pr: 'Grátis (doação sugerida)', mq: "St Patrick's Cathedral 5th Avenue New York" },
-  { d: '2026-09-13', t: "Trader Joe's", desc: 'Mercado americano de marca própria — bom pra levar pra casa: temperos, snacks, chocolate, as sacolas de pano. O mais perto de você é o de Chelsea (675 6th Ave, na altura da 21st), ~12 min a pé; tem outro na Union Square (142 E 14th St), ~15 min.', ab: 'Todos os dias 8h–21h', pr: 'Barato', mq: "Trader Joe's 675 6th Ave New York" },
-  { d: '2026-09-13', t: "Macy's Herald Square", desc: 'A loja de departamentos mais famosa do mundo, 10 andares. Peça o Visitor Savings Pass (10–15% de desconto pra turista) no balcão do Visitor Center.', ab: 'Seg–Sáb 10h–21h · Dom 11h–20h', pr: 'Entrada grátis', mq: "Macy's Herald Square 151 W 34th St New York" },
+  { bk: 'lojas', t: "Trader Joe's", desc: 'Mercado americano de marca própria — bom pra levar pra casa: temperos, snacks, chocolate, as sacolas de pano. O mais perto de você é o de Chelsea (675 6th Ave, na altura da 21st), ~12 min a pé; tem outro na Union Square (142 E 14th St), ~15 min.', ab: 'Todos os dias 8h–21h', pr: 'Barato', mq: "Trader Joe's 675 6th Ave New York" },
+  { bk: 'lojas', t: "Macy's Herald Square", desc: 'A loja de departamentos mais famosa do mundo, 10 andares. Peça o Visitor Savings Pass (10–15% de desconto pra turista) no balcão do Visitor Center.', ab: 'Seg–Sáb 10h–21h · Dom 11h–20h', pr: 'Entrada grátis', mq: "Macy's Herald Square 151 W 34th St New York" },
+  // ---------- Lojas para passar (sem dia; ela marca conforme entra) ----------
+  { bk: 'lojas', t: 'Beacon’s Closet (brechó)', desc: 'O brechó mais conhecido de Nova York — o de Williamsburg é o maior. Roupa selecionada, preço honesto, muita coisa de marca. Encaixa no dia 25, quando você estiver em Williamsburg.', ab: 'Todos os dias 11h–20h', pr: 'US$ 10–60 a peça', mq: "Beacon's Closet 74 Guernsey St Brooklyn" },
+  { bk: 'lojas', t: 'L Train Vintage (brechó)', desc: 'Rede de brechós baratos do Brooklyn, com várias lojas na mesma região (Bushwick e Williamsburg). Menos curado que o Beacon’s, mais garimpo — e mais barato.', ab: 'Todos os dias ~12h–20h', pr: 'US$ 5–30 a peça', mq: 'L Train Vintage Brooklyn' },
+  { bk: 'lojas', t: 'Housing Works Thrift (brechó)', desc: 'Brechó da mesma ONG da livraria-café: tudo doado, lucro pra causa de HIV/aids. A loja do Chelsea (143 W 17th St) tem boas peças; a do Gramercy fica a 10 min de você (157 E 23rd St).', ab: 'Seg–Sáb 10h–19h · Dom 12h–18h', pr: 'US$ 5–50 a peça', mq: 'Housing Works Thrift Shop 157 E 23rd St New York' },
   { d: '2026-09-13', hora: '20:00', t: 'Times Square', desc: 'O cartão-postal iluminado. Vale à noite, quando os letreiros fazem sentido. Dez minutos bastam.', ab: '24h', pr: 'Grátis', mq: 'Times Square New York' },
   { d: '2026-09-13', hora: '20:30', t: 'Drink + jazz no Village', desc: 'Três casas históricas, todas no West Village, a caminhar entre si. Village Vanguard: a lendária, sets 20h e 22h, reserve online. Smalls: subsolo apertado e barato, vai até tarde. Mezzrow: piano e contrabaixo, quieto e íntimo (mesma dona do Smalls).', ab: 'Sets ~20h e 22h', pr: 'Vanguard ~US$ 25–30 + 1 drink · Smalls ~US$ 35', link: 'https://villagevanguard.com/', mq: 'Village Vanguard 178 7th Ave S New York' },
 
@@ -1151,7 +1155,7 @@ const NYC_RESERVAS = [
 
 const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
 function ensureNYRoteiroV2(d) {
-  if (d.nyRoteiroV6) return d;
+  if (d.nyRoteiroV7) return d;
   const viagens = d.viagensFuturas || [];
   const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
   if (i < 0) return d;                       // viagem não carregou: não faz nada
@@ -1177,7 +1181,7 @@ function ensureNYRoteiroV2(d) {
   };
   Object.entries(RENOMEADOS).forEach(([velho, novo]) => { if (marcas[velho] && !marcas[novo]) marcas[novo] = marcas[velho]; });
   const novas = NYC_V2.map((x, n) => ({
-    id: 'nyc2-' + n, n, dia: x.d, hora: x.hora || '',
+    id: 'nyc2-' + n, n, dia: x.d || '', bucket: x.bk || undefined, hora: x.hora || '',
     titulo: x.t, desc: x.desc,
     abertura: x.ab || undefined, preco: x.pr || undefined,
     maps: gmap(x.mq || (x.t + ' New York')), link: x.link,
@@ -1232,7 +1236,7 @@ function ensureNYRoteiroV2(d) {
     + 'Chicago → NY (24/09): sai 05:45 de ORD, chega 09:30 em LGA.');
 
   const nova = { ...trip, mesas, enderecos: [...(trip.enderecos || []), ...novosEnds], secoes: novasSecoes, passagens, hospedagem };
-  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, nyRoteiroV6: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+  return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, nyRoteiroV6: true, nyRoteiroV7: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
 }
 
 function ensureNYChicago2026(d) {
