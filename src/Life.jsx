@@ -3723,6 +3723,7 @@ function ViagemDetail({ trip, onBack }) {
   const [novoComprar, setNovoComprar] = useState('');
   const [novoComprasV, setNovoComprasV] = useState('');
   const [novoFazer, setNovoFazer] = useState('');
+  const [ordProg, setOrdProg] = useState(false);   // modo "⇅ mudar a ordem" da programação
   // Capa da viagem = hospedagem/passagens + os cards. `aba` diz qual card está aberto
   // (null = capa; 'sec:<id>' = um card livre criado por ela).
   const [aba, setAba] = useState(null);
@@ -3770,6 +3771,19 @@ function ViagemDetail({ trip, onBack }) {
   };
   // Marca/desmarca um lugar da programação como visitado (☑ do roteiro).
   const toggleVisitado = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, visitado: !m.visitado } : m) });
+  // Ordem MANUAL dentro de um dia (ou do bloco de lojas): troca o item de lugar
+  // com o vizinho e carimba `ordem` em TODOS do bloco, pra a posição virar
+  // definitiva. Enquanto ninguém mexe, o dia continua ordenado por horário.
+  const moverMesa = (lista, id, dir) => {
+    const i = lista.findIndex(m => m.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= lista.length) return;
+    const nova = [...lista];
+    [nova[i], nova[j]] = [nova[j], nova[i]];
+    const pos = {};
+    nova.forEach((m, k) => { pos[m.id] = k; });
+    salvar({ mesas: (trip.mesas || []).map(m => (m.id in pos ? { ...m, ordem: pos[m.id] } : m)) });
+  };
   // Favorita/desfavorita uma sessão (★). Alimenta o filtro "só favoritos".
   const toggleFavorito = (id) => salvar({ mesas: (trip.mesas || []).map(m => m.id === id ? { ...m, favorito: !m.favorito } : m) });
   // ---- Tópicos livres (secoes): cada um é "nota" (texto solto) ou "lista" (checklist) ----
@@ -3903,8 +3917,13 @@ function ViagemDetail({ trip, onBack }) {
   // ela não marcou como visitado desce pra cá sozinho, então a lista do dia mostra o
   // que ela fez e o que não rolou não some nem atrapalha. É só apresentação: o item
   // continua com a data dele, e marcar o check faz voltar pro dia.
+  // Ordem de exibição: se ela arrumou o bloco à mão (`ordem`), manda a mão dela;
+  // senão, horário e depois a ordem em que o item foi criado.
+  const ordenarProg = (arr) => arr.slice().sort((a, b) =>
+    ((a.ordem == null ? 9999 : a.ordem) - (b.ordem == null ? 9999 : b.ordem))
+    || (flipHoraMin(a) - flipHoraMin(b)) || ((a.n || 0) - (b.n || 0)));
   const hojeProg = vgHoje();
-  const lojasProg = mesasFiltradas.filter(m => m.bucket === 'lojas');
+  const lojasProg = ordenarProg(mesasFiltradas.filter(m => m.bucket === 'lojas'));
   const ficouPraTras = (m) => !m.bucket && m.dia && m.dia < hojeProg && !m.visitado;
   const outrasProg = mesasFiltradas.filter(ficouPraTras);
   const noRoteiro = mesasFiltradas.filter(m => !m.bucket && m.dia && !ficouPraTras(m));
@@ -3914,7 +3933,9 @@ function ViagemDetail({ trip, onBack }) {
   // O cartão de um item da programação — mesmo desenho nos três blocos (dia,
   // lojas e outras experiências). `diaAtras` põe a data original no canto, pra
   // ela lembrar de quando o item era.
-  const cardProg = (m, diaAtras) => (
+  // `lista` = os itens do bloco em que este cartão está, na ordem exibida. Só é
+  // passada quando dá pra reordenar; com o modo "⇅ ordenar" ligado, aparecem as setas.
+  const cardProg = (m, lista) => (
     <div key={m.id} style={{ display: 'flex', gap: 10, background: '#fff', border: '1px solid ' + (m.visitado ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '10px 12px', marginBottom: 6 }}>
       <span onClick={(e) => { e.stopPropagation(); toggleVisitado(m.id); }} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 19, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15 }}>{m.visitado ? '☑' : '☐'}</span>
       <div onClick={() => setProgForm({ item: m })} style={{ flex: 1, cursor: 'pointer', opacity: m.visitado ? 0.55 : 1 }}>
@@ -3927,7 +3948,6 @@ function ViagemDetail({ trip, onBack }) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: COR_VIAGEM, flexShrink: 0 }}>{m.hora}</span>}
           <span style={{ flex: 1, fontSize: 13.5, color: '#222', fontStyle: 'italic', textDecoration: m.visitado ? 'line-through' : 'none' }}>{m.titulo}</span>
-          {diaAtras && m.dia && <span style={{ fontSize: 10.5, color: '#bbb', flexShrink: 0 }}>era {fmtData(m.dia)}</span>}
           {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
           {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} title="site oficial" style={{ color: COR_VIAGEM, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
         </div>
@@ -3943,7 +3963,14 @@ function ViagemDetail({ trip, onBack }) {
           </div>
         )}
       </div>
-      <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
+      {ordProg && lista ? (
+        <span style={{ display: 'flex', flexDirection: 'column', gap: 3, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+          <button onClick={() => moverMesa(lista, m.id, -1)} disabled={lista[0]?.id === m.id} title="subir" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: lista[0]?.id === m.id ? '#ddd' : '#777', cursor: lista[0]?.id === m.id ? 'default' : 'pointer', width: 26, height: 24, fontSize: 12, padding: 0 }}>↑</button>
+          <button onClick={() => moverMesa(lista, m.id, 1)} disabled={lista[lista.length - 1]?.id === m.id} title="descer" style={{ border: '1px solid #e2e2e2', borderRadius: 7, background: '#fff', color: lista[lista.length - 1]?.id === m.id ? '#ddd' : '#777', cursor: lista[lista.length - 1]?.id === m.id ? 'default' : 'pointer', width: 26, height: 24, fontSize: 12, padding: 0 }}>↓</button>
+        </span>
+      ) : (
+        <span onClick={(e) => { e.stopPropagation(); toggleFavorito(m.id); }} title={m.favorito ? 'favorito — toque pra remover' : 'favoritar'} style={{ fontSize: 18, color: m.favorito ? '#f0b400' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1.15, alignSelf: 'flex-start' }}>{m.favorito ? '★' : '☆'}</span>
+      )}
     </div>
   );
   const filtroAtivo = fTipo !== 'todas' || !!fCasa || !!fDia || fPeriodo !== 'todos' || fFav || !!qBusca;
@@ -4046,12 +4073,16 @@ function ViagemDetail({ trip, onBack }) {
       {!temParalela && totalFav > 0 && (
         <button onClick={() => setFFav(v => !v)} style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (fFav ? '#f0b400' : '#e2e2e2'), background: fFav ? '#fff8e6' : '#fff', color: fFav ? '#b58100' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{fFav ? '★ mostrando favoritos' : `☆ Só favoritos (${totalFav})`}</button>
       )}
+      <button onClick={() => setOrdProg(v => !v)} title="mudar a ordem dos lugares dentro de cada dia" style={{ marginBottom: 12, padding: '7px 12px', borderRadius: 9, border: '1px solid ' + (ordProg ? COR_VIAGEM : '#e2e2e2'), background: ordProg ? COR_VIAGEM + '15' : '#fff', color: ordProg ? '#1a7a6e' : '#666', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+        {ordProg ? 'pronto' : '⇅ mudar a ordem'}
+      </button>
+      {ordProg && <p style={{ fontSize: 11.5, color: COR_VIAGEM, margin: '0 0 10px', lineHeight: 1.5 }}>Use ↑ ↓ pra arrumar os lugares dentro de cada dia. A ordem que você deixar passa a valer no lugar do horário.</p>}
       {/* TOPO — lojas pra passar: sem dia, marcadas conforme ela entra em cada uma. */}
       {lojasProg.length > 0 && (
         <div style={{ marginBottom: 16, background: '#fffaf4', border: '1px solid #ffd9b0', borderRadius: 12, padding: '10px 12px 6px' }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b06d1e', marginBottom: 2 }}>🛍️ Lojas para passar</div>
           <div style={{ fontSize: 11, color: '#bb9066', marginBottom: 8 }}>sem dia marcado — vá marcando conforme passar</div>
-          {lojasProg.map(m => cardProg(m))}
+          {lojasProg.map(m => cardProg(m, lojasProg))}
         </div>
       )}
       {/* Um dia pode ter ROTEIROS ALTERNATIVOS (item com `opcao`): aí ele aparece
@@ -4061,7 +4092,7 @@ function ViagemDetail({ trip, onBack }) {
         const dt = new Date(dia + 'T00:00:00');
         const wd = DIAS_LONGOS[dt.getDay()];
         const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
-        const doDia = mesasFiltradas.filter(m => m.dia === dia).sort((a, b) => flipHoraMin(a) - flipHoraMin(b) || (a.n || 0) - (b.n || 0));
+        const doDia = ordenarProg(noRoteiro.filter(m => m.dia === dia));
         const opcoes = [...new Set(doDia.map(m => m.opcao).filter(Boolean))];
         const blocos = opcoes.length
           ? opcoes.map(op => ({ chave: dia + '#' + op, sub: op, ms: doDia.filter(m => m.opcao === op) }))
@@ -4070,7 +4101,7 @@ function ViagemDetail({ trip, onBack }) {
           <div key={chave} style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: sub ? 2 : 6 }}>{cab}</div>
             {sub && <div style={{ fontSize: 11.5, fontWeight: 700, color: COR_VIAGEM, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{sub}</div>}
-            {ms.map(cardProg)}
+            {ms.map(m => cardProg(m, ms))}
           </div>
         ));
       })}
@@ -4080,7 +4111,7 @@ function ViagemDetail({ trip, onBack }) {
         <div style={{ marginTop: 18, background: '#f7f7f9', border: '1px solid #e6e6ec', borderRadius: 12, padding: '10px 12px 6px' }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Outras experiências</div>
           <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>ficou pra trás e você não marcou — dá pra fazer noutro dia, ou marcar se acabou fazendo</div>
-          {outrasProg.map(m => cardProg(m, true))}
+          {outrasProg.map(m => cardProg(m))}
         </div>
       )}
       {dias.length === 0 && lojasProg.length === 0 && outrasProg.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}

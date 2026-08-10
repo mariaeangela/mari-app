@@ -1154,6 +1154,14 @@ const NYC_RESERVAS = [
 ];
 
 const CHI_INI = '2026-09-20', CHI_FIM = '2026-09-24';
+
+// ⛔ NÃO BUMPAR MAIS ESTA FLAG. ⛔
+// Este patch RECONSTRÓI os itens `nyc2-` a partir do NYC_V2 — ou seja, a cada
+// versão nova ele passava por cima das descrições que a Mari tinha editado à mão.
+// Ela perdeu texto assim mais de uma vez (ago/2026) e pediu, com razão, pra eu
+// parar. A partir daqui o roteiro dela é a fonte da verdade: mudança de conteúdo
+// se faz PELO APP, ou num patch novo que altere só o item pedido, pelo id, e
+// NUNCA reescreva `desc`. Editar o NYC_V2 abaixo só afeta instalação nova.
 function ensureNYRoteiroV2(d) {
   if (d.nyRoteiroV7) return d;
   const viagens = d.viagensFuturas || [];
