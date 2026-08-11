@@ -265,6 +265,35 @@ function deltaLife(doc) {
   if (JSON.stringify(patch).length > JSON.stringify(doc).length * 0.6) return null;
   return patch;
 }
+// ---- 409 no envio AUTOMÁTICO do `life`: MESCLA, nunca descarta ----
+// Era assim que uma nota escrita hoje sumia: o servidor recusava o envio por
+// versão (a nuvem estava à frente), o app jogava o envio fora EM SILÊNCIO e
+// ainda apagava a marca de pendência — a edição ficava só neste aparelho, sem
+// aviso nenhum, até o dia em que ele adotasse a nuvem e ela sumisse de vez.
+//
+// Agora o conflito é RESOLVIDO: relê a nuvem, guarda a versão dela na lixeira e
+// reenvia como PATCH só as fatias em que este aparelho difere. O patch não passa
+// pela trava de versão, então a edição entra; e o que só existe do outro lado
+// (fatia que este aparelho não mexeu) continua lá, intacto.
+async function resolverConflitoLife(local) {
+  if (!local) return false;
+  const d = await getDoc();
+  if (d === UNREACHABLE) return false;
+  const nuvem = (d && typeof d.life === 'object' && d.life) || null;
+  if (!nuvem) return false;
+  const patch = {};
+  for (const k of Object.keys(local)) {
+    if (k === '_rev') continue;
+    if (JSON.stringify(local[k]) !== JSON.stringify(nuvem[k])) patch[k] = local[k];
+  }
+  if (!Object.keys(patch).length) return true;          // já é igual: nada a mandar
+  guardarNaLixeira('life-nuvem', nuvem, 'versão da nuvem, guardada antes de mesclar com a edição deste aparelho');
+  const rev = Math.max(Number(nuvem._rev) || 0, Number(local._rev) || 0) + 1;
+  const r = await doPost({ lifePatch: patch, _rev: rev });
+  if (r === 'ok') baseEnviada = { ...nuvem, ...patch, _rev: rev };
+  return r === 'ok';
+}
+
 const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
 function runPush(field, keepalive) {
   const s = q[field];
@@ -282,15 +311,22 @@ function runPush(field, keepalive) {
     if (patch) { corpo = { lifePatch: patch, _rev: v.life._rev }; ehPatch = true; }
   }
   s.sending = true;
-  doPost(corpo, { keepalive }).then(result => {
+  doPost(corpo, { keepalive }).then(async (result) => {
+    // 409 no `life`: NÃO joga o envio fora — mescla por fatia com a nuvem e reenvia.
+    // Só sai daqui como resolvido se a nuvem aceitar; senão vira 'fail' e re-tenta,
+    // mantendo a pendência (que é o que faz o aviso de "sem salvar" aparecer).
+    if (result === 'conflict' && field === 'life' && v.life) {
+      const ok = await resolverConflitoLife(v.life);
+      if (!ok) baseEnviada = null;    // desencana do delta: o próximo envio vai inteiro
+      result = ok ? 'ok' : 'fail';
+    }
     s.sending = false;
     // confirmou: esta passa a ser a base dos próximos deltas
     if (result === 'ok' && field === 'life' && v.life) baseEnviada = v.life;
     if (result === 'conflict' && ehPatch) baseEnviada = null;   // desencana do delta e manda inteiro
-    // 'ok' = gravou; 'conflict' = a nuvem tinha dados mais novos, então DESCARTA este
-    // envio velho (não re-tenta); 'fail' = erro de rede, mantém `v` pra re-tentar.
-    // Em ambos 'ok'/'conflict' o envio de `v` está resolvido; só re-agenda se um valor
-    // MAIS NOVO chegou durante o envio (s.p !== v).
+    // 'ok' = gravou; 'conflict' (calendário/salvos) = a nuvem tinha dados mais novos,
+    // então descarta este envio velho; 'fail' = erro de rede, mantém `v` pra re-tentar.
+    // Resolvido o envio de `v`, só re-agenda se um valor MAIS NOVO chegou no meio (s.p !== v).
     if (result !== 'fail' && s.p === v) { s.p = null; limparPendente(field); }
     if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), result === 'ok' ? 0 : RETRY);
   });

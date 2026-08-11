@@ -2088,7 +2088,43 @@ export function LifeProvider({ children }) {
 
   // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
   const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
-  const persist = (next) => { const s = stampRev(next); dirty.current = true; setData(s); writeLocal(s); pushLife(s); };
+  // Toda gravação monta o documento novo a partir do `data` DAQUELE render
+  // (`persist({ ...data, aprendizados })`). Se duas coisas gravam quase juntas — o
+  // caso real: sair do campo "principais temas" (onBlur) e clicar em "anotar" no
+  // mesmo instante —, a segunda foi construída sobre um `data` que já está velho e
+  // APAGAVA a primeira, sem erro nenhum na tela. Era assim que uma anotação sumia
+  // segundos depois de ser escrita.
+  //
+  // Agora o persist REBASEIA: se o estado atual não é mais aquele em que `next` foi
+  // construído, aplica só o que de fato MUDOU (as fatias diferentes) por cima do
+  // estado atual. As duas gravações sobrevivem, em qualquer ordem.
+  const rebasear = (prev, base, next) => {
+    if (prev === base) return next;
+    const out = { ...prev };
+    for (const k of Object.keys(next)) if (next[k] !== base[k]) out[k] = next[k];      // fatia mexida agora
+    for (const k of Object.keys(base)) if (!(k in next) && k in out) delete out[k];    // fatia removida agora
+    return out;
+  };
+  // Grava JÁ (localStorage + fila da nuvem) e só depois avisa a tela. Tem que ser
+  // síncrono: se dependesse do re-render do React, uma gravação disparada na saída
+  // do app (fechar a aba, trocar de app) podia nunca acontecer.
+  const gravar = (s) => {
+    dirty.current = true;
+    dataRef.current = s;      // vale imediatamente pra próxima gravação do mesmo instante
+    writeLocal(s); pushLife(s);
+    setData(s);
+  };
+  const persist = (next) => gravar(stampRev(rebasear(dataRef.current, data, next)));
+  // Gravação que calcula o documento novo A PARTIR do estado mais recente, e não
+  // do render. O rebase acima só salva quem mexe em fatias DIFERENTES; quando as
+  // duas gravações são na MESMA fatia (escrever os temas e anotar o aprendizado —
+  // as duas em `aprendizados`), só isto aqui garante que nenhuma se perde.
+  const persistFn = (fn) => {
+    const prev = dataRef.current;
+    const alvo = fn(prev);
+    if (alvo === prev) return;                 // a função decidiu que não mudou nada
+    gravar(stampRev(alvo));
+  };
   // Salvar AGORA (botão manual): grava na nuvem e AGUARDA a confirmação. Devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveLifeNow(dataRef.current); };
 
@@ -2501,7 +2537,12 @@ export function LifeProvider({ children }) {
 
   // ---- Aprendizados (tópicos + notas) ----
   const aprendizados = data.aprendizados || DEFAULT_APRENDIZADOS;
-  const setAprendizados = (next) => persist({ ...data, aprendizados: next });
+  // Aceita o valor pronto OU uma função (aprendizados atuais) => novos. A forma de
+  // função é a segura pra tudo que escreve NOTA: ela lê o estado mais recente, então
+  // duas gravações seguidas (temas + aprendizado) se somam em vez de se apagarem.
+  const setAprendizados = (next) => (typeof next === 'function'
+    ? persistFn(d => { const ap = d.aprendizados || DEFAULT_APRENDIZADOS; const nx = next(ap); return nx === ap ? d : { ...d, aprendizados: nx }; })
+    : persist({ ...data, aprendizados: next }));
   const addAprendTopico = (nome) => { const id = uid('t'); setAprendizados({ ...aprendizados, topicos: [...aprendizados.topicos, { id, nome }] }); return id; };
   const deleteAprendTopico = (id) => setAprendizados({ topicos: aprendizados.topicos.filter(t => t.id !== id), notas: aprendizados.notas.filter(n => n.topicoId !== id) });
   const moveAprendTopico = (id, dir) => {
@@ -2512,17 +2553,21 @@ export function LifeProvider({ children }) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
     setAprendizados({ ...aprendizados, topicos: arr });
   };
-  const saveAprendNota = (nota) => setAprendizados(nota.id && aprendizados.notas.some(n => n.id === nota.id)
-    ? { ...aprendizados, notas: aprendizados.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) } // merge preserva criadoEm
-    : { ...aprendizados, notas: [...aprendizados.notas, { ...nota, id: uid('n'), criadoEm: Date.now() }] });
-  const deleteAprendNota = (id) => setAprendizados({ ...aprendizados, notas: aprendizados.notas.filter(n => n.id !== id) });
+  const saveAprendNota = (nota) => setAprendizados(ap => (nota.id && ap.notas.some(n => n.id === nota.id)
+    ? { ...ap, notas: ap.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) }   // merge preserva criadoEm
+    : { ...ap, notas: [...ap.notas, { ...nota, id: uid('n'), criadoEm: Date.now() }] }));
+  const deleteAprendNota = (id) => setAprendizados(ap => ({ ...ap, notas: ap.notas.filter(n => n.id !== id) }));
 
   // ---- Estudos › tópicos da Mari (mesmo formato dos Aprendizados: tópicos + notas) ----
   // Slice PRÓPRIO (`estudoTemas`), separado dos Aprendizados de propósito: lá é "o
   // que já aprendi", aqui é o que ela está estudando. A UI é a mesma (TopicoView/
   // NotaCard), trocando só o caderno. Começa vazio — sem seed.
   const estudoTemas = data.estudoTemas || { topicos: [], notas: [] };
-  const setEstudoTemas = (next) => persist({ ...data, estudoTemas: next });
+  // Igual aos Aprendizados: a forma de função lê o estado mais recente, pra duas
+  // gravações seguidas não se apagarem (ver o comentário do `persistFn`).
+  const setEstudoTemas = (next) => (typeof next === 'function'
+    ? persistFn(d => { const et = d.estudoTemas || { topicos: [], notas: [] }; const nx = next(et); return nx === et ? d : { ...d, estudoTemas: nx }; })
+    : persist({ ...data, estudoTemas: next }));
   const addEstudoTopico = (nome) => { const id = uid('et'); setEstudoTemas({ ...estudoTemas, topicos: [...estudoTemas.topicos, { id, nome }] }); return id; };
   const deleteEstudoTopico = (id) => setEstudoTemas({ topicos: estudoTemas.topicos.filter(t => t.id !== id), notas: estudoTemas.notas.filter(n => n.topicoId !== id) });
   const moveEstudoTopico = (id, dir) => {
@@ -2534,10 +2579,10 @@ export function LifeProvider({ children }) {
     setEstudoTemas({ ...estudoTemas, topicos: arr });
   };
   const renameEstudoTopico = (id, nome) => setEstudoTemas({ ...estudoTemas, topicos: estudoTemas.topicos.map(t => t.id === id ? { ...t, nome } : t) });
-  const saveEstudoNota = (nota) => setEstudoTemas(nota.id && estudoTemas.notas.some(n => n.id === nota.id)
-    ? { ...estudoTemas, notas: estudoTemas.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) }   // merge preserva criadoEm
-    : { ...estudoTemas, notas: [...estudoTemas.notas, { ...nota, id: uid('en'), criadoEm: Date.now() }] });
-  const deleteEstudoNota = (id) => setEstudoTemas({ ...estudoTemas, notas: estudoTemas.notas.filter(n => n.id !== id) });
+  const saveEstudoNota = (nota) => setEstudoTemas(et => (nota.id && et.notas.some(n => n.id === nota.id)
+    ? { ...et, notas: et.notas.map(n => n.id === nota.id ? { ...n, ...nota } : n) }   // merge preserva criadoEm
+    : { ...et, notas: [...et.notas, { ...nota, id: uid('en'), criadoEm: Date.now() }] }));
+  const deleteEstudoNota = (id) => setEstudoTemas(et => ({ ...et, notas: et.notas.filter(n => n.id !== id) }));
   // Ordem MANUAL das anotações: troca a nota de lugar com a IRMÃ vizinha (mesmo
   // tópico e mesmo pai), mexendo direto no array `notas` — a tela lê na ordem do
   // array, sem ordenar. Vale pros dois níveis (anotação e tópico dentro dela).
@@ -2567,27 +2612,25 @@ export function LifeProvider({ children }) {
     if (!topico) { topico = { id: uid('t'), nome: 'Terapia Insights' }; topicos = [...topicos, topico]; }
     return { topico, topicos };
   };
-  const addTerapiaInsight = (dataLabel, texto) => {
-    const ap = aprendizados;
+  const addTerapiaInsight = (dataLabel, texto) => setAprendizados(ap => {
     const { topico, topicos } = _ensureTerapiaTopico(ap);
     let notas = ap.notas || [];
     const nota = notas.find(n => _matchTerapia(n, topico.id, dataLabel));
     if (nota) notas = notas.map(n => n === nota ? _normTerapiaNota({ ...n, itens: [...(n.itens || []), texto] }, dataLabel) : n);
     else notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, data: dataLabel, temas: '', itens: [texto], criadoEm: Date.now() }];
-    setAprendizados({ ...ap, topicos, notas });
-  };
+    return { ...ap, topicos, notas };
+  });
   // "Principais temas" da nota de terapia do dia (campo separado, mostrado ao lado da data).
-  const setTerapiaTemas = (dataLabel, temas) => {
-    const ap = aprendizados;
+  const setTerapiaTemas = (dataLabel, temas) => setAprendizados(ap => {
     const { topico, topicos } = _ensureTerapiaTopico(ap);
     let notas = ap.notas || [];
     const nota = notas.find(n => _matchTerapia(n, topico.id, dataLabel));
     const t = String(temas || '').trim();
     if (nota) notas = notas.map(n => n === nota ? { ..._normTerapiaNota(n, dataLabel), temas: t } : n);
     else if (t) notas = [...notas, { id: uid('n'), topicoId: topico.id, titulo: dataLabel, data: dataLabel, temas: t, itens: [], criadoEm: Date.now() }];
-    else return;
-    setAprendizados({ ...ap, topicos, notas });
-  };
+    else return ap;
+    return { ...ap, topicos, notas };
+  });
 
   const value = {
     data, compras, salvarAgora, syncStatus,

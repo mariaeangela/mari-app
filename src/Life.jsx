@@ -13,16 +13,25 @@ import { lerLixeira, listarBackups, lerBackup, restaurarBackup } from './cloud.j
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
 
+// A Life é dividida em ABAS (ago/2026, a pedido da Mari: estava complexa demais).
+// Duas de conteúdo — Planos e Estudo — mais "Seus dados" (exportar, cópias e
+// versões do servidor), que antes ficava espremido no fim da lista de cards.
+// A Vida Financeira saiu daqui há mais tempo (aba VF própria) e a Saúde foi pra
+// Retrospectiva, junto das contagens de consultas e exames.
 const SECOES = [
-  { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
   { id: 'planos',         label: 'Planos',         desc: 'projetos com info + checklist',    cor: '#6b7a99' },
+  { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
+  { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
   { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
   { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
   { id: 'legendas',       label: 'Legendas',       desc: 'frases salvas pra reusar',         cor: '#c2548f' },
-  // A Vida Financeira saiu daqui: agora tem aba própria (VF), ao lado de Life.
-  { id: 'saude',          label: 'Saúde',          desc: 'consultas, exames, hábitos',       cor: '#d96459' },
-  { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
 ];
+const ABAS_LIFE = [
+  { id: 'planos', label: 'Planos', secoes: ['planos', 'compras', 'viagens'] },
+  { id: 'estudo', label: 'Estudo', secoes: ['estudos', 'aprendizados', 'legendas'] },
+  { id: 'dados',  label: 'Seus dados', secoes: [] },
+];
+const ABA_DA_SECAO = (id) => (ABAS_LIFE.find(a => a.secoes.includes(id)) || ABAS_LIFE[0]).id;
 
 // estilos
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
@@ -2657,7 +2666,10 @@ function PesoLinha({ pontos }) {
   );
 }
 
-function SaudeSection({ onBack }) {
+// Saúde: mora na RETROSPECTIVA desde ago/2026 (junto das contagens de consultas,
+// terapia e exames do Calendário). O componente ficou aqui, onde estão os estilos
+// e os helpers que ele usa; a Retrospectiva importa por este `export`.
+export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
   const life = useLife();
   const cal = useCalendar();
   const [form, setForm] = useState(null);
@@ -2765,11 +2777,13 @@ function SaudeSection({ onBack }) {
   const vazio = (t) => <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '4px 0', lineHeight: 1.5 }}>{t}</p>;
 
   return (
-    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
-      <div style={{ width: 36, height: 4, background: COR_SAUDE, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Saúde</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>consultas, peso, remédios, vacinas, menstruação</p>
+    <div style={embutido ? { padding: 0 } : { padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      {!embutido && <>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; {backLabel}</button>
+        <div style={{ width: 36, height: 4, background: COR_SAUDE, borderRadius: 4, marginBottom: 12 }} />
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Saúde</h2>
+        <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>consultas, peso, remédios, vacinas, menstruação</p>
+      </>}
 
       {bloco('Consultas e exames', null,
         consultas.length === 0
@@ -5367,8 +5381,9 @@ function SubPlaceholder({ secao, onBack }) {
 }
 
 // Levar os dados embora: dois arquivos gerados no próprio navegador (ver
-// `exportar.js`). Fica no fim do hub da Life, discreto — é coisa de vez em quando,
-// não pode competir com os cards.
+// `exportar.js`), mais as cópias locais e as versões guardadas no servidor.
+// Tem ABA PRÓPRIA na Life desde ago/2026: quando faz falta, faz muita falta, e
+// procurar isso no fim de uma lista de cards é a última coisa que se quer fazer.
 function ExportarBloco() {
   const life = useLife();
   const cal = useCalendar();
@@ -5390,8 +5405,8 @@ function ExportarBloco() {
     ingles: life.ingles, viagensFuturas: life.viagensFuturas,
   });
   return (
-    <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid #eee' }}>
-      <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Seus dados</div>
+    <div>
+      <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Baixar</div>
       <p style={{ fontSize: 12, color: '#999', margin: '0 0 10px', lineHeight: 1.6 }}>
         Baixe quando quiser: os arquivos são montados aqui no seu aparelho e são seus.
       </p>
@@ -5553,42 +5568,58 @@ function Lixeira() {
 
 export default function LifePage({ isWide, viagemInicial, onConsumeViagem, comprasInicial, onConsumeCompras }) {
   const [sec, setSec] = useState(null);
+  const [aba, setAba] = useState('planos');
   const [viagemId, setViagemId] = useState(null);
   const [comprasListaId, setComprasListaId] = useState(null);
+  const abrir = (id) => { setAba(ABA_DA_SECAO(id)); setSec(id); };
   // Deep-link do Modo Viagem (faixa "Você está em X"): abre direto Viagens + a viagem.
   useEffect(() => {
-    if (viagemInicial) { setSec('viagens'); setViagemId(viagemInicial); onConsumeViagem && onConsumeViagem(); }
+    if (viagemInicial) { abrir('viagens'); setViagemId(viagemInicial); onConsumeViagem && onConsumeViagem(); }
   }, [viagemInicial]); // eslint-disable-line
   // Deep-link pra Compras numa lista específica (ex.: "Compras na viagem" vinculada).
   useEffect(() => {
-    if (comprasInicial) { setSec('compras'); setComprasListaId(comprasInicial); onConsumeCompras && onConsumeCompras(); }
+    if (comprasInicial) { abrir('compras'); setComprasListaId(comprasInicial); onConsumeCompras && onConsumeCompras(); }
   }, [comprasInicial]); // eslint-disable-line
-  let content;
-  if (sec === 'compras') content = <ComprasSection onBack={() => setSec(null)} listaInicial={comprasListaId} onConsumeLista={() => setComprasListaId(null)} />;
-  else if (sec === 'planos') content = <PlanosSection onBack={() => setSec(null)} />;
-  else if (sec === 'saude') content = <SaudeSection onBack={() => setSec(null)} />;
-  else if (sec === 'aprendizados') content = <AprendizadosSection onBack={() => setSec(null)} />;
-  else if (sec === 'legendas') content = <LegendasSection onBack={() => setSec(null)} />;
-  else if (sec === 'estudos') content = <EstudosPage onBack={() => setSec(null)} />;
-  else if (sec === 'viagens') content = <ViagensSection onBack={() => setSec(null)} viagemInicial={viagemId} onConsumeViagem={() => setViagemId(null)} />;
-  else if (sec) content = <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
-  else content = (
+  if (sec === 'compras') return <ComprasSection onBack={() => setSec(null)} listaInicial={comprasListaId} onConsumeLista={() => setComprasListaId(null)} />;
+  if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
+  if (sec === 'aprendizados') return <AprendizadosSection onBack={() => setSec(null)} />;
+  if (sec === 'legendas') return <LegendasSection onBack={() => setSec(null)} />;
+  if (sec === 'estudos') return <EstudosPage onBack={() => setSec(null)} />;
+  if (sec === 'viagens') return <ViagensSection onBack={() => setSec(null)} viagemInicial={viagemId} onConsumeViagem={() => setViagemId(null)} />;
+  if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
+
+  const abaAtual = ABAS_LIFE.find(a => a.id === aba) || ABAS_LIFE[0];
+  const cards = abaAtual.secoes.map(id => SECOES.find(s => s.id === id)).filter(Boolean);
+  return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#111', margin: '0 0 4px' }}>Life</h2>
-      <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 22 }}>seu canto pessoal</p>
-      <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
-        {SECOES.map(s => (
-          <button key={s.id} onClick={() => setSec(s.id)} style={{
-            background: s.cor + '12', border: '1px solid ' + s.cor + '33', borderRadius: 16,
-            padding: '20px 16px', cursor: 'pointer', textAlign: 'left',
-          }}>
-            <div style={{ width: 24, height: 4, background: s.cor, borderRadius: 4, marginBottom: 12 }} />
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{s.label}</div>
-          </button>
-        ))}
+      <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 16 }}>seu canto pessoal</p>
+      <div style={{ display: 'flex', gap: 7, marginBottom: 20, flexWrap: 'wrap' }}>
+        {ABAS_LIFE.map(a => {
+          const ativo = a.id === abaAtual.id;
+          return (
+            <button key={a.id} onClick={() => setAba(a.id)} style={{
+              border: '1px solid ' + (ativo ? '#111' : '#e2e2e2'), borderRadius: 20,
+              background: ativo ? '#111' : '#fff', color: ativo ? '#fff' : '#888',
+              cursor: 'pointer', padding: '7px 15px', fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+            }}>{a.label}</button>
+          );
+        })}
       </div>
-      <ExportarBloco />
+      {abaAtual.id === 'dados' ? <ExportarBloco /> : (
+        <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
+          {cards.map(s => (
+            <button key={s.id} onClick={() => setSec(s.id)} style={{
+              background: s.cor + '12', border: '1px solid ' + s.cor + '33', borderRadius: 16,
+              padding: '20px 16px', cursor: 'pointer', textAlign: 'left',
+            }}>
+              <div style={{ width: 24, height: 4, background: s.cor, borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{s.label}</div>
+              <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.45, marginTop: 5 }}>{s.desc}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
-  return content;
 }

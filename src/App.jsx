@@ -19,8 +19,6 @@ const PlanoCheckSheet = lazyDe(() => import('./Life.jsx'), 'PlanoCheckSheet');
 const RetrospectivaPage = lazyDe(() => import('./Retrospectiva.jsx'));
 const VFPage = lazyDe(() => import('./VF.jsx'));
 const EsportesSection = lazyDe(() => import('./Esportes.jsx'));
-// Card de conteúdo: puxa a biblioteca dos cards (~230 KB) só ao abrir um tema.
-const CardWithContent = lazyDe(() => import('./CardWithContent.jsx'));
 // Enquanto o pedaço chega (só na 1ª vez que abre a aba).
 const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0', fontStyle: 'italic' }}>carregando…</p>;
 import { NavContext, useNav } from './nav.jsx';
@@ -153,9 +151,6 @@ function IconeBussola() {
   );
 }
 
-// Aba Explorar e Hoje: as 5 categorias consolidadas.
-const EXPLORE_TYPES = ['texto', 'cartas', 'imagem', 'cena', 'mito', 'mundo'];
-
 const hojeMid = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const DIAS_SEM = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 const capaInput = { width: '100%', padding: '9px 12px', border: '1px solid #e6e6e6', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff', color: '#222' };
@@ -234,9 +229,32 @@ function TerapiaHoje() {
   const itens = notaHoje?.itens || [];
   const [txt, setTxt] = useState('');
   const [temas, setTemas] = useState(temasSalvo);
+  // O que está digitado também vive num ref: `add` lê e LIMPA o ref na hora, sem
+  // esperar o React. Assim dá pra salvar ao SAIR do campo (antes o texto que ela
+  // escrevia e não "anotava" simplesmente sumia) sem correr o risco de anotar duas
+  // vezes quando o clique no botão vem logo depois do onBlur.
+  const txtRef = useRef('');
+  const anotarRef = useRef(() => {});
+  anotarRef.current = () => {
+    const t = txtRef.current.trim();
+    if (!t) return;
+    txtRef.current = '';
+    life.addTerapiaInsight(dataLabel, t);
+    setTxt('');
+  };
   useEffect(() => { setTemas(temasSalvo); }, [notaHoje?.id]); // eslint-disable-line
+  // Fechar o app / trocar de aba com texto na caixa também anota: sair da tela não
+  // pode ser a mesma coisa que apagar o que ela acabou de escrever.
+  useEffect(() => {
+    const aoSair = () => anotarRef.current();
+    const aoEsconder = () => { if (document.visibilityState === 'hidden') anotarRef.current(); };
+    document.addEventListener('visibilitychange', aoEsconder);
+    window.addEventListener('pagehide', aoSair);
+    return () => { document.removeEventListener('visibilitychange', aoEsconder); window.removeEventListener('pagehide', aoSair); };
+  }, []);
   if (!temTerapia) return null;
-  const add = () => { const t = txt.trim(); if (!t) return; life.addTerapiaInsight(dataLabel, t); setTxt(''); };
+  const escrever = (v) => { txtRef.current = v; setTxt(v); };
+  const add = () => anotarRef.current();
   const salvarTemas = () => { if ((temas || '').trim() !== (temasSalvo || '').trim()) life.setTerapiaTemas(dataLabel, temas); };
   const cor = '#7a5c9e';
   return (
@@ -245,7 +263,7 @@ function TerapiaHoje() {
       <p style={{ fontSize: 12, color: '#888', margin: '4px 0 8px' }}>o que você aprendeu? vai pra <b style={{ color: cor }}>Terapia Insights</b> · nota {dataLabel}</p>
       <input value={temas} onChange={e => setTemas(e.target.value)} onBlur={salvarTemas} onKeyDown={e => { if (e.key === 'Enter') { salvarTemas(); e.currentTarget.blur(); } }} placeholder="principais temas (ex.: FLIP, ansiedade)" style={{ ...capaInput, width: '100%', marginBottom: 8 }} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <input value={txt} onChange={e => setTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="um aprendizado…" style={{ ...capaInput, flex: 1 }} />
+        <input value={txt} onChange={e => escrever(e.target.value)} onBlur={add} onKeyDown={e => e.key === 'Enter' && add()} placeholder="um aprendizado…" style={{ ...capaInput, flex: 1 }} />
         <button onClick={add} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>anotar</button>
       </div>
       {itens.length > 0 && (
@@ -923,57 +941,34 @@ function Feed({ isWide }) {
   );
 }
 
+// Explorar: quatro seções, e só. Os cards de conteúdo (texto, cartas, imagem,
+// cena, mito, mundo) saíram em ago/2026 — não era mais essa a intenção do app.
+const EXPLORE_SECOES = [
+  { id: 'cultural', label: 'Calendário cultural',    cor: '#c2548f', Comp: () => CulturalSection },
+  { id: 'assistir', label: 'Conteúdos para assistir', cor: '#4f7cca', Comp: () => AssistirSection },
+  { id: 'leituras', label: 'Próximas leituras',       cor: '#7a5c9e', Comp: () => LeiturasSection },
+  { id: 'esportes', label: 'Esportes',                cor: '#e2603a', Comp: () => EsportesSection },
+];
+
 function ExplorePage({ isWide }) {
-  const [selectedType, setSelectedType] = useState(null);
-  const sub = { cultural: CulturalSection, assistir: AssistirSection, leituras: LeiturasSection, esportes: EsportesSection }[selectedType];
-  if (sub) { const Sub = sub; return (
+  const [sec, setSec] = useState(null);
+  const atual = EXPLORE_SECOES.find(s => s.id === sec);
+  if (atual) { const Sub = atual.Comp(); return (
     <div style={{ maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <Suspense fallback={<Carregando />}><Sub onBack={() => setSelectedType(null)} backLabel="Explorar" /></Suspense>
+      <Suspense fallback={<Carregando />}><Sub onBack={() => setSec(null)} backLabel="Explorar" /></Suspense>
     </div>
   ); }
   return (
     <div style={{ padding: '24px 20px 80px' }}>
-      {!selectedType ? (
-        <>
-          <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 20 }}>escolha um tema</p>
-          <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
-            {EXPLORE_TYPES.map(type => {
-              const info = CONTENT_TYPES.find(t => t.id === type);
-              const cor = CARD_PALETTES[type]?.accent || '#888';
-              return (
-                <button key={type} onClick={() => setSelectedType(type)} style={{ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
-                  <div style={{ width: 24, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
-                  <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{info?.label}</div>
-                </button>
-              );
-            })}
-            <button key="cultural" onClick={() => setSelectedType('cultural')} style={{ background: '#c2548f12', border: '1px solid #c2548f33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ width: 24, height: 4, background: '#c2548f', borderRadius: 4, marginBottom: 12 }} />
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Calendário cultural</div>
-            </button>
-            <button key="assistir" onClick={() => setSelectedType('assistir')} style={{ background: '#4f7cca12', border: '1px solid #4f7cca33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ width: 24, height: 4, background: '#4f7cca', borderRadius: 4, marginBottom: 12 }} />
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Conteúdos para assistir</div>
-            </button>
-            <button key="leituras" onClick={() => setSelectedType('leituras')} style={{ background: '#7a5c9e12', border: '1px solid #7a5c9e33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ width: 24, height: 4, background: '#7a5c9e', borderRadius: 4, marginBottom: 12 }} />
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Próximas leituras</div>
-            </button>
-            <button key="esportes" onClick={() => setSelectedType('esportes')} style={{ background: '#e2603a12', border: '1px solid #e2603a33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ width: 24, height: 4, background: '#e2603a', borderRadius: 4, marginBottom: 12 }} />
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Esportes</div>
-            </button>
-          </div>
-        </>
-      ) : (
-        <div style={{ maxWidth: isWide ? 560 : 'none', margin: '0 auto' }}>
-          <button onClick={() => setSelectedType(null)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 20, padding: 0 }}>
-            &larr; voltar
+      <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 20 }}>escolha um tema</p>
+      <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
+        {EXPLORE_SECOES.map(s => (
+          <button key={s.id} onClick={() => setSec(s.id)} style={{ background: s.cor + '12', border: '1px solid ' + s.cor + '33', borderRadius: 16, padding: '20px 16px', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 24, height: 4, background: s.cor, borderRadius: 4, marginBottom: 12 }} />
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{s.label}</div>
           </button>
-          {/* key por edição: o card do Explorar também remonta às 6h e às 14h */}
-          <Suspense fallback={<Carregando />}><CardWithContent key={`${selectedType}-${getEditionPeriod()}`} type={selectedType} tile={isWide} /></Suspense>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

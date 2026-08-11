@@ -4,6 +4,44 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 `mariaeangela/mari-app` (branch `main`). Publicar = `git push origin main`
 (a Vercel republica sozinha). Senha do app (login): `taylor13` (em `src/Login.jsx`).
 
+## SIMPLIFICAÇÃO + anti-perda (11/ago/2026) — LEIA PRIMEIRO
+A Mari perdeu as notas de terapia do dia. Duas causas REAIS, as duas corrigidas:
+
+1. **409 descartava a edição em silêncio** (`cloud.js`, `runPush`). O servidor
+   recusava o envio por versão (a nuvem estava à frente), o app jogava o payload
+   fora **e limpava a pendência** — nem o aviso de "sem salvar" aparecia. Agora
+   `resolverConflitoLife()` relê a nuvem, guarda a versão dela na lixeira e reenvia
+   como **`lifePatch`** só as fatias em que este aparelho difere (o patch não passa
+   pela trava de versão). Se não conseguir, vira `fail`: mantém a pendência e
+   re-tenta. **Nunca voltar a descartar um envio recusado.**
+2. **Duas gravações no mesmo instante se apagavam** (`lifeStore.jsx`). Todo setter
+   montava `persist({ ...data, fatia })` com o `data` daquele render; sair do campo
+   "principais temas" (onBlur) e clicar em "anotar" no mesmo tick = a segunda
+   apagava a primeira. Agora: `persist` **rebaseia** (aplica só as fatias que
+   mudaram sobre o estado atual) e existe `persistFn(fn)` pra quem mexe na MESMA
+   fatia — `setAprendizados`/`setEstudoTemas` aceitam função, e é essa forma que
+   todo salvamento de NOTA usa. As duas gravam **síncrono** (localStorage + fila da
+   nuvem) e só depois avisam a tela, pra funcionar até na saída do app.
+   A caixa de terapia (`TerapiaHoje`, App.jsx) também anota ao **sair do campo** e
+   ao fechar/esconder o app (ref `txtRef` evita anotar duas vezes).
+
+Simplificação pedida junto:
+- **Explorar**: os cards de conteúdo (texto/cartas/imagem/cena/mito/mundo) SAÍRAM.
+  `contentCards.js` e `CardWithContent.jsx` foram apagados. Sobraram 4 seções:
+  Calendário cultural, Conteúdos para assistir, Próximas leituras, Esportes.
+  `contentLibrary.js` FICA (frases do dia, "neste dia", e `CONTENT_TYPES`/
+  `CARD_PALETTES`, que os **Salvos** ainda usam pra desenhar o que ela já salvou).
+- **Life**: virou 3 abas (`ABAS_LIFE`) — **Planos** (Planos, Compras, Viagens),
+  **Estudo** (Estudos, Aprendizados, Legendas) e **Seus dados** (exportar, cópias
+  locais e versões do servidor, que antes ficavam no fim da lista de cards).
+- **Saúde** saiu da Life e virou o card **Saúde** da Retrospectiva: `SaudeRetro` =
+  contagens do ano (Calendário) + `<SaudeSection embutido />`, exportada de
+  `Life.jsx` e carregada por `lazy()` (é lá que estão os estilos/helpers dela).
+- **Retrospectiva**: card **Música** saiu (as telas `MusicaRetro`/`MusicaGrafico`/
+  `MusicaForm` foram apagadas); ficou **Álbuns marcantes** como card próprio.
+  O slice `musica` (minutos/artistas por mês) **continua no documento**, só não tem
+  mais tela — nada foi apagado dos dados dela.
+
 ## Arquitetura
 - `src/App.jsx` — tabs (Hoje/Explorar/Salvos), Header, responsivo
   (grade de 3 colunas no desktop via `useIsWide`, coluna única no mobile),
