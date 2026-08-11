@@ -1,157 +1,117 @@
-# Diagonal — Roadmap / ideias
+# Diagonal — o que falta
 
-Backlog vivo do app. Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande (curadoria/feature).
-Status: ⏳ espera lista sua · 🆕 registro novo.
-Para entender o **código/arquitetura**, ver `HANDOFF.md`.
+Só o que ainda **não** foi feito. O que já está pronto sai daqui (o histórico fica
+no `git log`); o que morreu vai pro fim, pra ninguém ressuscitar sem querer.
+Para entender o **código**, ver `HANDOFF.md`.
 
----
-
-# ESTRUTURAIS (atravessam o app inteiro)
-
-- 🔴 **Cards (conteúdo)** — converter **Imagem · Cena · Mito & Sagrado · Mundo** para o formato novo
-  (texto real → "Sobre a obra" → contexto → ficha); **podar** os fracos/mainstream; bloco **"o que
-  aconteceu depois?"** (desfecho/legado); engordar **Texto** com ensaios/crônicas + mais autores.
-- 🔴 **Malha de temas** *(base — destrava o resto)* — taggear cada card com 3–5 temas (Memória, Perda…)
-  **e também o que é seu** (livros lidos, viagens, diário), pra navegar "tudo sobre Memória" cruzando
-  cultura + sua vida. Entra de carona na reforma dos cards.
-- 🟡🔴 **Conexões de verdade** — no rodapé do card, 3–4 "continua em" com 1 frase do porquê (usa os temas).
-- 🟡 **Perguntas** — cada card termina com uma pergunta; **salvar respostas** → diário intelectual.
-- 🔴 **Álbum da semana** — na capa de Hoje + histórico no Explorar (banda, ano, momento do disco).
-- 🟡 **Cartas** — coleção crescendo (26 cartas: originais + tradução + contexto, de domínio público e com fonte). FALTA: retomar **Tchékhov** (bateu num filtro 2x); mais brasileiras (Clarice tem direitos, só trecho).
-- ✅ **Modo Viagem** — com viagem ativa (da véspera ao fim), a **senha**, a **capa** e uma **faixa no
-  topo** viram *"Bom dia em Paraty"* + um fato da cidade. Ativa pela viagem cadastrada em Life→Viagens
-  (datas). Nova York + Chicago em `cidadeFatos.js` (getCidadeFato junta cidades combinadas).
-- ✅ (técnico) Unificar as buscas na nuvem (saved / calendário / life) numa só — `getDoc` com `inflight` compartilhado: no boot os 3 stores reusam 1 GET em vez de 3.
-- ⏸🔴🔴 **Mapa da mente** *(bem depois)* — visualização do grafo dos seus interesses.
+Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão ou uma lista dela.
 
 ---
 
-# POR PÁGINA
+## 1. Com data marcada
 
-## 🏠 Hoje (capa)
-- Quase tudo pronto. Recebe o **Álbum da semana** e o **Modo Viagem** (ver Estruturais).
+- 🔴 **Roteiro de Chicago (20–24/09)** ⏳ — a viagem é **13–26/09/2026** e hoje há
+  só um marcador vazio em 20/09. Ela manda os lugares; eu preencho no mesmo padrão
+  de Nova York (descrição, horário de abertura, preço, link do Maps, site) e
+  confirmo o voo NY→Chicago. **É o único item com prazo real.**
+- 🟡 **Esportes: manter a agenda viva** — `esportesSeed.js` é escrito à mão e
+  envelhece sozinho. Antes de reescrever, buscar na web datas/confrontos/transmissões.
 
-## 🧭 Explorar
-- Calendário cultural, **Conteúdos para assistir** e **Próximas leituras** já vivem aqui. ✅ O Calendário
-  cultural tem o botão **"↻ Eventos recorrentes"**. ✅ **Próximas leituras** (livros em casa, por tema ·
-  país · ano · gênero; tema no lugar de sinopse, sem spoiler) — FALTA semear a lista de livros da Mari
-  (`ensureLeituras*`) quando ela mandar os nomes. A reforma dos cards é estrutural — sem pendência só desta página.
+## 2. Segurança (o que ainda pode dar errado)
 
-## 🗓️ Calendário
-- 🟡 **Diário cultural narrativo** — "em junho: leu X, visitou o MASP, viajou pra Y".
+- 🟢 **Bug: conta inválida vira 0 no lançamento de gasto** — o campo aceita conta
+  ("30+45"); se a conta estiver quebrada, o valor **vira zero em silêncio**. É a
+  mesma armadilha que já foi consertada nos Salários (`contaInvalida()` trava o
+  salvar) e continua de pé no `GastoForm`. **É perda de dado — deveria ser o próximo.**
+- 🟡 **O relógio do aparelho decide quem vence** — entre celular e computador,
+  quem tem a hora mais adiantada ganha, mesmo estando errado. Hoje não incomoda
+  porque a mescla por fatia resolve quase tudo; vira problema se um aparelho
+  estiver com a hora torta.
+- 🟡 **Publicar com o app aberto pode quebrar a aba dela** — cada publicação
+  renomeia os pedaços do app, e a aba já aberta pode não achar mais a peça ao abrir
+  uma seção. A rede de proteção segura o tombo, mas o certo é avisar "tem versão
+  nova, recarregue".
+- 🟡 **Não existe nenhum teste automático** — inclusive das regras de não perder
+  dado. Hoje tudo é conferido no olho, uma vez, na hora.
+- 🟢 **Sem internet o app não abre** — dá pra editar depois de aberto, mas abrir
+  precisa de rede (não há cópia offline do app). Nunca atrapalhou; fica registrado.
 
-## 💛 Life
-*(seções: Compras ✅ · Planos ✅ · Vida Financeira ✅ · Saúde ✅ · Aprendizados ✅ · Estudos ✅ · Legendas ✅ · Viagens)*
-- ✅ **Legendas** — frases salvas pra reusar, em grupos livres (ex.: "Madrid", "mergulho") + Gerais;
-  cada legenda = título + texto; tocar copia, ✎ edita; ⚙ renomeia/reordena/apaga grupos.
-- ✅ **Estudos** — virou **hub** de cards. ✅ **Acompanhamento de leituras** (livro em curso, de perto:
-  mapa de personagens que a Mari constrói sem spoiler + relações; anotações datadas; guia de contexto
-  sem spoiler; "na estante" cruzando com os lidos por país **OU** época). Seed **Anna Kariênina** (Tolstói, 1877).
-  FALTA (a Mari vai detalhar): card **Temas para estudar** e **registro do que aprendeu** por tema. Guia por
-  livro hoje é seedado à mão (Anna); ideia futura: botão "pedir guia" pra qualquer livro acompanhado.
-  (Um card **Cursos online** chegou a existir e foi removido a pedido da Mari — pode voltar no futuro.)
-- 🟢✅ **Viagens** — seção real: viagens **futuras** com card (datas, hospedagem, passagens, programação,
-  homenageada, checklist "o que levar"). Seed FLIP 2026 (22–26/jul, Paraty; 21 mesas; Orides Fontela).
-  Alimenta o Modo Viagem. Cada mesa já tem o **link oficial** (flip.org.br/evento/…). ✅ **"Viagens que
-  quero fazer"** — wishlist por região (Brasil/América Latina/Europa/América do Norte/Ásia/África), destinos
-  checáveis, editável (botão na aba Viagens). FALTA: **feitas** (passado, hoje na Retrospectiva) · juntar
-  com listas de compras por ocasião.
-- **Vida Financeira:** ✅ **VR** (por dia, na capa) · ✅ **Posso gastar** (Total+Mercado, capa + Retrospectiva) ·
-  ✅ seletor de mês em **dropdown** · ✅ **Coisas** normal + "Compras caras" num botão · ✅ Mercado: subgrupo
-  "Cozinha de atleta" → **"Performance"**. FALTA: 🟡 bloco **"Investimentos"** (do print) · 🟡 **aporte vs
-  rendimento** (separar "quanto aportei" de "quanto rendeu"). ✅ 2ª linha de total ("Sem viagem/fixos/mercado") na vista **Tabela**.
-- 🔴 **"Performance"** (recurso novo de finanças, ⏳ a Mari vai detalhar) — **fazer quando ela receber o
-  salário**. (É diferente do subgrupo "Performance" do Mercado, que já existe.)
-- **Saúde:** 🟡 **lembrete** de quando um remédio acaba (início + duração) · 🟡 **previsão da próxima
-  menstruação** (média dos ciclos).
+## 3. Finanças (o plano por passos)
 
-## 📊 Retrospectiva
-*(prontos: ✅ ano em números · ✅ Gastos (grid por categoria; Coisas=compras itemizado; deep-link da VF) · ✅ Música · ✅ Corridas · ✅ Dias importantes · ✅ Viagens · ✅ Leituras)*
-- ✅ **Leituras** — livros por ano (gráfico), páginas no ano, países/idiomas (lista c/ bandeiras), gênero/tema
-  mais lido. Usa o slice `leituras` (lido + `lidoEm`/`paginas`/`pais`/`idioma`/`tipo`/`temas`).
-- ✅ **Quem você viu** — soma as pessoas marcadas (`comQuem`) em eventos/rolês/cultura, por ano; clica → encontros.
-- ✅ **Saúde** — nº de sessões de terapia, consultas, exames (eventos categoria 'saude', classificados pelo título).
-- ✅ **Viagens** — timeline por ano + países com bandeiras + barras por ano (jovem→2026). Editável.
-- ✅ **Amorosa** *(privada)* — sexo/dates/beijos/casos por ano + botão **Total** (linha do tempo inteira);
-  cada registro com pessoa/onde/quanto gastou/comentário; **cadeado** no topo borra nomes+valores.
-  Já semeados os registros da Mari. FUTURO possível: PIN próprio, correlações com humor.
-- ✅ **Corridas: trajeto** desenhado — sobe o **GPX** do Strava/Garmin e o app desenha o percurso
-  (linha SVG, largada verde/chegada vermelha). `parseGpx`/`RotaField`/`RotaChart` em `src/rota.jsx`
-  (projeta lat/lon com correção de latitude, simplifica p/ ~250 pontos, guarda em `exercicio.rota`).
-  Corrida treino virou **rua** (`corrida_treino_rua`) e **esteira** (`corrida_treino_esteira`); o
-  trajeto aparece no form do Calendário p/ **rua + prova** (esteira não) e no card de prova da Retrô.
-- 🟡 **Música → indicações de álbuns** (usar o histórico do Spotify pra recomendar).
-- ✅ (refino) opção **"por mês"** no ano em números, além do "por ano".
+Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
 
----
+- 🔴 **Passo 4 — lançador rápido** ⏳ — lançar o gasto **na hora que acontece**, já
+  categorizado, em vez de colar totais do Excel. É o passo que ela mais quer.
+- 🟡 **Gastos detalhados: acabar com o "outros"** ⏳ — hoje são duas listas que
+  divergem (o total do mês, digitado; e os itens, com nome). A diferença vira uma
+  linha "outros". O objetivo é o total ser a **soma dos itens**. Ela ia mandar um
+  desenho do layout — esperar o rascunho.
+- 🟡 **Investimentos: separar aporte de rendimento** — quanto ela pôs vs quanto rendeu.
+- 🟡 **Chip "Evolução"** — comparar um ano com o outro.
+- 🔴 **"Performance"** ⏳ — recurso novo que ela vai detalhar. (Não confundir com o
+  subgrupo "Performance" do Mercado, que já existe.)
+- ⏸ **Ano a ano** — parado até 2027 ter dados de verdade (decisão dela, 29/07).
+- 🟢 **CDBs antigos** ⏳ — ela ofereceu reclassificar em massa; eu perguntei antes e
+  a decisão ficou parada.
+- 🟢 **`comprasFeitas` sem tela** ⏳ — os registros continuam no documento dela sem
+  nenhuma tela que os leia (a tela foi apagada em 31/07 a pedido dela). Apagar de
+  vez ou dar tela? Falta a palavra dela.
 
-# IDEIAS (eventualmente) — brainstorm jun/2026
+## 4. Estudos e leituras
 
-**📚 Leituras** *(em cima da aba nova)*
-- ✅ **Retrospectiva de Leituras** (feita — ver acima).
-- 🟡 **"Me sugere um livro"** — sugere da Estante por tempo/humor/tema ("tá com 1h? esse tem 96 páginas").
-- ✅ **Trechos favoritos** — frases marcantes por livro (dentro de Retrospectiva → Leituras; agrupadas por livro).
+- 🟡 **Temas para estudar + o que aprendi por tema** ⏳ — ela vai detalhar.
+- 🟡 **"Pedir guia" pra qualquer livro** — hoje o guia de contexto é escrito à mão
+  (só Anna Kariênina tem).
+- 🟡 **"Me sugere um livro"** — sugere da estante por tempo/humor/tema ("tá com 1h?
+  esse tem 96 páginas").
 
-**🎬 Novas coleções (mesmo molde da de livros)**
-- 🟡 **Filmes & séries vistos** — aba gêmea da de leituras: por ano · diretor · país · gênero, com nota e filtros.
-- 🟡 **Lugares** — restaurantes/cafés/cidades que foi e quer ir, por cidade (conversa com Eventos recorrentes).
-- ✅ **Álbuns marcantes** — coleção de discos por ano/artista + link do Spotify (dentro de Retrospectiva → Música).
+## 5. Saúde
 
-**🪞 Pessoais / reflexivas**
-- 🔴 **"Seu ano em revisão" (Wrapped)** — tela linda no fim do ano juntando livros, viagens, corridas, música,
-  humor, gastos, dias importantes. Grand finale da Retrospectiva.
-- 🟡 **"Neste mês, anos atrás"** — memórias do mesmo mês em anos passados (diário, livros, viagens).
+- 🟡 **Aviso de remédio acabando** — a partir do início + duração.
+- 🟡 **Previsão da próxima menstruação** — média dos ciclos.
 
-**🌍 Cruzando tudo**
-- 🔴 **Mapa-múndi pessoal** — mapa que se preenche com países visitados (viagens) + países dos autores lidos +
-  filmes. "O mundo que você percorreu lendo e viajando."
-- 🟡 **Humor + correlações** — padrões do humor ("fica melhor nos dias que corre ou lê").
+## 6. Viagens
 
----
+- 🟡 **Viagens feitas** — o passado hoje mora na Retrospectiva e o futuro em Life.
+  Juntar os dois (uma coisa, um lugar).
 
-## Para depois (não é prioridade — decisão da Mari)
-- 🟡 **Imagem de fundo da tela de senha** — fotos bonitas ligadas à estação/frio (hoje é só cor).
-- 🟢 **Número de frases de abertura** — ~**181** (era 12); dá pra continuar engordando.
+## 7. Ideias (sem pressa, nenhuma começada)
+
+- 🔴 **"Seu ano em revisão"** — a tela do fim do ano juntando livros, viagens,
+  corridas, música, humor, gastos e dias importantes.
+- 🔴 **Mapa-múndi pessoal** — países visitados + países dos autores lidos.
+- 🟡 **Filmes & séries vistos** — coleção no mesmo molde da de leituras.
+- 🟡 **Lugares** — restaurantes/cafés/cidades que foi e quer ir.
+- 🟡 **"Neste mês, anos atrás"** — memórias do mesmo mês em anos passados.
+- 🟡 **Humor + correlações** — "fica melhor nos dias que corre ou lê".
+- 🟡 **Diário cultural narrativo** — "em junho: leu X, foi ao MASP, viajou pra Y".
+- 🟡 **Indicações de álbuns** a partir do histórico do Spotify.
+- 🟢 **Imagem de fundo na tela de senha** — hoje é só cor.
 
 ---
 
-## Descartadas (decisão da Mari — não ressuscitar)
-- **Rabbit Hole** (túnel "me leve mais fundo") · **Pessoas / linhas do tempo** de figuras ·
-  **Subtítulos das páginas** (a Mari prefere sem subtítulo, mais clean).
+## Morreu com os cards (não ressuscitar)
+
+Os cards (Texto · Cartas · Imagem · Cena · Mito · Mundo) foram **excluídos** em
+ago/2026 — não é mais essa a intenção do app. Caiu junto tudo que dependia deles:
+reforma dos cards, **malha de temas**, **conexões "continua em"**, **perguntas ao
+fim do card**, **coleção de Cartas**, **Álbum da semana no Explorar** e o **Mapa da
+mente**. O Explorar hoje é só: Calendário cultural · Conteúdos para assistir ·
+Próximas leituras · Esportes.
+
+## Descartadas antes (decisão dela)
+
+**Rabbit Hole** · **Pessoas / linhas do tempo** de figuras · **subtítulos das
+páginas** (ela prefere sem, mais clean) · **Cursos online**.
 
 ---
 
-## Já feito (marcos)
+## Regras que valem pra qualquer item daqui
 
-**Base:** Salvos na nuvem (sync) · senha `taylor13` · navegação (reclicar aba volta à capa; "diagonal"
-→ Hoje) · "Neste dia" + "Sabia que" (366 dias) · frase de abertura em **145** (com **estrela pra salvar
-favoritas** → card "Frases" nos Salvos).
+1. **Conteúdo novo entra pelo documento dela**, nunca por um bilhete que roda a
+   cada abertura. Os 51 antigos foram apagados em 11/ago/2026 — não criar mais.
+2. **Menos mecanismo, mais português.** Quando ela reclama, a resposta é tirar
+   coisa e trocar jargão — não somar mais uma camada.
+3. **Nada pode sumir.** Migração só adiciona, nunca remove.
 
-**Calendário:** completo (Mês/Agenda/Exercício/Humor) · tarefa vencida rola pra hoje · cultural com link ·
-**lembrete recorrente do Spotify** (dia 1) · rolê com campo **"Onde"** · Hoje mostra o **exercício do dia**.
-
-**Life:** **Compras** (sublistas/grupo; data limite vencida rola pra hoje) · **Planos** (checklist 1ª aba +
-**prazo por item**, sincroniza com o Calendário) · **Vida Financeira** (Carteira/Salários/Gastos; 2ª linha
-de total) · **Saúde** (consultas ordenadas + "Passado"; exercícios sem meses futuros + **Próximas metas**;
-peso manhã/tarde/noite + lista colapsável; remédios/vacinas/menstruação com **data de fim**) ·
-**Aprendizados** (Café/Tecidos/Fotografia/Vinhos/Vida/Maquiagem). Calendário cultural foi pra Explorar.
-
-**Retrospectiva (aba nova):** "ano em números" clicável (**provas de corrida** com km/tempo; **km
-corridos** clicável → por data + por mês com evolução) · **Compras** (histórico próprio, marcado
-manualmente; jan–jun/2026; subtotal/mês — as listas de compras NÃO alimentam mais a Retrospectiva nem
-a Vida Financeira) · **Música** (Spotify por mês, jan–mai/2026, total do ano) · **Corridas** (provas
-do Calendário: meta × executado, pace real/meta, "bateu a meta", melhor pace + gráfico de evolução).
-
-**Outros desta rodada:** **Conteúdos para assistir** (Explorar — salvar vídeos/matérias por tipo) ·
-**Aprendizados** reordenáveis (⚙) · clicar item da agenda na **Hoje** abre a edição · campo de **km
-aceita decimais** (5.2) no celular · livros lidos + prova "Corrida 7km SP" semeados · **seletor de ano**
-nos cards Compras/Música/Corridas da Retrospectiva (consistente com "ano em números").
-
-**Rodada jul/2026:** **sync blindado** (não apaga a nuvem em falha de leitura; retry; `_rev` anti-perda;
-keepalive no flush; aviso de falha) · **Calendário**: lista de exercícios (Passado/Próximos) · **audiobooks**
-"Ouvindo/Ouvido" (capa + Calendário + Retrospectiva "livros ouvidos") · **Tela Hoje enxuta** · **Vida
-Financeira**: dropdown de mês, Coisas normal, Mercado→Performance · **Retrospectiva**: coluna de Total,
-Posso gastar + VR dentro de Gastos (fora do total) · **VR** e **Posso gastar** (capa + Retrospectiva).
-
-> Deploy: `git push origin main` → Vercel republica. Tudo sincroniza na nuvem (Upstash Redis
-> via `/api/data`); em `npm run dev` local não há `/api`, então cai no `localStorage`.
+> Deploy: `git push origin main` → a Vercel republica.
