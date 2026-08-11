@@ -42,6 +42,15 @@ Simplificação pedida junto:
   minutos por mês. `MusicaRetro` abre direto na visão **Gráfico**, e o atalho
   interno pros Álbuns saiu: cada um tem sua porta no hub.)
 
+**Programação da viagem em TRÊS seções** (botões no topo, ago/2026): `Dias`,
+`Sem data` e `🛍️ Lojas`, controladas por `abaProg`. Eram os mesmos três blocos,
+mas empilhados numa rolagem só — durante a viagem ela ia parar no fim da página
+pra ver o que tinha ficado pra trás. `Sem data` junta duas coisas diferentes (por
+isso continuam separadas dentro dela): o que ainda não tem dia (`bucket:'semdata'`)
+e o que tinha dia, o dia passou e ela não deu o ☑ (volta pro dia ao marcar).
+Junto veio o conserto de um buraco: item sem `bucket` e sem `dia` não caía em
+bloco nenhum e era **invisível** — existia no documento e não aparecia na tela.
+
 ## Faxina de 11/ago/2026 (seis itens que a Mari pediu em lista)
 
 1. **Calendário e Salvos ganharam as MESMAS duas correções que a Life** tinha

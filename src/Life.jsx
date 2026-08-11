@@ -3743,6 +3743,10 @@ function ViagemDetail({ trip, onBack }) {
   const [novoComprasV, setNovoComprasV] = useState('');
   const [novoFazer, setNovoFazer] = useState('');
   const [ordProg, setOrdProg] = useState(false);   // modo "⇅ mudar a ordem" da programação
+  // Programação em três seções (pedido da Mari, ago/2026): antes eram três blocos
+  // empilhados numa rolagem só, e durante a viagem ela ia parar no fim da página
+  // pra ver o que tinha ficado pra trás. Agora são três botões no topo.
+  const [abaProg, setAbaProg] = useState('dias');  // dias | depois | lojas
   const [notaForm, setNotaForm] = useState(null);  // null | {} nova nota | {nota} editar
   // Capa da viagem = hospedagem/passagens + os cards. `aba` diz qual card está aberto
   // (null = capa; 'sec:<id>' = um card livre criado por ela).
@@ -3971,6 +3975,10 @@ function ViagemDetail({ trip, onBack }) {
   const lojasProg = ordenarProg(mesasFiltradas.filter(m => m.bucket === 'lojas'));
   const ficouPraTras = (m) => !m.bucket && m.dia && m.dia < hojeProg && !m.visitado;
   const outrasProg = mesasFiltradas.filter(ficouPraTras);
+  // Lugar SEM DATA ainda. Antes isto era um buraco: item sem `bucket` e sem `dia`
+  // não caía em bloco nenhum e simplesmente não aparecia na tela — existia no
+  // documento e era invisível. Agora tem lugar próprio (a 2ª seção).
+  const semDataProg = ordenarProg(mesasFiltradas.filter(m => m.bucket === 'semdata' || (!m.bucket && !m.dia)));
   const noRoteiro = mesasFiltradas.filter(m => !m.bucket && m.dia && !ficouPraTras(m));
   const dias = [...new Set(noRoteiro.map(m => m.dia))].sort();
   const totalFav = todasMesas.filter(m => m.favorito).length;
@@ -4087,6 +4095,21 @@ function ViagemDetail({ trip, onBack }) {
   // ---- Programação (o roteiro por dia; na FLIP, as sessões com filtros) ----
   const viewProgramacao = () => (
     <div>
+      {/* As três seções. O número do lado é o que tem dentro — durante a viagem,
+          "Ficou para depois" enche sozinho, e ela vê isso sem precisar rolar. */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[['dias', 'Dias', dias.length], ['depois', 'Sem data', semDataProg.length + outrasProg.length], ['lojas', '🛍️ Lojas', lojasProg.length]].map(([v, lbl, n]) => {
+          const on = abaProg === v;
+          return (
+            <button key={v} onClick={() => setAbaProg(v)} style={{
+              flex: 1, padding: '9px 4px', borderRadius: 10, cursor: 'pointer',
+              border: '1px solid ' + (on ? COR_VIAGEM : '#e2e2e2'),
+              background: on ? COR_VIAGEM : '#fff', color: on ? '#fff' : '#777',
+              fontSize: 12.5, fontWeight: 700, fontFamily: 'inherit',
+            }}>{lbl}{n > 0 ? <span style={{ opacity: on ? 0.75 : 0.5 }}> {n}</span> : ''}</button>
+          );
+        })}
+      </div>
       {temParalela && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
@@ -4123,14 +4146,7 @@ function ViagemDetail({ trip, onBack }) {
         {ordProg ? 'pronto' : '⇅ mudar a ordem'}
       </button>
       {ordProg && <p style={{ fontSize: 11.5, color: COR_VIAGEM, margin: '0 0 10px', lineHeight: 1.5 }}>Use ↑ ↓ pra arrumar os lugares dentro de cada dia. A ordem que você deixar passa a valer no lugar do horário.</p>}
-      {/* TOPO — lojas pra passar: sem dia, marcadas conforme ela entra em cada uma. */}
-      {lojasProg.length > 0 && (
-        <div style={{ marginBottom: 16, background: '#fffaf4', border: '1px solid #ffd9b0', borderRadius: 12, padding: '10px 12px 6px' }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b06d1e', marginBottom: 2 }}>🛍️ Lojas para passar</div>
-          <div style={{ fontSize: 11, color: '#bb9066', marginBottom: 8 }}>sem dia marcado — vá marcando conforme passar</div>
-          {lojasProg.map(m => cardProg(m, lojasProg))}
-        </div>
-      )}
+      {abaProg === 'dias' && <>
       {/* Um dia pode ter ROTEIROS ALTERNATIVOS (item com `opcao`): aí ele aparece
           repetido, um bloco por opção, como se fossem dois dias — foi o que a Mari
           pediu pro 17/09 (Filadélfia OU outlet). Sem `opcao`, nada muda. */}
@@ -4151,17 +4167,46 @@ function ViagemDetail({ trip, onBack }) {
           </div>
         ));
       })}
-      {/* FIM — o que ficou pra trás: dia já passou e não foi marcado. Some daqui
-          assim que ela marcar o ☑ (volta pro dia, riscado). */}
-      {outrasProg.length > 0 && (
-        <div style={{ marginTop: 18, background: '#f7f7f9', border: '1px solid #e6e6ec', borderRadius: 12, padding: '10px 12px 6px' }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Outras experiências</div>
-          <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>ficou pra trás e você não marcou — dá pra fazer noutro dia, ou marcar se acabou fazendo</div>
-          {outrasProg.map(m => cardProg(m))}
-        </div>
-      )}
-      {dias.length === 0 && lojasProg.length === 0 && outrasProg.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'vazio — toque em + adicionar pra montar o roteiro por dia.'}</div>}
-      <button onClick={() => setProgForm({})} style={{ marginTop: 2, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
+      {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'nenhum lugar marcado num dia ainda.'}</div>}
+      </>}
+
+      {/* 2ª seção — o que ainda não tem dia. Duas coisas diferentes moram aqui, e
+          por isso continuam separadas: o que ela ainda não marcou pra nenhum dia,
+          e o que tinha dia, o dia passou e ela não deu o ☑. O segundo volta pro
+          dia (riscado) assim que ela marcar. */}
+      {abaProg === 'depois' && <>
+        {semDataProg.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Ainda sem data</div>
+            <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>lugares que você quer ir, mas ainda não encaixou num dia</div>
+            {semDataProg.map(m => cardProg(m, semDataProg))}
+          </div>
+        )}
+        {outrasProg.length > 0 && (
+          <div style={{ marginTop: semDataProg.length ? 18 : 0 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Ficou para depois</div>
+            <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>o dia passou e você não marcou — dá pra fazer noutro dia, ou marcar se acabou fazendo</div>
+            {outrasProg.map(m => cardProg(m))}
+          </div>
+        )}
+        {semDataProg.length === 0 && outrasProg.length === 0 && (
+          <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10, lineHeight: 1.6 }}>
+            Nada por aqui — tudo que você quer ver está marcado num dia. Quando um dia passar sem você dar o ☑, o lugar aparece aqui sozinho.
+          </div>
+        )}
+      </>}
+
+      {/* 3ª seção — lojas: lista de passagem, não compromisso. Nunca tem dia. */}
+      {abaProg === 'lojas' && <>
+        {lojasProg.length > 0 ? <>
+          <div style={{ fontSize: 11, color: '#bb9066', marginBottom: 8 }}>sem dia marcado — vá marcando conforme passar</div>
+          {lojasProg.map(m => cardProg(m, lojasProg))}
+        </> : (
+          <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>Nenhuma loja na lista ainda.</div>
+        )}
+      </>}
+
+      <button onClick={() => setProgForm({})} style={{ marginTop: 8, padding: '9px 14px', borderRadius: 10, border: '1px dashed ' + COR_VIAGEM, background: '#fff', color: COR_VIAGEM, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ adicionar à programação</button>
     </div>
   );
 
@@ -4332,9 +4377,10 @@ function ViagemDetail({ trip, onBack }) {
 // já reagenda o lugar pra outra data da viagem (fica dentro do intervalo início–fim).
 function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose }) {
   const [dia, setDia] = useState(item?.dia || trip.inicio || '');
-  // 'dia' = entra no roteiro daquela data · 'lojas' = vai pro bloco "Lojas para
-  // passar", no topo, sem data (é lista de passagem, não compromisso).
-  const [onde, setOnde] = useState(item?.bucket === 'lojas' ? 'lojas' : 'dia');
+  // As três seções da Programação: 'dia' = entra no roteiro daquela data ·
+  // 'semdata' = quer ir, ainda não sabe quando · 'lojas' = lista de passagem
+  // (não é compromisso). As duas últimas nunca têm data.
+  const [onde, setOnde] = useState(item?.bucket === 'lojas' ? 'lojas' : (item?.bucket === 'semdata' || (item && !item.dia) ? 'semdata' : 'dia'));
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
   const [tipo, setTipo] = useState(item?.tipo || (mostrarTipo ? 'paralela' : ''));
@@ -4345,12 +4391,13 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
   const [maps, setMaps] = useState(item?.maps || '');
   const [link, setLink] = useState(item?.link || '');
   const ehLoja = onde === 'lojas';
-  const podeSalvar = titulo.trim().length > 0 && (ehLoja || !!dia);
+  const semDia = onde !== 'dia';              // lojas e "ainda sem data" não têm dia
+  const podeSalvar = titulo.trim().length > 0 && (semDia || !!dia);
   const salvar = () => {
     if (!podeSalvar) return;
     // horaMin recalculado a partir da hora digitada, p/ manter a ordenação por horário.
     const hx = /(\d{1,2})\s*h\s*(\d{2})?/.exec(hora.trim()) || /(\d{1,2}):(\d{2})/.exec(hora.trim());
-    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia: ehLoja ? '' : dia, bucket: ehLoja ? 'lojas' : undefined, hora: ehLoja ? undefined : (hora.trim() || undefined), titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
+    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia: semDia ? '' : dia, bucket: ehLoja ? 'lojas' : (onde === 'semdata' ? 'semdata' : undefined), hora: semDia ? undefined : (hora.trim() || undefined), titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
     if (mostrarTipo) {
       obj.tipo = tipo || 'paralela';
       obj.casa = casa.trim() || undefined;
@@ -4369,12 +4416,15 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
         </div>
         <label style={labelStyle}>Onde entra</label>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[['dia', 'Num dia do roteiro'], ['lojas', '🛍️ Lojas para passar']].map(([v, lbl]) => (
+          {[['dia', 'Num dia'], ['semdata', 'Ainda sem data'], ['lojas', '🛍️ Lojas']].map(([v, lbl]) => (
             <button key={v} onClick={() => setOnde(v)} style={{ flex: 1, padding: '8px 6px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (onde === v ? COR_VIAGEM : '#e2e2e2'), background: onde === v ? COR_VIAGEM + '1c' : '#fff', color: onde === v ? '#1a7a6e' : '#888' }}>{lbl}</button>
           ))}
         </div>
-        {ehLoja ? (
-          <p style={{ fontSize: 11.5, color: '#aaa', margin: '6px 2px 0', lineHeight: 1.5 }}>Fica no bloco do topo, sem data — você marca conforme passar.</p>
+        {semDia ? (
+          <p style={{ fontSize: 11.5, color: '#aaa', margin: '6px 2px 0', lineHeight: 1.5 }}>
+            {ehLoja ? 'Vai pra seção 🛍️ Lojas, sem data — você marca conforme passar.'
+              : 'Vai pra seção "Sem data". Quando decidir o dia, é só abrir o lugar e escolher "Num dia".'}
+          </p>
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
