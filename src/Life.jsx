@@ -3724,6 +3724,7 @@ function ViagemDetail({ trip, onBack }) {
   const [novoComprasV, setNovoComprasV] = useState('');
   const [novoFazer, setNovoFazer] = useState('');
   const [ordProg, setOrdProg] = useState(false);   // modo "⇅ mudar a ordem" da programação
+  const [notaForm, setNotaForm] = useState(null);  // null | {} nova nota | {nota} editar
   // Capa da viagem = hospedagem/passagens + os cards. `aba` diz qual card está aberto
   // (null = capa; 'sec:<id>' = um card livre criado por ela).
   const [aba, setAba] = useState(null);
@@ -3774,6 +3775,31 @@ function ViagemDetail({ trip, onBack }) {
   // Ordem MANUAL dentro de um dia (ou do bloco de lojas): troca o item de lugar
   // com o vizinho e carimba `ordem` em TODOS do bloco, pra a posição virar
   // definitiva. Enquanto ninguém mexe, o dia continua ordenado por horário.
+  // ---- Notas da viagem: várias, em vez de um texto só ----
+  // O campo antigo (`trip.notas`, texto único) NÃO é apagado nem convertido por
+  // conta própria: ele aparece como a primeira nota, com o id especial `_texto`.
+  // Só quando a Mari EDITAR essa nota é que o texto migra pra lista — decisão
+  // dela, não minha. Depois disso o campo antigo fica vazio e some.
+  const notasViagem = [
+    ...((trip.notas || '').trim() ? [{ id: '_texto', texto: trip.notas }] : []),
+    ...(trip.notasLista || []),
+  ];
+  const salvarNota = (nota) => {
+    const lista = trip.notasLista || [];
+    if (nota.id === '_texto') {
+      // migra o texto antigo pra lista, com o conteúdo que ela acabou de salvar
+      salvar({ notas: '', notasLista: [{ id: 'nv' + Date.now().toString(36), texto: nota.texto }, ...lista] });
+    } else if (nota.id && lista.some(n => n.id === nota.id)) {
+      salvar({ notasLista: lista.map(n => (n.id === nota.id ? { ...n, texto: nota.texto } : n)) });
+    } else {
+      salvar({ notasLista: [...lista, { id: 'nv' + Date.now().toString(36), texto: nota.texto }] });
+    }
+  };
+  const apagarNota = (id) => {
+    if (id === '_texto') salvar({ notas: '' });
+    else salvar({ notasLista: (trip.notasLista || []).filter(n => n.id !== id) });
+  };
+
   const moverMesa = (lista, id, dir) => {
     const i = lista.findIndex(m => m.id === id);
     const j = i + dir;
@@ -3986,6 +4012,7 @@ function ViagemDetail({ trip, onBack }) {
       {orcForm && <OrcamentoViagemForm trip={trip} oc={oc} onClose={() => setOrcForm(false)} />}
       {catForm && <CategoriaOrcForm trip={trip} cat={catForm.cat} moeda={oc.moeda} onClose={() => setCatForm(null)} />}
       {endForm && <EnderecoForm end={endForm.end} onSave={saveEndereco} onDelete={delEndereco} onClose={() => setEndForm(null)} />}
+      {notaForm && <NotaViagemForm nota={notaForm.nota} onSave={salvarNota} onDelete={apagarNota} onClose={() => setNotaForm(null)} />}
     </>
   );
   const btnVoltar = { background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 };
@@ -4242,11 +4269,19 @@ function ViagemDetail({ trip, onBack }) {
 
       {bloco('Hospedagem', anotavel(trip.hospedagem))}
       {bloco('Passagens', anotavel(trip.passagens))}
-      {/* O campo Notas existia no formulário e era SALVO, mas a capa nunca o
-          mostrava — a Mari escreveu e o texto sumiu de vista. Só aparece quando
-          tem conteúdo, pra não poluir viagem sem nota. `anotavel` respeita as
-          quebras de linha e a linha em branco entre parágrafos. */}
-      {(trip.notas || '').trim() && bloco('Notas', anotavel(trip.notas))}
+      {/* Notas: uma ou várias. Cada uma é um cartão — toque pra editar ou apagar.
+          O texto respeita quebra de linha e linha em branco entre parágrafos. */}
+      {bloco('Notas', (
+        <div>
+          {notasViagem.map(n => (
+            <div key={n.id} onClick={() => setNotaForm({ nota: n })} title="tocar pra editar" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', marginBottom: 6, cursor: 'pointer', fontSize: 13.5, color: '#333', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+              {n.texto}
+            </div>
+          ))}
+          {notasViagem.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 6 }}>nenhuma nota ainda.</div>}
+          <button onClick={() => setNotaForm({})} style={btnPontilhado}>+ nota</button>
+        </div>
+      ))}
 
       {trip.homenageada && bloco('Autora homenageada', (
         <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
@@ -4513,6 +4548,28 @@ function SecaoForm({ localInicial = 'card', onSave, onClose }) {
           <option value="listas">Dentro de Listas, embaixo das quatro</option>
         </select>
         <button onClick={salvar} disabled={!podeSalvar} style={{ width: '100%', marginTop: 22, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>Criar</button>
+      </div>
+    </div>
+  );
+}
+
+// Uma nota da viagem (texto solto). A viagem pode ter quantas ela quiser.
+function NotaViagemForm({ nota, onSave, onDelete, onClose }) {
+  const [texto, setTexto] = useState(nota?.texto || '');
+  const podeSalvar = texto.trim().length > 0;
+  const salvar = () => { if (podeSalvar) { onSave({ id: nota?.id, texto: texto.trim() }); onClose(); } };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{nota ? 'Editar nota' : 'Nova nota'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={8} autoFocus placeholder={'o que você quiser lembrar…\n\nLinha em branco separa parágrafos — ela é mantida.'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+          {nota && <button onClick={() => { onDelete(nota.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{nota ? 'Salvar' : 'Adicionar'}</button>
+        </div>
       </div>
     </div>
   );
