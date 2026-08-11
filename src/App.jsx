@@ -1080,34 +1080,41 @@ function SalvarFAB() {
 // sozinho (a cada 4s), então só alarma quando o erro PERSISTE (~8s = 2 tentativas
 // falhas seguidas), e some assim que um save volta a dar certo. Serve pra você
 // saber NA HORA que algo não está subindo, sem depender de clicar em Salvar.
+// Aviso de "não está salvo". Ele TEM que existir (foi a falha silenciosa que
+// custou um dia inteiro de edições), mas não pode gritar a cada tecla.
+//
+// O erro anterior: a pendência é marcada em TODO envio e só sai quando a nuvem
+// confirma — ou seja, ela existe por uma fração de segundo em qualquer save
+// normal. Como o aviso olhava "tem pendência?", ele piscava a cada mudança.
+//
+// Agora só aparece quando é problema DE VERDADE: pendência VELHA (mais de 2 min
+// sem confirmação — save saudável resolve em menos de 1s) ou erro que persiste.
+// E discreto: uma tarja fina, sem caixa vermelha no meio da tela.
+const PEND_VELHA = 120000;
 function SyncAlerta() {
-  const [show, setShow] = useState(false);
+  const [erroFirme, setErroFirme] = useState(false);
   const timer = useRef(null);
-  // Pendência REAL (sobrevive a fechar o app): enquanto existir, há edição que a
-  // nuvem nunca confirmou. Checa a cada 5s pra o aviso continuar de pé mesmo
-  // depois de recarregar — antes o alarme morria no reload e a Mari abria o app
-  // achando que estava tudo salvo.
-  const [pend, setPend] = useState(() => pendenciasAbertas());
+  const [velha, setVelha] = useState(0);   // desde quando há pendência não confirmada
   useEffect(() => {
-    const id = setInterval(() => setPend(pendenciasAbertas()), 5000);
+    const ver = () => {
+      const ts = pendenciasAbertas().map(f => pendenteDesde(f)).filter(Boolean);
+      const maisAntiga = ts.length ? Math.min(...ts) : 0;
+      setVelha(maisAntiga && (Date.now() - maisAntiga > PEND_VELHA) ? maisAntiga : 0);
+    };
+    ver();
+    const id = setInterval(ver, 20000);
     return () => clearInterval(id);
   }, []);
   useEffect(() => onSyncStatus((s) => {
-    if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setShow(false); setPend(pendenciasAbertas()); }
-    else if (s === 'error') { if (!timer.current && !show) timer.current = setTimeout(() => { timer.current = null; setShow(true); }, 8000); }
-  }), [show]);
-  const desde = pend.length ? Math.min(...pend.map(f => pendenteDesde(f)).filter(Boolean)) : 0;
-  // O aviso aparece se o save está falhando AGORA ou se ficou pendência de antes.
-  if (!show && !pend.length) return null;
-  const hMin = desde ? Math.round((Date.now() - desde) / 60000) : 0;
-  const quando = !desde ? '' : hMin < 60 ? `há ${Math.max(1, hMin)} min` : `há ${Math.round(hMin / 60)}h`;
+    if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setErroFirme(false); setVelha(0); }
+    else if (s === 'error') { if (!timer.current && !erroFirme) timer.current = setTimeout(() => { timer.current = null; setErroFirme(true); }, 15000); }
+  }), [erroFirme]);
+  if (!erroFirme && !velha) return null;
+  const min = velha ? Math.round((Date.now() - velha) / 60000) : 0;
+  const quando = !min ? '' : min < 60 ? ` há ${min} min` : ` há ${Math.round(min / 60)}h`;
   return (
-    <div style={{ position: 'fixed', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 200, maxWidth: 380, width: 'calc(100% - 24px)',
-      background: '#fff4f4', border: '2px solid #d05050', color: '#8a2a2a', fontSize: 12.5, lineHeight: 1.5, padding: '10px 13px', borderRadius: 12, boxShadow: '0 3px 16px rgba(0,0,0,0.18)' }}>
-      ⚠ <b>Suas mudanças NÃO estão salvas na nuvem{quando ? ` (${quando})` : ''}.</b> Elas estão só neste aparelho.
-      <div style={{ marginTop: 5 }}>
-        <b>Não abra o app em outro aparelho</b> até isto sumir — o outro pode gravar por cima. Se for fechar, baixe uma cópia em Life → Seus dados.
-      </div>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: '#fff4f4', borderBottom: '1px solid #e8b4b4', color: '#8a2a2a', fontSize: 11.5, lineHeight: 1.45, padding: '6px 12px', textAlign: 'center' }}>
+      ⚠ sem salvar na nuvem{quando} — está guardado neste aparelho. Evite abrir em outro até sumir.
     </div>
   );
 }
