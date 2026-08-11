@@ -4242,6 +4242,11 @@ function ViagemDetail({ trip, onBack }) {
 
       {bloco('Hospedagem', anotavel(trip.hospedagem))}
       {bloco('Passagens', anotavel(trip.passagens))}
+      {/* O campo Notas existia no formulário e era SALVO, mas a capa nunca o
+          mostrava — a Mari escreveu e o texto sumiu de vista. Só aparece quando
+          tem conteúdo, pra não poluir viagem sem nota. `anotavel` respeita as
+          quebras de linha e a linha em branco entre parágrafos. */}
+      {(trip.notas || '').trim() && bloco('Notas', anotavel(trip.notas))}
 
       {trip.homenageada && bloco('Autora homenageada', (
         <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '13px 15px' }}>
@@ -4555,7 +4560,7 @@ function ViagemForm({ editing, onClose, onDeleted }) {
         <label style={labelStyle}>Passagens</label>
         <textarea value={passagens} onChange={e => setPassagens(e.target.value)} rows={2} placeholder="ida e volta, horários, assento…" style={{ ...inputStyle, resize: 'vertical' }} />
         <label style={labelStyle}>Notas (opcional)</label>
-        <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={2} placeholder="qualquer outra coisa…" style={{ ...inputStyle, resize: 'vertical' }} />
+        <textarea value={notas} onChange={e => setNotas(e.target.value)} rows={6} placeholder={'qualquer outra coisa…\n\nLinha em branco separa parágrafos — ela é mantida.'} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           {editing && <button onClick={() => { life.deleteViagemFutura(editing.id); onClose(); onDeleted && onDeleted(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
           <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
