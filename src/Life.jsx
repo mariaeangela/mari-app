@@ -3687,7 +3687,12 @@ function QueroViajarView({ onBack }) {
 // Usa horaMin quando existe (seed da paralela); senão parseia a string "hora".
 function flipHoraMin(m) {
   if (typeof m.horaMin === 'number') return m.horaMin;
-  const x = /(\d{1,2})\s*h\s*(\d{2})?/.exec(m.hora || '');
+  // Aceita os DOIS formatos: "9h30" (digitado, seed da FLIP) e "19:00" (que é o
+  // que o campo de hora do formulário grava). Antes só o primeiro entrava, então
+  // qualquer viagem cujos horários viessem do seletor ficava SEM ordenação por
+  // hora — os itens saíam na ordem em que foram criados.
+  const s = (m.hora || '').trim();
+  const x = /(\d{1,2})\s*[h:]\s*(\d{2})?/.exec(s);
   return x ? (+x[1]) * 60 + (x[2] ? +x[2] : 0) : 9999;
 }
 

@@ -1247,6 +1247,35 @@ function ensureNYRoteiroV2(d) {
   return { ...d, nyRoteiroV2: true, nyRoteiroV3: true, nyRoteiroV4: true, nyRoteiroV5: true, nyRoteiroV6: true, nyRoteiroV7: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
 }
 
+// Ingresso COMPRADO (o 1º da viagem, 09/ago/2026): Harry Potter e a Criança
+// Amaldiçoada, sexta 18/09 às 19h, no Lyric Theatre.
+// Este patch é do tipo que passou a ser a regra: SÓ ACRESCENTA um item. Não lê,
+// não reescreve e não apaga nada do que a Mari já tem — nem o item genérico de
+// musical do mesmo dia, que é ela quem decide se some.
+function ensureNYHarryPotter(d) {
+  if (d.nyHarryPotter1) return d;
+  const viagens = d.viagensFuturas || [];
+  const i = viagens.findIndex(v => v.id === 'vf-nychicago2026');
+  if (i < 0) return d;
+  const trip = viagens[i];
+  const mesas = trip.mesas || [];
+  if (mesas.some(m => m.id === 'nyc-hp')) return { ...d, nyHarryPotter1: true };
+  const item = {
+    id: 'nyc-hp', dia: '2026-09-18', hora: '19:00',
+    titulo: '🎟️ Harry Potter e a Criança Amaldiçoada — INGRESSO COMPRADO',
+    desc: 'Lyric Theatre, 214 W 43rd St (entre a 7ª e a 8ª, ao lado da Times Square).\n\n'
+      + 'É uma PEÇA, não musical — a continuação da história, 19 anos depois, com Harry pai e o filho Albus. Efeitos de palco que são o motivo de todo mundo sair falando dela.\n\n'
+      + 'Dura 2h55 com um intervalo de 20 min, então termina por volta das 21h55.\n\n'
+      + 'Chegue 30 min antes: a entrada do Lyric tem fila e revista. Vale ver o saguão, que é art déco restaurado.',
+    abertura: 'Sessão 19h · portas 18h30',
+    preco: 'comprado ✓',
+    maps: gmap('Lyric Theatre 214 W 43rd St New York'),
+    link: 'https://broadway.harrypottertheplay.com/',
+  };
+  const nova = { ...trip, mesas: [...mesas, item] };
+  return { ...d, nyHarryPotter1: true, viagensFuturas: viagens.map((v, k) => (k === i ? nova : v)) };
+}
+
 function ensureNYChicago2026(d) {
   if (d.nyChicago2026Seeded) return d;
   const have = new Set((d.viagensFuturas || []).map(v => v.id));
@@ -1897,7 +1926,7 @@ function ensureCarteiraMesAtual(d) {
 }
 
 function runLifeSeeds(d) {
-  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureNYRoteiroV2, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
+  const seeds = [ensureMaquiagem, ensureMaquiagemGrupos, ensureNY26, ensureMusica, ensureMusicaJun, ensureMarcos, ensureAssistirLivros, ensureAssistirLivrosV2, ensureCoisasCaras, ensureViagens, ensureViagensCidades, ensureViagensMerge, ensureFlip2026, ensureFlipMesaLinks, ensureFlipDetalhes, ensureFlipTipoPrincipal, ensureFlipPurgeNaoFav, ensureNYChicago2026, ensureNYRoteiroV2, ensureNYHarryPotter, ensureLeiturasLidos, ensureLeiturasCasa, ensureLeiturasNaoTenho, ensureLeiturasTemasV2, ensureLeiturasTipo, ensureLeiturasOutros, ensureLeiturasCat, ensureLeiturasIdioma3, ensureLeiturasAnos, ensureLeiturasAmyr, ensureAssistirSemLivros, ensureGastosPresentes, ensureGastosFixos, ensureFixosJunhoFix, ensureGastos2026Detalhe, ensureAnnaKarenina, ensureViagensQuero, ensureViagensQueroV2, ensureViagensQueroFix, ensurePlanosViagem, ensureIngles, ensureInglesDaffodils, ensureAmorosaSeed, ensureAmorosaDate1, ensureAmorosaDate2, rolarComprasVencidas, rolarPlanosVencidos, ensureExpos2026, ensureExpos2026Lote2, ensureCarteiraMesAtual, ensureGastoSubcats, ensureRolesSemDiversos];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 
