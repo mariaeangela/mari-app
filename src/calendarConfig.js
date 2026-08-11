@@ -1,6 +1,5 @@
 // Configuração da aba Calendário: categorias de evento, tipos de cultura,
 // escala de humor e o "neste dia na história" (curado + Wikipédia).
-import { HISTORICAL_FACTS } from './contentLibrary.js';
 
 // --- Categorias de EVENTO (cor + rótulo). Ids estáveis (usados nos dados). ---
 // `aguardado: true` = entra na contagem regressiva ("faltam X dias").
@@ -167,6 +166,9 @@ export async function getOnThisDay(date) {
   const m = date.getMonth() + 1, d = date.getDate();
   const ck = `${m}-${d}`;
   if (ck in _factCache) return _factCache[ck];
+  // Os fatos curados (~40 KB) chegam sob demanda: o "Neste dia" já aparecia
+  // depois (esta função sempre foi assíncrona), então nada muda pra quem lê.
+  const { HISTORICAL_FACTS } = await import('./frasesEfatos.js');
   const curado = HISTORICAL_FACTS[ck];
   if (curado) return (_factCache[ck] = { texto: curado, fonte: 'curado' });
   try {

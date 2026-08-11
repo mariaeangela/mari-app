@@ -1,6 +1,6 @@
 // Aba "Life": hub pessoal. Seção "Listas de compras" funcional; demais seções
 // ainda em placeholder (vamos desenhar uma a uma).
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { useLife, MOEDAS, simboloMoeda, getOrcamentoViagem } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
 import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
@@ -5436,8 +5436,97 @@ function SeusDados() {
         alguma coisa der errado — no dia a dia você não precisa dela.
       </p>
       <BaixarCopia />
+      <TrazerDeVolta />
       <SumiuAlgo />
       <CopiasNoAparelho />
+    </div>
+  );
+}
+
+// 2) O caminho de volta do arquivo "Tudo (.json)". Até ago/2026 ele não existia:
+// ela conseguia baixar e NÃO conseguia devolver — dependia de mim pra isso, o que
+// tornava o backup meio inútil justo no dia em que fizesse falta.
+// Passo a passo de propósito: escolher o arquivo → VER o que tem dentro → só então
+// trocar. Nada acontece antes de ela ler o que vai entrar.
+function TrazerDeVolta() {
+  const life = useLife();
+  const cal = useCalendar();
+  const saved = useSaved();
+  const inputRef = useRef(null);
+  const [arquivo, setArquivo] = useState(null);   // { nome, doc, resumo[] }
+  const [erro, setErro] = useState('');
+  const [estado, setEstado] = useState('');       // '' | 'trocando' | 'pronto' | 'falhou'
+
+  const escolher = (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    setErro(''); setArquivo(null); setEstado('');
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      let doc;
+      try { doc = JSON.parse(String(leitor.result || '')); }
+      catch { setErro('Este arquivo não é um backup do Diagonal (não consegui ler).'); return; }
+      if (!doc || typeof doc !== 'object' || (!doc.life && !doc.calendario && !doc.saved)) {
+        setErro('Este arquivo não é um backup do Diagonal. Procure o que começa com "diagonal-backup".');
+        return;
+      }
+      const resumo = [];
+      if (doc.life) resumo.push(['Anotações e listas', oQueTem('life', doc.life)]);
+      if (doc.calendario) resumo.push(['Calendário', oQueTem('calendario', doc.calendario)]);
+      if (Array.isArray(doc.saved)) resumo.push(['Salvos', `${doc.saved.length} itens`]);
+      setArquivo({ nome: f.name, doc, resumo, quando: doc._exportadoEm });
+    };
+    leitor.onerror = () => setErro('Não consegui abrir o arquivo.');
+    leitor.readAsText(f);
+  };
+
+  const trocar = async () => {
+    if (!window.confirm('Trocar TUDO que está no app pelo que tem neste arquivo?\n\nO que está agora vai pra "cópias que ficaram neste aparelho" antes — dá pra desfazer.')) return;
+    setEstado('trocando');
+    const d = arquivo.doc;
+    const oks = [];
+    if (d.life) oks.push(await life.trocarTudo(d.life));
+    if (d.calendario) oks.push(await cal.trocarTudo(d.calendario));
+    if (Array.isArray(d.saved)) oks.push(await saved.trocarTudo(d.saved));
+    setEstado(oks.every(Boolean) ? 'pronto' : 'falhou');
+  };
+
+  return (
+    <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid #eee' }}>
+      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: '0 0 4px' }}>Trazer meu arquivo de volta</h3>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px', lineHeight: 1.6 }}>
+        Se um dia der tudo errado, é por aqui que você volta: escolha o arquivo <b>diagonal-backup</b> que
+        baixou, veja o que tem dentro e só então troque.
+      </p>
+      <button onClick={() => inputRef.current && inputRef.current.click()} style={{ ...btnPeq, width: '100%', padding: '11px 0', fontSize: 13 }}>
+        Escolher o arquivo…
+      </button>
+      <input ref={inputRef} type="file" accept=".json,application/json" onChange={escolher} style={{ display: 'none' }} />
+      {erro && <p style={{ fontSize: 12, color: '#c0392b', margin: '10px 0 0', lineHeight: 1.5 }}>{erro}</p>}
+      {arquivo && estado !== 'pronto' && (
+        <div style={{ marginTop: 12, background: '#fff', border: '1px solid #e2e2e2', borderRadius: 12, padding: '13px 15px' }}>
+          <div style={{ fontSize: 12.5, color: '#444', fontWeight: 700, wordBreak: 'break-all' }}>{arquivo.nome}</div>
+          {arquivo.quando && <div style={{ fontSize: 11.5, color: '#aaa', marginTop: 2 }}>baixado em {quandoTxt(Date.parse(arquivo.quando))}</div>}
+          <div style={{ marginTop: 10 }}>
+            {arquivo.resumo.map(([titulo, txt]) => (
+              <div key={titulo} style={{ fontSize: 12, color: '#666', lineHeight: 1.55, marginBottom: 4 }}>
+                <b style={{ color: '#444' }}>{titulo}:</b> {txt}
+              </div>
+            ))}
+          </div>
+          <button onClick={trocar} disabled={estado === 'trocando'} style={{
+            width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px solid #f0c0c0',
+            background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          }}>{estado === 'trocando' ? 'trocando…' : 'Trocar tudo por este arquivo'}</button>
+          {estado === 'falhou' && <p style={{ fontSize: 12, color: '#c0392b', margin: '9px 0 0', lineHeight: 1.5 }}>Entrou neste aparelho, mas não consegui confirmar na nuvem. Aperte o botão <b>Salvar</b> e confira.</p>}
+        </div>
+      )}
+      {estado === 'pronto' && (
+        <p style={{ fontSize: 12.5, color: '#1a7a4f', margin: '10px 0 0', lineHeight: 1.6 }}>
+          ✓ Pronto, voltou. Agora <b>recarregue o app</b> (e os outros aparelhos).
+        </p>
+      )}
     </div>
   );
 }

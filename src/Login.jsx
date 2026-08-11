@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSeason, SEASON_THEMES, getGreeting, getDayName, getTodayFact } from './contentLibrary.js';
+import { getSeason, SEASON_THEMES, getGreeting, getDayName, carregarFatoDoDia } from './contentLibrary.js';
 import { getViagemAtivaCache } from './lifeStore.jsx';
 import { getCidadeFato } from './cidadeFatos.js';
 import { setApiKey, pingProtegido, checarSenha } from './cloud.js';
@@ -57,7 +57,10 @@ export default function Login({ onLogin }) {
   const now = new Date();
   const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const dateStr = `${now.getDate()} de ${months[now.getMonth()]}`;
-  const fact = getTodayFact();
+  // O fato do dia chega depois da tela de entrada aparecer: ele mora no pedaço
+  // pesado (frasesEfatos.js) e não pode atrasar a primeira coisa que ela vê.
+  const [fact, setFact] = useState('');
+  useEffect(() => { let vivo = true; carregarFatoDoDia().then(f => { if (vivo) setFact(f); }); return () => { vivo = false; }; }, []);
   // Modo Viagem: com viagem ativa (lida do cache local), a senha vira "Bom dia em <cidade>" + fato da cidade.
   const viagem = getViagemAtivaCache();
   const fatoCidade = viagem ? getCidadeFato(viagem.cidade, now) : null;
@@ -163,7 +166,7 @@ export default function Login({ onLogin }) {
           <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65 }}>
             {viagem && fatoCidade
               ? <><span style={{ fontWeight: 700, color: theme.accent }}>{viagem.cidade}</span> {fatoCidade}</>
-              : <><span style={{ fontWeight: 700, color: theme.accent }}>Sabia que</span> {fact}</>}
+              : fact ? <><span style={{ fontWeight: 700, color: theme.accent }}>Sabia que</span> {fact}</> : null}
           </p>
         </div>
 

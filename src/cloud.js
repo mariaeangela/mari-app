@@ -132,6 +132,31 @@ export function guardarNaLixeira(secao, doc, motivo) {
   }
 }
 
+// ---- SEM ESPAÇO no aparelho ----
+// `localStorage.setItem` estoura quando o navegador enche (~5MB). Os três stores
+// tinham `catch {}` vazio na gravação local: quando o espaço acabava, a tela
+// continuava mostrando tudo certo e NADA tinha sido gravado no aparelho — se a
+// nuvem também falhasse, o texto sumia no reload sem nunca ter existido.
+// Agora a gravação falha ALTO. E antes de reclamar, ela tenta o remédio óbvio:
+// jogar fora as cópias de precaução, que existem pra salvar dado, não pra impedir
+// que dado seja salvo.
+let semEspaco = false;
+const semEspacoL = new Set();
+export function onSemEspaco(fn) { semEspacoL.add(fn); return () => semEspacoL.delete(fn); }
+export function temSemEspaco() { return semEspaco; }
+function marcarEspaco(faltou) {
+  if (semEspaco === faltou) return;
+  semEspaco = faltou;
+  semEspacoL.forEach(fn => { try { fn(faltou); } catch { /* ignora */ } });
+}
+export function gravarLocal(chave, valor) {
+  try { localStorage.setItem(chave, valor); marcarEspaco(false); return true; }
+  catch { /* cheio: tenta abrir espaço */ }
+  try { localStorage.removeItem(LIXO_KEY); } catch { /* ignora */ }
+  try { localStorage.setItem(chave, valor); marcarEspaco(false); return true; }
+  catch { marcarEspaco(true); return false; }
+}
+
 // Guarda o detalhe do último erro de POST (código HTTP / mensagem), pra
 // diagnóstico: o botão Salvar mostra isso quando falha.
 let lastError = null;
@@ -294,6 +319,47 @@ async function resolverConflitoLife(local) {
   return r === 'ok';
 }
 
+// ---- 409 no CALENDÁRIO: mesma regra, mesclando aqui no aparelho ----
+// O servidor só sabe mesclar `life` (é onde o documento é grande). O calendário é
+// pequeno, então a mescla acontece aqui: pega a versão da NUVEM como base, escreve
+// por cima só as partes em que este aparelho difere (eventos, diário, humor…) e
+// manda o documento inteiro com um carimbo acima do de lá — que a trava aceita.
+// Resultado igual ao do `life`: o que este aparelho escreveu entra, e o que só
+// existe do outro lado continua lá.
+async function resolverConflitoCalendario(local) {
+  if (!local) return false;
+  const d = await getDoc();
+  if (d === UNREACHABLE) return false;
+  const nuvem = (d && typeof d.calendario === 'object' && d.calendario) || null;
+  if (!nuvem) return false;
+  const juntos = { ...nuvem };
+  let mudou = false;
+  for (const k of Object.keys(local)) {
+    if (k === '_rev') continue;
+    if (JSON.stringify(local[k]) !== JSON.stringify(nuvem[k])) { juntos[k] = local[k]; mudou = true; }
+  }
+  if (!mudou) return true;
+  guardarNaLixeira('calendario-nuvem', nuvem, 'versão da nuvem, guardada antes de mesclar com a edição deste aparelho');
+  juntos._rev = Math.max(Number(nuvem._rev) || 0, Number(local._rev) || 0) + 1;
+  return (await doPost({ calendario: juntos })) === 'ok';
+}
+
+// ---- 409 nos SALVOS: fica com os dois lados ----
+// Salvos é uma LISTA de estrelas. Aqui a mescla é a UNIÃO: tudo que está de um
+// lado ou do outro fica. É de propósito — entre reaparecer uma estrela que ela
+// tirou em outro aparelho e SUMIR uma que ela acabou de pôr, reaparecer é o erro
+// barato (ela tira de novo em um toque); sumir é o erro que ela não perdoa.
+async function resolverConflitoSaved(local) {
+  const d = await getDoc();
+  if (d === UNREACHABLE) return false;
+  const nuvem = Array.isArray(d && d.saved) ? d.saved : [];
+  const juntos = [...(local || [])];
+  const temId = new Set(juntos.map(i => i && i.id));
+  nuvem.forEach(i => { if (i && !temId.has(i.id)) juntos.push(i); });
+  const rev = Math.max(Number((d && d.savedRev) || 0), 0) + 1;
+  return (await doPost({ saved: juntos, savedRev: rev })) === 'ok';
+}
+
 const q = { saved: { t: null, p: null, sending: false }, calendario: { t: null, p: null, sending: false }, life: { t: null, p: null, sending: false } };
 function runPush(field, keepalive) {
   const s = q[field];
@@ -302,30 +368,30 @@ function runPush(field, keepalive) {
   const v = s.p;
   // `life`: tenta mandar só o que mudou desde o último OK da nuvem.
   let corpo = v;
-  let ehPatch = false;
   if (field === 'life' && v && v.life) {
     const patch = deltaLife(v.life);
     if (patch && Object.keys(patch).length === 0) {   // nada mudou de fato
       s.p = null; limparPendente(field); return;
     }
-    if (patch) { corpo = { lifePatch: patch, _rev: v.life._rev }; ehPatch = true; }
+    if (patch) corpo = { lifePatch: patch, _rev: v.life._rev };
   }
   s.sending = true;
   doPost(corpo, { keepalive }).then(async (result) => {
-    // 409 no `life`: NÃO joga o envio fora — mescla por fatia com a nuvem e reenvia.
+    // 409 em QUALQUER seção: NÃO joga o envio fora — mescla com a nuvem e reenvia.
     // Só sai daqui como resolvido se a nuvem aceitar; senão vira 'fail' e re-tenta,
     // mantendo a pendência (que é o que faz o aviso de "sem salvar" aparecer).
-    if (result === 'conflict' && field === 'life' && v.life) {
-      const ok = await resolverConflitoLife(v.life);
-      if (!ok) baseEnviada = null;    // desencana do delta: o próximo envio vai inteiro
+    if (result === 'conflict') {
+      let ok = false;
+      if (field === 'life' && v.life) { ok = await resolverConflitoLife(v.life); if (!ok) baseEnviada = null; }
+      else if (field === 'calendario' && v.calendario) ok = await resolverConflitoCalendario(v.calendario);
+      else if (field === 'saved' && v.saved) ok = await resolverConflitoSaved(v.saved);
       result = ok ? 'ok' : 'fail';
     }
     s.sending = false;
     // confirmou: esta passa a ser a base dos próximos deltas
     if (result === 'ok' && field === 'life' && v.life) baseEnviada = v.life;
-    if (result === 'conflict' && ehPatch) baseEnviada = null;   // desencana do delta e manda inteiro
-    // 'ok' = gravou; 'conflict' (calendário/salvos) = a nuvem tinha dados mais novos,
-    // então descarta este envio velho; 'fail' = erro de rede, mantém `v` pra re-tentar.
+    // 'ok' = gravou (direto ou depois de mesclar); 'fail' = não entrou, mantém `v`
+    // pendente e re-tenta. NÃO existe mais o caminho que descartava em silêncio.
     // Resolvido o envio de `v`, só re-agenda se um valor MAIS NOVO chegou no meio (s.p !== v).
     if (result !== 'fail' && s.p === v) { s.p = null; limparPendente(field); }
     if (s.p != null && !s.t) s.t = setTimeout(() => runPush(field), result === 'ok' ? 0 : RETRY);

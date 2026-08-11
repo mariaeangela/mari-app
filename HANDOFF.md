@@ -42,6 +42,29 @@ Simplificação pedida junto:
   minutos por mês. `MusicaRetro` abre direto na visão **Gráfico**, e o atalho
   interno pros Álbuns saiu: cada um tem sua porta no hub.)
 
+## Faxina de 11/ago/2026 (seis itens que a Mari pediu em lista)
+
+1. **Calendário e Salvos ganharam as MESMAS duas correções que a Life** tinha
+   recebido no dia anterior. Estavam pela metade: o diário/humor corria o mesmo
+   risco da nota de terapia. `resolverConflitoCalendario` (mescla no cliente, o
+   servidor só sabe mesclar `life`) e `resolverConflitoSaved` (união por id — entre
+   ressuscitar uma estrela e sumir com uma, ressuscitar é o erro barato).
+   Os três stores agora gravam pelo estado MAIS RECENTE (`persistFn`/rebase).
+   **Não existe mais caminho que descarte um envio em silêncio.**
+2. **`trocarTudo`** nos três stores + **"Trazer meu arquivo de volta"** em Seus
+   dados. Antes o backup .json era beco sem saída: baixava e não voltava.
+3. **`gravarLocal`** (cloud.js) substitui os `catch {}` vazios: sem espaço, joga
+   fora a lixeira, tenta de novo e só então avisa na tarja. Antes falhava calado.
+4. **`RedeDeProtecao`** (ErrorBoundary) em volta das abas, POR DENTRO dos
+   providers — tela que cai não leva mais os stores (nem o que está por salvar).
+5. **Os 51 seeds de conteúdo foram APAGADOS** (~165 KB). Sobraram os 3 que dependem
+   da data de hoje: `rolarComprasVencidas`, `rolarPlanosVencidos`,
+   `ensureCarteiraMesAtual`. `leiturasSeed.js`, `gastosSeed.js` e o morto
+   `config.js` foram junto. **REGRA: conteúdo novo entra pelo documento dela ou
+   por uma tela onde ela cadastra — nunca por um bilhete que roda pra sempre.**
+6. **`frasesEfatos.js`**: frases/fatos (~105 KB) saíram do pacote de abertura e
+   chegam por `import()` depois da tela. Abertura: **577 KB → 334 KB**.
+
 **A aba "Seus dados" foi reescrita em português de gente** (`SeusDados` +
 `BaixarCopia`/`SumiuAlgo`/`CopiasNoAparelho`, no fim de `Life.jsx`) — ela disse que
 nunca entendeu essa tela. A mecânica é EXATAMENTE a mesma de antes; mudaram as

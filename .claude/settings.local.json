@@ -220,7 +220,8 @@
       "Bash(awk 'NR>=2660 && /^function |^const [A-Z]/ && NR>2660 {print NR\": \"$0; c++; if\\(c>3\\) exit}' src/Life.jsx)",
       "Bash(awk 'NR>=2660 && NR<=2920 && /&larr;|onBack/ {print NR\": \"$0}' src/Life.jsx)",
       "Bash(rm -f verify.html src/__verify.jsx)",
-      "Bash(git -c core.quotepath=false commit -q -m ' *)"
+      "Bash(git -c core.quotepath=false commit -q -m ' *)",
+      "Bash(xargs -I{} sh -c 'printf \"%8d  %s\\\\n\" $\\(stat -c %s \"{}\"\\) \"{}\"')"
     ]
   }
 }

@@ -13,7 +13,7 @@
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira } from './cloud';
+import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, gravarLocal } from './cloud';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {} };
@@ -87,9 +87,7 @@ function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
   catch { return { ...DEFAULT }; }
 }
-function writeLocal(d) {
-  try { localStorage.setItem(KEY, JSON.stringify(d)); } catch {}
-}
+function writeLocal(d) { return gravarLocal(KEY, JSON.stringify(d)); }
 
 export function CalendarProvider({ children }) {
   const [data, setData] = useState(() => runSeeds(readLocal()));
@@ -161,10 +159,52 @@ export function CalendarProvider({ children }) {
 
   // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
   const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
-  const persist = (next) => { const s = stampRev(next); dirty.current = true; setData(s); writeLocal(s); pushCalendario(s); };
+  // Mesma proteção do `life` (ago/2026): toda gravação monta o documento novo a
+  // partir do `data` DAQUELE render. Duas gravações quase juntas — marcar o humor
+  // e escrever no diário, na mesma capa — e a segunda apagava a primeira, calada.
+  // O rebase aplica só o que de fato MUDOU por cima do estado atual.
+  const rebasear = (prev, base, next) => {
+    if (prev === base) return next;
+    const out = { ...prev };
+    for (const k of Object.keys(next)) if (next[k] !== base[k]) out[k] = next[k];
+    for (const k of Object.keys(base)) if (!(k in next) && k in out) delete out[k];
+    return out;
+  };
+  const persist = (next) => {
+    const base = data;
+    dirty.current = true;
+    setData(prev => {
+      const s = stampRev(rebasear(prev, base, next));
+      writeLocal(s); pushCalendario(s);
+      return s;
+    });
+  };
+  // Gravação calculada a partir do estado MAIS RECENTE (e não do render). É o que
+  // garante que duas mexidas na MESMA parte não se apaguem.
+  const persistFn = (fn) => {
+    dirty.current = true;
+    setData(prev => {
+      const alvo = fn(prev);
+      if (alvo === prev) return prev;
+      const s = stampRev(alvo);
+      writeLocal(s); pushCalendario(s);
+      return s;
+    });
+  };
   const patch = (part) => persist({ ...data, ...part });
   // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveCalendarioNow(dataRef.current); };
+
+  // Trazer de volta um arquivo baixado antes (Seus dados). O que está no ar vai
+  // pra lixeira ANTES de ser trocado, então dá pra desfazer.
+  const trocarTudo = async (doc) => {
+    if (!doc || typeof doc !== 'object') return false;
+    guardarNaLixeira('calendario-local', dataRef.current, 'substituído por um arquivo que você trouxe de volta');
+    const novo = { ...DEFAULT, ...doc, _rev: Math.max(Date.now(), ((dataRef.current && dataRef.current._rev) || 0) + 1) };
+    dirty.current = true;
+    setData(novo); writeLocal(novo);
+    return await saveCalendarioNow(novo);
+  };
 
   // Re-sincroniza ao voltar ao foco / rede retornar: adota a nuvem só se ela for
   // mais nova que o local (via _rev). Fecha a fresta do aparelho desatualizado
@@ -280,34 +320,37 @@ export function CalendarProvider({ children }) {
   };
 
   // ---- Humor & Diário (por dia) ----
-  const setMood = (dayKey, moodId) => {
-    const moods = { ...data.moods };
+  // Humor, diário e bilhete gravam pelo estado MAIS RECENTE (persistFn): são os três
+  // campos da capa de Hoje, os que ela mexe um atrás do outro. Antes, marcar o humor
+  // logo depois de escrever no diário apagava o que tinha acabado de escrever.
+  const setMood = (dayKey, moodId) => persistFn(d => {
+    const moods = { ...d.moods };
     if (moodId) moods[dayKey] = moodId; else delete moods[dayKey];
-    patch({ moods });
-  };
-  const setDiary = (dayKey, texto) => {
-    const diary = { ...data.diary };
+    return { ...d, moods };
+  });
+  const setDiary = (dayKey, texto) => persistFn(d => {
+    const diary = { ...d.diary };
     // Guarda o texto cru (preserva espaços ao digitar); só remove se ficar vazio.
     if (texto && texto.trim()) diary[dayKey] = texto; else delete diary[dayKey];
-    patch({ diary });
-  };
+    return { ...d, diary };
+  });
   // Bilhete para o futuro: texto que aparece quando o dia chega.
-  const setBilhete = (dayKey, texto) => {
-    const bilhetes = { ...data.bilhetes };
+  const setBilhete = (dayKey, texto) => persistFn(d => {
+    const bilhetes = { ...d.bilhetes };
     if (texto && texto.trim()) bilhetes[dayKey] = texto; else delete bilhetes[dayKey];
-    patch({ bilhetes });
-  };
+    return { ...d, bilhetes };
+  });
 
   // Acompanhamento diário (chave 'YYYY-MM-DD' → { sono, trabalho, exercicio, fioDental, leu }).
   // Números vazios / booleans falsos são removidos pra não guardar lixo; dia sem
   // nenhum campo some do objeto.
-  const setTracking = (dayKey, patchObj) => {
-    const tracking = { ...(data.tracking || {}) };
+  const setTracking = (dayKey, patchObj) => persistFn(d => {
+    const tracking = { ...(d.tracking || {}) };
     const cur = { ...(tracking[dayKey] || {}), ...patchObj };
     Object.keys(cur).forEach(k => { const v = cur[k]; if (v === undefined || v === null || v === '' || v === false) delete cur[k]; });
     if (Object.keys(cur).length) tracking[dayKey] = cur; else delete tracking[dayKey];
-    patch({ tracking });
-  };
+    return { ...d, tracking };
+  });
 
   // ---- Metas do mês (chave 'YYYY-MM' → [{id, texto, feito}]) ----
   const addMeta = (mesKey, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: [...(data.metas?.[mesKey] || []), { id: uid('m'), texto: t, feito: false }] } }); };
@@ -318,7 +361,7 @@ export function CalendarProvider({ children }) {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, deleteMeta, salvarAgora, setTracking,
+    addMeta, toggleMeta, deleteMeta, salvarAgora, setTracking, trocarTudo,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

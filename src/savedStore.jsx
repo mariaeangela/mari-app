@@ -6,7 +6,7 @@
 // Fluxo: ao abrir, mostra o cache local na hora e, em paralelo, busca a nuvem
 // e reconcilia. Toda mudança grava no local (já) e empurra para a nuvem (logo).
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchSaved, pushSaved, saveSavedNow, UNREACHABLE } from './cloud';
+import { fetchSaved, pushSaved, saveSavedNow, UNREACHABLE, temPendente, gravarLocal } from './cloud';
 
 const KEY = 'diagonal_saved';
 const REVKEY = 'diagonal_saved_rev';   // carimbo de versão companheiro (Salvos são uma lista)
@@ -19,10 +19,7 @@ function readLocal() {
   try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
   catch { return []; }
 }
-function writeLocal(items) {
-  try { localStorage.setItem(KEY, JSON.stringify(items)); }
-  catch {}
-}
+function writeLocal(items) { return gravarLocal(KEY, JSON.stringify(items)); }
 function readRev() { return Number(localStorage.getItem(REVKEY)) || 0; }
 function writeRev(r) { try { localStorage.setItem(REVKEY, String(r)); } catch {} }
 
@@ -62,6 +59,10 @@ export function SavedProvider({ children }) {
     try {
       const res = await fetchSaved();
       if (res === UNREACHABLE) return;
+      // Estrela dada aqui que a nuvem ainda NÃO confirmou: não adota a de lá por
+      // cima — reenvia a daqui. Sem isto, voltar pro app podia apagar a estrela
+      // que ela acabou de dar. (Mesma regra do `life` e do calendário.)
+      if (temPendente('saved')) { pushSaved(itemsRef.current, revRef.current); return; }
       const { items: cloudItems, rev: cloudRev } = res;
       if (cloudRev > revRef.current) { adotar(cloudItems, cloudRev); pushSaved(cloudItems, cloudRev); }
     } finally { resyncing.current = false; }
@@ -73,22 +74,37 @@ export function SavedProvider({ children }) {
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncSaved); };
   }, []); // eslint-disable-line
 
-  const persist = (next) => {
+  // Grava a partir da lista MAIS RECENTE (e não da do render): duas estrelas
+  // tocadas em seguida não se apagam mais. Mesma correção do `life` e do calendário.
+  const persist = (fn) => {
     dirty.current = true;
-    setItems(next);
-    writeLocal(next);          // imediato
-    pushSaved(next, bumpRev()); // best-effort, com debounce, carimbando a versão
+    setItems(prev => {
+      const next = fn(prev);
+      if (next === prev) return prev;
+      writeLocal(next);           // imediato
+      pushSaved(next, bumpRev()); // best-effort, com debounce, carimbando a versão
+      return next;
+    });
   };
 
   const isSaved = (id) => items.some(i => i.id === id);
-  const remove = (id) => persist(items.filter(i => i.id !== id));
-  const toggle = (item) =>
-    isSaved(item.id) ? remove(item.id) : persist([item, ...items]);
+  const remove = (id) => persist(lista => lista.filter(i => i.id !== id));
+  const toggle = (item) => persist(lista => (lista.some(i => i.id === item.id)
+    ? lista.filter(i => i.id !== item.id)
+    : [item, ...lista]));
   // Salvar AGORA na nuvem (pro botão global) — aguarda e devolve true/false.
   const salvarAgora = async () => { dirty.current = true; return await saveSavedNow(itemsRef.current, revRef.current); };
 
+  // Trazer de volta um arquivo baixado antes (Seus dados).
+  const trocarTudo = async (lista) => {
+    if (!Array.isArray(lista)) return false;
+    dirty.current = true;
+    setItems(lista); writeLocal(lista);
+    return await saveSavedNow(lista, bumpRev());
+  };
+
   return (
-    <SavedContext.Provider value={{ items, isSaved, toggle, remove, salvarAgora }}>
+    <SavedContext.Provider value={{ items, isSaved, toggle, remove, salvarAgora, trocarTudo }}>
       {children}
     </SavedContext.Provider>
   );

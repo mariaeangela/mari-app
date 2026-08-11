@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, getTodayQuote, getEditionPeriod } from './contentLibrary.js';
+import { useState, useEffect, useRef, lazy, Suspense, Component } from 'react';
+import { CONTENT_TYPES, CARD_PALETTES, carregarFraseDoDia, getEditionPeriod } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
@@ -22,7 +22,7 @@ const EsportesSection = lazyDe(() => import('./Esportes.jsx'));
 // Enquanto o pedaço chega (só na 1ª vez que abre a aba).
 const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0', fontStyle: 'italic' }}>carregando…</p>;
 import { NavContext, useNav } from './nav.jsx';
-import { getLastSyncError, onSyncStatus, onSemChave, pendenciasAbertas, pendenteDesde } from './cloud';
+import { getLastSyncError, onSyncStatus, onSemChave, pendenciasAbertas, pendenteDesde, onSemEspaco, temSemEspaco } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
@@ -86,10 +86,13 @@ function Header({ tab, setTab }) {
   const now = new Date();
   const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  const quote = getTodayQuote();
+  // A frase do dia chega um instante DEPOIS da tela: ela mora no pedaço pesado
+  // (frasesEfatos.js) e não vale a pena segurar a abertura do app por causa dela.
+  const [quote, setQuote] = useState(null);
+  useEffect(() => { let vivo = true; carregarFraseDoDia().then(q => { if (vivo) setQuote(q); }); return () => { vivo = false; }; }, []);
   const { isSaved, toggle } = useSaved();
-  const fraseItem = { id: 'frase_' + quote.texto, type: 'frase', texto: quote.texto, autor: quote.autor, obra: quote.obra };
-  const favoritada = isSaved(fraseItem.id);
+  const fraseItem = quote && { id: 'frase_' + quote.texto, type: 'frase', texto: quote.texto, autor: quote.autor, obra: quote.obra };
+  const favoritada = !!fraseItem && isSaved(fraseItem.id);
 
   return (
     <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0' }}>
@@ -101,15 +104,18 @@ function Header({ tab, setTab }) {
         </div>
       </div>
 
-      {/* Quote of the day */}
-      <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
-            "{quote.texto}"
-          </p>
-          <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
-        </div>
-        <button onClick={() => toggle(fraseItem)} title={favoritada ? 'remover dos salvos' : 'salvar frase'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: favoritada ? '#e0a83e' : '#ccc', flexShrink: 0, padding: 0 }}>{favoritada ? '★' : '☆'}</button>
+      {/* Frase do dia. `minHeight` reserva o lugar dela: sem isso a tela dava um
+          pulinho quando a frase chegava, um instante depois da abertura. */}
+      <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 10, minHeight: 46, boxSizing: 'border-box' }}>
+        {quote && <>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
+              "{quote.texto}"
+            </p>
+            <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
+          </div>
+          <button onClick={() => toggle(fraseItem)} title={favoritada ? 'remover dos salvos' : 'salvar frase'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: favoritada ? '#e0a83e' : '#ccc', flexShrink: 0, padding: 0 }}>{favoritada ? '★' : '☆'}</button>
+        </>}
       </div>
 
       <div style={{ height: 2, background: '#111', margin: '14px 24px 0' }} />
@@ -1090,6 +1096,10 @@ function SyncAlerta() {
   const [erroFirme, setErroFirme] = useState(false);
   const timer = useRef(null);
   const [velha, setVelha] = useState(0);   // desde quando há pendência não confirmada
+  // Aparelho sem espaço: a gravação local não está acontecendo. É o aviso mais
+  // grave dos três, porque nesse estado nem o "está guardado neste aparelho" vale.
+  const [semEspaco, setSemEspaco] = useState(temSemEspaco);
+  useEffect(() => onSemEspaco(setSemEspaco), []);
   useEffect(() => {
     const ver = () => {
       const ts = pendenciasAbertas().map(f => pendenteDesde(f)).filter(Boolean);
@@ -1104,14 +1114,17 @@ function SyncAlerta() {
     if (s === 'saved') { if (timer.current) { clearTimeout(timer.current); timer.current = null; } setErroFirme(false); setVelha(0); }
     else if (s === 'error') { if (!timer.current && !erroFirme) timer.current = setTimeout(() => { timer.current = null; setErroFirme(true); }, 15000); }
   }), [erroFirme]);
+  const tarja = (texto, forte) => (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: forte ? '#fdecec' : '#fff4f4', borderBottom: '1px solid ' + (forte ? '#d98d8d' : '#e8b4b4'), color: '#8a2a2a', fontSize: 11.5, lineHeight: 1.45, padding: '6px 12px', textAlign: 'center', fontWeight: forte ? 700 : 400 }}>
+      {texto}
+    </div>
+  );
+  // Sem espaço vem primeiro: é o único caso em que nem o aparelho está guardando.
+  if (semEspaco) return tarja('⚠ o aparelho está sem espaço e não estou conseguindo gravar aqui. Baixe uma cópia em Life › Seus dados e me avise.', true);
   if (!erroFirme && !velha) return null;
   const min = velha ? Math.round((Date.now() - velha) / 60000) : 0;
   const quando = !min ? '' : min < 60 ? ` há ${min} min` : ` há ${Math.round(min / 60)}h`;
-  return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, background: '#fff4f4', borderBottom: '1px solid #e8b4b4', color: '#8a2a2a', fontSize: 11.5, lineHeight: 1.45, padding: '6px 12px', textAlign: 'center' }}>
-      ⚠ sem salvar na nuvem{quando} — está guardado neste aparelho. Evite abrir em outro até sumir.
-    </div>
-  );
+  return tarja(`⚠ sem salvar na nuvem${quando} — está guardado neste aparelho. Evite abrir em outro até sumir.`);
 }
 
 // 401 = a sessão perdeu o direito de gravar (chave ausente/trocada). Era a falha
@@ -1135,6 +1148,40 @@ function PedirSenhaDeNovo({ onSair }) {
       </div>
     </div>
   );
+}
+
+// ---- Rede de proteção das telas ----
+// Um erro de programação em QUALQUER tela derrubava o app inteiro pra uma página
+// em branco. O pior não era o branco: era que os stores morriam junto, e o que
+// estava escrito e ainda não tinha subido ia com eles.
+// Agora o tombo fica preso na tela. Os stores ficam POR FORA daqui, então
+// continuam vivos e o que estava pendente continua subindo sozinho; ela vê um
+// recado em vez de branco, e trocar de aba já limpa o erro.
+class RedeDeProtecao extends Component {
+  constructor(props) { super(props); this.state = { caiu: null }; }
+  static getDerivedStateFromError(e) { return { caiu: String((e && e.message) || e).slice(0, 200) }; }
+  componentDidUpdate(anterior) {
+    if (anterior.tab !== this.props.tab && this.state.caiu) this.setState({ caiu: null });
+  }
+  render() {
+    if (!this.state.caiu) return this.props.children;
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center', maxWidth: 420, margin: '0 auto' }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>🩹</div>
+        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, color: '#111', margin: '0 0 10px' }}>Esta tela deu problema</h2>
+        <p style={{ fontSize: 13.5, color: '#555', lineHeight: 1.65, margin: '0 0 6px' }}>
+          <b>Nada seu se perdeu.</b> O que você escreveu está guardado e continua subindo normalmente.
+        </p>
+        <p style={{ fontSize: 13, color: '#888', lineHeight: 1.6, margin: '0 0 20px' }}>
+          Toque em outra aba lá em cima — o resto do app está funcionando. Se quiser tentar de novo, recarregue.
+        </p>
+        <button onClick={() => window.location.reload()} style={{ padding: '12px 22px', background: '#111', border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          recarregar
+        </button>
+        <p style={{ fontSize: 10.5, color: '#ccc', marginTop: 22, wordBreak: 'break-word' }}>{this.state.caiu}</p>
+      </div>
+    );
+  }
 }
 
 export default function App() {
@@ -1171,16 +1218,20 @@ export default function App() {
               <Header tab={tab} setTab={goTab} />
               <FaixaViagem />
             </div>
-            {/* key = edição (+homeNonce): o feed remonta às 6h/14h e ao reclicar "Hoje" */}
-            {tab === 'feed' && <Feed key={getEditionPeriod() + '-' + homeNonce} isWide={isWide} />}
-            {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
-            {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
-            {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
-            <Suspense fallback={<Carregando />}>
-              {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
-              {tab === 'vf' && <VFPage key={homeNonce} isWide={isWide} />}
-              {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
-            </Suspense>
+            {/* A rede de proteção fica AQUI DENTRO, por baixo dos providers: se uma
+                tela cair, os stores continuam vivos e o que está por salvar sobe. */}
+            <RedeDeProtecao tab={tab + '-' + homeNonce}>
+              {/* key = edição (+homeNonce): o feed remonta às 6h/14h e ao reclicar "Hoje" */}
+              {tab === 'feed' && <Feed key={getEditionPeriod() + '-' + homeNonce} isWide={isWide} />}
+              {tab === 'explore' && <ExplorePage key={homeNonce} isWide={isWide} />}
+              {tab === 'saved' && <SavedPage key={homeNonce} isWide={isWide} />}
+              {tab === 'calendar' && <Calendario key={homeNonce} isWide={isWide} />}
+              <Suspense fallback={<Carregando />}>
+                {tab === 'life' && <LifePage key={homeNonce} isWide={isWide} viagemInicial={viagemInicial} onConsumeViagem={() => setViagemInicial(null)} comprasInicial={comprasInicial} onConsumeCompras={() => setComprasInicial(null)} />}
+                {tab === 'vf' && <VFPage key={homeNonce} isWide={isWide} />}
+                {tab === 'retrospectiva' && <RetrospectivaPage key={homeNonce} isWide={isWide} secInicial={retroSec} onConsumeSec={() => setRetroSec(null)} />}
+              </Suspense>
+            </RedeDeProtecao>
           </div>
           <SalvarFAB />
           <SyncAlerta />
