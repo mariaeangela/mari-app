@@ -37,10 +37,18 @@ Simplificação pedida junto:
 - **Saúde** saiu da Life e virou o card **Saúde** da Retrospectiva: `SaudeRetro` =
   contagens do ano (Calendário) + `<SaudeSection embutido />`, exportada de
   `Life.jsx` e carregada por `lazy()` (é lá que estão os estilos/helpers dela).
-- **Retrospectiva**: card **Música** saiu (as telas `MusicaRetro`/`MusicaGrafico`/
-  `MusicaForm` foram apagadas); ficou **Álbuns marcantes** como card próprio.
-  O slice `musica` (minutos/artistas por mês) **continua no documento**, só não tem
-  mais tela — nada foi apagado dos dados dela.
+- **Retrospectiva**: **Música** e **Álbuns marcantes** são dois cards separados
+  agora. (A Música chegou a sair e VOLTOU no mesmo dia — ela gosta do gráfico de
+  minutos por mês. `MusicaRetro` abre direto na visão **Gráfico**, e o atalho
+  interno pros Álbuns saiu: cada um tem sua porta no hub.)
+
+**A aba "Seus dados" foi reescrita em português de gente** (`SeusDados` +
+`BaixarCopia`/`SumiuAlgo`/`CopiasNoAparelho`, no fim de `Life.jsx`) — ela disse que
+nunca entendeu essa tela. A mecânica é EXATAMENTE a mesma de antes; mudaram as
+palavras. Regras pra quem mexer: nada de "seção", "rev", "backup", "life", "saved"
+ou "restaurar"; toda ação diz o que vai acontecer antes de acontecer; datas em
+"hoje às 14:32". **Não acrescente mecanismo novo aqui** — quando ela reclama de
+perda, o instinto de "criar mais uma proteção" é o erro: ela quer MENOS coisa.
 
 ## Arquitetura
 - `src/App.jsx` — tabs (Hoje/Explorar/Salvos), Header, responsivo

@@ -5380,24 +5380,79 @@ function SubPlaceholder({ secao, onBack }) {
   );
 }
 
-// Levar os dados embora: dois arquivos gerados no próprio navegador (ver
-// `exportar.js`), mais as cópias locais e as versões guardadas no servidor.
-// Tem ABA PRÓPRIA na Life desde ago/2026: quando faz falta, faz muita falta, e
-// procurar isso no fim de uma lista de cards é a última coisa que se quer fazer.
-function ExportarBloco() {
+// ---- Aba "Seus dados" ----
+// Escrita em português de gente, não de programador (ago/2026: a Mari disse que
+// nunca entendeu esta tela). Regras que valem pra qualquer mexida aqui:
+//   · nada de "seção", "rev", "backup", "life", "saved", "restaurar";
+//   · toda ação diz o que vai acontecer ANTES de acontecer;
+//   · nenhuma mecânica nova — é a mesma coisa de sempre, com outras palavras.
+const ONDE = [
+  { id: 'life',       label: 'Anotações e listas', pista: 'terapia, estudos, compras, viagens, leituras' },
+  { id: 'calendario', label: 'Calendário',         pista: 'eventos, tarefas, humor, diário, exercícios' },
+  { id: 'saved',      label: 'Salvos',             pista: 'frases e cards que você guardou' },
+];
+
+// "hoje às 14:32" / "ontem às 9:10" / "8 de agosto às 14:32"
+const MESES_TXT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+function quandoTxt(ts) {
+  if (!ts) return 'sem data';
+  const d = new Date(ts);
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const dia = new Date(d); dia.setHours(0, 0, 0, 0);
+  const difDias = Math.round((hoje - dia) / 86400000);
+  const hora = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (difDias === 0) return `hoje às ${hora}`;
+  if (difDias === 1) return `ontem às ${hora}`;
+  return `${d.getDate()} de ${MESES_TXT[d.getMonth()]} às ${hora}`;
+}
+
+// O que tem dentro de uma cópia, contado do jeito que ela enxerga.
+function oQueTem(onde, v) {
+  if (v == null) return 'vazia';
+  if (Array.isArray(v)) return `${v.length} itens salvos`;
+  const n = (x) => (Array.isArray(x) ? x.length : (x && typeof x === 'object' ? Object.keys(x).length : 0));
+  if (onde === 'calendario') {
+    return [`${n(v.events)} eventos`, `${n(v.tasks)} tarefas`, `${n(v.exercicios)} exercícios`, `${n(v.diary)} dias de diário`].join(' · ');
+  }
+  if (onde === 'life') {
+    const ap = n((v.aprendizados || {}).notas), es = n((v.estudoTemas || {}).notas);
+    return [`${ap} anotações (com as de terapia)`, `${es} anotações de estudo`, `${n(v.leituras)} leituras`, `${n(v.viagensFuturas)} viagens`].join(' · ');
+  }
+  return `${Object.keys(v).length} campos`;
+}
+
+const btnGrande = {
+  flex: 1, minWidth: 0, padding: '13px 12px', borderRadius: 12, border: '1px solid #e2e2e2',
+  background: '#fff', color: '#333', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+};
+const btnPeq = { border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#666', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', padding: '6px 11px', flexShrink: 0, fontFamily: 'inherit' };
+
+function SeusDados() {
+  return (
+    <div>
+      <p style={{ fontSize: 13.5, color: '#555', lineHeight: 1.65, margin: '0 0 20px' }}>
+        Tudo que você escreve fica guardado em <b>três lugares ao mesmo tempo</b>: neste aparelho,
+        na nuvem, e numa pilha de cópias antigas que o app tira sozinho. Esta tela é só pra quando
+        alguma coisa der errado — no dia a dia você não precisa dela.
+      </p>
+      <BaixarCopia />
+      <SumiuAlgo />
+      <CopiasNoAparelho />
+    </div>
+  );
+}
+
+// 1) Levar os dados embora (arquivos montados aqui no aparelho — ver exportar.js).
+function BaixarCopia() {
   const life = useLife();
   const cal = useCalendar();
   const saved = useSaved();
   const [feito, setFeito] = useState(null);
-  const btn = {
-    flex: 1, minWidth: 0, padding: '11px 12px', borderRadius: 11, border: '1px solid #e2e2e2',
-    background: '#fff', color: '#555', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-  };
-  const marcar = (q) => { setFeito(q); setTimeout(() => setFeito(null), 3000); };
+  const marcar = (q) => { setFeito(q); setTimeout(() => setFeito(null), 4000); };
   // Pro TEXTO, usa os valores JÁ RESOLVIDOS do store (e não o documento cru): uma
-  // seção que ainda esteja no padrão, por nunca ter sido editada, não existe em
-  // `data` e sumiria do arquivo. O BACKUP continua levando o documento cru — é ele
-  // que representa fielmente o que está na nuvem e permite restaurar.
+  // parte que ainda esteja no padrão, por nunca ter sido editada, não existe em
+  // `data` e sumiria do arquivo. A cópia completa leva o documento cru — é ele que
+  // representa o que está na nuvem e permite voltar tudo.
   const paraTexto = () => ({
     ...life.data,
     planos: life.planos, aprendizados: life.aprendizados, estudoTemas: life.estudoTemas,
@@ -5406,123 +5461,104 @@ function ExportarBloco() {
   });
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#aaa', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Baixar</div>
-      <p style={{ fontSize: 12, color: '#999', margin: '0 0 10px', lineHeight: 1.6 }}>
-        Baixe quando quiser: os arquivos são montados aqui no seu aparelho e são seus.
+      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: '0 0 4px' }}>Guardar uma cópia com você</h3>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px', lineHeight: 1.6 }}>
+        Os arquivos são montados aqui no seu aparelho e são seus. Nada é enviado pra ninguém.
       </p>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => { exportarTexto(paraTexto(), cal.data); marcar('texto'); }} style={btn}>⤓ Textos (.md)</button>
-        <button onClick={() => { exportarJSON(life.data, cal.data, saved.items); marcar('backup'); }} style={btn}>⤓ Backup (.json)</button>
+        <button onClick={() => { exportarJSON(life.data, cal.data, saved.items); marcar('tudo'); }} style={btnGrande}>
+          ⤓ Tudo
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#999', marginTop: 3 }}>o arquivo que traz tudo de volta</span>
+        </button>
+        <button onClick={() => { exportarTexto(paraTexto(), cal.data); marcar('textos'); }} style={btnGrande}>
+          ⤓ Só os textos
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 400, color: '#999', marginTop: 3 }}>pra ler ou abrir no Word</span>
+        </button>
       </div>
-      <p style={{ fontSize: 11, color: feito ? '#1a7a4f' : '#bbb', margin: '8px 0 0', lineHeight: 1.6 }}>
-        {feito === 'texto' ? 'Pronto — arquivo baixado. Abre no Word, no Docs ou em qualquer editor.'
-          : feito === 'backup' ? 'Pronto — backup baixado. É o arquivo que reconstrói tudo.'
-          : 'Textos = o que você escreve (estudos, aprendizados, diário, legendas, leituras, viagens), pra ler ou abrir no Word. Backup = tudo, inclusive finanças, pra guardar.'}
-      </p>
-      <Lixeira />
-      <BackupsServidor />
+      {feito && (
+        <p style={{ fontSize: 12, color: '#1a7a4f', margin: '9px 0 0', lineHeight: 1.6 }}>
+          Pronto, baixou. Está na pasta de downloads do seu aparelho.
+        </p>
+      )}
     </div>
   );
 }
 
-// Resumo legível de um documento, pra dar pra reconhecer QUAL versão é a boa sem
-// abrir o JSON. Conta o que a Mari enxerga (eventos, tarefas…), não campos internos.
-function resumoDoc(secao, v) {
-  if (v == null) return 'vazio';
-  if (Array.isArray(v)) return `${v.length} itens`;
-  const n = (x) => (Array.isArray(x) ? x.length : (x && typeof x === 'object' ? Object.keys(x).length : 0));
-  if (secao.startsWith('calendario')) {
-    return [
-      `${n(v.events)} eventos`, `${n(v.tasks)} tarefas`, `${n(v.exercicios)} exercícios`,
-      `${n(v.cultura)} cultura`, `${n(v.roles)} rolês`, `${n(v.moods)} humores`, `${n(v.diary)} dias de diário`,
-    ].join(' · ');
-  }
-  if (secao.startsWith('life')) {
-    const p = v.planos || {};
-    return [
-      `${n(v.leituras)} leituras`, `${n((v.estudoTemas || {}).notas)} anotações de estudo`,
-      `${n((v.aprendizados || {}).notas)} notas`, `${n(p.itens)} itens de plano`,
-      `${n(v.viagensFuturas)} viagens`, `${n(v.gastosItens)} gastos detalhados`,
-    ].join(' · ');
-  }
-  return `${Object.keys(v).length} campos`;
-}
+// 2) As 20 últimas cópias que o servidor guarda sozinho, antes de cada gravação.
+function SumiuAlgo() {
+  const [onde, setOnde] = useState('life');
+  const [lista, setLista] = useState(null);      // null = ainda não procurou
+  const [procurando, setProcurando] = useState(false);
+  const [conteudo, setConteudo] = useState({});  // i -> { resumo, v }
+  const [aviso, setAviso] = useState('');
+  const ondeAtual = ONDE.find(o => o.id === onde);
 
-// Versões que o SERVIDOR guardou sozinho (as 20 últimas de cada seção, gravadas
-// antes de cada sobrescrita). É a rede de segurança que existia desde julho mas
-// não tinha tela nenhuma — descoberto do pior jeito, quando fez falta.
-function BackupsServidor() {
-  const [secao, setSecao] = useState('calendario');
-  const [lista, setLista] = useState(null);   // null = ainda não buscou
-  const [carregando, setCarregando] = useState(false);
-  const [detalhe, setDetalhe] = useState({}); // i -> {ts, resumo, v}
-  const [msg, setMsg] = useState('');
-  const SECOES_BAK = [['calendario', 'Calendário'], ['life', 'Life'], ['saved', 'Salvos']];
-
-  const buscar = async (sec, manterMsg) => {
-    setCarregando(true); setDetalhe({});
-    if (!manterMsg) setMsg('');
-    const l = await listarBackups(sec);
-    setLista(l); setCarregando(false);
+  const procurar = async (id, manterAviso) => {
+    setProcurando(true); setConteudo({});
+    if (!manterAviso) setAviso('');
+    setLista(await listarBackups(id));
+    setProcurando(false);
   };
-  const ver = async (i) => {
-    setMsg('');
-    const b = await lerBackup(secao, i);
-    if (!b) { setMsg('não consegui ler essa versão.'); return; }
-    setDetalhe(d => ({ ...d, [i]: { ts: b.ts, resumo: resumoDoc(secao, b.v), v: b.v } }));
+  const espiar = async (i) => {
+    setAviso('');
+    const b = await lerBackup(onde, i);
+    if (!b) { setAviso('não consegui abrir esta cópia. Tente de novo daqui a pouco.'); return; }
+    setConteudo(c => ({ ...c, [i]: { resumo: oQueTem(onde, b.v), v: b.v } }));
   };
   const baixar = (i) => {
-    const d = detalhe[i]; if (!d) return;
-    const blob = new Blob([JSON.stringify(d.v, null, 2)], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const d = conteudo[i]; if (!d) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(d.v, null, 2)], { type: 'application/json;charset=utf-8' }));
     const a = document.createElement('a');
-    a.href = url; a.download = `diagonal-${secao}-versao-${i}.json`;
+    a.href = url; a.download = `diagonal-copia-${onde}-${i}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
-  const restaurar = async (i) => {
-    const d = detalhe[i];
-    if (!window.confirm(`Restaurar esta versão de ${secao}?\n\n${d ? d.resumo : ''}\n\nO que está no ar agora vira backup também (dá pra desfazer). Depois recarregue o app.`)) return;
-    setMsg('restaurando…');
-    const ok = await restaurarBackup(secao, i);
-    if (ok) await buscar(secao, true);   // atualiza a lista SEM apagar o aviso abaixo
-    setMsg(ok ? '✓ restaurado. RECARREGUE o app agora (e os outros aparelhos) pra ver a versão de volta.' : 'não consegui restaurar.');
+  const voltarPara = async (i) => {
+    const d = conteudo[i];
+    if (!window.confirm(`Voltar ${ondeAtual.label.toLowerCase()} para esta cópia?\n\n${d ? d.resumo : ''}\n\nO que está no ar agora também vira uma cópia — dá pra desfazer.`)) return;
+    setAviso('voltando…');
+    const ok = await restaurarBackup(onde, i);
+    if (ok) await procurar(onde, true);
+    setAviso(ok ? '✓ pronto. Agora recarregue o app (e os outros aparelhos) pra ver de volta.' : 'não consegui. Tente de novo daqui a pouco.');
   };
 
-  const btnPeq = { border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: '#666', fontSize: 11, fontWeight: 700, cursor: 'pointer', padding: '5px 9px', flexShrink: 0 };
   return (
-    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px dashed #e2e2e2' }}>
-      <div style={{ fontSize: 11, color: '#3f7cac', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Versões no servidor</div>
-      <p style={{ fontSize: 11.5, color: '#999', margin: '0 0 8px', lineHeight: 1.6 }}>
-        As 20 últimas versões de cada seção, guardadas automaticamente antes de cada gravação. Use "ver" pra conferir o conteúdo antes de restaurar.
+    <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid #eee' }}>
+      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: '0 0 4px' }}>Sumiu alguma coisa?</h3>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px', lineHeight: 1.6 }}>
+        O app guarda sozinho as <b>20 últimas versões</b> de cada parte. Escolha onde estava o que sumiu,
+        espie o que tem dentro de cada uma e volte pra que estiver certa.
       </p>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        {SECOES_BAK.map(([id, label]) => (
-          <button key={id} onClick={() => { setSecao(id); setLista(null); }} style={{
-            ...btnPeq, fontSize: 12, padding: '6px 12px',
-            border: '1px solid ' + (secao === id ? '#3f7cac' : '#e2e2e2'), background: secao === id ? '#3f7cac15' : '#fff', color: secao === id ? '#3f7cac' : '#888',
-          }}>{label}</button>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+        {ONDE.map(o => (
+          <button key={o.id} onClick={() => { setOnde(o.id); setLista(null); setConteudo({}); setAviso(''); }} style={{
+            ...btnPeq, fontSize: 12, padding: '7px 13px',
+            border: '1px solid ' + (onde === o.id ? '#3f7cac' : '#e2e2e2'),
+            background: onde === o.id ? '#3f7cac15' : '#fff', color: onde === o.id ? '#3f7cac' : '#888',
+          }}>{o.label}</button>
         ))}
       </div>
-      <button onClick={() => buscar(secao)} disabled={carregando} style={{ ...btnPeq, width: '100%', padding: '9px 0', fontSize: 12.5 }}>
-        {carregando ? 'buscando…' : `↻ ver versões de ${secao}`}
+      <p style={{ fontSize: 11.5, color: '#bbb', margin: '0 0 10px', lineHeight: 1.5 }}>{ondeAtual.pista}</p>
+      <button onClick={() => procurar(onde)} disabled={procurando} style={{ ...btnPeq, width: '100%', padding: '11px 0', fontSize: 13 }}>
+        {procurando ? 'procurando…' : `Ver as cópias de ${ondeAtual.label.toLowerCase()}`}
       </button>
-      {msg && <p style={{ fontSize: 11.5, color: msg.startsWith('restaurado') ? '#1a7a4f' : '#c0392b', margin: '8px 0 0' }}>{msg}</p>}
-      {lista && !lista.length && <p style={{ fontSize: 11.5, color: '#bbb', margin: '8px 0 0', fontStyle: 'italic' }}>Nenhuma versão guardada nesta seção.</p>}
+      {aviso && <p style={{ fontSize: 12, color: aviso.startsWith('✓') ? '#1a7a4f' : aviso === 'voltando…' ? '#999' : '#c0392b', margin: '10px 0 0', lineHeight: 1.5 }}>{aviso}</p>}
+      {lista && !lista.length && <p style={{ fontSize: 12.5, color: '#bbb', margin: '10px 0 0', fontStyle: 'italic' }}>Nenhuma cópia guardada aqui ainda.</p>}
       {lista && lista.map(b => {
-        const d = detalhe[b.i];
+        const d = conteudo[b.i];
         return (
-          <div key={b.i} style={{ padding: '8px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <div key={b.i} style={{ padding: '11px 0', borderBottom: '1px solid #f3f3f3' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flex: 1, fontSize: 12, color: '#555' }}>
-                {b.ts ? new Date(b.ts).toLocaleString('pt-BR') : 'sem data'}
-                <span style={{ color: '#bbb', fontSize: 10.5 }}> · versão {b.i}</span>
-              </span>
-              <button onClick={() => ver(b.i)} style={btnPeq}>ver</button>
-              {d && <button onClick={() => baixar(b.i)} style={btnPeq}>⤓</button>}
-              {d && <button onClick={() => restaurar(b.i)} style={{ ...btnPeq, borderColor: '#f0c0c0', color: '#d05050' }}>restaurar</button>}
+              <span style={{ flex: 1, fontSize: 13, color: '#444' }}>{quandoTxt(b.ts)}</span>
+              {!d && <button onClick={() => espiar(b.i)} style={btnPeq}>o que tem aqui?</button>}
             </div>
-            {d && <div style={{ fontSize: 11, color: '#777', marginTop: 4, lineHeight: 1.5 }}>{d.resumo}</div>}
+            {d && <>
+              <div style={{ fontSize: 12, color: '#666', margin: '6px 0 8px', lineHeight: 1.55 }}>{d.resumo}</div>
+              <div style={{ display: 'flex', gap: 7 }}>
+                <button onClick={() => baixar(b.i)} style={btnPeq}>⤓ baixar</button>
+                <button onClick={() => voltarPara(b.i)} style={{ ...btnPeq, borderColor: '#f0c0c0', color: '#d05050' }}>voltar pra esta</button>
+              </div>
+            </>}
           </div>
         );
       })}
@@ -5530,36 +5566,34 @@ function BackupsServidor() {
   );
 }
 
-// Cópias que o app guardou sozinho antes de deixar a nuvem substituir algo neste
-// aparelho. Só aparece quando existe alguma. Não restaura sozinho de propósito:
-// baixa o arquivo, a gente olha e decide — restaurar às cegas é como se perde
-// duas vezes.
-function Lixeira() {
+// 3) Cópias que o app guardou NESTE aparelho antes de deixar a nuvem substituir
+// alguma coisa. Só aparece quando existe alguma. Não volta sozinho de propósito:
+// baixa o arquivo, a gente olha e decide — voltar às cegas é se perder duas vezes.
+function CopiasNoAparelho() {
   const [itens, setItens] = useState(() => lerLixeira());
   useEffect(() => { const id = setInterval(() => setItens(lerLixeira()), 10000); return () => clearInterval(id); }, []);
   if (!itens.length) return null;
-  const quando = (ts) => new Date(ts).toLocaleString('pt-BR');
   const baixar = (it) => {
-    const blob = new Blob([JSON.stringify(it.doc, null, 2)], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(new Blob([JSON.stringify(it.doc, null, 2)], { type: 'application/json;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url; a.download = `diagonal-copia-${it.secao}-${new Date(it.ts).toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
   return (
-    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px dashed #e2e2e2' }}>
-      <div style={{ fontSize: 11, color: '#b06d1e', letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Cópias guardadas</div>
-      <p style={{ fontSize: 11.5, color: '#999', margin: '0 0 8px', lineHeight: 1.6 }}>
-        Versões que estavam neste aparelho e foram substituídas pela nuvem. Guardadas por precaução — se sentir falta de algo, baixe e me mande.
+    <div style={{ marginTop: 26, paddingTop: 20, borderTop: '1px solid #eee' }}>
+      <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, color: '#111', margin: '0 0 4px' }}>Cópias que ficaram neste aparelho</h3>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 10px', lineHeight: 1.6 }}>
+        Versões que estavam aqui e foram trocadas pela da nuvem. Guardadas por precaução:
+        se sentir falta de alguma coisa, baixe e me mande.
       </p>
       {itens.map((it, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
-          <span style={{ flex: 1, fontSize: 12, color: '#555' }}>
-            <b>{it.secao}</b> · {quando(it.ts)}
-            <span style={{ display: 'block', fontSize: 10.5, color: '#aaa' }}>{it.motivo}</span>
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid #f3f3f3' }}>
+          <span style={{ flex: 1, fontSize: 12.5, color: '#555' }}>
+            {quandoTxt(it.ts)}
+            <span style={{ display: 'block', fontSize: 11, color: '#aaa', lineHeight: 1.45, marginTop: 2 }}>{it.motivo}</span>
           </span>
-          <button onClick={() => baixar(it)} style={{ border: '1px solid #e2e2e2', borderRadius: 9, background: '#fff', color: '#555', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', padding: '6px 10px', flexShrink: 0 }}>⤓ baixar</button>
+          <button onClick={() => baixar(it)} style={btnPeq}>⤓ baixar</button>
         </div>
       ))}
     </div>
@@ -5606,7 +5640,7 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
           );
         })}
       </div>
-      {abaAtual.id === 'dados' ? <ExportarBloco /> : (
+      {abaAtual.id === 'dados' ? <SeusDados /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
           {cards.map(s => (
             <button key={s.id} onClick={() => setSec(s.id)} style={{

@@ -49,6 +49,7 @@ const CARDS = [
   { id: 'coisasCaras', label: 'Coisas caras', desc: 'quando comprei e quanto duram', cor: '#ff8a3d', pronto: true },
   { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f', pronto: true },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
+  { id: 'musica', label: 'Música', desc: 'minutos, artistas e o gráfico do ano', cor: '#1db954', pronto: true },
   { id: 'albuns', label: 'Álbuns marcantes', desc: 'os discos que ficaram', cor: '#1db954', pronto: true },
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
   { id: 'saude', label: 'Saúde', desc: 'consultas, peso, remédios, exames', cor: '#d96459', pronto: true },
@@ -66,6 +67,7 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   useEffect(() => { window.scrollTo(0, 0); }, [sec]);
   const baseSec = (sec || '').split(':')[0];          // 'viagens:x' → 'viagens'
   if (baseSec === 'coisasCaras') return <CoisasCarasView onBack={() => setSec(null)} isWide={isWide} />;
+  if (baseSec === 'musica') return <MusicaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'albuns') return <AlbunsView onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'leituras') return <LeiturasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'corridas') return <CorridasRetro onBack={() => setSec(null)} isWide={isWide} />;
@@ -526,8 +528,344 @@ function CoisaCaraForm({ editing, onClose }) {
   );
 }
 
-// ---- Card: Álbuns marcantes ----
+// ---- Cards: Música (Spotify por mês) e Álbuns marcantes ----
 const COR_MUSICA = '#1db954';
+
+// Visão em gráfico: barras de minutos por mês + ranking de artistas/músicas do ano.
+function MusicaGrafico({ meses, fmtMin, horas }) {
+  const [sel, setSel] = useState(null);
+  const cron = meses.slice().sort((a, b) => (a.mes || '').localeCompare(b.mes || ''));
+  const maxMin = Math.max(1, ...cron.map(m => Number(m.minutos) || 0));
+  const rank = (campo) => {
+    const map = {};
+    cron.forEach(m => { const v = (m[campo] || '').trim(); if (v) map[v] = (map[v] || 0) + 1; });
+    return Object.entries(map).map(([nome, n]) => ({ nome, n })).sort((a, b) => b.n - a.n);
+  };
+  const artistas = rank('artista'), musicas = rank('musica');
+  const maxN = Math.max(1, ...artistas.map(a => a.n), ...musicas.map(a => a.n));
+  const ranking = (titulo, lista) => lista.length > 0 && (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{titulo}</div>
+      {lista.map(item => (
+        <div key={item.nome} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.nome}</div>
+            <div style={{ height: 6, background: COR_MUSICA + '22', borderRadius: 4, marginTop: 3 }}>
+              <div style={{ width: (item.n / maxN * 100) + '%', height: '100%', background: COR_MUSICA, borderRadius: 4 }} />
+            </div>
+          </div>
+          <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{item.n} {item.n > 1 ? 'meses' : 'mês'}</span>
+        </div>
+      ))}
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>minutos por mês</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 150 }}>
+        {cron.map((m, i) => {
+          const min = Number(m.minutos) || 0;
+          const h = Math.max(2, Math.round((min / maxMin) * 116));
+          const on = sel === i;
+          return (
+            <div key={m.id} onClick={() => setSel(on ? null : i)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
+              <div style={{ fontSize: 9, color: '#777', height: 12, fontWeight: 700 }}>{on ? fmtMin(min) : ''}</div>
+              <div style={{ width: '100%', maxWidth: 30, height: h, background: COR_MUSICA, borderRadius: '4px 4px 0 0', opacity: sel == null || on ? 1 : 0.4 }} />
+              <div style={{ fontSize: 9, color: '#aaa', marginTop: 4 }}>{MESES[+(m.mes || '').slice(5, 7) - 1]?.slice(0, 3)}</div>
+            </div>
+          );
+        })}
+      </div>
+      {sel != null && (
+        <div style={{ fontSize: 12, color: '#777', marginTop: 8, textAlign: 'center' }}>
+          {fmtMesAno(cron[sel].mes).replace(/^./, c => c.toUpperCase())}: {fmtMin(cron[sel].minutos)} min · ~{horas(cron[sel].minutos)}h
+        </div>
+      )}
+      {ranking('artistas do ano', artistas)}
+      {ranking('músicas do ano', musicas)}
+    </div>
+  );
+}
+
+// Música do Spotify, mês a mês. Voltou em 11/ago/2026, no mesmo dia em que tinha
+// saído: o que ela quer aqui é o GRÁFICO (minutos por mês + ranking do ano).
+// Álbuns marcantes tem card próprio no hub agora — não há mais o atalho daqui
+// pra lá, pra não existirem duas portas pra mesma tela.
+function MusicaRetro({ onBack, isWide }) {
+  const life = useLife();
+  const [form, setForm] = useState(null);
+  const [vis, setVis] = useState('grafico');
+  const todasMeses = life.musica || [];
+  const { anos, anoSel, setAnoSel } = useAnoSel(todasMeses.map(m => m.mes));
+  const meses = todasMeses.filter(m => (m.mes || '').slice(0, 4) === anoSel).sort((a, b) => (b.mes || '').localeCompare(a.mes || ''));
+  const totalMin = meses.reduce((a, m) => a + (Number(m.minutos) || 0), 0);
+  const fmtMin = (n) => Number(n || 0).toLocaleString('pt-BR');
+  const horas = (n) => Math.round((Number(n) || 0) / 60);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: COR_MUSICA, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Música</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>minutos, artistas e músicas do seu ano</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar mês" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+
+      {todasMeses.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada por aqui ainda. Toque no + e cadastre o print do Spotify do mês (minutos, top artista e top música).</p>
+      ) : <>
+        <AnoChips anos={anos} anoSel={anoSel} setAnoSel={setAnoSel} cor={COR_MUSICA} />
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{fmtMin(totalMin)}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> minutos em {anoSel} · ~{horas(totalMin)}h</span>
+        </div>
+        {meses.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '10px 0' }}>Nada registrado em {anoSel}.</p>}
+        {meses.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            {[['lista', 'Lista'], ['grafico', 'Gráfico']].map(([v, label]) => (
+              <button key={v} onClick={() => setVis(v)} style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: '1px solid ' + (vis === v ? COR_MUSICA : '#e2e2e2'),
+                background: vis === v ? COR_MUSICA + '1c' : '#fff', color: vis === v ? '#0a7d36' : '#888',
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+        {meses.length > 0 && vis === 'grafico' && <MusicaGrafico meses={meses} fmtMin={fmtMin} horas={horas} />}
+        {vis === 'lista' && meses.map(m => (
+          <div key={m.id} onClick={() => setForm({ editing: m })} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '14px 16px', marginBottom: 10, cursor: 'pointer' }}>
+            <div style={{ fontSize: 11, color: COR_MUSICA, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{fmtMesAno(m.mes)}</div>
+            <div style={{ marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: '#111' }}>{fmtMin(m.minutos)}</span>
+              <span style={{ fontSize: 12.5, color: '#999' }}> min · ~{horas(m.minutos)}h</span>
+            </div>
+            <div style={{ fontSize: 13.5, color: '#333' }}>🎤 {m.artista || '—'}</div>
+            <div style={{ fontSize: 13.5, color: '#333', marginTop: 2 }}>🎵 {m.musica || '—'}</div>
+          </div>
+        ))}
+      </>}
+
+      {form && <MusicaForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+// ---- Card: Leituras (livros por ano · páginas · países/idiomas · gênero/tema) ----
+const COR_LIVROS = '#7a5c9e';
+const LIVRO_FLAG = {
+  'Brasil': '🇧🇷', 'Estados Unidos': '🇺🇸', 'Reino Unido': '🇬🇧', 'Inglaterra': '🇬🇧', 'Irlanda': '🇮🇪',
+  'França': '🇫🇷', 'Itália': '🇮🇹', 'Espanha': '🇪🇸', 'Portugal': '🇵🇹', 'Alemanha': '🇩🇪', 'Rússia': '🇷🇺',
+  'Japão': '🇯🇵', 'Coreia do Sul': '🇰🇷', 'Hungria': '🇭🇺', 'Tchéquia': '🇨🇿', 'Polônia': '🇵🇱',
+  'Bielorrússia': '🇧🇾', 'Grécia': '🇬🇷', 'Suíça': '🇨🇭', 'Canadá': '🇨🇦', 'México': '🇲🇽', 'Argentina': '🇦🇷',
+  'Chile': '🇨🇱', 'Colômbia': '🇨🇴', 'Peru': '🇵🇪', 'Bolívia': '🇧🇴', 'Paquistão': '🇵🇰', 'Israel': '🇮🇱', 'Austrália': '🇦🇺',
+};
+// Trechos favoritos: frases marcantes de livros, agrupadas por livro.
+function TrechosView({ onBack, isWide }) {
+  const life = useLife();
+  const trechos = life.trechos || [];
+  const [form, setForm] = useState(null);
+  const cor = COR_LIVROS;
+  const grupos = {};
+  [...trechos].sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0)).forEach(t => { const k = t.livro || 'sem livro'; (grupos[k] = grupos[k] || []).push(t); });
+  const livros = Object.keys(grupos);
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Leituras</button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Trechos favoritos</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>frases que ficaram com você</p>
+        </div>
+        <button onClick={() => setForm({})} title="adicionar trecho" style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1, flexShrink: 0 }}>+</button>
+      </div>
+      {trechos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum trecho ainda. Toque no + pra guardar uma frase marcante (com o livro de onde veio).</p>
+      ) : livros.map(lv => (
+        <div key={lv} style={{ marginBottom: 18 }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, marginBottom: 1 }}>{lv}</div>
+          {grupos[lv][0].autor && <div style={{ fontSize: 11.5, color: '#999', marginBottom: 8 }}>{grupos[lv][0].autor}</div>}
+          {grupos[lv].map(t => (
+            <div key={t.id} onClick={() => setForm({ editing: t })} style={{ borderLeft: '3px solid ' + cor + '55', padding: '2px 0 2px 12px', margin: '0 0 10px', cursor: 'pointer' }}>
+              <div style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14, color: '#333', lineHeight: 1.5 }}>“{t.texto}”</div>
+              {t.pagina && <div style={{ fontSize: 11, color: '#bbb', marginTop: 3 }}>p. {t.pagina}</div>}
+            </div>
+          ))}
+        </div>
+      ))}
+      {form && <TrechoForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+function TrechoForm({ editing, onClose }) {
+  const life = useLife();
+  const [texto, setTexto] = useState(editing?.texto || '');
+  const [livro, setLivro] = useState(editing?.livro || '');
+  const [autor, setAutor] = useState(editing?.autor || '');
+  const [pagina, setPagina] = useState(editing?.pagina || '');
+  const livrosSug = [...new Set((life.leituras || []).map(l => l.titulo).filter(Boolean))];
+  const autorDe = (titulo) => (life.leituras || []).find(l => l.titulo === titulo)?.autor || '';
+  const podeSalvar = texto.trim() && livro.trim();
+  const salvar = () => { if (!podeSalvar) return; life.saveTrecho({ id: editing?.id, texto: texto.trim(), livro: livro.trim(), autor: autor.trim() || undefined, pagina: String(pagina).trim() || undefined }); onClose(); };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} trecho</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Frase</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} placeholder="a frase que marcou" style={{ ...inputStyle, minHeight: 84, resize: 'vertical' }} />
+        <label style={labelStyle}>Livro</label>
+        <input list="trecho-livros" value={livro} onChange={e => { const v = e.target.value; setLivro(v); if (!autor && autorDe(v)) setAutor(autorDe(v)); }} placeholder="de qual livro?" style={inputStyle} />
+        <datalist id="trecho-livros">{livrosSug.map(t => <option key={t} value={t} />)}</datalist>
+        <label style={labelStyle}>Autor (opcional)</label>
+        <input value={autor} onChange={e => setAutor(e.target.value)} placeholder="ex.: Clarice Lispector" style={inputStyle} />
+        <label style={labelStyle}>Página (opcional)</label>
+        <input type="text" inputMode="numeric" value={pagina} onChange={e => setPagina(e.target.value)} placeholder="ex.: 42" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteTrecho(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LeiturasRetro({ onBack, isWide }) {
+  const life = useLife();
+  const lidos = (life.leituras || []).filter(l => l.lido && l.lidoEm && l.lidoEm.length);
+  const anosNum = [...new Set(lidos.flatMap(l => l.lidoEm.filter(a => typeof a === 'number')))].sort((a, b) => b - a);
+  const temAntes = lidos.some(l => l.lidoEm.includes('antes'));
+  const opcoes = [...anosNum.map(String), ...(temAntes ? ['antes'] : [])];
+  const anoAtual = String(new Date().getFullYear());
+  const [selRaw, setSel] = useState(null);
+  const [verTrechos, setVerTrechos] = useState(false);
+  if (verTrechos) return <TrechosView onBack={() => setVerTrechos(false)} isWide={isWide} />;
+  const sel = (selRaw && opcoes.includes(selRaw)) ? selRaw : (opcoes.includes(anoAtual) ? anoAtual : opcoes[0]);
+  const doAno = sel === 'antes' ? lidos.filter(l => l.lidoEm.includes('antes')) : lidos.filter(l => l.lidoEm.includes(Number(sel)));
+  const totalPaginas = doAno.reduce((s, l) => s + (Number(l.paginas) || 0), 0);
+  const fmtN = (n) => Number(n || 0).toLocaleString('pt-BR');
+  const porAno = {}; lidos.forEach(l => l.lidoEm.forEach(a => { if (typeof a === 'number') porAno[a] = (porAno[a] || 0) + 1; }));
+  const anosCron = Object.keys(porAno).map(Number).sort((a, b) => a - b);
+  const maxAno = Math.max(1, ...Object.values(porAno));
+  const rank = (vals) => { const m = {}; vals.forEach(v => { if (v) m[v] = (m[v] || 0) + 1; }); return Object.entries(m).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n); };
+  const paises = rank(doAno.map(l => l.pais)), idiomas = rank(doAno.map(l => l.idioma)), generos = rank(doAno.map(l => l.tipo)), temas = rank(doAno.flatMap(l => l.temas || []));
+  const maxRank = Math.max(1, ...paises.map(x => x.n), ...temas.map(x => x.n), ...generos.map(x => x.n));
+
+  const ranking = (titulo, lista, fmtK = (k) => k, cap = false, limite = 6) => lista.length > 0 && (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>{titulo}</div>
+      {lista.slice(0, limite).map(item => (
+        <div key={item.k} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: cap ? 'capitalize' : 'none' }}>{fmtK(item.k)}</div>
+            <div style={{ height: 6, background: COR_LIVROS + '22', borderRadius: 4, marginTop: 3 }}>
+              <div style={{ width: (item.n / maxRank * 100) + '%', height: '100%', background: COR_LIVROS, borderRadius: 4 }} />
+            </div>
+          </div>
+          <span style={{ fontSize: 11.5, color: '#999', flexShrink: 0 }}>{item.n}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
+      <div style={{ width: 36, height: 4, background: COR_LIVROS, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Leituras</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>os livros que você leu, por ano</p>
+      <button onClick={() => setVerTrechos(true)} style={{ width: '100%', marginBottom: 16, padding: '11px 0', borderRadius: 11, border: '1px solid ' + COR_LIVROS + '55', background: COR_LIVROS + '10', color: '#5d3f7e', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>✎ Trechos favoritos ›</button>
+
+      {lidos.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nenhum livro com ano de leitura ainda. Marque "lido em ANO" nos livros (Explorar › Próximas leituras) que eles aparecem aqui.</p>
+      ) : <>
+        {anosCron.length > 1 && <>
+          <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>livros por ano</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 130, marginBottom: 18 }}>
+            {anosCron.map(a => {
+              const n = porAno[a], h = Math.max(3, Math.round((n / maxAno) * 100));
+              return (
+                <div key={a} onClick={() => setSel(String(a))} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: 0 }}>
+                  <div style={{ fontSize: 10, color: '#777', height: 13, fontWeight: 700 }}>{n}</div>
+                  <div style={{ width: '100%', maxWidth: 34, height: h, background: COR_LIVROS, borderRadius: '4px 4px 0 0', opacity: String(a) === sel ? 1 : 0.45 }} />
+                  <div style={{ fontSize: 9.5, color: '#aaa', marginTop: 4 }}>{a}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>}
+
+        {opcoes.length > 1 && (
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
+            {opcoes.map(o => (
+              <button key={o} onClick={() => setSel(o)} style={{
+                whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                border: '1px solid ' + (sel === o ? COR_LIVROS : '#e2e2e2'), background: sel === o ? COR_LIVROS + '1c' : '#fff', color: sel === o ? '#4a3470' : '#999',
+              }}>{o === 'antes' ? 'antes de 2013' : o}</button>
+            ))}
+          </div>
+        )}
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 700, color: '#111' }}>{doAno.length}</span>
+          <span style={{ fontSize: 13, color: '#999' }}> {doAno.length === 1 ? 'livro' : 'livros'} {sel === 'antes' ? (doAno.length === 1 ? 'lido' : 'lidos') + ' antes de 2013' : 'em ' + sel} · {fmtN(totalPaginas)} páginas</span>
+        </div>
+
+        {ranking('países', paises, (k) => `${LIVRO_FLAG[k] || '📖'}  ${k}`)}
+        {ranking('idiomas', idiomas)}
+        {ranking('gêneros', generos, (k) => k, true)}
+        {ranking('temas', temas, (k) => k, true)}
+
+        <div style={{ fontSize: 11, color: COR_LIVROS, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 700, margin: '22px 0 8px' }}>os livros</div>
+        {doAno.slice().sort((a, b) => (a.titulo || '').localeCompare(b.titulo || '')).map(l => (
+          <div key={l.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '10px 13px', marginBottom: 6 }}>
+            <div style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{l.titulo}{(l.lidoEm || []).length > 1 ? <span style={{ fontSize: 11, color: COR_LIVROS, fontWeight: 700 }}>  (releitura)</span> : null}</div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>{[l.autor, l.pais, l.paginas ? l.paginas + ' p.' : null].filter(Boolean).join(' · ')}</div>
+          </div>
+        ))}
+      </>}
+    </div>
+  );
+}
+
+function MusicaForm({ editing, onClose }) {
+  const life = useLife();
+  const [mes, setMes] = useState(editing?.mes || '');
+  const [minutos, setMinutos] = useState(editing?.minutos != null ? String(editing.minutos) : '');
+  const [artista, setArtista] = useState(editing?.artista || '');
+  const [musica, setMusica] = useState(editing?.musica || '');
+  const podeSalvar = !!mes;
+  const salvar = () => {
+    if (!podeSalvar) return;
+    life.saveMusica({ id: editing?.id, mes, minutos: minutos ? Number(minutos.replace(/\D/g, '')) : undefined, artista: artista.trim() || undefined, musica: musica.trim() || undefined });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} mês</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <label style={labelStyle}>Mês</label>
+        <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
+        <label style={labelStyle}>Minutos ouvidos</label>
+        <input type="text" inputMode="numeric" value={minutos} onChange={e => setMinutos(e.target.value)} placeholder="ex.: 1958" style={inputStyle} />
+        <label style={labelStyle}>Top artista</label>
+        <input value={artista} onChange={e => setArtista(e.target.value)} placeholder="ex.: Taylor Swift" style={inputStyle} />
+        <label style={labelStyle}>Top música</label>
+        <input value={musica} onChange={e => setMusica(e.target.value)} placeholder="ex.: Reliquia" style={inputStyle} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          {editing && <button onClick={() => { life.deleteMusica(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
+          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Álbuns marcantes: coleção de discos, por ano ou artista. Virou card próprio da
 // Retrospectiva em ago/2026, quando a Música (minutos/artistas do Spotify) saiu —
