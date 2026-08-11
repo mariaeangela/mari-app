@@ -6,7 +6,7 @@
 
 // Fatos históricos por dia do ano (mês-dia como chave)
 
-function getTodayDefaultFact(now) {
+export function getTodayDefaultFact(now) {
   const facts = [
     "a palavra 'livro' vem do latim 'liber', que era a camada interna da casca da árvore onde os romanos escreviam.",
     "o azul ultramarino usado por Vermeer em suas pinturas custava mais caro que ouro — era lapislázuli moído importado do Afeganistão.",

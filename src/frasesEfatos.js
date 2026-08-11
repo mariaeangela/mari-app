@@ -4,6 +4,11 @@
 // qualquer coisa. Nada disso é urgente: a tela aparece primeiro e eles chegam um
 // instante depois, no lugar deles. Quem usa carrega com `import()` — ver
 // `contentLibrary.js` (carregarFraseDoDia/carregarFatoDoDia) e `calendarConfig.js`.
+// As duas funções abaixo usam ajudantes que ficaram no `contentLibrary.js` (o
+// pedaço leve). Ficou faltando este import quando o arquivo foi separado, e a
+// frase do dia sumiu da capa por um dia inteiro — a promessa quebrava calada.
+import { getEditionPeriod, getTodayDefaultFact } from './contentLibrary.js';
+
 export const OPENING_QUOTES = [
   { texto: "Liberdade é pouco. O que eu desejo ainda não tem nome.", obra: "Perto do Coração Selvagem", autor: "Clarice Lispector" },
   { texto: "No meio do caminho tinha uma pedra.", obra: "No Meio do Caminho", autor: "Carlos Drummond de Andrade" },
