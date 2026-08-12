@@ -1165,6 +1165,43 @@ function PedirSenhaDeNovo({ onSair }) {
   );
 }
 
+// Uma tela que não CARREGA quase nunca é defeito: é uma versão nova no ar.
+// Quando eu publico, cada pedaço do app troca de nome; o app que já estava aberto
+// no celular dela ainda conhece os nomes velhos, então o pedaço que ela pedir
+// agora dá 404. Estes são os jeitos que os navegadores têm de dizer isso.
+export const ehVersaoNova = (msg) => /dynamically imported module|module script failed|Failed to fetch|ChunkLoadError|Loading chunk/i.test(String(msg || ''));
+
+// O recado da versão nova. Fica DENTRO da rede de proteção (que por sua vez está
+// dentro dos providers), então pode falar com os stores e salvar antes de
+// recarregar — a Mari não precisa lembrar de apertar Salvar primeiro.
+// Um botão só, na ordem certa. Não recarrega sozinho de propósito: recarregar sem
+// ela mandar interromperia uma frase pela metade.
+function AvisoVersaoNova() {
+  const life = useLife();
+  const cal = useCalendar();
+  const saved = useSaved();
+  const [salvando, setSalvando] = useState(false);
+  const atualizar = async () => {
+    setSalvando(true);
+    // Best-effort: se a nuvem não responder, recarregar continua seguro — o que
+    // ela escreveu está no aparelho e sobe sozinho na próxima abertura.
+    try { await Promise.all([life.salvarAgora(), cal.salvarAgora(), saved.salvarAgora()]); } catch { /* segue */ }
+    window.location.reload();
+  };
+  return (
+    <div style={{ padding: '48px 24px', textAlign: 'center', maxWidth: 420, margin: '0 auto' }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>✨</div>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, color: '#111', margin: '0 0 10px' }}>Saiu uma versão nova do app</h2>
+      <p style={{ fontSize: 13.5, color: '#555', lineHeight: 1.65, margin: '0 0 20px' }}>
+        Vou salvar o que você escreveu e recarregar. <b>Nada seu se perde.</b>
+      </p>
+      <button onClick={atualizar} disabled={salvando} style={{ padding: '13px 24px', background: salvando ? '#999' : '#111', border: 'none', borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: salvando ? 'default' : 'pointer', fontFamily: 'inherit' }}>
+        {salvando ? 'salvando…' : 'salvar e atualizar'}
+      </button>
+    </div>
+  );
+}
+
 // ---- Rede de proteção das telas ----
 // Um erro de programação em QUALQUER tela derrubava o app inteiro pra uma página
 // em branco. O pior não era o branco: era que os stores morriam junto, e o que
@@ -1180,6 +1217,8 @@ class RedeDeProtecao extends Component {
   }
   render() {
     if (!this.state.caiu) return this.props.children;
+    // Versão nova não é defeito — merece outro recado (e outro botão).
+    if (ehVersaoNova(this.state.caiu)) return <AvisoVersaoNova />;
     return (
       <div style={{ padding: '48px 24px', textAlign: 'center', maxWidth: 420, margin: '0 auto' }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>🩹</div>

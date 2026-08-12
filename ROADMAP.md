@@ -19,20 +19,15 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 
 ## 2. Segurança (o que ainda pode dar errado)
 
-- 🟢 **Bug: conta inválida vira 0 no lançamento de gasto** — o campo aceita conta
-  ("30+45"); se a conta estiver quebrada, o valor **vira zero em silêncio**. É a
-  mesma armadilha que já foi consertada nos Salários (`contaInvalida()` trava o
-  salvar) e continua de pé no `GastoForm`. **É perda de dado — deveria ser o próximo.**
 - 🟡 **O relógio do aparelho decide quem vence** — entre celular e computador,
-  quem tem a hora mais adiantada ganha, mesmo estando errado. Hoje não incomoda
-  porque a mescla por fatia resolve quase tudo; vira problema se um aparelho
-  estiver com a hora torta.
-- 🟡 **Publicar com o app aberto pode quebrar a aba dela** — cada publicação
-  renomeia os pedaços do app, e a aba já aberta pode não achar mais a peça ao abrir
-  uma seção. A rede de proteção segura o tombo, mas o certo é avisar "tem versão
-  nova, recarregue".
-- 🟡 **Não existe nenhum teste automático** — inclusive das regras de não perder
-  dado. Hoje tudo é conferido no olho, uma vez, na hora.
+  quem tem a hora mais adiantada ganha, mesmo estando errado. O conserto é o
+  **servidor** dar o número da versão (o app só guarda o que voltou). Hoje não
+  perde nada (a mescla por fatia salva os dois lados), só confunde.
+  **É o único dos quatro que sobrou — e o único com risco de verdade,
+  porque mexe no servidor e nos três stores.**
+- 🟡 **Cobrir mais coisa de teste** — `npm test` existe desde 11/ago (campos de
+  dinheiro + detecção de versão nova, 12 testes). Falta cobrir as regras de sync:
+  duas edições no mesmo instante, o 409 que mescla, a falta de espaço.
 - 🟢 **Sem internet o app não abre** — dá pra editar depois de aberto, mas abrir
   precisa de rede (não há cópia offline do app). Nunca atrapalhou; fica registrado.
 
