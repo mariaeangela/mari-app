@@ -14,6 +14,7 @@
 //   savedRoles: [ 'rolê reaproveitável', ... ]
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, gravarLocal } from './cloud';
+import { rebasear } from './mesclar.js';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {} };
@@ -159,17 +160,6 @@ export function CalendarProvider({ children }) {
 
   // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
   const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
-  // Mesma proteção do `life` (ago/2026): toda gravação monta o documento novo a
-  // partir do `data` DAQUELE render. Duas gravações quase juntas — marcar o humor
-  // e escrever no diário, na mesma capa — e a segunda apagava a primeira, calada.
-  // O rebase aplica só o que de fato MUDOU por cima do estado atual.
-  const rebasear = (prev, base, next) => {
-    if (prev === base) return next;
-    const out = { ...prev };
-    for (const k of Object.keys(next)) if (next[k] !== base[k]) out[k] = next[k];
-    for (const k of Object.keys(base)) if (!(k in next) && k in out) delete out[k];
-    return out;
-  };
   const persist = (next) => {
     const base = data;
     dirty.current = true;

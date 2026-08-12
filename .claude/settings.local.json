@@ -226,7 +226,8 @@
       "Bash(sed -i \"s|import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';|import { evalValor } from './conta.jsx';|\" src/GastosDetalhado.jsx)",
       "Bash(sed -i 's/^function VRHoje\\(\\) {/export function VRHoje\\(\\) {/' src/App.jsx)",
       "Bash(sed -i 's/^export function VRHoje\\(\\) {/function VRHoje\\(\\) {/' src/App.jsx)",
-      "Bash(npm test *)"
+      "Bash(npm test *)",
+      "Bash(cd \"C:/Users/maria/Downloads/diagonal-claudecode/diagonal\" *)"
     ]
   }
 }

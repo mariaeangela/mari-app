@@ -7,6 +7,7 @@
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife, gravarLocal } from './cloud';
+import { rebasear } from './mesclar.js';
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -592,23 +593,6 @@ export function LifeProvider({ children }) {
 
   // Carimbo monotônico por edição: no boot, quem tem _rev maior vence (local vs nuvem).
   const stampRev = (o) => ({ ...o, _rev: Math.max(Date.now(), ((o && o._rev) || 0) + 1) });
-  // Toda gravação monta o documento novo a partir do `data` DAQUELE render
-  // (`persist({ ...data, aprendizados })`). Se duas coisas gravam quase juntas — o
-  // caso real: sair do campo "principais temas" (onBlur) e clicar em "anotar" no
-  // mesmo instante —, a segunda foi construída sobre um `data` que já está velho e
-  // APAGAVA a primeira, sem erro nenhum na tela. Era assim que uma anotação sumia
-  // segundos depois de ser escrita.
-  //
-  // Agora o persist REBASEIA: se o estado atual não é mais aquele em que `next` foi
-  // construído, aplica só o que de fato MUDOU (as fatias diferentes) por cima do
-  // estado atual. As duas gravações sobrevivem, em qualquer ordem.
-  const rebasear = (prev, base, next) => {
-    if (prev === base) return next;
-    const out = { ...prev };
-    for (const k of Object.keys(next)) if (next[k] !== base[k]) out[k] = next[k];      // fatia mexida agora
-    for (const k of Object.keys(base)) if (!(k in next) && k in out) delete out[k];    // fatia removida agora
-    return out;
-  };
   // Grava JÁ (localStorage + fila da nuvem) e só depois avisa a tela. Tem que ser
   // síncrono: se dependesse do re-render do React, uma gravação disparada na saída
   // do app (fechar a aba, trocar de app) podia nunca acontecer.
