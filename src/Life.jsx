@@ -9,6 +9,9 @@ import { useNav } from './nav.jsx';
 import { useSaved } from './savedStore.jsx';
 import { exportarTexto, exportarJSON } from './exportar.js';
 import { lerLixeira, listarBackups, lerBackup, restaurarBackup } from './cloud.js';
+// Campos de dinheiro que aceitam conta — as três peças moram em `conta.jsx` agora
+// (estavam duplicadas aqui e em GastosDetalhado, e a cópia de lá nasceu sem a trava).
+import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';
 // Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
@@ -78,25 +81,6 @@ function V({ children, style }) {
 }
 // Valor de um ativo em R$ (converte de USD pela cotação `rate` quando moeda === 'USD').
 const valorBRL = (h, rate) => (h.moeda === 'USD' ? (Number(h.valor) || 0) * (Number(rate) || 0) : (Number(h.valor) || 0));
-// Avalia o campo de valor: aceita conta simples (ex.: "1000+2500,50"). Vírgula vira
-// ponto decimal; só permite dígitos e + - * / ( ) por segurança.
-function evalValor(s) {
-  const str = String(s == null ? '' : s).trim().replace(/,/g, '.');
-  if (!str) return 0;
-  if (!/^[0-9.+\-*/() ]+$/.test(str)) return NaN;
-  try { const v = Function('"use strict";return(' + str + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
-  catch { return NaN; }
-}
-// Mostra "= R$ 1.250,00" embaixo de um campo que tem conta escrita. Só aparece
-// quando há operador, pra não poluir quando o valor é um número simples.
-function PreviaConta({ txt }) {
-  if (!/[+\-*/]/.test(String(txt == null ? '' : txt))) return null;
-  const v = evalValor(txt);
-  return <div style={{ fontSize: 11.5, color: isFinite(v) ? '#1a7a4f' : '#c0392b', textAlign: 'right', marginTop: 3 }}>{isFinite(v) ? '= ' + fmtBRL(v) : 'conta inválida'}</div>;
-}
-// Uma conta escrita errado faz `evalValor` devolver NaN, que viraria 0 ao salvar
-// (apagando o valor). Serve pra travar o botão antes disso.
-const contaInvalida = (v) => { const s = String(v == null ? '' : v).trim(); return !!s && !isFinite(evalValor(s)); };
 // Total da CARTEIRA (exclui itens marcados como `externo`, ex.: FGTS).
 const totalCarteiraBRL = (holdings, rate) => (holdings || []).filter(h => !h.externo).reduce((s, h) => s + valorBRL(h, rate), 0);
 // Cotação travada de cada mês (cada snapshot guarda a sua em `usdRate`).

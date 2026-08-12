@@ -221,7 +221,12 @@
       "Bash(awk 'NR>=2660 && NR<=2920 && /&larr;|onBack/ {print NR\": \"$0}' src/Life.jsx)",
       "Bash(rm -f verify.html src/__verify.jsx)",
       "Bash(git -c core.quotepath=false commit -q -m ' *)",
-      "Bash(xargs -I{} sh -c 'printf \"%8d  %s\\\\n\" $\\(stat -c %s \"{}\"\\) \"{}\"')"
+      "Bash(xargs -I{} sh -c 'printf \"%8d  %s\\\\n\" $\\(stat -c %s \"{}\"\\) \"{}\"')",
+      "Bash(npx vitest *)",
+      "Bash(sed -i \"s|import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';|import { evalValor } from './conta.jsx';|\" src/GastosDetalhado.jsx)",
+      "Bash(sed -i 's/^function VRHoje\\(\\) {/export function VRHoje\\(\\) {/' src/App.jsx)",
+      "Bash(sed -i 's/^export function VRHoje\\(\\) {/function VRHoje\\(\\) {/' src/App.jsx)",
+      "Bash(npm test *)"
     ]
   }
 }

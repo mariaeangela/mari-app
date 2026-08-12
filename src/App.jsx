@@ -24,6 +24,7 @@ const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSiz
 import { NavContext, useNav } from './nav.jsx';
 import { getLastSyncError, onSyncStatus, onSemChave, pendenciasAbertas, pendenteDesde, onSemEspaco, temSemEspaco } from './cloud';
 import { getCidadeFato } from './cidadeFatos.js';
+import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';
 
 // Relógio vivo: força um re-render a cada minuto. Assim a DATA vira sozinha à
 // meia-noite e a EDIÇÃO (cards + frase) vira às 6h e às 14h, sem recarregar.
@@ -499,12 +500,17 @@ function VRHoje() {
   const noCiclo = (d) => (!d ? hojeK : d < cycleKey ? cycleKey : d > hojeK ? hojeK : d);
 
   // Sem valor numérico o "ok" fica apagado (em vez de o toque não fazer nada).
-  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  // Valor do lançamento: aceita conta ("30+45"). Sem número válido o "ok" fica
+  // apagado, em vez de o toque simplesmente não fazer nada.
+  const numVal = (t) => { const s = String(t).trim(); if (!s) return null; const v = evalValor(s); return (isFinite(v) && v !== 0) ? v : null; };
   const podeAdd = numVal(val) != null;
   const addGasto = () => { const v = numVal(val); if (v == null) return; life.addVrGasto(cycleKey, { valor: v, data: noCiclo(data) }); setVal(''); setData(hojeK); setAddOpen(false); };
-  const salvarTotal = () => { life.setVrTotal(cycleKey, Number(String(totalTxt).replace(',', '.')) || 0); setEditTotal(false); };
+  // Conta quebrada NÃO vira zero: não salva e o campo continua aberto com o que
+  // ela escreveu (era assim que um valor sumia sem aviso). Vale pros 5 campos
+  // de dinheiro editáveis da capa — mesma regra dos Salários e da Carteira.
+  const salvarTotal = () => { if (contaInvalida(totalTxt)) return; life.setVrTotal(cycleKey, evalValor(totalTxt)); setEditTotal(false); };
   const abrirEdit = (g) => { setEditId(g.id); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
-  const salvarEdit = (id) => { life.updateVrGasto(cycleKey, id, { valor: Number(String(eVal).replace(',', '.')) || 0, data: noCiclo(eData) }); setEditId(null); };
+  const salvarEdit = (id) => { if (contaInvalida(eVal) || !(evalValor(eVal) > 0)) return; life.updateVrGasto(cycleKey, id, { valor: evalValor(eVal), data: noCiclo(eData) }); setEditId(null); };
 
   const cor = '#1a7a4f';
   return (
@@ -519,8 +525,9 @@ function VRHoje() {
           <p style={{ fontSize: 12.5, color: '#777', margin: '0 0 8px' }}>Quanto você tem no VR neste ciclo?</p>
           <div style={{ display: 'flex', gap: 8 }}>
             <input autoFocus={editTotal} type="text" inputMode="decimal" value={totalTxt} onChange={e => setTotalTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarTotal()} placeholder="ex.: 1000" style={{ ...capaInput, flex: 1 }} />
-            <button onClick={salvarTotal} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: 'pointer' }}>salvar</button>
+            <button onClick={salvarTotal} disabled={contaInvalida(totalTxt)} style={{ border: 'none', borderRadius: 10, background: contaInvalida(totalTxt) ? '#ddd' : cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 16px', cursor: contaInvalida(totalTxt) ? 'default' : 'pointer' }}>salvar</button>
           </div>
+          <PreviaConta txt={totalTxt} />
         </div>
       ) : (
         <>
@@ -620,12 +627,14 @@ function PossoBucket({ ck, bucket, label }) {
   // o campo não era número — e num toque errado (valor e descrição trocados de
   // campo) parecia que o app tinha travado. Agora o botão fica apagado e a linha
   // diz o que falta.
-  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  // Valor do lançamento: aceita conta ("30+45"). Sem número válido o "ok" fica
+  // apagado, em vez de o toque simplesmente não fazer nada.
+  const numVal = (t) => { const s = String(t).trim(); if (!s) return null; const v = evalValor(s); return (isFinite(v) && v !== 0) ? v : null; };
   const podeAdd = numVal(val) != null;
   const add = () => { const v = numVal(val); if (v == null) return; life.addPgGasto(ck, bucket, { valor: v, nome: nome.trim() || undefined, data: noCiclo(data) }); setVal(''); setNome(nomeDefault); setData(hojeK); setAddOpen(false); };
-  const salvarB = () => { life.setPgBudget(ck, bucket, Number(String(bTxt).replace(',', '.')) || 0); setEditB(false); };
+  const salvarB = () => { if (contaInvalida(bTxt)) return; life.setPgBudget(ck, bucket, evalValor(bTxt)); setEditB(false); };
   const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || nomeDefault); setEVal(String(g.valor ?? '')); setEData(g.data || hojeK); };
-  const salvarEdit = (id) => { const v = Number(String(eVal).replace(',', '.')) || 0; life.updatePgGasto(ck, bucket, id, { valor: v, data: noCiclo(eData), ...(comNome ? { nome: eNome.trim() || undefined } : {}) }); setEditId(null); };
+  const salvarEdit = (id) => { if (contaInvalida(eVal) || !(evalValor(eVal) > 0)) return; life.updatePgGasto(ck, bucket, id, { valor: evalValor(eVal), data: noCiclo(eData), ...(comNome ? { nome: eNome.trim() || undefined } : {}) }); setEditId(null); };
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid ' + cor + '22' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -633,10 +642,13 @@ function PossoBucket({ ck, bucket, label }) {
         {temBudget && !editB && <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, fontWeight: 700, color: resta < 0 ? '#c0392b' : cor }}>{fmtR$(resta)}</span>}
       </div>
       {!temBudget || editB ? (
-        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`posso gastar em ${label.toLowerCase()}?`} style={{ ...capaInput, flex: 1 }} />
-          <button onClick={salvarB} style={{ border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer' }}>salvar</button>
-        </div>
+        <>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <input autoFocus={editB} type="text" inputMode="decimal" value={bTxt} onChange={e => setBTxt(e.target.value)} onKeyDown={e => e.key === 'Enter' && salvarB()} placeholder={`posso gastar em ${label.toLowerCase()}?`} style={{ ...capaInput, flex: 1 }} />
+            <button onClick={salvarB} disabled={contaInvalida(bTxt)} style={{ border: 'none', borderRadius: 10, background: contaInvalida(bTxt) ? '#ddd' : cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: contaInvalida(bTxt) ? 'default' : 'pointer' }}>salvar</button>
+          </div>
+          <PreviaConta txt={bTxt} />
+        </>
       ) : (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 2 }}>
@@ -730,7 +742,9 @@ function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
   const gastosPorDia = agruparPorDia(gastos);
   // Mesma trava do Posso gastar: sem valor numérico o "ok" fica apagado, em vez
   // de o toque simplesmente não fazer nada.
-  const numVal = (t) => { const s = String(t).trim().replace(',', '.'); const v = Number(s); return (s && isFinite(v) && v !== 0) ? v : null; };
+  // Valor do lançamento: aceita conta ("30+45"). Sem número válido o "ok" fica
+  // apagado, em vez de o toque simplesmente não fazer nada.
+  const numVal = (t) => { const s = String(t).trim(); if (!s) return null; const v = evalValor(s); return (isFinite(v) && v !== 0) ? v : null; };
   const podeAdd = numVal(val) != null;
   const add = () => {
     const v = numVal(val);
@@ -740,7 +754,8 @@ function ViagemBucket({ viagemId, cat, moeda, cambio, cor }) {
   };
   const abrirEdit = (g) => { setEditId(g.id); setENome(g.nome || ''); setEVal(String(g.valor ?? '')); setEData(g.data || ymd(hojeMid())); };
   const salvarEdit = (id) => {
-    life.updateViagemCatGasto(viagemId, cat.id, id, { valor: Number(String(eVal).replace(',', '.')) || 0, nome: eNome.trim() || undefined, data: eData || undefined });
+    if (contaInvalida(eVal) || !(evalValor(eVal) > 0)) return;
+    life.updateViagemCatGasto(viagemId, cat.id, id, { valor: evalValor(eVal), nome: eNome.trim() || undefined, data: eData || undefined });
     setEditId(null);
   };
   const btnOk = { border: 'none', borderRadius: 10, background: cor, color: '#fff', fontSize: 13, fontWeight: 700, padding: '0 14px', cursor: 'pointer', flexShrink: 0 };

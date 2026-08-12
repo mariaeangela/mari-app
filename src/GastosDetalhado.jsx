@@ -10,6 +10,7 @@
 import { useState, useEffect, useContext, createContext } from 'react';
 import { useLife, simboloMoeda } from './lifeStore.jsx';
 import { cicloDia27, cicloLabel } from './calendarConfig.js';
+import { evalValor } from './conta.jsx';
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const fmtMesAno = (mm) => `${MESES[+mm.slice(5, 7) - 1]} de ${mm.slice(0, 4)}`;
@@ -19,14 +20,6 @@ const GASTO_CORES = ['#ff8a3d', '#5b8def', '#2bb673', '#c77dff', '#ef6c4d', '#26
 const catCor = (c, fallback = 0) => { const i = GASTO_CATS.indexOf(c); return GASTO_CORES[(i >= 0 ? i : fallback) % GASTO_CORES.length]; };
 // Dinheiro no padrão da VF: inteiro arredondado, vírgula de milhar, sem decimais.
 const fmtR = (v) => 'R$ ' + Math.round(Number(v) || 0).toLocaleString('en-US');
-// Avalia conta simples ("500+300"): vírgula→ponto; só dígitos e + - * / ( ).
-const evalValor = (s) => {
-  const str = String(s == null ? '' : s).trim().replace(/,/g, '.');
-  if (!str) return 0;
-  if (!/^[0-9.+\-*/() ]+$/.test(str)) return NaN;
-  try { const v = Function('"use strict";return(' + str + ')')(); return (typeof v === 'number' && isFinite(v)) ? v : NaN; }
-  catch { return NaN; }
-};
 
 // estilos locais (cópias — não importa de Life/Retrospectiva)
 const overlay = { position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' };
@@ -182,39 +175,6 @@ function GastoTabela({ itens, mesesAsc, cor, onEdit }) {
   );
 }
 
-// Formulário de UM item de gasto (nome + mês + valor). Reusa saveGastoItem do store.
-function GastoItemForm({ editing, categoria, onClose }) {
-  const life = useLife();
-  const [nome, setNome] = useState(editing?.nome || '');
-  const [mes, setMes] = useState(editing?.mes || '');
-  const [valor, setValor] = useState(editing?.valor != null ? String(editing.valor) : '');
-  const podeSalvar = nome.trim().length > 0 && mes && valor;
-  const salvar = () => {
-    if (!podeSalvar) return;
-    life.saveGastoItem({ id: editing?.id, categoria, mes, nome: nome.trim(), valor: Number(String(valor).replace(',', '.')) || 0 });
-    onClose();
-  };
-  return (
-    <div onClick={onClose} style={overlay}>
-      <div onClick={e => e.stopPropagation()} style={sheet}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>{editing ? 'Editar' : 'Novo'} gasto · {categoria}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
-        </div>
-        <label style={labelStyle}>O quê</label>
-        <input value={nome} onChange={e => setNome(e.target.value)} placeholder="ex.: Presente Lucy e Thales" style={inputStyle} />
-        <label style={labelStyle}>Mês</label>
-        <input type="month" value={mes} onChange={e => setMes(e.target.value)} style={inputStyle} />
-        <label style={labelStyle}>Valor (R$)</label>
-        <input type="text" inputMode="decimal" value={valor} onChange={e => setValor(e.target.value)} placeholder="ex.: 533,70" style={inputStyle} />
-        <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-          {editing && <button onClick={() => { life.deleteGastoItem(editing.id); onClose(); }} style={{ padding: '12px 16px', borderRadius: 11, border: '1px solid #f0c0c0', background: '#fff', color: '#d05050', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Apagar</button>}
-          <button onClick={salvar} disabled={!podeSalvar} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: podeSalvar ? '#111' : '#ccc', color: '#fff', fontSize: 14, fontWeight: 700, cursor: podeSalvar ? 'pointer' : 'default' }}>{editing ? 'Salvar' : 'Adicionar'}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // VR: histórico do vale-refeição por ciclo 27→26 e, dentro de cada um, gastos por dia.
 function VRDet({ onBack }) {
