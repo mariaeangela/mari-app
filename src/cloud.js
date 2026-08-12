@@ -275,6 +275,20 @@ const RETRY = 4000;
 // ela: se um envio falha, as fatias continuam no próximo — nada some no meio.
 let baseEnviada = null;
 export function definirBaseLife(doc) { baseEnviada = doc || null; }   // usado no boot
+// O que ESTE aparelho mudou desde a última vez que a nuvem confirmou. Serve pra
+// adotar a versão de lá SEM jogar fora o que foi escrito aqui e ainda não subiu:
+// pega-se a nuvem como base e põem-se estas fatias por cima.
+// `null` = não dá pra saber (nunca houve confirmação nesta sessão) — quem chama
+// tem que ser conservador nesse caso, não chutar.
+export function fatiasNaoConfirmadas(doc) {
+  if (!doc || !baseEnviada) return null;
+  const out = {};
+  for (const k of Object.keys(doc)) {
+    if (k === '_rev') continue;
+    if (doc[k] !== baseEnviada[k]) out[k] = doc[k];
+  }
+  return out;
+}
 function deltaLife(doc) {
   if (!doc || !baseEnviada) return null;                    // sem base: manda inteiro
   const patch = {};

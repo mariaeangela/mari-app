@@ -6,7 +6,7 @@
 //     itens:  [{ id, titulo, listaId, dataLimite?, orcamento?, links: [], comprado }]
 //   }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife, gravarLocal } from './cloud';
+import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife, gravarLocal, fatiasNaoConfirmadas } from './cloud';
 import { rebasear } from './mesclar.js';
 
 const KEY = 'diagonal_life';
@@ -641,42 +641,73 @@ export function LifeProvider({ children }) {
       const cloud = await fetchLife();
       if (cloud === UNREACHABLE || !cloud) return;
       const merged = { ...DEFAULT, ...cloud, compras: { ...DEFAULT.compras, ...(cloud.compras || {}) }, financas: { ...DEFAULT.financas, ...(cloud.financas || {}) } };
-      // Com edição local não confirmada, NÃO adota a nuvem: reenvia o local. Sem
-      // isto, voltar pro app (visibilitychange) podia trocar o que está aqui por
-      // uma versão de fora e apagar o que ainda nem tinha subido.
-      if (temPendente('life')) { pushLife(dataRef.current); return; }
-      if ((merged._rev || 0) > (dataRef.current?._rev || 0)) {
+      // As MINHAS fatias: o que ESTE aparelho escreveu e a nuvem ainda não
+      // confirmou. Sabendo isso, o carimbo de hora sai da decisão — e é ele que
+      // estragava tudo. Era este o "deixei o PC aberto, mexi no celular e perdi":
+      // bastava o PC ganhar um carimbo mais novo (a tarefa da meia-noite dava um)
+      // pra ele se achar a versão certa e ignorar a nuvem a manhã inteira.
+      const minhas = fatiasNaoConfirmadas(dataRef.current);
+      if (minhas === null) {
+        // Não dá pra saber o que é meu (nunca houve confirmação nesta sessão):
+        // caminho conservador de sempre, decidindo pelo carimbo.
+        if (temPendente('life')) { pushLife(dataRef.current); return; }
+        if ((merged._rev || 0) <= (dataRef.current?._rev || 0)) return;
         guardarNaLixeira('life-local', dataRef.current, 'substituído pela versão da nuvem ao voltar pro app');
-        const next = runLifeSeeds(merged);
-        writeLocal(next); setData(next);
-        definirBaseLife(merged);   // acabou de vir de lá: é a nova base dos deltas
-        if (next !== merged) pushLife(next);
+        const soNuvem = runLifeSeeds(merged);
+        writeLocal(soNuvem); setData(soNuvem);
+        definirBaseLife(merged);
+        if (soNuvem !== merged) pushLife(soNuvem);
+        return;
       }
+      // JUNTA os dois lados, sem olhar carimbo: a nuvem é a base (traz o que foi
+      // feito no celular) e o que este aparelho escreveu e não subiu entra por
+      // cima. Se este aparelho não escreveu nada, a nuvem manda inteira — mesmo
+      // que o relógio dele ache que ele é mais novo.
+      const temMinhas = Object.keys(minhas).length > 0;
+      if (!temMinhas && (merged._rev || 0) === (dataRef.current?._rev || 0)) return;   // já estamos em dia
+      guardarNaLixeira('life-local', dataRef.current, 'juntado com a versão da nuvem ao voltar pro app');
+      const next = runLifeSeeds({ ...merged, ...minhas });
+      writeLocal(next); setData(next);
+      definirBaseLife(merged);          // a nuvem lida agora é a nova base dos envios
+      if (temMinhas || next !== merged) pushLife(stampRev(next));
     } finally { resyncing.current = false; }
   };
-  useEffect(() => {
-    const onVis = () => { if (document.visibilityState === 'visible') resyncLife(); };
-    document.addEventListener('visibilitychange', onVis);
-    window.addEventListener('online', resyncLife);
-    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncLife); };
-  }, []); // eslint-disable-line
+  // "Puxar vencidos pra hoje": item de plano/compra com prazo vencido e não feito
+  // se move pra hoje sozinho, pra não sumir da capa. Roda também com o app aberto,
+  // pra funcionar quando o dia vira sem recarregar.
+  //
+  // SÓ COM O APP À VISTA. Era este o vilão do "deixei o PC aberto, mexi no celular
+  // e no dia seguinte perdi tudo": à meia-noite, o PC esquecido aberto (escondido,
+  // ninguém olhando) puxava os vencidos e CARIMBAVA o documento dele com a hora de
+  // agora. Aquele carimbo de madrugada ficava mais novo que tudo que ela tinha
+  // feito no celular durante a noite, então de manhã o PC se achava a versão certa
+  // e ignorava a nuvem. Escondido não se mexe em nada: quando ela voltar, roda.
+  const rolarVencidos = () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+    const prev = dataRef.current;
+    const rolled = rolarPlanosVencidos(rolarComprasVencidas(prev));
+    if (rolled === prev) return;
+    gravar(stampRev(rolled));
+  };
 
-  // Re-roda o "puxar vencidos pra hoje" CONTINUAMENTE (não só no login): ao voltar
-  // pro app e a cada minuto. Sem isso, se o app ficar aberto e o dia virar, o item
-  // de checklist vencido e não-feito não se move sozinho até um reload.
   useEffect(() => {
-    const roll = () => setData(prev => {
-      const rolled = rolarPlanosVencidos(rolarComprasVencidas(prev));
-      if (rolled === prev) return prev;
-      const next = stampRev(rolled);                 // mudou -> carimba e persiste (local + nuvem)
-      writeLocal(next); pushLife(next);
-      return next;
-    });
-    const onVis = () => { if (document.visibilityState === 'visible') roll(); };
-    document.addEventListener('visibilitychange', onVis);
-    const id = setInterval(roll, 60000);
-    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(id); };
-  }, []);
+    // ORDEM IMPORTA: primeiro pergunta pra nuvem o que mudou (e adota), só DEPOIS
+    // puxa os vencidos. Ao contrário, o puxão carimbava o documento velho com a
+    // hora de agora e a resposta da nuvem chegava "velha" e era descartada.
+    const acordar = async () => {
+      if (document.visibilityState !== 'visible') return;
+      await resyncLife();
+      rolarVencidos();
+    };
+    document.addEventListener('visibilitychange', acordar);
+    window.addEventListener('online', resyncLife);
+    const id = setInterval(rolarVencidos, 60000);
+    return () => {
+      document.removeEventListener('visibilitychange', acordar);
+      window.removeEventListener('online', resyncLife);
+      clearInterval(id);
+    };
+  }, []); // eslint-disable-line
 
   // ---- Compras ----
   const compras = data.compras || DEFAULT.compras;

@@ -227,7 +227,8 @@
       "Bash(sed -i 's/^function VRHoje\\(\\) {/export function VRHoje\\(\\) {/' src/App.jsx)",
       "Bash(sed -i 's/^export function VRHoje\\(\\) {/function VRHoje\\(\\) {/' src/App.jsx)",
       "Bash(npm test *)",
-      "Bash(cd \"C:/Users/maria/Downloads/diagonal-claudecode/diagonal\" *)"
+      "Bash(cd \"C:/Users/maria/Downloads/diagonal-claudecode/diagonal\" *)",
+      "Bash(rm -f verify.html src/__verify.jsx /tmp/ls.bak)"
     ]
   }
 }

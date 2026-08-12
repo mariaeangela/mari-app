@@ -215,30 +215,38 @@ export function CalendarProvider({ children }) {
       }
     } finally { resyncing.current = false; }
   };
-  useEffect(() => {
-    const onVis = () => { if (document.visibilityState === 'visible') resyncCal(); };
-    document.addEventListener('visibilitychange', onVis);
-    window.addEventListener('online', resyncCal);
-    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('online', resyncCal); };
-  }, []); // eslint-disable-line
-
-  // Re-roda o "puxar tarefa atrasada pra hoje" CONTINUAMENTE (não só no boot): ao
-  // voltar pro app e a cada minuto. Sem isso a tarefa de sábado ficava presa em
-  // sábado — o `rolarAtrasadas` do boot já tinha rodado, e o do resync só entra
-  // quando a NUVEM está mais nova que o aparelho, o que quase nunca é o caso.
-  // Mesma solução que os Planos e as Compras já usam no lifeStore.
-  useEffect(() => {
-    const roll = () => setData(prev => {
+  // "Puxar tarefa atrasada pra hoje", com o app aberto (pra funcionar quando o dia
+  // vira sem recarregar). SÓ COM O APP À VISTA — mesma regra dos Planos/Compras:
+  // o PC esquecido aberto puxava as atrasadas à meia-noite e carimbava o documento
+  // velho dele com a hora de agora, ficando "mais novo" que tudo que ela tinha
+  // feito no celular. De manhã ele ignorava a nuvem e ela perdia o dia.
+  const rolarAtrasadasSeVisivel = () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+    setData(prev => {
       const { next, changed } = rolarAtrasadas(prev.tasks, hojeKey());
       if (!changed) return prev;
       const f = stampRev({ ...prev, tasks: next });   // mudou -> carimba e persiste (local + nuvem)
       writeLocal(f); pushCalendario(f);
       return f;
     });
-    const onVis = () => { if (document.visibilityState === 'visible') roll(); };
-    document.addEventListener('visibilitychange', onVis);
-    const id = setInterval(roll, 60000);
-    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(id); };
+  };
+
+  useEffect(() => {
+    // ORDEM IMPORTA: pergunta pra nuvem PRIMEIRO (e adota), só depois puxa as
+    // atrasadas — senão o puxão carimba o velho e a resposta de lá chega "velha".
+    const acordar = async () => {
+      if (document.visibilityState !== 'visible') return;
+      await resyncCal();
+      rolarAtrasadasSeVisivel();
+    };
+    document.addEventListener('visibilitychange', acordar);
+    window.addEventListener('online', resyncCal);
+    const id = setInterval(rolarAtrasadasSeVisivel, 60000);
+    return () => {
+      document.removeEventListener('visibilitychange', acordar);
+      window.removeEventListener('online', resyncCal);
+      clearInterval(id);
+    };
   }, []); // eslint-disable-line
 
   // ---- Eventos ----
