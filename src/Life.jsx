@@ -3158,6 +3158,10 @@ function ComprasMirror({ listaId, grupo }) {
   const itens = (life.compras.itens || []).filter(i => i.listaId === listaId && (!grupo || i.grupo === grupo))
     .sort((a, b) => (a.comprado === b.comprado ? 0 : a.comprado ? 1 : -1));
   const add = () => { const t = novo.trim(); if (!t) return; life.addComprasItem({ titulo: t, listaId, grupo: grupo || undefined }); setNovo(''); };
+  // O rodapé dizia "Maquiagem" fixo no código: nasceu junto com a nota de
+  // maquiagem, que era a única que espelhava lista, e ficou mentindo em todas as
+  // outras. Agora diz o nome da lista de verdade (e o subgrupo, quando há um).
+  const nomeLista = [...LISTAS_FIXAS, ...(life.compras.listas || [])].find(l => l.id === listaId)?.nome;
   return (
     <div>
       {itens.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 8px' }}>Lista vazia.</p>}
@@ -3172,7 +3176,11 @@ function ComprasMirror({ listaId, grupo }) {
         <input value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="adicionar item" style={inputStyle} />
         <button onClick={add} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
       </div>
-      <p style={{ fontSize: 11, color: '#bbb', marginTop: 8 }}>↔ sincroniza com a lista <b style={{ color: COR_APREND }}>Maquiagem</b> em Compras</p>
+      <p style={{ fontSize: 11, color: '#bbb', marginTop: 8 }}>
+        {nomeLista
+          ? <>↔ sincroniza com a lista <b style={{ color: COR_APREND }}>{nomeLista}</b>{grupo ? <> · <b style={{ color: COR_APREND }}>{grupo}</b></> : null} em Compras</>
+          : <>↔ esta lista não existe mais em Compras</>}
+      </p>
     </div>
   );
 }
