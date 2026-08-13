@@ -229,7 +229,8 @@
       "Bash(npm test *)",
       "Bash(cd \"C:/Users/maria/Downloads/diagonal-claudecode/diagonal\" *)",
       "Bash(rm -f verify.html src/__verify.jsx /tmp/ls.bak)",
-      "WebFetch(domain:www.guggenheim.org)"
+      "WebFetch(domain:www.guggenheim.org)",
+      "Bash(awk 'NR>=3720 && NR<=3800 && \\(/const addItem/ || /const toggleItem/ || /const delItem/ || /const salvar =/\\)' src/Life.jsx)"
     ]
   }
 }

@@ -3122,6 +3122,34 @@ function WineForm({ topicoId, paiId, editing, onClose }) {
 
 const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 };
 
+// Espelho ao vivo do checklist de um PLANO, pra usar dentro da viagem
+// ("Coisas para fazer" vinculada a um plano). Mesmo dado da aba Planos: marcar,
+// adicionar e apagar aqui reflete lá na hora. Irmão do `ComprasMirror`.
+function PlanoMirror({ planoId, cor }) {
+  const life = useLife();
+  const [novo, setNovo] = useState('');
+  const itens = (life.planos.itens || []).filter(i => i.planoId === planoId)
+    .sort((a, b) => (a.feito === b.feito ? 0 : a.feito ? 1 : -1));
+  const add = () => { const t = novo.trim(); if (!t) return; life.addPlanoCheck(planoId, t); setNovo(''); };
+  return (
+    <div>
+      {itens.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '2px 0 8px' }}>Checklist vazio.</p>}
+      {itens.map(it => (
+        <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 0', borderBottom: '1px solid #f4f4f4' }}>
+          <span onClick={() => life.togglePlanoCheck(it.id)} style={{ fontSize: 18, color: it.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{it.feito ? '☑' : '☐'}</span>
+          <span style={{ flex: 1, fontSize: 14, color: '#222', textDecoration: it.feito ? 'line-through' : 'none', opacity: it.feito ? 0.5 : 1 }}>{it.texto}</span>
+          <span onClick={() => life.deletePlanoCheck(it.id)} title="apagar" style={{ color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</span>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <input value={novo} onChange={e => setNovo(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+        <button onClick={add} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+      </div>
+      <p style={{ fontSize: 11, color: '#bbb', marginTop: 8 }}>↔ é o mesmo checklist que está em <b style={{ color: cor }}>Life › Planos</b> — marcar aqui marca lá</p>
+    </div>
+  );
+}
+
 // Espelho ao vivo de uma lista de Compras dentro de uma nota (tipo 'compras').
 // É o MESMO dado da aba Compras: marcar/adicionar/apagar aqui reflete lá.
 function ComprasMirror({ listaId, grupo }) {
@@ -3894,6 +3922,120 @@ function ViagemDetail({ trip, onBack }) {
       </div>
     );
   };
+  // Uma linha da lista (o ☐ + texto + ✎ + ×). Extraída pra servir tanto a lista
+  // solta quanto os subtópicos do "O que levar".
+  const linhaLista = (campo, c) => (
+    <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+      <span onClick={() => toggleItem(campo, c.id)} style={{ fontSize: 18, color: c.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{c.feito ? '☑' : '☐'}</span>
+      {emEdicaoLista(campo, c.id) ? (
+        <>
+          <input autoFocus value={editItemTxt} onChange={e => setEditItemTxt(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') salvarEditItem(); if (e.key === 'Escape') cancelEditItem(); }} style={{ ...inputStyle, flex: 1 }} />
+          <button onClick={salvarEditItem} style={{ padding: '0 12px', borderRadius: 9, border: 'none', background: COR_VIAGEM, color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>ok</button>
+        </>
+      ) : (
+        <>
+          <span onClick={() => abrirEditLista(campo, c)} title="tocar pra editar" style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: c.feito ? 'line-through' : 'none', opacity: c.feito ? 0.5 : 1, cursor: 'text' }}>{c.texto}</span>
+          <button onClick={() => abrirEditLista(campo, c)} title="editar" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+          <button onClick={() => delItem(campo, c.id)} title="apagar" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+        </>
+      )}
+    </div>
+  );
+
+  // ---- "O que levar" com SUBTÓPICOS (roupas, utilidades…) ----
+  // Ela pediu pra digitar o nome do subtópico UMA vez e depois só ir jogando item
+  // dentro — por isso cada subtópico tem o seu próprio campo de adicionar, em vez
+  // de um campo geral onde ela teria que escolher o grupo a cada item.
+  //
+  // Nada foi migrado: o subtópico é um campo NOVO e opcional (`grupoId`) no item,
+  // e a lista de subtópicos mora em `trip.levarGrupos`. Item de antes não tem
+  // grupo e continua aparecendo em cima, solto. Apagar um subtópico NÃO apaga os
+  // itens dele — eles voltam pro solto.
+  const levarGrupos = trip.levarGrupos || [];
+  const CHAVE_GRUPOS_FECHADOS = 'diagonal_levar_fechados_' + trip.id;
+  const [gruposFechados, setGruposFechados] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(CHAVE_GRUPOS_FECHADOS) || '[]')); } catch { return new Set(); }
+  });
+  const alternarGrupo = (id) => {
+    const s = new Set(gruposFechados);
+    s.has(id) ? s.delete(id) : s.add(id);
+    setGruposFechados(s);
+    try { localStorage.setItem(CHAVE_GRUPOS_FECHADOS, JSON.stringify([...s])); } catch { /* é só visualização */ }
+  };
+  const [novoPorGrupo, setNovoPorGrupo] = useState({});   // texto do campo de cada subtópico
+  const addNoGrupo = (grupoId) => {
+    const t = (novoPorGrupo[grupoId] || '').trim();
+    if (!t) return;
+    salvar({ levar: [...(trip.levar || []), { id: 'ck' + Date.now().toString(36), texto: t, feito: false, grupoId }] });
+    setNovoPorGrupo(v => ({ ...v, [grupoId]: '' }));
+  };
+  const addGrupoLevar = () => {
+    const nome = window.prompt('Nome do subtópico (ex.: Roupas, Utilidades):');
+    if (!nome || !nome.trim()) return;
+    salvar({ levarGrupos: [...levarGrupos, { id: 'lg' + Date.now().toString(36), nome: nome.trim() }] });
+  };
+  const renomearGrupoLevar = (g) => {
+    const nome = window.prompt('Renomear subtópico:', g.nome);
+    if (!nome || !nome.trim()) return;
+    salvar({ levarGrupos: levarGrupos.map(x => x.id === g.id ? { ...x, nome: nome.trim() } : x) });
+  };
+  const apagarGrupoLevar = (g) => {
+    const dentro = (trip.levar || []).filter(i => i.grupoId === g.id).length;
+    if (!window.confirm(`Apagar o subtópico "${g.nome}"?` + (dentro ? `\n\nOs ${dentro} itens dele NÃO são apagados — voltam pra lista solta.` : ''))) return;
+    salvar({
+      levarGrupos: levarGrupos.filter(x => x.id !== g.id),
+      levar: (trip.levar || []).map(i => i.grupoId === g.id ? { ...i, grupoId: undefined } : i),
+    });
+  };
+
+  const listaLevar = () => {
+    const todos = trip.levar || [];
+    const soltos = todos.filter(i => !i.grupoId || !levarGrupos.some(g => g.id === i.grupoId));
+    return (
+      <div>
+        {soltos.map(c => linhaLista('levar', c))}
+        {soltos.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <input value={novoLevar} onChange={e => setNovoLevar(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem('levar', novoLevar, setNovoLevar)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+            <button onClick={() => addItem('levar', novoLevar, setNovoLevar)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+          </div>
+        )}
+        {levarGrupos.map(g => {
+          const dentro = todos.filter(i => i.grupoId === g.id);
+          const fechado = gruposFechados.has(g.id);
+          const feitos = dentro.filter(i => i.feito).length;
+          return (
+            <div key={g.id} style={{ marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div onClick={() => alternarGrupo(g.id)} title={fechado ? 'abrir' : 'fechar'} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, cursor: 'pointer', padding: '4px 0', userSelect: 'none' }}>
+                  <span style={{ fontSize: 11, color: COR_VIAGEM, flexShrink: 0, transform: fechado ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>▼</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#222' }}>{g.nome}</span>
+                  <span style={{ fontSize: 11.5, color: '#aaa' }}>{dentro.length}{feitos > 0 ? ` · ${feitos} ✓` : ''}</span>
+                </div>
+                <button onClick={() => renomearGrupoLevar(g)} title="renomear" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+                <button onClick={() => apagarGrupoLevar(g)} title="apagar subtópico" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+              </div>
+              {!fechado && <>
+                {dentro.map(c => linhaLista('levar', c))}
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <input value={novoPorGrupo[g.id] || ''} onChange={e => setNovoPorGrupo(v => ({ ...v, [g.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && addNoGrupo(g.id)} placeholder={`adicionar em ${g.nome.toLowerCase()}…`} style={{ ...inputStyle, flex: 1 }} />
+                  <button onClick={() => addNoGrupo(g.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                </div>
+              </>}
+            </div>
+          );
+        })}
+        {soltos.length === 0 && levarGrupos.length === 0 && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <input value={novoLevar} onChange={e => setNovoLevar(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem('levar', novoLevar, setNovoLevar)} placeholder="adicionar item…" style={{ ...inputStyle, flex: 1 }} />
+            <button onClick={() => addItem('levar', novoLevar, setNovoLevar)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+          </div>
+        )}
+        <button onClick={addGrupoLevar} style={{ marginTop: 14, background: 'none', border: 'none', color: COR_VIAGEM, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0 }}>+ criar subtópico</button>
+      </div>
+    );
+  };
+
   const listaCheck = (campo, novo, setNovo) => {
     const itens = trip[campo] || [];
     return (
@@ -4260,7 +4402,7 @@ function ViagemDetail({ trip, onBack }) {
   const secoesListas = (trip.secoes || []).filter(s => localSecao(s) === 'listas');
   const viewListas = () => (
     <div>
-      {bloco('O que levar', listaCheck('levar', novoLevar, setNovoLevar))}
+      {bloco('O que levar', listaLevar())}
       {bloco('Comprar pra viagem', listaCheck('comprar', novoComprar, setNovoComprar))}
       {bloco('Comprar na viagem', trip.comprasLinkId ? (() => {
         const nome = [...LISTAS_FIXAS, ...(life.compras.listas || [])].find(l => l.id === trip.comprasLinkId)?.nome || 'lista';
@@ -4287,7 +4429,44 @@ function ViagemDetail({ trip, onBack }) {
           </div>
         </div>
       ))}
-      {bloco('Coisas para fazer', listaCheck('fazer', novoFazer, setNovoFazer))}
+      {/* "Coisas para fazer" pode virar o espelho de um checklist de Planos — ela já
+          tinha um checklist da viagem lá e não quer manter duas listas iguais.
+          Mesmo desenho do vínculo de Compras logo acima. Desvincular não apaga
+          nada: a lista solta daqui volta a aparecer, intacta. */}
+      {bloco('Coisas para fazer', trip.planoLinkId ? (() => {
+        const plano = (life.planos.lista || []).find(p => p.id === trip.planoLinkId);
+        if (!plano) return (
+          <div style={{ fontSize: 13, color: '#c0392b', lineHeight: 1.6 }}>
+            O plano vinculado não existe mais.
+            <span onClick={() => salvar({ planoLinkId: undefined })} style={{ color: COR_VIAGEM, cursor: 'pointer', fontWeight: 700, marginLeft: 6 }}>desvincular</span>
+          </div>
+        );
+        const its = (life.planos.itens || []).filter(i => i.planoId === plano.id);
+        const feitos = its.filter(i => i.feito).length;
+        return (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: COR_VIAGEM + '12', border: '1px solid ' + COR_VIAGEM + '33', borderRadius: 12, padding: '11px 14px', marginBottom: 10 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#222' }}>🔗 {plano.nome}</span>
+              <span style={{ fontSize: 12.5, color: '#888', flexShrink: 0 }}>{its.length ? `${feitos}/${its.length} feitos` : 'vazio'}</span>
+            </div>
+            <PlanoMirror planoId={plano.id} cor={COR_VIAGEM} />
+            <div style={{ marginTop: 10, fontSize: 12 }}><span onClick={() => salvar({ planoLinkId: undefined })} style={{ color: '#c0392b', cursor: 'pointer', fontWeight: 700 }}>desvincular</span></div>
+          </div>
+        );
+      })() : (
+        <div>
+          {listaCheck('fazer', novoFazer, setNovoFazer)}
+          {(life.planos.lista || []).length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, color: '#999' }}>ou vincular a um checklist de Planos:</span>
+              <select value="" onChange={e => { if (e.target.value) salvar({ planoLinkId: e.target.value }); }} style={{ ...inputStyle, width: 'auto', flex: '0 1 auto', padding: '6px 8px', cursor: 'pointer' }}>
+                <option value="">escolher…</option>
+                {(life.planos.lista || []).map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+      ))}
 
       {/* Tópicos livres que ela criou aqui dentro */}
       {secoesListas.map(s => (

@@ -55,6 +55,18 @@ ela remaneja os dias **pela temperatura**, e item que se move sozinho bagunça o
 remanejamento. Agora o item FICA na data dele, marcado ou não. **Não "consertar"
 isto de volta** — o comentário no código diz o mesmo.
 
+**Listas da viagem (13/ago/2026):**
+- **"Coisas para fazer" pode virar o espelho de um checklist de Planos**
+  (`trip.planoLinkId` + `PlanoMirror`), no mesmo desenho do vínculo de Compras
+  (`trip.comprasLinkId` + `ComprasMirror`). É o MESMO dado dos dois lados. A lista
+  solta (`trip.fazer`) não é apagada ao vincular — só fica escondida, e volta ao
+  desvincular.
+- **"O que levar" ganhou SUBTÓPICOS** (`trip.levarGrupos` + `item.grupoId`), cada
+  um com setinha e **campo de adicionar PRÓPRIO** — o pedido dela foi digitar o
+  nome do subtópico uma vez e depois só jogar item dentro. Puramente aditivo:
+  item antigo não tem `grupoId` e aparece solto em cima. **Apagar um subtópico
+  NÃO apaga os itens** — eles voltam pro solto (e o confirm avisa quantos são).
+
 **Dias sanfonados**: cada data tem uma setinha que fecha/abre aquele dia; várias
 podem ficar abertas ao mesmo tempo (NÃO é sanfona de uma só), mais um
 "fechar/abrir todos os dias" quando há mais de um dia. O cabeçalho mostra
