@@ -67,6 +67,15 @@ isto de volta** — o comentário no código diz o mesmo.
   item antigo não tem `grupoId` e aparece solto em cima. **Apagar um subtópico
   NÃO apaga os itens** — eles voltam pro solto (e o confirm avisa quantos são).
 
+**"Sem data" separado por CIDADE** (13/ago/2026, viagem NY · Filadélfia · Chicago):
+`trip.cidades = [{id,nome}]` + `item.cidadeId`, criadas por ela ("+ criar cidade").
+Cada cidade é sanfonada e tem **campo de adicionar próprio** (cria o lugar só com o
+nome, `bucket:'semdata'` + `cidadeId`; o resto ela põe tocando no cartão). O seletor
+de Cidade no `ProgItemForm` só aparece em "Ainda sem data". Aditivo: item sem
+`cidadeId` fica solto em cima. **Apagar cidade NÃO apaga os lugares** — voltam pro
+solto. As três sanfonas (dias · subtópicos do levar · cidades) usam `useFechados` +
+`CabecalhoSanfona`; eram cópias, e cópia foi como o bug dos campos de dinheiro entrou.
+
 **Dias sanfonados**: cada data tem uma setinha que fecha/abre aquele dia; várias
 podem ficar abertas ao mesmo tempo (NÃO é sanfona de uma só), mais um
 "fechar/abrir todos os dias" quando há mais de um dia. O cabeçalho mostra

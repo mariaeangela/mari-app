@@ -3122,6 +3122,40 @@ function WineForm({ topicoId, paiId, editing, onClose }) {
 
 const apLink = { background: 'none', border: 'none', color: COR_APREND, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 };
 
+// ---- As "setinhas" que fecham e abrem blocos (dias, subtópicos, cidades) ----
+// Quem está fechado mora no APARELHO, não no documento dela: é preferência de
+// visualização, não dado da viagem — não tem por que viajar pra nuvem nem entrar
+// no backup. Sobrevive a sair da tela e a recarregar, que é o que importa.
+// Uma peça só pros três usos; eram três cópias iguais, e cópia é como o bug dos
+// campos de dinheiro entrou.
+function useFechados(chave) {
+  const [fechados, setFechados] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(chave) || '[]')); } catch { return new Set(); }
+  });
+  const guardar = (s) => {
+    const novo = new Set(s);
+    setFechados(novo);
+    try { localStorage.setItem(chave, JSON.stringify([...novo])); } catch { /* é só visualização */ }
+  };
+  const alternar = (id) => { const s = new Set(fechados); s.has(id) ? s.delete(id) : s.add(id); guardar(s); };
+  return { fechados, alternar, guardar };
+}
+
+// Cabeçalho clicável de um bloco sanfonado: ▼ + título + um resumo à direita.
+// `acoes` são os botõezinhos opcionais (✎ ×) que só os subtópicos criados por ela têm.
+function CabecalhoSanfona({ fechado, onToggle, titulo, resumo, cor, acoes }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div onClick={onToggle} title={fechado ? 'abrir' : 'fechar'} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, cursor: 'pointer', padding: '5px 0', userSelect: 'none' }}>
+        <span style={{ fontSize: 11, color: cor, flexShrink: 0, transform: fechado ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>▼</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>{titulo}</span>
+        {resumo && <span style={{ fontSize: 11.5, color: '#aaa' }}>{resumo}</span>}
+      </div>
+      {acoes}
+    </div>
+  );
+}
+
 // Espelho ao vivo do checklist de um PLANO, pra usar dentro da viagem
 // ("Coisas para fazer" vinculada a um plano). Mesmo dado da aba Planos: marcar,
 // adicionar e apagar aqui reflete lá na hora. Irmão do `ComprasMirror`.
@@ -3960,16 +3994,7 @@ function ViagemDetail({ trip, onBack }) {
   // grupo e continua aparecendo em cima, solto. Apagar um subtópico NÃO apaga os
   // itens dele — eles voltam pro solto.
   const levarGrupos = trip.levarGrupos || [];
-  const CHAVE_GRUPOS_FECHADOS = 'diagonal_levar_fechados_' + trip.id;
-  const [gruposFechados, setGruposFechados] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem(CHAVE_GRUPOS_FECHADOS) || '[]')); } catch { return new Set(); }
-  });
-  const alternarGrupo = (id) => {
-    const s = new Set(gruposFechados);
-    s.has(id) ? s.delete(id) : s.add(id);
-    setGruposFechados(s);
-    try { localStorage.setItem(CHAVE_GRUPOS_FECHADOS, JSON.stringify([...s])); } catch { /* é só visualização */ }
-  };
+  const { fechados: gruposFechados, alternar: alternarGrupo } = useFechados('diagonal_levar_fechados_' + trip.id);
   const [novoPorGrupo, setNovoPorGrupo] = useState({});   // texto do campo de cada subtópico
   const addNoGrupo = (grupoId) => {
     const t = (novoPorGrupo[grupoId] || '').trim();
@@ -3989,7 +4014,7 @@ function ViagemDetail({ trip, onBack }) {
   };
   const apagarGrupoLevar = (g) => {
     const dentro = (trip.levar || []).filter(i => i.grupoId === g.id).length;
-    if (!window.confirm(`Apagar o subtópico "${g.nome}"?` + (dentro ? `\n\nOs ${dentro} itens dele NÃO são apagados — voltam pra lista solta.` : ''))) return;
+    if (!window.confirm(`Apagar o subtópico "${g.nome}"?` + (dentro ? `\n\n${dentro === 1 ? 'O item dele NÃO é apagado — volta' : `Os ${dentro} itens dele NÃO são apagados — voltam`} pra lista solta.` : ''))) return;
     salvar({
       levarGrupos: levarGrupos.filter(x => x.id !== g.id),
       levar: (trip.levar || []).map(i => i.grupoId === g.id ? { ...i, grupoId: undefined } : i),
@@ -4122,15 +4147,44 @@ function ViagemDetail({ trip, onBack }) {
   // desta tela, não dado da viagem — não tem por que viajar pra nuvem nem aparecer
   // no backup. Sobrevive a sair da tela e a recarregar, que é o que importa.
   // Vazio = tudo aberto. Ela abre quantos quiser ao mesmo tempo (não é sanfona).
-  const CHAVE_FECHADOS = 'diagonal_dias_fechados_' + trip.id;
-  const [diasFechados, setDiasFechados] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem(CHAVE_FECHADOS) || '[]')); } catch { return new Set(); }
-  });
-  const guardarFechados = (s) => {
-    setDiasFechados(new Set(s));
-    try { localStorage.setItem(CHAVE_FECHADOS, JSON.stringify([...s])); } catch { /* sem espaço: paciência, é só a visualização */ }
+  const { fechados: diasFechados, alternar: alternarDia, guardar: guardarFechados } = useFechados('diagonal_dias_fechados_' + trip.id);
+
+  // ---- CIDADES na seção "Sem data" ----
+  // Viagem com mais de uma cidade (NY · Filadélfia · Chicago): o que ainda não tem
+  // dia fica separado por cidade, cada uma com a sua setinha. A cidade é um campo
+  // NOVO e opcional no item (`cidadeId`), e a lista mora em `trip.cidades` — nada
+  // foi migrado, item de antes simplesmente não tem cidade e aparece solto em cima.
+  // Apagar uma cidade NÃO apaga os lugares dela: eles voltam pro solto.
+  const cidades = trip.cidades || [];
+  const { fechados: cidadesFechadas, alternar: alternarCidade } = useFechados('diagonal_cidades_fechadas_' + trip.id);
+  const [novoPorCidade, setNovoPorCidade] = useState({});
+  const addCidade = () => {
+    const nome = window.prompt('Nome da cidade (ex.: Nova York, Filadélfia, Chicago):');
+    if (!nome || !nome.trim()) return;
+    salvar({ cidades: [...cidades, { id: 'cd' + Date.now().toString(36), nome: nome.trim() }] });
   };
-  const alternarDia = (d) => { const s = new Set(diasFechados); s.has(d) ? s.delete(d) : s.add(d); guardarFechados(s); };
+  const renomearCidade = (c) => {
+    const nome = window.prompt('Renomear cidade:', c.nome);
+    if (!nome || !nome.trim()) return;
+    salvar({ cidades: cidades.map(x => x.id === c.id ? { ...x, nome: nome.trim() } : x) });
+  };
+  const apagarCidade = (c) => {
+    const dentro = (trip.mesas || []).filter(m => m.cidadeId === c.id).length;
+    if (!window.confirm(`Apagar a cidade "${c.nome}"?` + (dentro ? `\n\n${dentro === 1 ? 'O lugar dela NÃO é apagado — volta' : `Os ${dentro} lugares dela NÃO são apagados — voltam`} pra lista sem cidade.` : ''))) return;
+    salvar({
+      cidades: cidades.filter(x => x.id !== c.id),
+      mesas: (trip.mesas || []).map(m => m.cidadeId === c.id ? { ...m, cidadeId: undefined } : m),
+    });
+  };
+  // Adição rápida dentro de uma cidade: cria o lugar só com o nome (e a cidade já
+  // preenchida). Os detalhes — descrição, horário, preço, mapa — ela põe depois,
+  // tocando no cartão. É o mesmo "digita uma vez e vai jogando dentro" do levar.
+  const addLugarNaCidade = (cidadeId) => {
+    const t = (novoPorCidade[cidadeId] || '').trim();
+    if (!t) return;
+    salvar({ mesas: [...(trip.mesas || []), { id: 'pg' + Date.now().toString(36), titulo: t, dia: '', bucket: 'semdata', cidadeId }] });
+    setNovoPorCidade(v => ({ ...v, [cidadeId]: '' }));
+  };
   const todosFechados = dias.length > 0 && dias.every(d => diasFechados.has(d));
 
   // O cartão de um item da programação — mesmo desenho nos três blocos (dia,
@@ -4343,18 +4397,52 @@ function ViagemDetail({ trip, onBack }) {
       {/* 2ª seção — só o que ainda NÃO tem dia. O grupo "ficou para depois" saiu
           em 13/ago/2026: item de dia passado agora FICA na data dele, marcado ou
           não (ver o comentário lá em cima — é decisão dela, não descuido). */}
-      {abaProg === 'depois' && <>
-        {semDataProg.length > 0 ? <>
-          <div style={{ fontSize: 11.5, color: '#9aa3b5', marginBottom: 8, lineHeight: 1.5 }}>
-            lugares que você quer ir e ainda não encaixou num dia — quando decidir, abra e escolha "Num dia"
+      {abaProg === 'depois' && (() => {
+        const semCidade = semDataProg.filter(m => !m.cidadeId || !cidades.some(c => c.id === m.cidadeId));
+        const vazio = semDataProg.length === 0 && cidades.length === 0;
+        return (
+          <div>
+            {!vazio && (
+              <div style={{ fontSize: 11.5, color: '#9aa3b5', marginBottom: 10, lineHeight: 1.5 }}>
+                lugares que você quer ir e ainda não encaixou num dia — quando decidir, abra e escolha "Num dia"
+              </div>
+            )}
+            {semCidade.map(m => cardProg(m, semCidade))}
+            {cidades.map(c => {
+              const dentro = ordenarProg(semDataProg.filter(m => m.cidadeId === c.id));
+              const fechada = cidadesFechadas.has(c.id);
+              return (
+                <div key={c.id} style={{ marginTop: 16 }}>
+                  <CabecalhoSanfona
+                    fechado={fechada}
+                    onToggle={() => alternarCidade(c.id)}
+                    titulo={c.nome}
+                    resumo={`${dentro.length} ${dentro.length === 1 ? 'lugar' : 'lugares'}`}
+                    cor={COR_VIAGEM}
+                    acoes={<>
+                      <button onClick={() => renomearCidade(c)} title="renomear" style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}>✎</button>
+                      <button onClick={() => apagarCidade(c)} title="apagar cidade" style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+                    </>}
+                  />
+                  {!fechada && <>
+                    {dentro.map(m => cardProg(m, dentro))}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <input value={novoPorCidade[c.id] || ''} onChange={e => setNovoPorCidade(v => ({ ...v, [c.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && addLugarNaCidade(c.id)} placeholder={`adicionar em ${c.nome}…`} style={{ ...inputStyle, flex: 1 }} />
+                      <button onClick={() => addLugarNaCidade(c.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                    </div>
+                  </>}
+                </div>
+              );
+            })}
+            {vazio && (
+              <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '0 0 12px', lineHeight: 1.6 }}>
+                Nada por aqui — tudo que você quer ver já está num dia.
+              </div>
+            )}
+            <button onClick={addCidade} style={{ marginTop: 14, background: 'none', border: 'none', color: COR_VIAGEM, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0 }}>+ criar cidade</button>
           </div>
-          {semDataProg.map(m => cardProg(m, semDataProg))}
-        </> : (
-          <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10, lineHeight: 1.6 }}>
-            Nada por aqui — tudo que você quer ver já está num dia.
-          </div>
-        )}
-      </>}
+        );
+      })()}
 
       {/* 3ª seção — lojas: lista de passagem, não compromisso. Nunca tem dia. */}
       {abaProg === 'lojas' && <>
@@ -4578,6 +4666,7 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
   // 'semdata' = quer ir, ainda não sabe quando · 'lojas' = lista de passagem
   // (não é compromisso). As duas últimas nunca têm data.
   const [onde, setOnde] = useState(item?.bucket === 'lojas' ? 'lojas' : (item?.bucket === 'semdata' || (item && !item.dia) ? 'semdata' : 'dia'));
+  const [cidadeId, setCidadeId] = useState(item?.cidadeId || '');   // só usada na seção "Sem data"
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
   const [tipo, setTipo] = useState(item?.tipo || (mostrarTipo ? 'paralela' : ''));
@@ -4594,7 +4683,7 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
     if (!podeSalvar) return;
     // horaMin recalculado a partir da hora digitada, p/ manter a ordenação por horário.
     const hx = /(\d{1,2})\s*h\s*(\d{2})?/.exec(hora.trim()) || /(\d{1,2}):(\d{2})/.exec(hora.trim());
-    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia: semDia ? '' : dia, bucket: ehLoja ? 'lojas' : (onde === 'semdata' ? 'semdata' : undefined), hora: semDia ? undefined : (hora.trim() || undefined), titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
+    const obj = { ...(item || {}), id: item?.id || 'pg' + Date.now().toString(36), dia: semDia ? '' : dia, bucket: ehLoja ? 'lojas' : (onde === 'semdata' ? 'semdata' : undefined), cidadeId: onde === 'semdata' ? (cidadeId || undefined) : undefined, hora: semDia ? undefined : (hora.trim() || undefined), titulo: titulo.trim(), desc: desc.trim() || undefined, abertura: abertura.trim() || undefined, preco: preco.trim() || undefined, maps: maps.trim() || undefined, link: link.trim() || undefined };
     if (mostrarTipo) {
       obj.tipo = tipo || 'paralela';
       obj.casa = casa.trim() || undefined;
@@ -4618,10 +4707,23 @@ function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose
           ))}
         </div>
         {semDia ? (
-          <p style={{ fontSize: 11.5, color: '#aaa', margin: '6px 2px 0', lineHeight: 1.5 }}>
-            {ehLoja ? 'Vai pra seção 🛍️ Lojas, sem data — você marca conforme passar.'
-              : 'Vai pra seção "Sem data". Quando decidir o dia, é só abrir o lugar e escolher "Num dia".'}
-          </p>
+          <>
+            <p style={{ fontSize: 11.5, color: '#aaa', margin: '6px 2px 0', lineHeight: 1.5 }}>
+              {ehLoja ? 'Vai pra seção 🛍️ Lojas, sem data — você marca conforme passar.'
+                : 'Vai pra seção "Sem data". Quando decidir o dia, é só abrir o lugar e escolher "Num dia".'}
+            </p>
+            {/* Cidade só aparece quando a viagem tem cidades criadas e o lugar está
+                em "Sem data" — é lá que a separação por cidade acontece. */}
+            {onde === 'semdata' && (trip.cidades || []).length > 0 && (
+              <>
+                <label style={labelStyle}>Cidade</label>
+                <select value={cidadeId} onChange={e => setCidadeId(e.target.value)} style={inputStyle}>
+                  <option value="">sem cidade</option>
+                  {(trip.cidades || []).map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                </select>
+              </>
+            )}
+          </>
         ) : (
           <div style={{ display: 'flex', gap: 10 }}>
             <div style={{ flex: 1 }}><label style={labelStyle}>Dia da visita</label><input type="date" value={dia} min={trip.inicio || undefined} max={trip.fim || undefined} onChange={e => setDia(e.target.value)} style={inputStyle} /></div>
