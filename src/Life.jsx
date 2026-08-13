@@ -3943,13 +3943,15 @@ function ViagemDetail({ trip, onBack }) {
     if (qBusca && !normf(m.titulo).includes(qBusca) && !normf(m.autores).includes(qBusca) && !normf(m.casa).includes(qBusca)) return false;
     return true;
   });
-  // ---- Dois blocos fixos, fora da linha do tempo ----
-  // TOPO: "Lojas para passar" (`bucket:'lojas'`) — não tem dia, é lista de passagem;
-  // ela marca conforme entra em cada uma.
-  // FIM: "Outras experiências" — o que ficou pra trás. Item de um dia JÁ PASSADO que
-  // ela não marcou como visitado desce pra cá sozinho, então a lista do dia mostra o
-  // que ela fez e o que não rolou não some nem atrapalha. É só apresentação: o item
-  // continua com a data dele, e marcar o check faz voltar pro dia.
+  // ---- O DIA NÃO ESVAZIA MAIS SOZINHO (decisão dela, 13/ago/2026) ----
+  // Antes existia um bloco "ficou para depois": item de um dia JÁ PASSADO que ela
+  // não tinha marcado DESCIA pra lá sozinho. A ideia era limpar o dia; na prática
+  // ela quer o contrário. Motivo dela, que é melhor que o meu: durante a viagem ela
+  // remaneja os dias pela temperatura, e um item que muda de lugar sozinho bagunça
+  // esse remanejamento. Agora o item FICA na data dele, marcado ou não — quem move
+  // é ela, trocando a data. NÃO "consertar" isto de volta.
+  // Sobrou um único bloco fora da linha do tempo: "Lojas para passar" (`bucket:'lojas'`),
+  // que nunca teve dia, e os "sem data".
   // Ordem de exibição: se ela arrumou o bloco à mão (`ordem`), manda a mão dela;
   // senão, horário e depois a ordem em que o item foi criado.
   const ordenarProg = (arr) => arr.slice().sort((a, b) =>
@@ -3957,15 +3959,29 @@ function ViagemDetail({ trip, onBack }) {
     || (flipHoraMin(a) - flipHoraMin(b)) || ((a.n || 0) - (b.n || 0)));
   const hojeProg = vgHoje();
   const lojasProg = ordenarProg(mesasFiltradas.filter(m => m.bucket === 'lojas'));
-  const ficouPraTras = (m) => !m.bucket && m.dia && m.dia < hojeProg && !m.visitado;
-  const outrasProg = mesasFiltradas.filter(ficouPraTras);
   // Lugar SEM DATA ainda. Antes isto era um buraco: item sem `bucket` e sem `dia`
   // não caía em bloco nenhum e simplesmente não aparecia na tela — existia no
   // documento e era invisível. Agora tem lugar próprio (a 2ª seção).
   const semDataProg = ordenarProg(mesasFiltradas.filter(m => m.bucket === 'semdata' || (!m.bucket && !m.dia)));
-  const noRoteiro = mesasFiltradas.filter(m => !m.bucket && m.dia && !ficouPraTras(m));
+  const noRoteiro = mesasFiltradas.filter(m => !m.bucket && m.dia);
   const dias = [...new Set(noRoteiro.map(m => m.dia))].sort();
   const totalFav = todasMesas.filter(m => m.favorito).length;
+
+  // ---- Dias que ela fechou (a setinha ao lado da data) ----
+  // Guardado no APARELHO, não no documento dela: é preferência de visualização
+  // desta tela, não dado da viagem — não tem por que viajar pra nuvem nem aparecer
+  // no backup. Sobrevive a sair da tela e a recarregar, que é o que importa.
+  // Vazio = tudo aberto. Ela abre quantos quiser ao mesmo tempo (não é sanfona).
+  const CHAVE_FECHADOS = 'diagonal_dias_fechados_' + trip.id;
+  const [diasFechados, setDiasFechados] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(CHAVE_FECHADOS) || '[]')); } catch { return new Set(); }
+  });
+  const guardarFechados = (s) => {
+    setDiasFechados(new Set(s));
+    try { localStorage.setItem(CHAVE_FECHADOS, JSON.stringify([...s])); } catch { /* sem espaço: paciência, é só a visualização */ }
+  };
+  const alternarDia = (d) => { const s = new Set(diasFechados); s.has(d) ? s.delete(d) : s.add(d); guardarFechados(s); };
+  const todosFechados = dias.length > 0 && dias.every(d => diasFechados.has(d));
 
   // O cartão de um item da programação — mesmo desenho nos três blocos (dia,
   // lojas e outras experiências). `diaAtras` põe a data original no canto, pra
@@ -4082,7 +4098,7 @@ function ViagemDetail({ trip, onBack }) {
       {/* As três seções. O número do lado é o que tem dentro — durante a viagem,
           "Ficou para depois" enche sozinho, e ela vê isso sem precisar rolar. */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {[['dias', 'Dias', dias.length], ['depois', 'Sem data', semDataProg.length + outrasProg.length], ['lojas', '🛍️ Lojas', lojasProg.length]].map(([v, lbl, n]) => {
+        {[['dias', 'Dias', dias.length], ['depois', 'Sem data', semDataProg.length], ['lojas', '🛍️ Lojas', lojasProg.length]].map(([v, lbl, n]) => {
           const on = abaProg === v;
           return (
             <button key={v} onClick={() => setAbaProg(v)} style={{
@@ -4131,51 +4147,61 @@ function ViagemDetail({ trip, onBack }) {
       </button>
       {ordProg && <p style={{ fontSize: 11.5, color: COR_VIAGEM, margin: '0 0 10px', lineHeight: 1.5 }}>Use ↑ ↓ pra arrumar os lugares dentro de cada dia. A ordem que você deixar passa a valer no lugar do horário.</p>}
       {abaProg === 'dias' && <>
+      {dias.length > 1 && (
+        <div style={{ marginBottom: 4 }}>
+          <button onClick={() => guardarFechados(todosFechados ? [] : dias)} style={{ background: 'none', border: 'none', color: COR_VIAGEM, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0 }}>
+            {todosFechados ? 'abrir todos os dias' : 'fechar todos os dias'}
+          </button>
+        </div>
+      )}
       {/* Um dia pode ter ROTEIROS ALTERNATIVOS (item com `opcao`): aí ele aparece
           repetido, um bloco por opção, como se fossem dois dias — foi o que a Mari
-          pediu pro 17/09 (Filadélfia OU outlet). Sem `opcao`, nada muda. */}
+          pediu pro 17/09 (Filadélfia OU outlet). Sem `opcao`, nada muda.
+          A setinha fecha/abre o DIA inteiro (todos os blocos dele). */}
       {dias.flatMap(dia => {
         const dt = new Date(dia + 'T00:00:00');
         const wd = DIAS_LONGOS[dt.getDay()];
         const cab = `${wd.charAt(0).toUpperCase() + wd.slice(1)}, ${+dia.split('-')[2]} de ${MESES_LONGOS[+dia.split('-')[1] - 1]}`;
         const doDia = ordenarProg(noRoteiro.filter(m => m.dia === dia));
+        const fechado = diasFechados.has(dia);
+        const feitos = doDia.filter(m => m.visitado).length;
         const opcoes = [...new Set(doDia.map(m => m.opcao).filter(Boolean))];
         const blocos = opcoes.length
           ? opcoes.map(op => ({ chave: dia + '#' + op, sub: op, ms: doDia.filter(m => m.opcao === op) }))
           : [{ chave: dia, sub: null, ms: doDia }];
-        return blocos.map(({ chave, sub, ms }) => (
-          <div key={chave} style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#111', marginBottom: sub ? 2 : 6 }}>{cab}</div>
-            {sub && <div style={{ fontSize: 11.5, fontWeight: 700, color: COR_VIAGEM, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{sub}</div>}
-            {ms.map(m => cardProg(m, ms))}
-          </div>
-        ));
+        // Cabeçalho do dia (com a setinha) só uma vez, mesmo com roteiros alternativos.
+        return [
+          <div key={dia + '-cab'} onClick={() => alternarDia(dia)} title={fechado ? 'abrir este dia' : 'fechar este dia'}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', padding: '5px 0', marginTop: 4, userSelect: 'none' }}>
+            <span style={{ fontSize: 11, color: COR_VIAGEM, flexShrink: 0, transform: fechado ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>▼</span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#111' }}>{cab}</span>
+            <span style={{ fontSize: 11.5, color: '#aaa' }}>
+              {doDia.length} {doDia.length === 1 ? 'lugar' : 'lugares'}{feitos > 0 ? ` · ${feitos} ✓` : ''}
+            </span>
+          </div>,
+          ...(fechado ? [] : blocos.map(({ chave, sub, ms }) => (
+            <div key={chave} style={{ marginBottom: 14 }}>
+              {sub && <div style={{ fontSize: 11.5, fontWeight: 700, color: COR_VIAGEM, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '2px 0 6px' }}>{sub}</div>}
+              {ms.map(m => cardProg(m, ms))}
+            </div>
+          ))),
+        ];
       })}
       {dias.length === 0 && <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10 }}>{filtroAtivo ? 'nenhuma sessão com esses filtros — toque em “limpar filtros”.' : 'nenhum lugar marcado num dia ainda.'}</div>}
       </>}
 
-      {/* 2ª seção — o que ainda não tem dia. Duas coisas diferentes moram aqui, e
-          por isso continuam separadas: o que ela ainda não marcou pra nenhum dia,
-          e o que tinha dia, o dia passou e ela não deu o ☑. O segundo volta pro
-          dia (riscado) assim que ela marcar. */}
+      {/* 2ª seção — só o que ainda NÃO tem dia. O grupo "ficou para depois" saiu
+          em 13/ago/2026: item de dia passado agora FICA na data dele, marcado ou
+          não (ver o comentário lá em cima — é decisão dela, não descuido). */}
       {abaProg === 'depois' && <>
-        {semDataProg.length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Ainda sem data</div>
-            <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>lugares que você quer ir, mas ainda não encaixou num dia</div>
-            {semDataProg.map(m => cardProg(m, semDataProg))}
+        {semDataProg.length > 0 ? <>
+          <div style={{ fontSize: 11.5, color: '#9aa3b5', marginBottom: 8, lineHeight: 1.5 }}>
+            lugares que você quer ir e ainda não encaixou num dia — quando decidir, abra e escolha "Num dia"
           </div>
-        )}
-        {outrasProg.length > 0 && (
-          <div style={{ marginTop: semDataProg.length ? 18 : 0 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#6b7a99', marginBottom: 2 }}>Ficou para depois</div>
-            <div style={{ fontSize: 11, color: '#9aa3b5', marginBottom: 8 }}>o dia passou e você não marcou — dá pra fazer noutro dia, ou marcar se acabou fazendo</div>
-            {outrasProg.map(m => cardProg(m))}
-          </div>
-        )}
-        {semDataProg.length === 0 && outrasProg.length === 0 && (
+          {semDataProg.map(m => cardProg(m, semDataProg))}
+        </> : (
           <div style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', marginBottom: 10, lineHeight: 1.6 }}>
-            Nada por aqui — tudo que você quer ver está marcado num dia. Quando um dia passar sem você dar o ☑, o lugar aparece aqui sozinho.
+            Nada por aqui — tudo que você quer ver já está num dia.
           </div>
         )}
       </>}

@@ -43,13 +43,24 @@ Simplificação pedida junto:
   interno pros Álbuns saiu: cada um tem sua porta no hub.)
 
 **Programação da viagem em TRÊS seções** (botões no topo, ago/2026): `Dias`,
-`Sem data` e `🛍️ Lojas`, controladas por `abaProg`. Eram os mesmos três blocos,
-mas empilhados numa rolagem só — durante a viagem ela ia parar no fim da página
-pra ver o que tinha ficado pra trás. `Sem data` junta duas coisas diferentes (por
-isso continuam separadas dentro dela): o que ainda não tem dia (`bucket:'semdata'`)
-e o que tinha dia, o dia passou e ela não deu o ☑ (volta pro dia ao marcar).
-Junto veio o conserto de um buraco: item sem `bucket` e sem `dia` não caía em
-bloco nenhum e era **invisível** — existia no documento e não aparecia na tela.
+`Sem data` e `🛍️ Lojas`, controladas por `abaProg`. Eram os mesmos blocos, mas
+empilhados numa rolagem só. Junto veio o conserto de um buraco: item sem `bucket`
+e sem `dia` não caía em bloco nenhum e era **invisível** — existia no documento e
+não aparecia na tela; agora é a seção `Sem data` (`bucket:'semdata'`).
+
+**O DIA NÃO ESVAZIA MAIS SOZINHO (13/ago/2026 — decisão dela, não descuido).**
+Existia um bloco "ficou para depois": item de dia JÁ PASSADO sem ☑ descia pra lá
+sozinho. Ela pediu o contrário, e o motivo é melhor que o meu: durante a viagem
+ela remaneja os dias **pela temperatura**, e item que se move sozinho bagunça o
+remanejamento. Agora o item FICA na data dele, marcado ou não. **Não "consertar"
+isto de volta** — o comentário no código diz o mesmo.
+
+**Dias sanfonados**: cada data tem uma setinha que fecha/abre aquele dia; várias
+podem ficar abertas ao mesmo tempo (NÃO é sanfona de uma só), mais um
+"fechar/abrir todos os dias" quando há mais de um dia. O cabeçalho mostra
+`N lugares · N ✓`. O estado fechado mora no **localStorage por viagem**
+(`diagonal_dias_fechados_<id>`), não no documento: é preferência de visualização
+deste aparelho, não dado da viagem — não vai pra nuvem nem entra no backup.
 
 ## Faxina de 11/ago/2026 (seis itens que a Mari pediu em lista)
 

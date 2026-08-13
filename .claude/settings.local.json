@@ -228,7 +228,8 @@
       "Bash(sed -i 's/^export function VRHoje\\(\\) {/function VRHoje\\(\\) {/' src/App.jsx)",
       "Bash(npm test *)",
       "Bash(cd \"C:/Users/maria/Downloads/diagonal-claudecode/diagonal\" *)",
-      "Bash(rm -f verify.html src/__verify.jsx /tmp/ls.bak)"
+      "Bash(rm -f verify.html src/__verify.jsx /tmp/ls.bak)",
+      "WebFetch(domain:www.guggenheim.org)"
     ]
   }
 }
