@@ -6,7 +6,7 @@
 //
 // A Mari pede "atualiza os esportes" quando quiser: revejo a agenda dos próximos dias,
 // as datas e a constante ESPORTES_ATUALIZADO.
-export const ESPORTES_ATUALIZADO = '4 ago 2026';
+export const ESPORTES_ATUALIZADO = '19 ago 2026';
 
 export const ESPORTES = [
   {
@@ -188,75 +188,75 @@ export const ESPORTES = [
 // AGENDA dia a dia — cada jogo/sessão com data, horário (Brasília), gênero e onde assistir.
 // Peça "atualiza os esportes" que eu revejo os próximos dias.
 export const ESPORTES_AGENDA = [
-  // Terça 4/ago
-  { data: '2026-08-04', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — oitavas (jogos de VOLTA)', sub: 'Semana decisiva · o clássico Vasco x Fluminense é o duelo da rodada', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
-  { data: '2026-08-04', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá', sub: 'WTA em Toronto e ATP em Montreal · quadra dura, rumo ao US Open', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-04', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — temporada regular', sub: '30ª temporada da liga, agora com 15 times (chegaram Portland e Toronto)', assistir: 'ESPN e Disney+' },
+  // Quarta 19/ago
+  { data: '2026-08-19', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — oitavas, jogos de VOLTA', sub: 'Flamengo x Cruzeiro e Cerro Porteño x Palmeiras decidem quem vai às quartas', assistir: 'SBT, ESPN e Paramount+', destaque: true },
+  { data: '2026-08-19', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters de Cincinnati', sub: 'Último Masters 1000 antes do US Open · Sabalenka, Rybakina, Gauff, Djokovic e Zverev na chave · final domingo', assistir: 'ESPN e Disney+' },
+  { data: '2026-08-19', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — temporada regular', sub: 'Reta final antes da pausa pro Mundial da FIBA', assistir: 'ESPN e Disney+' },
 
-  // Quarta 5/ago
-  { data: '2026-08-05', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — mais jogos de volta', sub: 'Quem avança às quartas', assistir: 'Globo, SporTV, Premiere e Prime Video' },
-  { data: '2026-08-05', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá — 2ª rodada', sub: 'Toronto (WTA) e Montreal (ATP)', assistir: 'ESPN e Disney+' },
+  // Quinta 20/ago
+  { data: '2026-08-20', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — Corinthians x Rosario Central', sub: 'Fecha as oitavas · ficou 0 a 0 na Argentina, então quem vencer aqui avança', assistir: 'SBT, ESPN e Paramount+', destaque: true },
+  { data: '2026-08-20', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'masc', titulo: 'Duplantis tenta o recorde mundial do salto com vara', sub: 'Evento de rua em Lausanne, na véspera da Diamond League · de graça pro público', assistir: 'SporTV e Xsports', destaque: true },
+  { data: '2026-08-20', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Cincinnati — a chave vai afunilando', sub: 'Mason, Ohio · quadra dura', assistir: 'ESPN e Disney+' },
 
-  // Quinta 6/ago
-  { data: '2026-08-06', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — últimos jogos de volta', sub: 'Fecham as oitavas e definem as quartas', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
-  { data: '2026-08-06', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá — 3ª rodada', sub: 'Toronto (WTA) e Montreal (ATP)', assistir: 'ESPN e Disney+' },
+  // Sexta 21/ago
+  { data: '2026-08-21', hora: '7h30 e 11h30', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'A F1 volta do recesso: GP da Holanda', sub: 'Treino livre 7h30 e classificação da sprint 11h30 · Bortoleto na pista · é a ÚLTIMA edição em Zandvoort', assistir: 'Band, BandSports e F1 TV', destaque: true },
+  { data: '2026-08-21', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League volta em Lausanne', sub: 'Duplantis, Shericka Jackson, Letsile Tebogo e Amy Hunt · restam 4 encontros até a final', assistir: 'SporTV e Xsports', destaque: true },
+  { data: '2026-08-21', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Começa a Premier League 2026/27', sub: 'Arsenal (o campeão) x Coventry (recém-subido) no Emirates · a temporada atrasou uma semana por causa da Copa', assistir: 'ESPN e Disney+', destaque: true },
 
-  // Sexta 7/ago
-  { data: '2026-08-07', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá — oitavas', sub: 'Toronto (WTA) e Montreal (ATP)', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-07', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — rodada da temporada regular', sub: 'Reta final antes da pausa do Mundial', assistir: 'ESPN e Disney+' },
+  // Sábado 22/ago
+  { data: '2026-08-22', hora: '7h e 11h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP da Holanda — dia de SPRINT', sub: 'Corrida sprint às 7h e classificação do GP às 11h · a 1ª vez que Zandvoort tem sprint', assistir: 'Band, BandSports e F1 TV', destaque: true },
+  { data: '2026-08-22', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Premier League — Hull City x Manchester United', sub: 'E Fulham x Chelsea no mesmo dia · 1ª rodada', assistir: 'ESPN e Disney+' },
+  { data: '2026-08-22', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — 24ª rodada', sub: 'A rodada vai de sábado a segunda', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
+  { data: '2026-08-22', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Cincinnati — semifinais', sub: 'Quem chega na decisão de domingo', assistir: 'ESPN e Disney+' },
 
-  // Sábado 8/ago
-  { data: '2026-08-08', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Abre a janela do Tahiti Pro (Teahupo’o)', sub: '7ª etapa do circuito mundial, na onda mais pesada do calendário · janela até 18/ago', assistir: 'SporTV, Globoplay e WSL', destaque: true },
-  { data: '2026-08-08', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — rodada do fim de semana', sub: 'Campeonato Brasileiro · Série A', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
-  { data: '2026-08-08', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá — quartas de final', sub: 'Toronto (WTA) e Montreal (ATP)', assistir: 'ESPN e Disney+' },
+  // Domingo 23/ago
+  { data: '2026-08-23', hora: '10h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP da Holanda — A CORRIDA', sub: 'Zandvoort · a despedida da pista no calendário da F1', assistir: 'Band, BandSports e F1 TV', destaque: true },
+  { data: '2026-08-23', hora: '~17h30', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'FINAL do Masters de Cincinnati', sub: 'Homens e mulheres decidem o último 1000 antes do Grand Slam', assistir: 'ESPN e Disney+', destaque: true },
+  { data: '2026-08-23', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League — Silésia (Polônia)', sub: 'Segunda das quatro etapas finais', assistir: 'SporTV e Xsports' },
+  { data: '2026-08-23', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Premier League — Newcastle x Liverpool', sub: 'E Manchester City x Bournemouth · 1ª rodada', assistir: 'ESPN e Disney+' },
+  { data: '2026-08-23', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — 24ª rodada', sub: 'Domingo de rodada', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
 
-  // Domingo 9/ago
-  { data: '2026-08-09', hora: '', esporte: 'skate', emoji: '🛹', genero: 'misto', titulo: 'SLS Rio — a liga mundial de street no Maracanãzinho', sub: 'Rayssa Leal, Pâmela Rosa, Gabi Mazetto, Kelvin Hoefler, Giovanni Vianna e Nyjah Huston', assistir: 'Rumble (grátis) e SporTV', destaque: true },
-  { data: '2026-08-09', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — rodada do fim de semana', sub: 'Campeonato Brasileiro · Série A', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
-  { data: '2026-08-09', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters do Canadá — semifinais', sub: 'Toronto (WTA) e Montreal (ATP)', assistir: 'ESPN e Disney+' },
+  // Segunda 24/ago
+  { data: '2026-08-24', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Fecham a 24ª do Brasileirão e a 1ª da Premier League', sub: 'Os jogos que sobraram das duas rodadas', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
 
-  // Segunda 10/ago
-  { data: '2026-08-10', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Tahiti Pro — janela aberta', sub: 'A WSL chama o dia quando o mar está bom; vale acompanhar de manhã', assistir: 'SporTV, Globoplay e WSL' },
+  // Terça 25/ago
+  { data: '2026-08-25', hora: '21h', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — CLÁSSICO MINEIRO nas quartas', sub: 'Cruzeiro x Atlético-MG no Mineirão · a volta é 1º/set, na Arena MRV', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
+  { data: '2026-08-25', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Abre a janela do Fiji Pro, em Cloudbreak', sub: '8ª etapa do mundial · a WSL chama o dia quando o mar está bom · janela até 4/set', assistir: 'SporTV, Globoplay e WSL', destaque: true },
 
-  // Terça 11/ago
-  { data: '2026-08-11', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — oitavas (jogos de IDA)', sub: 'Volta o mata-mata da Conmebol, com 3 brasileiros na disputa', assistir: 'SBT, ESPN e Paramount+', destaque: true },
-  { data: '2026-08-11', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Começa o qualifying de Cincinnati', sub: 'Último Masters 1000 antes do US Open', assistir: 'ESPN e Disney+' },
+  // Quarta 26/ago
+  { data: '2026-08-26', hora: '21h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — Palmeiras x Santos e Vasco x Vitória', sub: 'Clássico paulista nas quartas · as voltas são em 2/set', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
+  { data: '2026-08-26', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Fiji Pro — janela aberta', sub: 'Vale olhar de manhã pra ver se chamaram o dia', assistir: 'SporTV, Globoplay e WSL' },
 
-  // Quarta 12/ago
-  { data: '2026-08-12', hora: '', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Começa o Mundial de Ginástica Rítmica', sub: 'Festhalle de Frankfurt (Alemanha) · ~300 ginastas, individual e conjuntos', assistir: 'SporTV e Globoplay', destaque: true },
-  { data: '2026-08-12', hora: '', esporte: 'natacao', emoji: '🏊', genero: 'misto', titulo: 'Começa o Pan-Pacífico de natação', sub: 'Irvine (EUA) · volta ao calendário depois de 8 anos parada', assistir: 'SporTV e Globoplay', destaque: true },
-  { data: '2026-08-12', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — mais jogos de ida', sub: 'Oitavas de final · Conmebol', assistir: 'SBT, ESPN e Paramount+' },
+  // Quinta 27/ago
+  { data: '2026-08-27', hora: '20h', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — GRENAL nas quartas', sub: 'Grêmio x Internacional no Beira-Rio · a volta é 3/set, na Arena do Grêmio', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
+  { data: '2026-08-27', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League — Zurique', sub: 'Última etapa antes da final de Bruxelas', assistir: 'SporTV e Xsports' },
 
-  // Quinta 13/ago
-  { data: '2026-08-13', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Decisões no Canadá e começa Cincinnati', sub: 'Último dia em Toronto/Montreal e abertura da chave principal em Cincinnati', assistir: 'ESPN e Disney+', destaque: true },
-  { data: '2026-08-13', hora: '', esporte: 'natacao', emoji: '🏊', genero: 'misto', titulo: 'Pan-Pacífico — 2º dia de finais', sub: 'Irvine (EUA)', assistir: 'SporTV e Globoplay' },
-  { data: '2026-08-13', hora: '', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial de Rítmica — classificatórias', sub: 'Frankfurt (Alemanha)', assistir: 'SporTV e Globoplay' },
+  // Sexta 28/ago
+  { data: '2026-08-28', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'US Open — semana de qualifying em Nova York', sub: 'Fan Week (23 a 29/ago), com o Mixed Doubles reformulado · a chave principal começa domingo', assistir: 'ESPN e Disney+' },
+  { data: '2026-08-28', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'misto', titulo: 'Brasileirão masculino e feminino', sub: 'Rodada do fim de semana nas duas competições', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
 
-  // Sexta 14/ago
-  { data: '2026-08-14', hora: '', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial de Rítmica — finais por aparelho', sub: 'Arco, bola, maças e fita · Frankfurt', assistir: 'SporTV e Globoplay' },
-  { data: '2026-08-14', hora: '', esporte: 'natacao', emoji: '🏊', genero: 'misto', titulo: 'Pan-Pacífico — 3º dia de finais', sub: 'Irvine (EUA)', assistir: 'SporTV e Globoplay' },
-  { data: '2026-08-14', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'misto', titulo: 'Brasileirão masculino e feminino', sub: 'Rodada do fim de semana nas duas competições', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
+  // Sábado 29/ago
+  { data: '2026-08-29', hora: '', esporte: 'skate', emoji: '🛹', genero: 'misto', titulo: 'SLS Tempe — o street mundial volta ao Arizona, onde nasceu', sub: 'Rayssa Leal, Pâmela Rosa, Kelvin Hoefler e Nyjah Huston · 4ª etapa do circuito', assistir: 'Rumble (grátis) e SporTV', destaque: true },
+  { data: '2026-08-29', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão e Premier League — rodada do fim de semana', sub: 'Sábado cheio nos dois campeonatos', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
+  { data: '2026-08-29', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Fiji Pro — janela aberta', sub: 'Cloudbreak', assistir: 'SporTV, Globoplay e WSL' },
 
-  // Sábado 15/ago
-  { data: '2026-08-15', hora: '', esporte: 'natacao', emoji: '🏊', genero: 'misto', titulo: 'Pan-Pacífico — último dia', sub: 'Irvine (EUA) · finais de encerramento', assistir: 'SporTV e Globoplay', destaque: true },
-  { data: '2026-08-15', hora: '', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial de Rítmica — individual geral', sub: 'A disputa mais cobiçada da rítmica · Frankfurt', assistir: 'SporTV e Globoplay' },
-  { data: '2026-08-15', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — rodada do fim de semana', sub: 'Campeonato Brasileiro · Série A', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
+  // Domingo 30/ago
+  { data: '2026-08-30', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'COMEÇA O US OPEN, o último Grand Slam do ano', sub: 'Flushing Meadows, Nova York · vai até 13/set', assistir: 'ESPN e Disney+', destaque: true },
+  { data: '2026-08-30', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão e Premier League — domingo de rodada', sub: 'Nos dois campeonatos', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
 
-  // Domingo 16/ago
-  { data: '2026-08-16', hora: '', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'FINAL do Mundial de Rítmica (conjuntos)', sub: 'Último dia em Frankfurt', assistir: 'SporTV e Globoplay', destaque: true },
-  { data: '2026-08-16', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Tahiti Pro — reta final da janela', sub: 'Teahupo’o · janela vai até 18/ago', assistir: 'SporTV, Globoplay e WSL' },
-  { data: '2026-08-16', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — rodada do fim de semana', sub: 'Campeonato Brasileiro · Série A', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
+  // Segunda 31/ago
+  { data: '2026-08-31', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'US Open — 1ª rodada', sub: 'Chave de simples masculina e feminina', assistir: 'ESPN e Disney+' },
+  { data: '2026-08-31', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — últimos jogos antes da pausa do Mundial', sub: 'A liga para pras seleções, volta em 17/set e os playoffs começam em 27/set', assistir: 'ESPN e Disney+' },
 ];
 
 // "Mais pra frente" — a próxima data marcante de CADA esporte fora dos próximos dias,
 // pra nenhum ficar de fora. Peça "atualiza os esportes".
 export const ESPORTES_PROXIMOS = [
-  { esporte: 'formula1', emoji: '🏎️', genero: 'misto', evento: 'F1 volta do recesso no GP da Holanda — a ÚLTIMA edição em Zandvoort, e a 1ª lá com sprint', quando: '21 a 23/ago · corrida dom 23/ago, 10h', assistir: 'Band, BandSports e F1 TV' },
-  { esporte: 'futebol', emoji: '⚽', genero: 'masc', evento: 'Começa a Premier League 2026/27: Arsenal (campeão) x Coventry na abertura', quando: 'Sexta 21/ago', assistir: 'ESPN e Disney+' },
-  { esporte: 'atletismo', emoji: '🏃', genero: 'misto', evento: 'Diamond League volta: Lausanne → Silésia → Zurique, antes da final', quando: 'Lausanne 21/ago · Silésia 23/ago · Zurique 27/ago · final 4–5/set (Bruxelas)', assistir: 'SporTV e Xsports' },
-  { esporte: 'tenis', emoji: '🎾', genero: 'misto', evento: 'US Open — o último Grand Slam do ano, em Nova York', quando: 'A partir de 31/ago', assistir: 'ESPN e Disney+' },
-  { esporte: 'basquete', emoji: '🏀', genero: 'fem', evento: 'Mundial feminino da FIBA, na Alemanha — a WNBA para pra seleção jogar', quando: '4 a 13/set · WNBA pausa em 31/ago e volta pros playoffs em 27/set', assistir: 'ESPN, Disney+ e DAZN' },
-  { esporte: 'volei', emoji: '🏐', genero: 'fem', evento: 'Sul-Americano feminino no Maracanãzinho, com a seleção brasileira', quando: '8 a 13/set · Rio de Janeiro', assistir: 'SporTV, GE TV e VBTV' },
-  { esporte: 'ginastica', emoji: '🤸', genero: 'misto', evento: 'Mundial de Ginástica Artística (masculino e feminino)', quando: '17 a 25/out · Roterdã (Holanda)', assistir: 'SporTV e Globoplay' },
+  { esporte: 'atletismo', emoji: '🏃', genero: 'misto', evento: 'FINAL da Diamond League, em Bruxelas — quem ganha ali leva o título da temporada', quando: '4 e 5/set', assistir: 'SporTV e Xsports' },
+  { esporte: 'formula1', emoji: '🏎️', genero: 'misto', evento: 'GP da Itália, em Monza — o templo da velocidade', quando: '4 a 6/set · depois Madri estreia no calendário (11 a 13/set)', assistir: 'Band, BandSports e F1 TV' },
+  { esporte: 'basquete', emoji: '🏀', genero: 'fem', evento: 'Mundial feminino da FIBA, na Alemanha — a WNBA para pra seleção jogar', quando: '4 a 13/set', assistir: 'ESPN, Disney+ e DAZN' },
+  { esporte: 'volei', emoji: '🏐', genero: 'misto', evento: 'Sul-Americano no Maracanãzinho, valendo vaga olímpica pra LA28', quando: 'Feminino 8 a 13/set · masculino 15 a 20/set · Brasil x Argentina no dia 13, 10h30', assistir: 'SporTV, GE TV e VBTV' },
+  { esporte: 'surfe', emoji: '🏄', genero: 'misto', evento: 'Trestles Pro, na Califórnia — 9ª etapa do mundial', quando: '11 a 20/set · Lower Trestles', assistir: 'SporTV, Globoplay e WSL' },
+  { esporte: 'ginastica', emoji: '🤸', genero: 'misto', evento: 'Mundial de Ginástica Artística — classifica as 3 melhores equipes pra LA28', quando: '17 a 25/out · Roterdã (Holanda)', assistir: 'SporTV e Globoplay' },
   { esporte: 'natacao', emoji: '🏊', genero: 'misto', evento: 'Mundial de piscina curta (25 m)', quando: '1 a 6/dez · Pequim (Water Cube)', assistir: 'SporTV e Globoplay' },
 ];
