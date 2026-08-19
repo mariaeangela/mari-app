@@ -1451,16 +1451,17 @@ function HabitosRetro({ onBack, isWide }) {
   // Gráfico de linha (estilo do peso): escolhe sono OU trabalho e vê a evolução no
   // mês. Série em ordem cronológica, só dias com o valor preenchido.
   const [metric, setMetric] = useState('sono');
-  // ---- Fim de semana não entra na conta do TRABALHO (pedido dela, 14/ago/2026) ----
-  // Sábado e domingo sem trabalho puxavam a média pra baixo e desenhavam um zero
-  // no gráfico, como se ela tivesse trabalhado zero hora — quando na verdade era
-  // só um dia que não é de trabalho. Agora o fim de semana só conta quando ela
-  // registrou horas DE VERDADE (> 0). Dia de semana continua igual: se ela
-  // preencheu, conta, inclusive zero.
-  const ehFimDeSemana = (ymd) => { const d = new Date(ymd + 'T00:00:00').getDay(); return d === 0 || d === 6; };
+  // ---- Dia sem trabalho não entra na média de TRABALHO (dela, 14/ago/2026) ----
+  // Começou pelo fim de semana: sábado e domingo em branco entravam como ZERO hora
+  // e puxavam a média pra baixo, além de desenhar um zero no gráfico — quando na
+  // verdade era só um dia que não é de trabalho. Ela então estendeu a regra pro dia
+  // de semana (feriado, férias, atestado), que é o mesmo caso.
+  // Vale pra qualquer dia: `trabalho` só conta quando há horas DE VERDADE (> 0).
+  // A pergunta que a média responde passa a ser "quanto eu trabalho nos dias em que
+  // trabalho" — que é a que ela quer. SONO não muda: dorme-se todo dia.
   const contaNoCalculo = (r, campo) => {
     if (typeof r[campo] !== 'number') return false;
-    if (campo === 'trabalho' && ehFimDeSemana(r.d) && !(r[campo] > 0)) return false;
+    if (campo === 'trabalho' && !(r[campo] > 0)) return false;
     return true;
   };
   const serie = regs.filter(r => contaNoCalculo(r, metric)).map(r => ({ d: r.d, v: r[metric] })).sort((a, b) => a.d.localeCompare(b.d));
@@ -1496,7 +1497,7 @@ function HabitosRetro({ onBack, isWide }) {
         <div><select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>{meses.map(m => <option key={m} value={m}>{fmtMesAno(m)}</option>)}</select></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => contaNoCalculo(r, 'sono')).length), 'med-sono')}
-          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => contaNoCalculo(r, 'trabalho')).length), 'med-trab')}
+          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => contaNoCalculo(r, 'trabalho')).length) + ' com trabalho', 'med-trab')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
           {HABS.map(([campo, label, emoji]) => statBox(label, conta(campo), conta(campo) === 1 ? 'dia' : 'dias', campo))}
@@ -1531,7 +1532,7 @@ function HabitosRetro({ onBack, isWide }) {
               ))}
             </svg>
           );
-        })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.{metric === 'trabalho' ? ' (fim de semana só entra se você registrar horas)' : ''}</p>}
+        })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.{metric === 'trabalho' ? ' (dia sem horas registradas não entra na conta)' : ''}</p>}
         {regs.map(r => (
           <div key={r.d} onClick={() => setEditDia({ dia: r.d })} title="tocar pra editar" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
             <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>

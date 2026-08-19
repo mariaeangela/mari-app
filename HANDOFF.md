@@ -67,12 +67,11 @@ isto de volta** — o comentário no código diz o mesmo.
   item antigo não tem `grupoId` e aparece solto em cima. **Apagar um subtópico
   NÃO apaga os itens** — eles voltam pro solto (e o confirm avisa quantos são).
 
-**Fim de semana fora da média de TRABALHO** (14/ago/2026, `HabitosRetro`):
-sábado/domingo só entram na média e no gráfico se ela registrou horas **> 0** —
-antes um fds em branco entrava como zero e puxava a média (5:36 virou 7:38 no
-teste). `contaNoCalculo(r, campo)`; **sono não muda**, e dia de semana com zero
-continua contando. Dia de semana zerado (feriado/férias) segue na conta — não foi
-pedido, é decisão em aberto.
+**Dia com 0h fora da média de TRABALHO** (14/ago/2026, `HabitosRetro`):
+`trabalho` só entra na média e no gráfico com horas **> 0** — qualquer dia.
+Começou pelo fim de semana e ela estendeu pro dia de semana (feriado, férias,
+atestado). A média passa a responder "quanto trabalho nos dias em que trabalho".
+`contaNoCalculo(r, campo)`; **sono não muda** (dorme-se todo dia).
 
 **Faxina do Calendário cultural** (14/ago/2026): no bloco "Passado", um
 "limpar N que você não foi" apaga só o que já terminou (`dataMax < hoje`) **e**
