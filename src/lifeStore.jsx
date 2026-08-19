@@ -413,6 +413,117 @@ function ensureCarteiraMesAtual(d) {
   return { ...d, financas: { ...d.financas, autoMes: mesAtual, snapshots: [...snaps, novo] } };
 }
 
+// ============================================================================
+// BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
+// ============================================================================
+// As 11 exposições que ela mandou em 19/ago/2026, pra eu cadastrar por ela (não
+// tenho como escrever no documento dela de outro jeito: os dados são protegidos
+// por senha, e a chave é só dela).
+//
+// A regra do projeto é "nada de bilhete permanente" (ver ROADMAP). Este é a
+// exceção que a regra permite: entra UMA vez e é apagado no commit seguinte,
+// assim que ela abrir o app e confirmar que apareceram.
+//
+// Só ADICIONA — nunca toca no que já existe. Cada item tem id fixo, então rodar
+// duas vezes não duplica; e a flag `exposAgo2026` faz com que apagar uma delas
+// não a traga de volta na próxima abertura.
+//
+// Datas, horários, endereços e preços pesquisados em 19/ago/2026. Três ficaram
+// com o campo de data VAZIO porque eu não achei fonte confiável — elas aparecem
+// como "em cartaz" até ela preencher (ver a conversa).
+function ensureExposAgo2026(d) {
+  if (d.exposAgo2026) return d;
+  const TER_A_DOM = [2, 3, 4, 5, 6, 0];
+  const SEG_A_SEX = [1, 2, 3, 4, 5];
+  const novas = [
+    {
+      id: 'cult-ago26-miro', nome: 'Miró: Mestre das Formas', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'MAB FAAP — Rua Alagoas, 903, Higienópolis',
+      dataMax: '2026-10-12', preco: 'R$ 50 (meia R$ 25) · fim de semana R$ 60 (meia R$ 30)',
+      funcionamento: { dias: TER_A_DOM, abre: '09:00', fecha: '20:00' },
+      link: 'https://www.faap.br/mab/exposicao/miro-mestre-das-formas/',
+    },
+    {
+      id: 'cult-ago26-noite', nome: 'Tudo que eu sei, eu aprendi à noite', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Teatro Cultura Artística — Rua Nestor Pestana, 196, Consolação · sáb 10h–20h e dom 10h–18h',
+      dataMax: '2026-09-27', preco: 'Grátis',
+      funcionamento: { dias: [3, 4, 5, 6, 0], abre: '12:00', fecha: '20:00' },
+    },
+    {
+      id: 'cult-ago26-tecituras', nome: 'Tecituras', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Farol Santander — Rua João Brícola, 24, Centro',
+      dataMax: '2026-10-18', preco: 'R$ 50 (meia R$ 25)',
+      funcionamento: { dias: TER_A_DOM, abre: '09:00', fecha: '20:00' },
+      link: 'https://www.farolsantander.com.br/sp/exposicoes',
+    },
+    {
+      id: 'cult-ago26-ojuinu', nome: 'Ojú-Inú — Ayrson Heráclito', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Galeria Simões de Assis — Alameda Lorena, 2050 A, Jardins · sáb 10h–15h',
+      dataMax: '2026-09-12', preco: 'Grátis',
+      funcionamento: { dias: SEG_A_SEX, abre: '10:00', fecha: '19:00' },
+      link: 'https://www.simoesdeassis.com/exposicoes/',
+    },
+    {
+      id: 'cult-ago26-mapatempo', nome: 'Pequeno mapa do tempo — Paula Siebra', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Casa Iramaia — Rua Iramaia, 105, Jardins · abre em 25/ago · sáb 10h–17h',
+      dataMax: '2026-10-24', preco: 'Grátis',
+      funcionamento: { dias: [2, 3, 4, 5], abre: '11:00', fecha: '19:00' },
+    },
+    {
+      id: 'cult-ago26-rembrandt', nome: 'Rembrandt — O Mestre da Luz e da Sombra', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'CAIXA Cultural — Praça da Sé, 111, Centro · 69 gravuras originais',
+      dataMax: '2026-09-27', preco: 'Grátis',
+      funcionamento: { dias: TER_A_DOM, abre: '09:00', fecha: '18:00' },
+    },
+    {
+      // Existe (curadoria de Fernanda Chamma e Priscilla Yokoi), mas não achei as
+      // datas: o site do Farol Santander bloqueia leitura automática. Sem data,
+      // fica em "em cartaz" até ela conferir.
+      id: 'cult-ago26-quebranozes', nome: 'A Magia do Quebra-Nozes', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Farol Santander — Rua João Brícola, 24, Centro · CONFERIR as datas no site',
+      funcionamento: { dias: TER_A_DOM, abre: '09:00', fecha: '20:00' },
+      link: 'https://www.farolsantander.com.br/sp/exposicoes',
+    },
+    {
+      // As datas que achei (1/jun a 8/ago) são da unidade de CURITIBA. A de São
+      // Paulo aparece como "em breve" — por isso sem data aqui.
+      id: 'cult-ago26-chuvasolar', nome: 'Chuva Solar — Mika Takahashi', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Galeria Simões de Assis — Alameda Lorena, 2050 A, Jardins · CONFERIR as datas de SP',
+      preco: 'Grátis',
+      funcionamento: { dias: SEG_A_SEX, abre: '10:00', fecha: '19:00' },
+      link: 'https://www.simoesdeassis.com/exposicoes/',
+    },
+    {
+      // JÁ TERMINOU (15/ago) — entra direto no bloco "Passado", onde ela pode
+      // marcar o ☑ "fui" se tiver ido.
+      id: 'cult-ago26-acaso', nome: 'Acaso Determinado — Almir Mavignier', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'DAN Galeria — Rua Amauri, 73, Itaim Bibi',
+      dataMax: '2026-08-15', preco: 'Grátis',
+      funcionamento: { dias: SEG_A_SEX, abre: '10:00', fecha: '19:00' },
+      link: 'https://www.dangaleria.com.br/exposicoes/acaso-indeterminado-almir-mavignier',
+    },
+    {
+      // Não achei NADA sobre esta: nem datas, nem endereço da Gruta. Fica só o
+      // nome, pra ela completar.
+      id: 'cult-ago26-mergulho', nome: 'Primeiro Mergulho', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Gruta Espaço de Arte Contemporânea · não achei as informações — completar',
+    },
+    {
+      // JÁ TERMINOU (1º/ago) — vai pro "Passado".
+      id: 'cult-ago26-fascinio', nome: 'O Fascínio e o Afeto', tipo: 'exposicao', cidade: 'São Paulo',
+      local: 'Galeria Nara Roesler — Avenida Europa, 655, Jardim Europa · sáb 11h–15h',
+      dataMax: '2026-08-01', preco: 'Grátis',
+      funcionamento: { dias: SEG_A_SEX, abre: '10:00', fecha: '19:00' },
+      link: 'https://nararoesler.art/en/exhibitions/306/',
+    },
+  ];
+  const cultural = d.cultural || { itens: [] };
+  const jaTem = new Set((cultural.itens || []).map(i => i.id));
+  const faltando = novas.filter(x => !jaTem.has(x.id));
+  if (!faltando.length) return { ...d, exposAgo2026: true };
+  return { ...d, exposAgo2026: true, cultural: { ...cultural, itens: [...(cultural.itens || []), ...faltando] } };
+}
+
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -432,7 +543,9 @@ function ensureCarteiraMesAtual(d) {
 //   · rolarComprasVencidas / rolarPlanosVencidos — puxam pra hoje o que venceu
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
-  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual];
+  // `ensureExposAgo2026` é o bilhete de uso único das exposições — SAI daqui
+  // e do arquivo assim que a Mari confirmar que elas apareceram.
+  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual, ensureExposAgo2026];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
