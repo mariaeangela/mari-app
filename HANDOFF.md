@@ -67,10 +67,28 @@ isto de volta** — o comentário no código diz o mesmo.
   item antigo não tem `grupoId` e aparece solto em cima. **Apagar um subtópico
   NÃO apaga os itens** — eles voltam pro solto (e o confirm avisa quantos são).
 
+**Fim de semana fora da média de TRABALHO** (14/ago/2026, `HabitosRetro`):
+sábado/domingo só entram na média e no gráfico se ela registrou horas **> 0** —
+antes um fds em branco entrava como zero e puxava a média (5:36 virou 7:38 no
+teste). `contaNoCalculo(r, campo)`; **sono não muda**, e dia de semana com zero
+continua contando. Dia de semana zerado (feriado/férias) segue na conta — não foi
+pedido, é decisão em aberto.
+
+**Faxina do Calendário cultural** (14/ago/2026): no bloco "Passado", um
+"limpar N que você não foi" apaga só o que já terminou (`dataMax < hoje`) **e**
+nunca teve `quandoIr` — que é o único marcador de "fui" que existe no item. O
+confirm NOMEIA tudo que vai sair e diz quantas ficam. Usa `deleteCulturalItens`
+(lote): chamar `deleteCulturalItem` N vezes no mesmo tick faz uma desfazer a
+outra (mesma fatia; o rebase só protege entre fatias diferentes).
+
 **"Sem data" separado por CIDADE** (13/ago/2026, viagem NY · Filadélfia · Chicago):
 `trip.cidades = [{id,nome}]` + `item.cidadeId`, criadas por ela ("+ criar cidade").
-Cada cidade é sanfonada e tem **campo de adicionar próprio** (cria o lugar só com o
-nome, `bucket:'semdata'` + `cidadeId`; o resto ela põe tocando no cartão). O seletor
+Cada cidade é sanfonada e tem **"+ adicionar lugar em <cidade>"**, que abre o
+formulário COMPLETO já com a cidade preenchida — a primeira versão tinha um campo
+de texto rápido e virava uma lista de checkboxes, que é o oposto do que ela quer
+ali (cartões com descrição, horário, preço e mapa). Lugar ainda sem cidade mostra
+um seletor **"guardar em:"** embaixo do cartão, pra arquivar os que já existem sem
+abrir formulário nenhum. O seletor
 de Cidade no `ProgItemForm` só aparece em "Ainda sem data". Aditivo: item sem
 `cidadeId` fica solto em cima. **Apagar cidade NÃO apaga os lugares** — voltam pro
 solto. As três sanfonas (dias · subtópicos do levar · cidades) usam `useFechados` +

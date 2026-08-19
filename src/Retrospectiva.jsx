@@ -1451,8 +1451,20 @@ function HabitosRetro({ onBack, isWide }) {
   // Gráfico de linha (estilo do peso): escolhe sono OU trabalho e vê a evolução no
   // mês. Série em ordem cronológica, só dias com o valor preenchido.
   const [metric, setMetric] = useState('sono');
-  const serie = regs.filter(r => typeof r[metric] === 'number').map(r => ({ d: r.d, v: r[metric] })).sort((a, b) => a.d.localeCompare(b.d));
-  const media = (campo) => { const vs = regs.map(r => r[campo]).filter(v => typeof v === 'number'); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; };
+  // ---- Fim de semana não entra na conta do TRABALHO (pedido dela, 14/ago/2026) ----
+  // Sábado e domingo sem trabalho puxavam a média pra baixo e desenhavam um zero
+  // no gráfico, como se ela tivesse trabalhado zero hora — quando na verdade era
+  // só um dia que não é de trabalho. Agora o fim de semana só conta quando ela
+  // registrou horas DE VERDADE (> 0). Dia de semana continua igual: se ela
+  // preencheu, conta, inclusive zero.
+  const ehFimDeSemana = (ymd) => { const d = new Date(ymd + 'T00:00:00').getDay(); return d === 0 || d === 6; };
+  const contaNoCalculo = (r, campo) => {
+    if (typeof r[campo] !== 'number') return false;
+    if (campo === 'trabalho' && ehFimDeSemana(r.d) && !(r[campo] > 0)) return false;
+    return true;
+  };
+  const serie = regs.filter(r => contaNoCalculo(r, metric)).map(r => ({ d: r.d, v: r[metric] })).sort((a, b) => a.d.localeCompare(b.d));
+  const media = (campo) => { const vs = regs.filter(r => contaNoCalculo(r, campo)).map(r => r[campo]); return vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null; };
   const conta = (campo) => regs.filter(r => r[campo]).length;
   // Horas guardadas em decimal; exibidas em hh:mm (7,5 → 7:30). Média também.
   const fmtH = (v) => { if (v == null) return '—'; const tot = Math.round(v * 60); return `${Math.floor(tot / 60)}:${String(tot % 60).padStart(2, '0')}`; };
@@ -1483,8 +1495,8 @@ function HabitosRetro({ onBack, isWide }) {
       ) : <>
         <div><select value={mesAtual || ''} onChange={e => setMesSel(e.target.value)} style={selStyle}>{meses.map(m => <option key={m} value={m}>{fmtMesAno(m)}</option>)}</select></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => typeof r.sono === 'number').length), 'med-sono')}
-          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => typeof r.trabalho === 'number').length), 'med-trab')}
+          {statBox('Sono médio', fmtH(media('sono')), plur(regs.filter(r => contaNoCalculo(r, 'sono')).length), 'med-sono')}
+          {statBox('Trabalho médio', fmtH(media('trabalho')), plur(regs.filter(r => contaNoCalculo(r, 'trabalho')).length), 'med-trab')}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
           {HABS.map(([campo, label, emoji]) => statBox(label, conta(campo), conta(campo) === 1 ? 'dia' : 'dias', campo))}
@@ -1519,7 +1531,7 @@ function HabitosRetro({ onBack, isWide }) {
               ))}
             </svg>
           );
-        })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.</p>}
+        })() : <p style={{ fontSize: 12, color: '#bbb', fontStyle: 'italic', margin: '0 0 14px' }}>Precisa de ao menos 2 dias com {metric === 'sono' ? 'sono' : 'trabalho'} preenchido pra ver a linha.{metric === 'trabalho' ? ' (fim de semana só entra se você registrar horas)' : ''}</p>}
         {regs.map(r => (
           <div key={r.d} onClick={() => setEditDia({ dia: r.d })} title="tocar pra editar" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f3f3f3', cursor: 'pointer' }}>
             <span style={{ fontSize: 13, color: '#444', fontWeight: 700, width: 46, flexShrink: 0 }}>{r.d.slice(8, 10)}/{r.d.slice(5, 7)}</span>

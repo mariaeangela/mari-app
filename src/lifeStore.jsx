@@ -766,6 +766,14 @@ export function LifeProvider({ children }) {
     ? { ...cultural, itens: cultural.itens.map(x => x.id === it.id ? it : x) }
     : { ...cultural, itens: [...cultural.itens, { ...it, id: uid('e') }] });
   const deleteCulturalItem = (id) => setCultural({ ...cultural, itens: cultural.itens.filter(x => x.id !== id) });
+  // Apagar VÁRIOS de uma vez, numa gravação só. Chamar `deleteCulturalItem` em
+  // sequência não serve: as duas montam o próximo estado a partir da MESMA fatia
+  // do render, então a segunda desfaz a primeira (é o mesmo atropelo que apagou a
+  // nota de terapia, e o rebase só protege entre fatias diferentes).
+  const deleteCulturalItens = (ids) => {
+    const fora = new Set(ids);
+    setCultural({ ...cultural, itens: cultural.itens.filter(x => !fora.has(x.id)) });
+  };
 
   // ---- Viagens futuras / em curso (card por viagem + Modo Viagem) ----
   // viagem = { id, titulo, cidade, inicio, fim, hospedagem?, passagens?, notas?, link?,
@@ -1168,7 +1176,7 @@ export function LifeProvider({ children }) {
     data, compras, salvarAgora, syncStatus, trocarTudo,
     addComprasItem, updateComprasItem, deleteComprasItem, toggleComprado, addComprasLista, deleteComprasLista, moveComprasLista,
     planos, addPlano, setPlanoPrazo, deletePlano, movePlano, savePlanoInfo, deletePlanoInfo, addPlanoCheck, togglePlanoCheck, setPlanoCheckPrazo, setPlanoCheckTexto, deletePlanoCheck,
-    cultural, saveCulturalItem, deleteCulturalItem,
+    cultural, saveCulturalItem, deleteCulturalItem, deleteCulturalItens,
     recorrentes, saveRecorrente, deleteRecorrente,
     financas, saveFinancasSnapshot, deleteFinancasSnapshot, setFinancasUsdRate,
     salarios, saveSalarioAno, deleteSalarioAno,

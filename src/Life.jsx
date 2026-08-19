@@ -730,7 +730,35 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
                   <span style={{ flex: 1, height: 1, background: '#eee' }} />
                   <span>{verPassado ? '▾' : '▸'}</span>
                 </button>
-                {verPassado && passados.map(it => renderItem(it, true))}
+                {verPassado && <>
+                  {passados.map(it => renderItem(it, true))}
+                  {/* Faxina do que já saiu de cartaz. Só apaga o que ela NUNCA marcou
+                      "quando ir" — se marcou, ficou no calendário dela e o item fica.
+                      Nomeia tudo que vai sair ANTES de apagar: nada some sem ela ver. */}
+                  {(() => {
+                    const limpaveis = life.cultural.itens.filter(i => ehPassado(i) && !i.quandoIr);
+                    if (!limpaveis.length) return null;
+                    const comIr = life.cultural.itens.filter(i => ehPassado(i) && i.quandoIr).length;
+                    const limpar = () => {
+                      const nl = String.fromCharCode(10);
+                      const nomes = limpaveis.slice(0, 10).map(i => '· ' + i.nome).join(nl);
+                      const resto = limpaveis.length > 10 ? nl + '· e mais ' + (limpaveis.length - 10) : '';
+                      const guardadas = comIr
+                        ? nl + nl + (comIr === 1 ? 'A que você marcou "quando ir" fica.' : `As ${comIr} que você marcou "quando ir" ficam.`)
+                        : '';
+                      const pergunta = `Apagar ${limpaveis.length} ${limpaveis.length === 1 ? 'evento que já terminou' : 'eventos que já terminaram'} e que você não marcou "quando ir"?`
+                        + nl + nl + nomes + resto + guardadas
+                        + nl + nl + 'Se der arrependimento, dá pra voltar em Life › Seus dados › "Sumiu alguma coisa?".';
+                      if (!window.confirm(pergunta)) return;
+                      life.deleteCulturalItens(limpaveis.map(i => i.id));
+                    };
+                    return (
+                      <button onClick={limpar} style={{ marginTop: 8, background: 'none', border: 'none', color: '#c0392b', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 0' }}>
+                        limpar {limpaveis.length} que você não foi
+                      </button>
+                    );
+                  })()}
+                </>}
               </>
             )}
           </>
@@ -4157,7 +4185,6 @@ function ViagemDetail({ trip, onBack }) {
   // Apagar uma cidade NÃO apaga os lugares dela: eles voltam pro solto.
   const cidades = trip.cidades || [];
   const { fechados: cidadesFechadas, alternar: alternarCidade } = useFechados('diagonal_cidades_fechadas_' + trip.id);
-  const [novoPorCidade, setNovoPorCidade] = useState({});
   const addCidade = () => {
     const nome = window.prompt('Nome da cidade (ex.: Nova York, Filadélfia, Chicago):');
     if (!nome || !nome.trim()) return;
@@ -4179,12 +4206,6 @@ function ViagemDetail({ trip, onBack }) {
   // Adição rápida dentro de uma cidade: cria o lugar só com o nome (e a cidade já
   // preenchida). Os detalhes — descrição, horário, preço, mapa — ela põe depois,
   // tocando no cartão. É o mesmo "digita uma vez e vai jogando dentro" do levar.
-  const addLugarNaCidade = (cidadeId) => {
-    const t = (novoPorCidade[cidadeId] || '').trim();
-    if (!t) return;
-    salvar({ mesas: [...(trip.mesas || []), { id: 'pg' + Date.now().toString(36), titulo: t, dia: '', bucket: 'semdata', cidadeId }] });
-    setNovoPorCidade(v => ({ ...v, [cidadeId]: '' }));
-  };
   const todosFechados = dias.length > 0 && dias.every(d => diasFechados.has(d));
 
   // O cartão de um item da programação — mesmo desenho nos três blocos (dia,
@@ -4238,7 +4259,7 @@ function ViagemDetail({ trip, onBack }) {
     <>
       {form && <ViagemForm editing={form.editing} onClose={() => setForm(null)} onDeleted={onBack} />}
       {mesaForm && <MesaLinkForm trip={trip} mesa={mesaForm.mesa} onClose={() => setMesaForm(null)} />}
-      {progForm && <ProgItemForm trip={trip} item={progForm.item} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
+      {progForm && <ProgItemForm trip={trip} item={progForm.item} cidadeInicial={progForm.cidadeInicial} mostrarTipo={temParalela} casasList={casasList} onSave={salvar} onClose={() => setProgForm(null)} />}
       {secaoForm && <SecaoForm localInicial={secaoForm.local} onSave={(sec) => { setSecoes(ss => [...ss, sec]); if (sec.local === 'card') setAba('sec:' + sec.id); }} onClose={() => setSecaoForm(null)} />}
       {orcForm && <OrcamentoViagemForm trip={trip} oc={oc} onClose={() => setOrcForm(false)} />}
       {catForm && <CategoriaOrcForm trip={trip} cat={catForm.cat} moeda={oc.moeda} onClose={() => setCatForm(null)} />}
@@ -4407,7 +4428,25 @@ function ViagemDetail({ trip, onBack }) {
                 lugares que você quer ir e ainda não encaixou num dia — quando decidir, abra e escolha "Num dia"
               </div>
             )}
-            {semCidade.map(m => cardProg(m, semCidade))}
+            {/* Os lugares que ainda não estão em nenhuma cidade ganham um seletor
+                embaixo do cartão, pra ela arquivar os que já existem sem precisar
+                abrir o formulário de cada um. Some assim que o lugar entra numa
+                cidade (dentro do grupo, quem move é o formulário). */}
+            {semCidade.map(m => (
+              <div key={m.id}>
+                {cardProg(m, semCidade)}
+                {cidades.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '-2px 0 12px 2px' }}>
+                    <span style={{ fontSize: 11.5, color: '#aaa' }}>guardar em:</span>
+                    <select value="" onChange={e => { if (e.target.value) salvar({ mesas: (trip.mesas || []).map(x => x.id === m.id ? { ...x, cidadeId: e.target.value } : x) }); }}
+                      style={{ ...inputStyle, width: 'auto', flex: '0 1 auto', padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
+                      <option value="">escolher cidade…</option>
+                      {cidades.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+            ))}
             {cidades.map(c => {
               const dentro = ordenarProg(semDataProg.filter(m => m.cidadeId === c.id));
               const fechada = cidadesFechadas.has(c.id);
@@ -4426,10 +4465,13 @@ function ViagemDetail({ trip, onBack }) {
                   />
                   {!fechada && <>
                     {dentro.map(m => cardProg(m, dentro))}
-                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                      <input value={novoPorCidade[c.id] || ''} onChange={e => setNovoPorCidade(v => ({ ...v, [c.id]: e.target.value }))} onKeyDown={e => e.key === 'Enter' && addLugarNaCidade(c.id)} placeholder={`adicionar em ${c.nome}…`} style={{ ...inputStyle, flex: 1 }} />
-                      <button onClick={() => addLugarNaCidade(c.id)} style={{ padding: '0 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0 }}>+</button>
-                    </div>
+                    {/* Abre o formulário COMPLETO já com a cidade preenchida. Antes aqui
+                        havia um campo de texto que criava o lugar só com o nome, e o
+                        resultado era uma lista de checkboxes em vez dos cartões com
+                        descrição, horário, preço e mapa — que é o que ela quer aqui. */}
+                    <button onClick={() => setProgForm({ cidadeInicial: c.id })} style={{ width: '100%', marginTop: 8, padding: '10px 0', borderRadius: 11, border: '1px dashed ' + COR_VIAGEM + '77', background: '#fff', color: COR_VIAGEM, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+                      + adicionar lugar em {c.nome}
+                    </button>
                   </>}
                 </div>
               );
@@ -4660,13 +4702,15 @@ function ViagemDetail({ trip, onBack }) {
 // Item da programação (roteiro por dia = um lugar): dia + hora + lugar + descrição +
 // abertura (dias/horário) + entrada (preço) + Google Maps + site oficial. Trocar o "Dia"
 // já reagenda o lugar pra outra data da viagem (fica dentro do intervalo início–fim).
-function ProgItemForm({ trip, item, mostrarTipo, casasList = [], onSave, onClose }) {
+function ProgItemForm({ trip, item, cidadeInicial, mostrarTipo, casasList = [], onSave, onClose }) {
   const [dia, setDia] = useState(item?.dia || trip.inicio || '');
   // As três seções da Programação: 'dia' = entra no roteiro daquela data ·
   // 'semdata' = quer ir, ainda não sabe quando · 'lojas' = lista de passagem
   // (não é compromisso). As duas últimas nunca têm data.
-  const [onde, setOnde] = useState(item?.bucket === 'lojas' ? 'lojas' : (item?.bucket === 'semdata' || (item && !item.dia) ? 'semdata' : 'dia'));
-  const [cidadeId, setCidadeId] = useState(item?.cidadeId || '');   // só usada na seção "Sem data"
+  // `cidadeInicial` = veio do botão "+ adicionar lugar em <cidade>": já nasce em
+  // "Sem data", naquela cidade.
+  const [onde, setOnde] = useState(cidadeInicial ? 'semdata' : (item?.bucket === 'lojas' ? 'lojas' : (item?.bucket === 'semdata' || (item && !item.dia) ? 'semdata' : 'dia')));
+  const [cidadeId, setCidadeId] = useState(item?.cidadeId || cidadeInicial || '');   // só usada na seção "Sem data"
   const [hora, setHora] = useState(item?.hora || '');
   const [titulo, setTitulo] = useState(item?.titulo || '');
   const [tipo, setTipo] = useState(item?.tipo || (mostrarTipo ? 'paralela' : ''));
