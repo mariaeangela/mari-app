@@ -700,16 +700,27 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
 
       {/* card de um item (reusado no atual e no passado; `passou` deixa o passado esmaecido) */}
       {(() => {
+        // O ☑ "fui" (ago/2026). Até então o calendário cultural não tinha como
+        // registrar que ela FOI — só o "quando ir", que é intenção, não ida. Sem
+        // isso, "apagar o que já passou e eu não fui" era um chute meu.
+        // Fica em TODOS os cartões, não só nos passados: o normal é ela ir enquanto
+        // a exposição ainda está em cartaz, e é ali que ela vai querer marcar.
+        const toggleFui = (it) => life.saveCulturalItem({ ...it, fui: it.fui ? undefined : true });
         const renderItem = (it, passou) => {
           const meta = [it.local, it.dataMax ? (passou ? 'foi até ' : 'até ') + fmtData(it.dataMax) : null, it.preco, fmtFuncionamento(it.funcionamento) || null].filter(Boolean).join(' · ');
           return (
-            <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid #eee', borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer', opacity: passou ? 0.6 : 1 }}>
+            <div key={it.id} onClick={() => setForm({ editing: it })} style={{ width: '100%', textAlign: 'left', background: '#fff', border: '1px solid ' + (it.fui ? '#54c08a55' : '#eee'), borderRadius: 10, padding: '11px 13px', marginBottom: 6, cursor: 'pointer', opacity: passou && !it.fui ? 0.6 : 1 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span onClick={(e) => { e.stopPropagation(); toggleFui(it); }} title={it.fui ? 'você foi — toque pra desmarcar' : 'marcar que você foi'}
+                  style={{ fontSize: 17, color: it.fui ? '#54c08a' : '#d5d5d5', cursor: 'pointer', flexShrink: 0, lineHeight: 1 }}>{it.fui ? '☑' : '☐'}</span>
                 <span style={{ flex: 1, fontSize: 14.5, color: '#222', fontWeight: 600 }}>{it.nome}</span>
                 {it.link && <a href={it.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ color: COR_CULTURAL, fontWeight: 700, textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>↗</a>}
                 <span style={{ fontSize: 10, fontWeight: 700, color: COR_CULTURAL, textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>{cultTipoLabel(it.tipo)}</span>
               </div>
-              <div style={{ fontSize: 11.5, color: '#999', marginTop: 3 }}>{[it.cidade, meta].filter(Boolean).join(' · ')}</div>
+              <div style={{ fontSize: 11.5, color: '#999', marginTop: 3, paddingLeft: 25 }}>
+                {[it.cidade, meta].filter(Boolean).join(' · ')}
+                {it.fui && <span style={{ color: '#2e9e6b', fontWeight: 700 }}> · você foi</span>}
+              </div>
             </div>
           );
         };
@@ -732,21 +743,27 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
                 </button>
                 {verPassado && <>
                   {passados.map(it => renderItem(it, true))}
-                  {/* Faxina do que já saiu de cartaz. Só apaga o que ela NUNCA marcou
-                      "quando ir" — se marcou, ficou no calendário dela e o item fica.
-                      Nomeia tudo que vai sair ANTES de apagar: nada some sem ela ver. */}
+                  {/* Faxina do que já saiu de cartaz. É a mais conservadora possível:
+                      só apaga o que passou E não tem nem o ☑ "fui" NEM um "quando ir".
+                      A regra do "quando ir" é dela: ter marcado a data significa que
+                      houve interesse, e interesse basta pra guardar. Nomeia tudo que
+                      vai sair ANTES de apagar — nada some sem ela ver. */}
                   {(() => {
-                    const limpaveis = life.cultural.itens.filter(i => ehPassado(i) && !i.quandoIr);
+                    const guardar = (i) => i.fui || i.quandoIr;
+                    const limpaveis = life.cultural.itens.filter(i => ehPassado(i) && !guardar(i));
                     if (!limpaveis.length) return null;
-                    const comIr = life.cultural.itens.filter(i => ehPassado(i) && i.quandoIr).length;
+                    const nFui = life.cultural.itens.filter(i => ehPassado(i) && i.fui).length;
+                    const nIr = life.cultural.itens.filter(i => ehPassado(i) && !i.fui && i.quandoIr).length;
                     const limpar = () => {
                       const nl = String.fromCharCode(10);
                       const nomes = limpaveis.slice(0, 10).map(i => '· ' + i.nome).join(nl);
                       const resto = limpaveis.length > 10 ? nl + '· e mais ' + (limpaveis.length - 10) : '';
-                      const guardadas = comIr
-                        ? nl + nl + (comIr === 1 ? 'A que você marcou "quando ir" fica.' : `As ${comIr} que você marcou "quando ir" ficam.`)
-                        : '';
-                      const pergunta = `Apagar ${limpaveis.length} ${limpaveis.length === 1 ? 'evento que já terminou' : 'eventos que já terminaram'} e que você não marcou "quando ir"?`
+                      const ficam = [
+                        nFui ? `${nFui} que você marcou que foi` : null,
+                        nIr ? `${nIr} que você marcou quando ir` : null,
+                      ].filter(Boolean).join(' e ');
+                      const guardadas = ficam ? nl + nl + 'Ficam: ' + ficam + '.' : '';
+                      const pergunta = `Apagar ${limpaveis.length} ${limpaveis.length === 1 ? 'evento que já terminou' : 'eventos que já terminaram'}, sem "fui" e sem "quando ir"?`
                         + nl + nl + nomes + resto + guardadas
                         + nl + nl + 'Se der arrependimento, dá pra voltar em Life › Seus dados › "Sumiu alguma coisa?".';
                       if (!window.confirm(pergunta)) return;
@@ -754,7 +771,7 @@ export function CulturalSection({ onBack, backLabel = 'Life' }) {
                     };
                     return (
                       <button onClick={limpar} style={{ marginTop: 8, background: 'none', border: 'none', color: '#c0392b', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '4px 0' }}>
-                        limpar {limpaveis.length} que você não foi
+                        limpar {limpaveis.length} sem "fui" e sem "quando ir"
                       </button>
                     );
                   })()}

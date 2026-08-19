@@ -73,10 +73,13 @@ Começou pelo fim de semana e ela estendeu pro dia de semana (feriado, férias,
 atestado). A média passa a responder "quanto trabalho nos dias em que trabalho".
 `contaNoCalculo(r, campo)`; **sono não muda** (dorme-se todo dia).
 
-**Faxina do Calendário cultural** (14/ago/2026): no bloco "Passado", um
-"limpar N que você não foi" apaga só o que já terminou (`dataMax < hoje`) **e**
-nunca teve `quandoIr` — que é o único marcador de "fui" que existe no item. O
-confirm NOMEIA tudo que vai sair e diz quantas ficam. Usa `deleteCulturalItens`
+**☑ "fui" no Calendário cultural + faxina** (14/ago/2026): o item cultural não
+tinha como registrar que ela FOI — só `quandoIr`, que é intenção. Agora tem `fui`,
+com o ☑ em **todos** os cartões (o normal é marcar enquanto ainda está em cartaz).
+A faxina, no bloco "Passado", apaga só o que já terminou **e** não tem `fui`
+**nem** `quandoIr` — decisão dela: ter marcado a data já significa interesse, e
+interesse basta pra guardar. O confirm NOMEIA tudo que vai sair e diz quantas
+ficam, separando "marcou que foi" de "marcou quando ir". Usa `deleteCulturalItens`
 (lote): chamar `deleteCulturalItem` N vezes no mesmo tick faz uma desfazer a
 outra (mesma fatia; o rebase só protege entre fatias diferentes).
 
