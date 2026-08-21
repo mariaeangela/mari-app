@@ -4445,25 +4445,11 @@ function ViagemDetail({ trip, onBack }) {
                 lugares que você quer ir e ainda não encaixou num dia — quando decidir, abra e escolha "Num dia"
               </div>
             )}
-            {/* Os lugares que ainda não estão em nenhuma cidade ganham um seletor
-                embaixo do cartão, pra ela arquivar os que já existem sem precisar
-                abrir o formulário de cada um. Some assim que o lugar entra numa
-                cidade (dentro do grupo, quem move é o formulário). */}
-            {semCidade.map(m => (
-              <div key={m.id}>
-                {cardProg(m, semCidade)}
-                {cidades.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, margin: '-2px 0 12px 2px' }}>
-                    <span style={{ fontSize: 11.5, color: '#aaa' }}>guardar em:</span>
-                    <select value="" onChange={e => { if (e.target.value) salvar({ mesas: (trip.mesas || []).map(x => x.id === m.id ? { ...x, cidadeId: e.target.value } : x) }); }}
-                      style={{ ...inputStyle, width: 'auto', flex: '0 1 auto', padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
-                      <option value="">escolher cidade…</option>
-                      {cidades.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                    </select>
-                  </div>
-                )}
-              </div>
-            ))}
+            {/* Sem seletor de cidade no cartão: pra guardar um lugar numa cidade ela
+                toca nele e usa o campo Cidade do formulário, que já existe. Havia um
+                "guardar em:" aqui e ela pediu pra tirar — dois caminhos pra mesma
+                coisa é a bagunça que a gente vem desfazendo. */}
+            {semCidade.map(m => cardProg(m, semCidade))}
             {cidades.map(c => {
               const dentro = ordenarProg(semDataProg.filter(m => m.cidadeId === c.id));
               const fechada = cidadesFechadas.has(c.id);

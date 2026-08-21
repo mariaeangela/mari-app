@@ -88,9 +88,10 @@ outra (mesma fatia; o rebase só protege entre fatias diferentes).
 Cada cidade é sanfonada e tem **"+ adicionar lugar em <cidade>"**, que abre o
 formulário COMPLETO já com a cidade preenchida — a primeira versão tinha um campo
 de texto rápido e virava uma lista de checkboxes, que é o oposto do que ela quer
-ali (cartões com descrição, horário, preço e mapa). Lugar ainda sem cidade mostra
-um seletor **"guardar em:"** embaixo do cartão, pra arquivar os que já existem sem
-abrir formulário nenhum. O seletor
+ali (cartões com descrição, horário, preço e mapa). Pra guardar um lugar numa cidade ela
+**toca no cartão e usa o campo Cidade do formulário**. Chegou a existir um
+"guardar em:" embaixo do cartão e ela pediu pra tirar (20/ago): dois caminhos pra
+mesma coisa é a bagunça que a gente vem desfazendo — **não reintroduzir**. O seletor
 de Cidade no `ProgItemForm` só aparece em "Ainda sem data". Aditivo: item sem
 `cidadeId` fica solto em cima. **Apagar cidade NÃO apaga os lugares** — voltam pro
 solto. As três sanfonas (dias · subtópicos do levar · cidades) usam `useFechados` +
