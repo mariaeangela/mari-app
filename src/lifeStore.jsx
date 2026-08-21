@@ -413,31 +413,6 @@ function ensureCarteiraMesAtual(d) {
   return { ...d, financas: { ...d.financas, autoMes: mesAtual, snapshots: [...snaps, novo] } };
 }
 
-// ============================================================================
-// BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
-// ============================================================================
-// A exposição que ela pediu em 19/ago/2026. Mesma exceção de sempre: entra UMA
-// vez e sai no commit seguinte (ver a regra em ROADMAP.md).
-// Só adiciona; id fixo (não duplica); a flag faz com que apagá-la não a traga
-// de volta na abertura seguinte.
-function ensureBlassContrarregra(d) {
-  if (d.blassContrarregra) return d;
-  const nova = {
-    id: 'cult-ago26-contrarregra',
-    nome: 'Contrarregra — Tatiana Blass',
-    tipo: 'exposicao',
-    cidade: 'São Paulo',
-    local: 'Instituto Tomie Ohtake — Rua Coropés, 88, Pinheiros · abre em 28/ago · ~50 obras de 2008 a 2026',
-    dataMax: '2026-10-25',
-    preco: 'Grátis',
-    funcionamento: { dias: [2, 3, 4, 5, 6, 0], abre: '11:00', fecha: '19:00' },
-    link: 'https://www.institutotomieohtake.org.br/exposicoes/tatiana-blass-contrarregra/',
-  };
-  const cultural = d.cultural || { itens: [] };
-  if ((cultural.itens || []).some(i => i.id === nova.id)) return { ...d, blassContrarregra: true };
-  return { ...d, blassContrarregra: true, cultural: { ...cultural, itens: [...(cultural.itens || []), nova] } };
-}
-
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -457,9 +432,7 @@ function ensureBlassContrarregra(d) {
 //   · rolarComprasVencidas / rolarPlanosVencidos — puxam pra hoje o que venceu
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
-  // `ensureBlassContrarregra` é bilhete de uso único — SAI daqui e do arquivo
-  // assim que a Mari confirmar que a exposição apareceu.
-  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual, ensureBlassContrarregra];
+  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
