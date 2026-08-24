@@ -346,7 +346,9 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   padrão útil quando precisa atualizar um seed que já rodou (a flag de seed sozinha faz early-return).
   Para semear mais conteúdo, criar outra `ensure*` e encadear em `runSeeds`.
   Dados: events[], exercicios[], tasks[], roles[], cultura[], moods{}, diary{},
-  savedRoles[], **metas{}** (chave 'YYYY-MM' → [{id,texto,feito}]; CRUDs `addMeta`/`toggleMeta`/`deleteMeta`).
+  savedRoles[], **metas{}** (chave 'YYYY-MM' → [{id,texto,feito}]; CRUDs `addMeta`/`toggleMeta`/`deleteMeta`),
+  **coringas{}** (chave 'YYYY-MM' → { id do coringa: dia do mês }; CRUD `setCoringa`, grava por FUNÇÃO
+  porque escolher dois seguidos mexe na mesma fatia).
 - `src/Calendario.jsx` — UI: "Neste dia" + "você há N anos" + contagem
   regressiva (só viagem/aniversário/corrida). `+` no topo abre AddSheet (tipos:
   Evento, Exercício, Tarefa, Rolê, Cultura — escolhe data no form). Visões: Mês
@@ -360,7 +362,12 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   virada do mês. Sempre no fim
   da página: "Lendo no momento" (cultura subtipo lendo) com botão "concluído"
   que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Na visão Mês há
-  também "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
+  também **"Dias coringa de {mês}"** (`DiasCoringa`, logo ANTES das Metas): cinco dias que ela
+  reserva pra si todo mês — Arrumar vida financeira · Get your shot together · Field trip ·
+  Journaling · Creativite. Os NOMES são fixos no código (`CORINGAS`); o que muda é a **data,
+  escolhida mês a mês** (toca no nome → mini-grade do mês → toca no dia; "tirar a data" limpa).
+  Mês sem escolha aparece vazio, de propósito. Não entra nos pontinhos da grade nem no DayModal.
+  Há ainda "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
   mês"** — agrupado por plano: prazo do próprio plano + **itens do checklist com
   `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`); e **"Metas de {mês}"**
   (`MetasMes`, slice `metas` — add/✓/apagar por mês exibido). **`itemsForDay(data, date, planos?)`**

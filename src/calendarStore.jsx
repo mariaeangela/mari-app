@@ -12,12 +12,13 @@
 //   moods:      { 'YYYY-MM-DD': moodId }
 //   diary:      { 'YYYY-MM-DD': 'texto' }
 //   savedRoles: [ 'rolê reaproveitável', ... ]
+//   coringas:   { 'YYYY-MM': { [id do dia coringa]: dia do mês } }
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, gravarLocal } from './cloud';
 import { rebasear } from './mesclar.js';
 
 const KEY = 'diagonal_calendario';
-const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {} };
+const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {}, coringas: {} };
 const CalContext = createContext(null);
 
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -355,11 +356,23 @@ export function CalendarProvider({ children }) {
   const toggleMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, feito: !m.feito } : m) } });
   const deleteMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).filter(m => m.id !== id) } });
 
+  // ---- Dias coringa (chave 'YYYY-MM' → { [id do coringa]: dia do mês }) ----
+  // Os nomes ficam no código (CORINGAS, em Calendario.jsx); aqui só mora a data
+  // escolhida em cada mês. `dia` vazio tira a data. Grava por FUNÇÃO porque
+  // escolher dois coringas seguidos mexe na MESMA fatia.
+  const setCoringa = (mesKey, id, dia) => persistFn(d => {
+    const coringas = { ...(d.coringas || {}) };
+    const mes = { ...(coringas[mesKey] || {}) };
+    if (dia) mes[id] = Number(dia); else delete mes[id];
+    if (Object.keys(mes).length) coringas[mesKey] = mes; else delete coringas[mesKey];
+    return { ...d, coringas };
+  });
+
   const value = {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, deleteMeta, salvarAgora, setTracking, trocarTudo,
+    addMeta, toggleMeta, deleteMeta, setCoringa, salvarAgora, setTracking, trocarTudo,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
 }

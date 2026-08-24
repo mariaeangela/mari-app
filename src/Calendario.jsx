@@ -828,6 +828,75 @@ function ExerciciosList({ data, onEdit }) {
   );
 }
 
+// ---------------- Dias coringa ----------------
+// Dias que ela reserva pra si TODO mês. O nome é fixo (mora aqui, no código);
+// o que muda é a data — escolhida mês a mês: toca no dia coringa e abre a grade
+// daquele mês. Guardado em `coringas` ('YYYY-MM' → { id: dia }) no calendarStore.
+const CORINGA_COR = '#5f8ba6';
+const CORINGAS = [
+  { id: 'financeira', nome: 'Arrumar vida financeira' },
+  { id: 'together', nome: 'Get your shot together' },
+  { id: 'fieldtrip', nome: 'Field trip' },
+  { id: 'journaling', nome: 'Journaling' },
+  { id: 'creativite', nome: 'Creativite' },
+];
+
+function DiasCoringa({ mesKey, mesLabel, refDate }) {
+  const cal = useCalendar();
+  const [aberto, setAberto] = useState(null); // id do coringa com a grade aberta
+  const escolhidos = cal.data.coringas?.[mesKey] || {};
+  const ano = refDate.getFullYear(), mes = refDate.getMonth();
+  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+  const vazios = new Date(ano, mes, 1).getDay(); // quadradinhos antes do dia 1
+  const escolher = (id, dia) => { cal.setCoringa(mesKey, id, dia); setAberto(null); };
+
+  return (
+    <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
+      <div style={{ fontSize: 11, color: CORINGA_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Dias coringa de {mesLabel}</div>
+      {CORINGAS.map(c => {
+        const dia = escolhidos[c.id];
+        const d = dia ? new Date(ano, mes, dia) : null;
+        const abertoAqui = aberto === c.id;
+        return (
+          <div key={c.id} style={{ borderBottom: '1px solid #f3f3f3' }}>
+            <div onClick={() => setAberto(abertoAqui ? null : c.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', cursor: 'pointer' }}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', flexShrink: 0, background: dia ? CORINGA_COR : '#fff', border: '1px solid ' + (dia ? CORINGA_COR : '#d8d8d8') }} />
+              <span style={{ flex: 1, fontSize: 14, color: '#333' }}>{c.nome}</span>
+              <span style={{ fontSize: 13, fontWeight: dia ? 700 : 400, color: dia ? CORINGA_COR : '#bbb', whiteSpace: 'nowrap' }}>
+                {d ? `${DIAS_SEMANA[d.getDay()]}, ${dia}` : 'escolher dia'}
+              </span>
+            </div>
+            {abertoAqui && (
+              <div style={{ padding: '2px 0 12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+                  {DIAS_SEMANA.map(ds => (
+                    <div key={ds} style={{ textAlign: 'center', fontSize: 9.5, color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.3px' }}>{ds[0]}</div>
+                  ))}
+                  {Array.from({ length: vazios }, (_, i) => <div key={'v' + i} />)}
+                  {Array.from({ length: ultimoDia }, (_, i) => i + 1).map(n => {
+                    const sel = dia === n;
+                    return (
+                      <button key={n} onClick={() => escolher(c.id, n)} style={{
+                        padding: '7px 0', borderRadius: 8, fontSize: 12.5, fontWeight: sel ? 700 : 500, cursor: 'pointer',
+                        border: '1px solid ' + (sel ? CORINGA_COR : '#eee'),
+                        background: sel ? CORINGA_COR : '#fff', color: sel ? '#fff' : '#555',
+                      }}>{n}</button>
+                    );
+                  })}
+                </div>
+                {dia && (
+                  <button onClick={() => escolher(c.id, null)} style={{ marginTop: 8, background: 'none', border: 'none', color: '#bbb', fontSize: 12, cursor: 'pointer', padding: 0 }}>tirar a data</button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---------------- Metas do mês ----------------
 const META_COR = '#caa43a';
 function MetasMes({ mesKey, mesLabel }) {
@@ -948,6 +1017,7 @@ export default function Calendario({ isWide }) {
       )}
       {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
       {view === 'mes' && <Legenda items={LEGENDA} />}
+      {view === 'mes' && <DiasCoringa mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} refDate={refDate} />}
       {view === 'mes' && <MetasMes mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} />}
       {view === 'exercicio' && exView === 'cal' && <Legenda items={EXERCICIO_LEGENDA} />}
 
