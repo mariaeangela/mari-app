@@ -451,6 +451,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
   const todayKey = ymd(hoje());
   const { events, exercicios, tasks, roles, cultura, planoItens } = itemsForDay(cal.data, date, life.planos);
   const mood = (cal.data.moods || {})[key];
+  const coringas = coringasDoDia(cal.data, date); // dias coringa marcados neste dia
 
   const linha = (it, extra) => (
     <button key={it.id} onClick={() => onEdit(it)} style={rowBtn}>
@@ -468,6 +469,19 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
           <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: '#111', margin: 0 }}>{date.getDate()} de {MESES[date.getMonth()]}</h3>
           <button onClick={onClose} style={closeBtn}>×</button>
         </div>
+
+        {/* Dia coringa marcado neste dia — só mostra; a data se escolhe na lista da visão Mês. */}
+        {coringas.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: -6, marginBottom: 14 }}>
+            {coringas.map(n => (
+              <span key={n} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 700,
+                color: CORINGA_COR, background: CORINGA_COR + '14', border: '1px solid ' + CORINGA_COR + '44',
+                borderRadius: 20, padding: '5px 11px',
+              }}>★ {n}</span>
+            ))}
+          </div>
+        )}
 
         <label style={labelStyle}>Humor do dia</label>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

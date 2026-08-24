@@ -370,7 +370,9 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   **estrelinha ★** (não pontinho) na cor `CORINGA_COR`, com o nome no `title`, mais o chip
   "★ dia coringa" na legenda quando há algum no mês; `coringasDoDia(data, date)` lê pelo mês do
   PRÓPRIO dia, então os dias de fora da grade mostram a estrela do mês deles. Prop `comEstrela`
-  na `MonthView` — só a visão Mês passa (a de Exercício não). Não entra no DayModal.
+  na `MonthView` — só a visão Mês passa (a de Exercício não). No **DayModal** aparece como um chip
+  "★ nome" logo abaixo da data, só de leitura: a data se escolhe na lista da visão Mês, e ter dois
+  caminhos pra mesma coisa é a bagunça que a gente vem desfazendo.
   Há ainda "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
   mês"** — agrupado por plano: prazo do próprio plano + **itens do checklist com
   `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`); e **"Metas de {mês}"**
