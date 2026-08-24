@@ -529,7 +529,7 @@ function DayModal({ date, onClose, onAdd, onEdit }) {
 }
 
 // ---------------- Visão Mês ----------------
-function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
+function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots, comEstrela }) {
   const cal = useCalendar();
   const y = refDate.getFullYear(), m = refDate.getMonth();
   const startPad = new Date(y, m, 1).getDay();
@@ -558,8 +558,10 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
           const dots = moodMode ? [] : (getDots ? getDots(date) : itemsForDay(cal.data, date).all);
           const mood = (cal.data.moods || {})[key];
           const isToday = key === todayKey;
+          // Dia coringa: estrelinha em vez de pontinho (só na visão Mês).
+          const coringas = comEstrela && !moodMode ? coringasDoDia(cal.data, date) : [];
           return (
-            <button key={i} onClick={() => onDayClick(date)} style={{
+            <button key={i} onClick={() => onDayClick(date)} title={coringas.join(' · ') || undefined} style={{
               aspectRatio: '1', border: '1px solid #eee', borderRadius: 10,
               background: moodMode && mood ? MOOD_BY_ID[mood]?.cor + '2e' : (out ? '#fafafa' : '#fff'), cursor: 'pointer',
               opacity: out ? 0.5 : 1,
@@ -568,8 +570,9 @@ function MonthView({ refDate, setRefDate, onDayClick, moodMode, getDots }) {
               <span style={isToday
                 ? { fontSize: 12, fontWeight: 700, color: '#fff', background: '#111', borderRadius: '50%', width: 19, height: 19, display: 'flex', alignItems: 'center', justifyContent: 'center' }
                 : { fontSize: 12.5, color: out ? '#aaa' : '#555', fontWeight: 500 }}>{date.getDate()}</span>
-              {!moodMode && dots.length > 0 && (
-                <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', marginTop: 3 }}>
+              {!moodMode && (dots.length > 0 || coringas.length > 0) && (
+                <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginTop: 3 }}>
+                  {coringas.map((n, j) => <span key={'c' + j} style={{ fontSize: 9, lineHeight: 1, color: CORINGA_COR }}>★</span>)}
                   {dots.slice(0, 4).map((it, j) => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: it._cor }} />)}
                 </div>
               )}
@@ -588,7 +591,10 @@ function Legenda({ items }) {
     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 14 }}>
       {items.map((it, i) => (
         <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#888' }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: it.cor }} />{it.label}
+          {it.estrela
+            ? <span style={{ fontSize: 11, lineHeight: 1, color: it.cor }}>★</span>
+            : <span style={{ width: 10, height: 10, borderRadius: '50%', background: it.cor }} />}
+          {it.label}
         </span>
       ))}
     </div>
@@ -835,11 +841,18 @@ function ExerciciosList({ data, onEdit }) {
 const CORINGA_COR = '#5f8ba6';
 const CORINGAS = [
   { id: 'financeira', nome: 'Arrumar vida financeira' },
-  { id: 'together', nome: 'Get your shot together' },
+  { id: 'together', nome: 'Get your shit together' },
   { id: 'fieldtrip', nome: 'Field trip' },
   { id: 'journaling', nome: 'Journaling' },
-  { id: 'creativite', nome: 'Creativite' },
+  { id: 'creativite', nome: 'Creativity' },
 ];
+// Nomes dos coringas marcados NESTE dia (usa o mês do próprio dia, então a
+// estrelinha aparece certa também nos dias de fora da grade). Devolve [] se não houver.
+const coringasDoDia = (data, date) => {
+  const mes = (data.coringas || {})[`${date.getFullYear()}-${pad2(date.getMonth() + 1)}`];
+  if (!mes) return [];
+  return CORINGAS.filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
+};
 
 function DiasCoringa({ mesKey, mesLabel, refDate }) {
   const cal = useCalendar();
@@ -969,6 +982,8 @@ export default function Calendario({ isWide }) {
     .filter(Boolean)
     .sort((a, b) => (a.prazoPlano || a.itens[0]?.prazo || '9999').localeCompare(b.prazoPlano || b.itens[0]?.prazo || '9999'));
   const dm = (s) => s.slice(8, 10) + '/' + s.slice(5, 7);
+  // A estrelinha só entra na legenda quando há dia coringa marcado no mês exibido.
+  const temCoringaNoMes = Object.keys(cal.data.coringas?.[mesKey] || {}).length > 0;
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
@@ -1011,12 +1026,13 @@ export default function Calendario({ isWide }) {
       {view === 'exercicio' && exView === 'lista' && <ExerciciosList data={cal.data} onEdit={(it) => setAddSheet({ editing: it })} />}
       {(view === 'mes' || (view === 'exercicio' && exView === 'cal')) && (
         <MonthView refDate={refDate} setRefDate={setRefDate} onDayClick={setDayModal}
+          comEstrela={view === 'mes'}
           getDots={view === 'exercicio'
             ? (d) => itemsForDay(cal.data, d).exercicios
             : (d) => itemsGeral(cal.data, d, life.planos)} />
       )}
       {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
-      {view === 'mes' && <Legenda items={LEGENDA} />}
+      {view === 'mes' && <Legenda items={temCoringaNoMes ? [...LEGENDA, { label: 'dia coringa', cor: CORINGA_COR, estrela: true }] : LEGENDA} />}
       {view === 'mes' && <DiasCoringa mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} refDate={refDate} />}
       {view === 'mes' && <MetasMes mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} />}
       {view === 'exercicio' && exView === 'cal' && <Legenda items={EXERCICIO_LEGENDA} />}

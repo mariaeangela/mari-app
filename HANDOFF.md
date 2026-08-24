@@ -363,10 +363,14 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   da página: "Lendo no momento" (cultura subtipo lendo) com botão "concluído"
   que vira subtipo 'lido' na data de hoje; e "Tarefas sem data". Na visão Mês há
   também **"Dias coringa de {mês}"** (`DiasCoringa`, logo ANTES das Metas): cinco dias que ela
-  reserva pra si todo mês — Arrumar vida financeira · Get your shot together · Field trip ·
-  Journaling · Creativite. Os NOMES são fixos no código (`CORINGAS`); o que muda é a **data,
+  reserva pra si todo mês — Arrumar vida financeira · Get your shit together · Field trip ·
+  Journaling · Creativity. Os NOMES são fixos no código (`CORINGAS`); o que muda é a **data,
   escolhida mês a mês** (toca no nome → mini-grade do mês → toca no dia; "tirar a data" limpa).
-  Mês sem escolha aparece vazio, de propósito. Não entra nos pontinhos da grade nem no DayModal.
+  Mês sem escolha aparece vazio, de propósito. Na grade do Mês o dia escolhido ganha uma
+  **estrelinha ★** (não pontinho) na cor `CORINGA_COR`, com o nome no `title`, mais o chip
+  "★ dia coringa" na legenda quando há algum no mês; `coringasDoDia(data, date)` lê pelo mês do
+  PRÓPRIO dia, então os dias de fora da grade mostram a estrela do mês deles. Prop `comEstrela`
+  na `MonthView` — só a visão Mês passa (a de Exercício não). Não entra no DayModal.
   Há ainda "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do
   mês"** — agrupado por plano: prazo do próprio plano + **itens do checklist com
   `prazo` no mês** (pendentes, com ✓ que chama `togglePlanoCheck`); e **"Metas de {mês}"**
