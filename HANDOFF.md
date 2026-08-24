@@ -144,7 +144,9 @@ perda, o instinto de "criar mais uma proteção" é o erro: ela quer MENOS coisa
   "diagonal" no Header também vai pra Hoje. A agenda "hoje" da capa (`HojeAgenda`)
   reaproveita `itemsForDay`; clicar no título de um item abre o `AddSheet` (exportado
   de Calendario.jsx) para editar direto na Hoje, sem ir ao Calendário. O bloco `Antecipacao`
-  (capa) mostra contagem regressiva: viagem/aniversário, próxima prova de corrida, **compras com
+  (capa) mostra contagem regressiva: **o evento aguardado mais próximo DE CADA CATEGORIA**
+  (`proxEventos`: viagem, cultura…, uma linha por categoria, da mais próxima em diante), próxima
+  prova de corrida, **compras com
   `dataLimite` nos próximos 7 dias** (label "comprar: …") e, por último, **eventos culturais que acabam
   (dataMax) nos próximos 30 dias** ("acaba em N dias"). Compras vêm antes das últimas chances culturais.
   A capa também tem `MetasHoje` (metas do mês corrente, slice `metas` do calendarStore — toque marca feito)
@@ -314,9 +316,12 @@ localStorage, que o iOS apagava). Camada:
 ## Aba Calendário — Leva 1 (NOVO)
 Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
 `calendario` de `/api/data` (POST faz merge; convive com `saved`).
-- `src/calendarConfig.js` — CATEGORIES (5 categorias de evento: trabalho,
-  viagem*, aniversários, saúde, datas pessoais; * = `aguardado` → contagem
-  regressiva é SÓ viagem + corrida). EXERCICIO_SUBTIPOS tem `grupo`: treino
+- `src/calendarConfig.js` — CATEGORIES (6 categorias de evento: trabalho,
+  viagem*, aniversários, saúde, datas pessoais, cultura*; * = `aguardado` → entra na contagem
+  regressiva, junto com a prova de corrida). **A contagem mostra o mais próximo DE CADA TIPO**
+  (`Countdown` em Calendario.jsx e `Antecipacao` em App.jsx, ago/2026): era uma linha só, e como
+  o "quando ir" do calendário cultural cria evento na categoria `cultura`, uma exposição em 12
+  dias **encobria a viagem em 20** — a Mari notou a viagem "sumir". Não voltar pro mais-próximo-só. EXERCICIO_SUBTIPOS tem `grupo`: treino
   (costas/peitoral/perna, cor por grupo), corrida* e outros (natação/caminhada/
   trilha/jogo/dança, cor cinza). EXERCICIO_LEGENDA agrupa em Costas/Peitoral/
   Perna/Corrida/Outros. itemsGeral exclui só o grupo 'treino' do Mês/Agenda

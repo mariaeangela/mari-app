@@ -298,7 +298,14 @@ function Antecipacao() {
     return (!best || dd < best.dias) ? { dias: dd, it } : best;
   }, null);
 
-  const proxEvento = nearest((cal.data.events || []).filter(e => CAT_BY_ID[e.categoria]?.aguardado), e => e.inicio);
+  // Um evento por CATEGORIA aguardada (viagem, cultura…), da mais próxima em diante.
+  // Antes era só o mais próximo de todos, e uma exposição em 12 dias escondia a
+  // viagem em 20 — a viagem some da capa justo quando ela mais quer ver.
+  const aguardados = (cal.data.events || []).filter(e => CAT_BY_ID[e.categoria]?.aguardado);
+  const proxEventos = [...new Set(aguardados.map(e => e.categoria))]
+    .map(catId => nearest(aguardados.filter(e => e.categoria === catId), e => e.inicio))
+    .filter(Boolean)
+    .sort((a, b) => a.dias - b.dias);
   const proxProva = nearest((cal.data.exercicios || []).filter(x => x.subtipo === 'corrida_prova'), x => x.data);
   // compras com prazo nos próximos 7 dias (mais urgentes primeiro)
   const comprasPrazo = (life.compras?.itens || [])
@@ -318,10 +325,10 @@ function Antecipacao() {
       {label} · <b style={{ color: '#333' }}>{bold}</b>
     </div>
   );
-  if (!proxEvento && !proxProva && comprasPrazo.length === 0 && culturais.length === 0) return null;
+  if (!proxEventos.length && !proxProva && comprasPrazo.length === 0 && culturais.length === 0) return null;
   return (
     <div style={{ marginBottom: 22 }}>
-      {proxEvento && linha('ev', CAT_BY_ID[proxEvento.it.categoria]?.cor || '#999', proxEvento.it.titulo, proxEvento.dias === 1 ? '1 dia' : proxEvento.dias + ' dias')}
+      {proxEventos.map(p => linha('ev-' + p.it.categoria, CAT_BY_ID[p.it.categoria]?.cor || '#999', p.it.titulo, p.dias === 1 ? '1 dia' : p.dias + ' dias'))}
       {proxProva && linha('prova', EXERCICIO_BY_ID.corrida_prova.cor, 'próxima prova: ' + (proxProva.it.titulo || 'corrida') + (proxProva.it.distancia ? ' (' + proxProva.it.distancia + 'km)' : ''), proxProva.dias === 1 ? '1 dia' : proxProva.dias + ' dias')}
       {comprasPrazo.map(i => linha(i.id, '#ff8a3d', 'comprar: ' + i.titulo, fmtPrazo(dias(i.dataLimite))))}
       {culturais.map(c => linha(c.id, '#c2548f', c.nome, 'acaba ' + fmtPrazo(dias(c.dataMax))))}

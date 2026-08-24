@@ -159,20 +159,32 @@ function NesteDia({ data, today, onHoje }) {
 
 // ---------------- Contagem regressiva ----------------
 // Só o que dá pra "aguardar": viagem, aniversário, corrida (cat/sub com aguardado).
+// Contagem regressiva. Mostra o mais próximo DE CADA TIPO (viagem, cultura,
+// prova de corrida) — antes era uma linha só, e uma exposição em 12 dias
+// encobria a viagem em 20. Cada tipo tem a sua linha, da mais próxima em diante.
 function Countdown({ data, today }) {
-  const prox = useMemo(() => {
+  const proximos = useMemo(() => {
     const cands = [];
-    data.events.forEach(e => { const c = CAT_BY_ID[e.categoria]; if (c?.aguardado && e.inicio > ymd(today)) cands.push({ key: e.inicio, titulo: e.titulo, cor: c.cor }); });
-    data.exercicios.forEach(x => { const s = EXERCICIO_BY_ID[x.subtipo]; if (s?.aguardado && x.data > ymd(today)) cands.push({ key: x.data, titulo: exTitulo(x), cor: s.cor }); });
-    let best = null;
-    cands.forEach(c => { const dias = Math.round((parseYmd(c.key) - today) / 86400000); if (dias > 0 && dias <= 90 && (!best || dias < best.dias)) best = { dias, ...c }; });
-    return best;
+    data.events.forEach(e => { const c = CAT_BY_ID[e.categoria]; if (c?.aguardado && e.inicio > ymd(today)) cands.push({ grupo: e.categoria, key: e.inicio, titulo: e.titulo, cor: c.cor }); });
+    data.exercicios.forEach(x => { const s = EXERCICIO_BY_ID[x.subtipo]; if (s?.aguardado && x.data > ymd(today)) cands.push({ grupo: 'prova', key: x.data, titulo: exTitulo(x), cor: s.cor }); });
+    const porGrupo = {};
+    cands.forEach(c => {
+      const dias = Math.round((parseYmd(c.key) - today) / 86400000);
+      if (dias <= 0 || dias > 90) return;
+      const atual = porGrupo[c.grupo];
+      if (!atual || dias < atual.dias) porGrupo[c.grupo] = { dias, ...c };
+    });
+    return Object.values(porGrupo).sort((a, b) => a.dias - b.dias);
   }, [data, ymd(today)]);
-  if (!prox) return null;
+  if (!proximos.length) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#777', marginBottom: 14 }}>
-      <span style={{ width: 7, height: 7, borderRadius: '50%', background: prox.cor || '#999' }} />
-      faltam <b style={{ color: '#333' }}>{prox.dias}</b> {prox.dias === 1 ? 'dia' : 'dias'}: {prox.titulo}
+    <div style={{ marginBottom: 14 }}>
+      {proximos.map(p => (
+        <div key={p.grupo} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#777', marginBottom: 4 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: p.cor || '#999', flexShrink: 0 }} />
+          faltam <b style={{ color: '#333' }}>{p.dias}</b> {p.dias === 1 ? 'dia' : 'dias'}: {p.titulo}
+        </div>
+      ))}
     </div>
   );
 }
