@@ -413,6 +413,53 @@ function ensureCarteiraMesAtual(d) {
   return { ...d, financas: { ...d.financas, autoMes: mesAtual, snapshots: [...snaps, novo] } };
 }
 
+// ============================================================================
+// BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
+// ============================================================================
+// Os dois voos entre Nova York e Chicago (ela mandou o bilhete em 26/ago/2026).
+// Não tenho como escrever no documento dela de outro jeito: os dados são
+// protegidos por senha, e a chave é só dela. A regra do projeto é "nada de
+// bilhete permanente" — este é a exceção que a regra permite: entra UMA vez e
+// sai no commit seguinte, quando ela confirmar que apareceram.
+//
+// Blindagem: só ADICIONA na programação da viagem, com id fixo (rodar duas
+// vezes não duplica) e sem tocar em nada que já esteja lá. Se a viagem ainda
+// não chegou da nuvem, sai SEM marcar a flag, pra tentar de novo na próxima
+// abertura — senão o bilhete se perderia sem nunca ter escrito nada.
+const VOOS_CHICAGO = [
+  {
+    id: 'pg-voo-lga-ord',
+    dia: '2026-09-20',
+    hora: '06:59',
+    titulo: 'Voo Nova York → Chicago · AA 1263',
+    desc: 'La Guardia (LGA) 6h59 → O\'Hare (ORD) 8h51. American Airlines, econômica (classe B).\n\nSão 2h52 de voo: Chicago fica 1h ATRÁS de Nova York, por isso o relógio parece andar menos.\n\nVoo bem cedo — pra estar no aeroporto às 5h, saia do hotel por volta das 4h. A American embarca no Terminal B em La Guardia e chega no Terminal 3 em O\'Hare; confirme no cartão de embarque, que troca às vezes.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=LaGuardia+Airport+Terminal+B',
+    link: 'https://www.aa.com',
+  },
+  {
+    id: 'pg-voo-ord-lga',
+    dia: '2026-09-24',
+    hora: '18:08',
+    titulo: 'Voo Chicago → Nova York · AA 774',
+    desc: 'O\'Hare (ORD) 18h08 → La Guardia (LGA) 21h29. American Airlines, econômica (classe B).\n\nSão 2h21 de voo; a hora de chegada já está no fuso de Nova York (1h à frente de Chicago).\n\nO\'Hare é grande e a saída da tarde costuma ter fila: estar lá às 16h. A American sai do Terminal 3.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+International+Airport+Terminal+3',
+    link: 'https://www.aa.com',
+  },
+];
+function ensureVoosChicago(d) {
+  if (d.voosChicago1) return d;
+  const viagens = d.viagensFuturas || [];
+  const i = viagens.findIndex(v => /chicago/i.test(v.nome || ''));
+  if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
+  const trip = viagens[i];
+  const mesas = trip.mesas || [];
+  const novos = VOOS_CHICAGO.filter(v => !mesas.some(m => m.id === v.id));
+  if (!novos.length) return { ...d, voosChicago1: true };
+  const next = [...viagens];
+  next[i] = { ...trip, mesas: [...mesas, ...novos] };
+  return { ...d, voosChicago1: true, viagensFuturas: next };
+}
+
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -432,7 +479,8 @@ function ensureCarteiraMesAtual(d) {
 //   · rolarComprasVencidas / rolarPlanosVencidos — puxam pra hoje o que venceu
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
-  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual];
+  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
+    ensureVoosChicago /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
