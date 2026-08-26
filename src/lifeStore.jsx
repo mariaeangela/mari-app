@@ -412,63 +412,49 @@ function ensureCarteiraMesAtual(d) {
   };
   return { ...d, financas: { ...d.financas, autoMes: mesAtual, snapshots: [...snaps, novo] } };
 }
-
 // ============================================================================
 // BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
 // ============================================================================
-// Os dois voos entre Nova York e Chicago (ela mandou o bilhete em 26/ago/2026).
-// Não tenho como escrever no documento dela de outro jeito: os dados são
-// protegidos por senha, e a chave é só dela. A regra do projeto é "nada de
-// bilhete permanente" — este é a exceção que a regra permite: entra UMA vez e
-// sai no commit seguinte, quando ela confirmar que apareceram.
+// Chicago: os dois voos e o domingo 20/09, que ela mandou em 26/ago/2026.
+// Não tenho como escrever no documento dela de outro jeito (os dados são
+// protegidos por senha, e a chave é só dela). A regra do projeto é "nada de
+// bilhete permanente" — este é a exceção que ela permite: entra UMA vez e sai
+// no commit seguinte, quando ela confirmar que apareceu.
 //
-// Blindagem: só ADICIONA na programação da viagem, com id fixo (rodar duas
-// vezes não duplica) e sem tocar em nada que já esteja lá. Se a viagem ainda
-// não chegou da nuvem, sai SEM marcar a flag, pra tentar de novo na próxima
-// abertura — senão o bilhete se perderia sem nunca ter escrito nada.
-const VOOS_CHICAGO = [
+// A 1ª versão deste bilhete NÃO ESCREVEU NADA: procurava a viagem por `v.nome`,
+// e o título de uma viagem futura mora em `v.titulo`. Como não achava, saía sem
+// marcar a flag — nada foi perdido, mas nada chegou. Agora procura por título,
+// por id e, por último, pelas DATAS (a viagem que contém 20/09/2026).
+//
+// ORDEM sem inventar horário: ela pediu hora só onde ela mesma deu (o voo e o
+// barco das 17h). A lista ordena por `ordem` quando existe, e só depois por
+// horário — então cada lugar leva o seu número e o dia sai na ordem certa.
+const CHICAGO_ITENS = [
   {
-    id: 'pg-voo-lga-ord',
-    dia: '2026-09-20',
-    hora: '06:59',
+    id: 'pg-voo-lga-ord', dia: '2026-09-20', ordem: 0, hora: '06:59',
     titulo: 'Voo Nova York → Chicago · AA 1263',
     desc: 'La Guardia (LGA) 6h59 → O\'Hare (ORD) 8h51. American Airlines, econômica (classe B).\n\nSão 2h52 de voo: Chicago fica 1h ATRÁS de Nova York, por isso o relógio parece andar menos.\n\nVoo bem cedo — pra estar no aeroporto às 5h, saia do hotel por volta das 4h. A American embarca no Terminal B em La Guardia e chega no Terminal 3 em O\'Hare; confirme no cartão de embarque, que troca às vezes.',
     maps: 'https://www.google.com/maps/search/?api=1&query=LaGuardia+Airport+Terminal+B',
     link: 'https://www.aa.com',
   },
   {
-    id: 'pg-voo-ord-lga',
-    dia: '2026-09-24',
-    hora: '18:08',
-    titulo: 'Voo Chicago → Nova York · AA 774',
-    desc: 'O\'Hare (ORD) 18h08 → La Guardia (LGA) 21h29. American Airlines, econômica (classe B).\n\nSão 2h21 de voo; a hora de chegada já está no fuso de Nova York (1h à frente de Chicago).\n\nO\'Hare é grande e a saída da tarde costuma ter fila: estar lá às 16h. A American sai do Terminal 3.',
-    maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+International+Airport+Terminal+3',
-    link: 'https://www.aa.com',
-  },
-];
-// Domingo, 20/09 — o primeiro dia em Chicago, do jeito que ela mandou em
-// 26/ago/2026. Mesma regra do bilhete acima: entra uma vez e sai depois.
-// Horários pesquisados em 26/ago/2026. Onde ela não deu hora, eu pus uma que
-// mantém a ORDEM do dia (a lista ordena por horário, e item sem hora cai no fim).
-const CHICAGO_DIA20 = [
-  {
-    id: 'pg-chi20-blueline',
-    dia: '2026-09-20', hora: '09:20',
+    id: 'pg-chi20-blueline', dia: '2026-09-20', ordem: 1,
     titulo: 'ORD → Loop de Blue Line · passe Ventra',
-    desc: 'Blue Line direto do aeroporto até Jackson, no Loop — 45 a 50 min. Essa linha roda 24 horas.\n\nCompre o passe na própria estação do aeroporto. Só um aviso de preço: o passe de 7 dias subiu para US$ 25 em 2026 (era US$ 20). Continua valendo a pena — quem sai do O\'Hare sem passe paga uma tarifa especial de US$ 5 nessa ida (a corrida normal é US$ 2,75), então as duas idas ao aeroporto já cobrem boa parte, e no meio da semana ele é ilimitado.\n\nO cartão Ventra em si custa US$ 5, que viram crédito quando você registra o cartão.',
+    desc: 'Blue Line direto do aeroporto até Jackson, no Loop — 45 a 50 min. Essa linha roda 24 horas.\n\nCompre o passe na própria estação do aeroporto. Só um aviso de preço: o passe de 7 dias subiu para US$ 25 em 2026 (era US$ 20). Continua valendo a pena — quem sai do O\'Hare sem passe paga uma tarifa especial de US$ 5 nessa ida (a corrida normal é US$ 2,75), então as duas idas ao aeroporto já cobrem boa parte, e no meio ele é ilimitado.\n\nO cartão Ventra em si custa US$ 5, que viram crédito quando você registra o cartão.',
     abertura: 'Blue Line 24h', preco: 'US$ 25 (passe de 7 dias) + US$ 5 do cartão',
     maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+Blue+Line+Station+Chicago',
     link: 'https://www.transitchicago.com/ventra/',
   },
   {
-    id: 'pg-chi20-hostel',
-    dia: '2026-09-20', hora: '10:30',
-    titulo: 'Hostel — deixar as malas',
-    desc: 'Guardar as malas antes do horário de check-in. O endereço está na capa da viagem, em Hospedagem.',
+    id: 'pg-chi20-hostel', dia: '2026-09-20', ordem: 2,
+    titulo: 'HI Chicago Hostel — deixar as malas',
+    desc: 'HI Chicago, The J. Ira and Nicki Harris Family Hostel · 24 E Ida B. Wells Drive · +1 312-360-0300.\n\nGuardar as malas antes do check-in é de graça, e depois do check-out eles guardam até as 21h. Recepção 24 horas.\n\nFica no Loop, a poucos quarteirões do Millennium Park e do Cultural Center — dá pra ir a pé pro resto do dia.',
+    abertura: 'Check-in 15h · check-out 11h · recepção 24h',
+    maps: 'https://www.google.com/maps/search/?api=1&query=HI+Chicago+Hostel+24+E+Ida+B+Wells+Dr',
+    link: 'https://www.hiusa.org/find-hostels/illinois/chicago-24-e-idabwells-drive',
   },
   {
-    id: 'pg-chi20-cultural',
-    dia: '2026-09-20', hora: '11:15',
+    id: 'pg-chi20-cultural', dia: '2026-09-20', ordem: 3,
     titulo: 'Chicago Cultural Center',
     desc: 'Grátis, a 5 min a pé. A cúpula Tiffany do 3º andar (Preston Bradley Hall) é a maior do mundo: são 1.134 m² de mosaico, com cerca de 30 mil peças de vidro.\n\nO prédio foi a biblioteca central da cidade e hoje abriga exposições gratuitas que mudam ao longo do ano. As galerias começam a fechar 15 min antes do prédio.',
     abertura: 'Todos os dias, 10h–17h', preco: 'Grátis',
@@ -476,8 +462,7 @@ const CHICAGO_DIA20 = [
     link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/chicago_culturalcenter.html',
   },
   {
-    id: 'pg-chi20-millennium',
-    dia: '2026-09-20', hora: '12:30',
+    id: 'pg-chi20-millennium', dia: '2026-09-20', ordem: 4,
     titulo: 'Millennium Park — Cloud Gate, Pritzker, Lurie Garden',
     desc: 'Colado no Cultural Center. O Cloud Gate (o "feijão") espelha a skyline inteira; o Jay Pritzker Pavilion é o palco de Frank Gehry; o Lurie Garden fica no canto sudeste do parque.\n\nUm aviso sobre o Lurie: ele ficou fechado de março ao começo de julho de 2026 por causa de uma obra no deque e na água. Em setembro já deve estar aberto — se estiver interditado, é essa obra.',
     abertura: 'Todos os dias, 6h–23h', preco: 'Grátis',
@@ -485,8 +470,7 @@ const CHICAGO_DIA20 = [
     link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/millennium_park.html',
   },
   {
-    id: 'pg-chi20-riverwalk',
-    dia: '2026-09-20', hora: '14:30',
+    id: 'pg-chi20-riverwalk', dia: '2026-09-20', ordem: 5,
     titulo: 'Chicago Riverwalk',
     desc: 'Caminhada na margem sul do rio. Fazendo o trecho leste, você termina na ponte da Michigan Avenue — que é exatamente de onde o barco sai às 17h.\n\nOs quiosques e restaurantes da beira funcionam de maio a outubro, então em setembro está tudo aberto.',
     abertura: 'Todos os dias, 6h–23h', preco: 'Grátis (só se paga o que consumir)',
@@ -494,8 +478,7 @@ const CHICAGO_DIA20 = [
     link: 'https://www.chicago.gov/city/en/sites/chicagoriverwalk/home.html',
   },
   {
-    id: 'pg-chi20-cruise',
-    dia: '2026-09-20', hora: '17:00',
+    id: 'pg-chi20-cruise', dia: '2026-09-20', ordem: 6, hora: '17:00',
     titulo: 'Architecture River Cruise · Chicago\'s First Lady',
     desc: '90 min pelos três braços do rio, com guia voluntário treinado pelo Chicago Architecture Center: mais de 50 prédios explicados. Este é o barco OFICIAL do CAC — há vários outros passeios parecidos no mesmo cais.\n\nEmbarque no canto SUDESTE do cruzamento da Michigan Ave com a Wacker, no 112 E Wacker Dr: procure o toldo preto e a escada que desce para o rio. Eles pedem pra chegar 30 min antes, ou seja, 16h30.\n\nCompre online antes: fim de semana esgota. Não consegui confirmar o horário exato de um domingo de setembro — as partidas vão de ~10h às 18h, então o das 17h deve existir, mas confirme na hora de comprar.',
     abertura: 'Partidas de ~10h às 18h', preco: 'A partir de US$ 57',
@@ -503,48 +486,58 @@ const CHICAGO_DIA20 = [
     link: 'https://www.architecture.org/city-tours/river-cruise',
   },
   {
-    id: 'pg-chi20-loop',
-    dia: '2026-09-20', hora: '18:45',
+    id: 'pg-chi20-loop', dia: '2026-09-20', ordem: 7,
     titulo: 'Volta a pé pelo Loop, cortando o Grant Park',
     desc: 'O barco encosta por volta das 18h30. Dá pra voltar atravessando o Loop e descendo pelo Grant Park no fim da tarde.',
     preco: 'Grátis',
     maps: 'https://www.google.com/maps/search/?api=1&query=Grant+Park+Chicago',
   },
   {
-    id: 'pg-chi20-musica',
-    dia: '2026-09-20', hora: '20:30',
+    id: 'pg-chi20-musica', dia: '2026-09-20', ordem: 8,
     titulo: 'Música à noite — decidir',
-    desc: 'Três casas que tocam no domingo:\n\n· Buddy Guy\'s Legends (700 S Wabash, South Loop) — a mais perto do centro, do próprio Buddy Guy. A jam de blues começa 21h30; couvert de US$ 10 a 15.\n\n· Kingston Mines (2548 N Halsted, Lincoln Park) — duas bandas em dois palcos, alternando a noite inteira até de madrugada. Couvert de US$ 12 a 15.\n\n· Green Mill (4802 N Broadway, Uptown) — jazz desde os anos 1920, o bar que era do Al Capone. Fica longe: ~40 min de metrô.\n\nHorário e couvert mudam; confira no site da casa no dia.',
+    desc: 'Três casas que tocam no domingo:\n\n· Buddy Guy\'s Legends (700 S Wabash, South Loop) — a mais perto do hostel, do próprio Buddy Guy. A jam de blues começa 21h30; couvert de US$ 10 a 15.\n\n· Kingston Mines (2548 N Halsted, Lincoln Park) — duas bandas em dois palcos, alternando a noite inteira até de madrugada. Couvert de US$ 12 a 15.\n\n· Green Mill (4802 N Broadway, Uptown) — jazz desde os anos 1920, o bar que era do Al Capone. Fica longe: ~40 min de metrô.\n\nHorário e couvert mudam; confira no site da casa no dia.',
     preco: 'Couvert de US$ 10 a 15',
     link: 'https://buddyguy.com/',
   },
+  {
+    id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 9, hora: '18:08',
+    titulo: 'Voo Chicago → Nova York · AA 774',
+    desc: 'O\'Hare (ORD) 18h08 → La Guardia (LGA) 21h29. American Airlines, econômica (classe B).\n\nSão 2h21 de voo; a hora de chegada já está no fuso de Nova York (1h à frente de Chicago).\n\nO\'Hare é grande e a saída da tarde costuma ter fila: estar lá às 16h. A American sai do Terminal 3.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+International+Airport+Terminal+3',
+    link: 'https://www.aa.com',
+  },
 ];
-function ensureChicagoDia20(d) {
-  if (d.chicagoDia20_1) return d;
-  const viagens = d.viagensFuturas || [];
-  const i = viagens.findIndex(v => /chicago/i.test(v.nome || ''));
-  if (i < 0) return d;
-  const trip = viagens[i];
-  const mesas = trip.mesas || [];
-  const novos = CHICAGO_DIA20.filter(v => !mesas.some(m => m.id === v.id));
-  if (!novos.length) return { ...d, chicagoDia20_1: true };
-  const next = [...viagens];
-  next[i] = { ...trip, mesas: [...mesas, ...novos] };
-  return { ...d, chicagoDia20_1: true, viagensFuturas: next };
+// Acha a viagem de três jeitos, do mais exato pro mais tolerante: o id do seed
+// antigo, o título ("Nova York & Chicago") e, se nada casar, as DATAS — a viagem
+// que contém 20/09/2026. Devolve -1 quando não achou (aí o bilhete não escreve
+// nada e tenta de novo na próxima abertura).
+function acharViagemChicago(viagens) {
+  const porId = viagens.findIndex(v => v.id === 'vf-nychicago2026');
+  if (porId >= 0) return porId;
+  const nomeDe = (v) => `${v.titulo || ''} ${v.nome || ''} ${v.cidade || ''}`;
+  const porNome = viagens.findIndex(v => /chicago/i.test(nomeDe(v)));
+  if (porNome >= 0) return porNome;
+  return viagens.findIndex(v => (v.inicio || '9999') <= '2026-09-20' && '2026-09-20' <= (v.fim || '0000'));
 }
-
-function ensureVoosChicago(d) {
-  if (d.voosChicago1) return d;
+function ensureChicagoRoteiro(d) {
+  if (d.chicagoRoteiro1) return d;
   const viagens = d.viagensFuturas || [];
-  const i = viagens.findIndex(v => /chicago/i.test(v.nome || ''));
+  const i = acharViagemChicago(viagens);
   if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
   const trip = viagens[i];
   const mesas = trip.mesas || [];
-  const novos = VOOS_CHICAGO.filter(v => !mesas.some(m => m.id === v.id));
-  if (!novos.length) return { ...d, voosChicago1: true };
+  // Substitui pelo id só o que é MEU (nada aqui foi editado por ela: nunca chegou
+  // a aparecer). Todo o resto da programação fica exatamente como está.
+  const meus = new Set(CHICAGO_ITENS.map(x => x.id));
+  const proximas = [...mesas.filter(m => !meus.has(m.id)), ...CHICAGO_ITENS];
   const next = [...viagens];
-  next[i] = { ...trip, mesas: [...mesas, ...novos] };
-  return { ...d, voosChicago1: true, viagensFuturas: next };
+  next[i] = { ...trip, mesas: proximas };
+  // A capa da viagem tem um campo de Hospedagem em texto livre. Só preenche se
+  // estiver VAZIO — se ela já escreveu algo lá, não encosto.
+  if (!String(trip.hospedagem || '').trim()) {
+    next[i].hospedagem = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
+  }
+  return { ...d, chicagoRoteiro1: true, viagensFuturas: next };
 }
 
 // ---- O que ainda roda a cada abertura ----
@@ -567,7 +560,7 @@ function ensureVoosChicago(d) {
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
-    ensureVoosChicago, ensureChicagoDia20 /* BILHETES DE USO ÚNICO — tirar daqui junto com as funções */];
+    ensureChicagoRoteiro /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
