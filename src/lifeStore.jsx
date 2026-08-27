@@ -415,7 +415,9 @@ function ensureCarteiraMesAtual(d) {
 // ============================================================================
 // BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
 // ============================================================================
-// Chicago: os dois voos e o domingo 20/09, que ela mandou em 26/ago/2026.
+// Chicago: os dois voos, o domingo 20/09 e a segunda 21/09, que ela mandou em
+// 26/ago/2026. Cada dia novo entra aqui e a FLAG SOBE um número (chicagoRoteiro2,
+// 3…), senão quem já rodou o bilhete antes não recebe o dia seguinte.
 // Não tenho como escrever no documento dela de outro jeito (os dados são
 // protegidos por senha, e a chave é só dela). A regra do projeto é "nada de
 // bilhete permanente" — este é a exceção que ela permite: entra UMA vez e sai
@@ -499,6 +501,73 @@ const CHICAGO_ITENS = [
     preco: 'Couvert de US$ 10 a 15',
     link: 'https://buddyguy.com/',
   },
+  // --- Segunda, 21/09 (ela mandou em 26/ago). "Um card para cada coisa". ---
+  {
+    id: 'pg-chi21-rookery', dia: '2026-09-21', ordem: 10,
+    titulo: 'The Rookery — átrio de luz',
+    desc: 'Burnham & Root, 1888. Dezesseis anos depois, Frank Lloyd Wright refez o átrio central em mármore branco e folha de ouro — é o ponto alto da caminhada.\n\nO saguão é aberto a quem quiser entrar, sem tour e sem pagar; 15 a 30 min bastam. O Frank Lloyd Wright Trust faz visitas guiadas de 1h em dias úteis, por volta de US$ 22, se você quiser subir a escada em espiral.\n\nOs quatro prédios da caminhada estão num quadrado de seis quarteirões, a pé do hostel — e todos os saguões só abrem em dia útil.',
+    abertura: 'Saguão: seg–sex 7h–18h · sáb 8h–14h · fecha domingo',
+    preco: 'Grátis (tour guiado ~US$ 22)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=The+Rookery+209+S+LaSalle+St+Chicago',
+    link: 'https://www.therookerybuilding.com/',
+  },
+  {
+    id: 'pg-chi21-marquette', dia: '2026-09-21', ordem: 11,
+    titulo: 'Marquette Building — mosaicos Tiffany',
+    desc: 'Holabird & Roche, 1895. O saguão é forrado de mosaicos de vidro da Tiffany contando a expedição do padre Marquette pelo rio, com bustos de bronze de exploradores e chefes indígenas sobre as portas do elevador.\n\nTem uma pequena exposição gratuita sobre a história e a arquitetura do prédio, mantida pela Fundação MacArthur, que é a dona.',
+    abertura: 'Saguão: dias úteis 7h–18h', preco: 'Grátis',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Marquette+Building+140+S+Dearborn+St+Chicago',
+    link: 'https://marquette.macfound.org/',
+  },
+  {
+    id: 'pg-chi21-monadnock', dia: '2026-09-21', ordem: 12,
+    titulo: 'Monadnock Building — a parede que sustenta',
+    desc: 'O último grande prédio do mundo erguido em alvenaria portante: não há estrutura de aço: é a parede que segura tudo. Por isso, na base, ela tem cerca de 1,80 m de espessura — repare no vão fundo das janelas do térreo, é a espessura aparecendo.\n\nA metade norte é de 1891 (Burnham & Root); a sul, de 1893, já usa estrutura de aço — dá pra ver a diferença de dentro.',
+    abertura: 'Saguão: seg–sex 8h–18h · fecha fim de semana', preco: 'Grátis',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Monadnock+Building+53+W+Jackson+Blvd+Chicago',
+    link: 'https://monadnockbuilding.com/',
+  },
+  {
+    id: 'pg-chi21-cbot', dia: '2026-09-21', ordem: 13,
+    titulo: 'Chicago Board of Trade — art déco e a Ceres',
+    desc: 'Holabird & Root, 1930. Fecha a perspectiva da LaSalle como um paredão de calcário. No topo, a Ceres de alumínio, deusa romana da colheita, com quase 10 m — e sem rosto: conta-se que o escultor não se deu ao trabalho, porque nenhum prédio vizinho era alto o bastante pra alguém ver.\n\nO saguão art déco é aberto ao público em dia útil. O pregão e o subsolo não são: só em visita guiada.',
+    abertura: 'Saguão: seg–sex 8h–18h', preco: 'Grátis',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Chicago+Board+of+Trade+141+W+Jackson+Blvd',
+    link: 'https://www.cbotbuilding.com/the-building/',
+  },
+  {
+    id: 'pg-chi21-artic', dia: '2026-09-21', ordem: 14,
+    titulo: 'Art Institute of Chicago',
+    desc: 'Não perca: Nighthawks (Hopper), American Gothic (Wood), Un dimanche après-midi à la Grande Jatte (Seurat), as janelas azuis do Chagall e o Modern Wing.\n\nSegunda ela abre. O público entra a partir das 11h — as 10h são hora só de sócios. Vale conferir no site no dia: as fontes divergem sobre o horário de 2026, e uma diz que passou a abrir todos os dias.\n\nA entrada dos leões é na Michigan Ave, a cinco minutos do Millennium Park.',
+    abertura: 'Aberta na segunda · público a partir das 11h (fecha terça)',
+    preco: 'US$ 32 (adulto, não residente)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Art+Institute+of+Chicago+111+S+Michigan+Ave',
+    link: 'https://www.artic.edu/visit',
+  },
+  {
+    id: 'pg-chi21-magmile', dia: '2026-09-21', ordem: 15,
+    titulo: 'Magnificent Mile',
+    desc: 'O trecho da N Michigan Ave que vai do rio até a Oak St. Além das lojas: o Wrigley Building (branco, iluminado à noite), a Tribune Tower — que tem pedras de monumentos do mundo inteiro embutidas na fachada, com plaquinhas — e a Water Tower, uma das poucas coisas que sobrou do incêndio de 1871.',
+    preco: 'Grátis (andar)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Magnificent+Mile+Chicago',
+  },
+  {
+    id: 'pg-chi21-wells', dia: '2026-09-21', ordem: 16,
+    titulo: 'Wells Street por Old Town',
+    desc: 'O trecho bom da Wells é entre a Division e a North Ave: casas vitorianas que escaparam do incêndio, bares e a Second City (1616 N Wells), o teatro de improviso de onde saíram Belushi, Bill Murray e Tina Fey.\n\nDe metrô, Brown ou Purple Line até a estação Sedgwick.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Wells+St+Old+Town+Chicago',
+  },
+  {
+    id: 'pg-chi21-trocar', dia: '2026-09-21', ordem: 17,
+    titulo: 'Voltar ao hostel e trocar de roupa pra correr',
+    desc: 'Do Old Town de volta ao hostel: Brown/Purple Line até a Library ou a Adams.',
+  },
+  {
+    id: 'pg-chi21-corrida', dia: '2026-09-21', ordem: 18,
+    titulo: 'Correr no pôr do sol — até o Adler',
+    desc: 'O sol se põe às 18h49 nesse dia. Saindo do hostel uns 40 min antes, você chega no Adler com o skyline acendendo.\n\nTrajeto: hostel → Grant Park → Museum Campus → Adler Planetarium. São ~2,5 km de ida, ~5 km ida e volta, quase tudo plano e pela beira. Esticando até a Northerly Island ou a 31st St Beach, dá de 8 a 10 km.\n\nO ponto do Adler é a vista: é de lá que sai a foto do skyline inteiro, com o lago na frente.\n\nDetalhe bonito: o equinócio é no dia seguinte, 22/09. Nos dias em volta dele o sol se põe alinhado com as ruas do quadriculado da cidade — os moradores chamam de Chicagohenge, e as ruas leste-oeste do Loop viram um corredor de luz.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Adler+Planetarium+Chicago',
+  },
   {
     id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 9, hora: '18:08',
     titulo: 'Voo Chicago → Nova York · AA 774',
@@ -520,7 +589,7 @@ function acharViagemChicago(viagens) {
   return viagens.findIndex(v => (v.inicio || '9999') <= '2026-09-20' && '2026-09-20' <= (v.fim || '0000'));
 }
 function ensureChicagoRoteiro(d) {
-  if (d.chicagoRoteiro1) return d;
+  if (d.chicagoRoteiro2) return d;
   const viagens = d.viagensFuturas || [];
   const i = acharViagemChicago(viagens);
   if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
@@ -537,7 +606,7 @@ function ensureChicagoRoteiro(d) {
   if (!String(trip.hospedagem || '').trim()) {
     next[i].hospedagem = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
   }
-  return { ...d, chicagoRoteiro1: true, viagensFuturas: next };
+  return { ...d, chicagoRoteiro2: true, viagensFuturas: next };
 }
 
 // ---- O que ainda roda a cada abertura ----

@@ -235,7 +235,8 @@
       "Bash(python \"C:/Users/maria/AppData/Local/Temp/claude/C--Users-maria-Downloads-diagonal-claudecode-diagonal/c9bfb0c3-b714-4edb-8b8e-30f8fb82d140/scratchpad/inserir_blass.py\")",
       "WebFetch(domain:www.chicago.gov)",
       "WebFetch(domain:www.architecture.org)",
-      "WebFetch(domain:firstlady.com)"
+      "WebFetch(domain:firstlady.com)",
+      "WebFetch(domain:www.artic.edu)"
     ]
   }
 }
