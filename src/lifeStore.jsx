@@ -433,6 +433,7 @@ function ensureCarteiraMesAtual(d) {
 // barco das 17h). A lista ordena por `ordem` quando existe, e só depois por
 // horário — então cada lugar leva o seu número e o dia sai na ordem certa.
 const CHICAGO_ITENS = [
+  // --- Domingo, 20/09: chegada, Logan Square/Wicker Park e o barco das 17h. ---
   {
     id: 'pg-voo-lga-ord', dia: '2026-09-20', ordem: 0, hora: '06:59',
     titulo: 'Voo Nova York → Chicago · AA 1263',
@@ -443,7 +444,7 @@ const CHICAGO_ITENS = [
   {
     id: 'pg-chi20-blueline', dia: '2026-09-20', ordem: 1,
     titulo: 'ORD → Loop de Blue Line · passe Ventra',
-    desc: 'Blue Line direto do aeroporto até Jackson, no Loop — 45 a 50 min. Essa linha roda 24 horas.\n\nCompre o passe na própria estação do aeroporto. Só um aviso de preço: o passe de 7 dias subiu para US$ 25 em 2026 (era US$ 20). Continua valendo a pena — quem sai do O\'Hare sem passe paga uma tarifa especial de US$ 5 nessa ida (a corrida normal é US$ 2,75), então as duas idas ao aeroporto já cobrem boa parte, e no meio ele é ilimitado.\n\nO cartão Ventra em si custa US$ 5, que viram crédito quando você registra o cartão.',
+    desc: 'Blue Line direto do aeroporto até Jackson, no Loop — 45 a 50 min. Essa linha roda 24 horas.\n\nCompre o passe na própria estação do aeroporto. Só um aviso de preço: o passe de 7 dias subiu para US$ 25 em 2026 (era US$ 20). Continua valendo a pena — quem sai do O\'Hare sem passe paga uma tarifa especial de US$ 5 nessa ida (a corrida normal é US$ 2,75), e ele cobre a semana inteira.\n\nO cartão Ventra em si custa US$ 5, que viram crédito quando você registra o cartão.',
     abertura: 'Blue Line 24h', preco: 'US$ 25 (passe de 7 dias) + US$ 5 do cartão',
     maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+Blue+Line+Station+Chicago',
     link: 'https://www.transitchicago.com/ventra/',
@@ -451,60 +452,83 @@ const CHICAGO_ITENS = [
   {
     id: 'pg-chi20-hostel', dia: '2026-09-20', ordem: 2,
     titulo: 'HI Chicago Hostel — deixar as malas',
-    desc: 'HI Chicago, The J. Ira and Nicki Harris Family Hostel · 24 E Ida B. Wells Drive · +1 312-360-0300.\n\nGuardar as malas antes do check-in é de graça, e depois do check-out eles guardam até as 21h. Recepção 24 horas.\n\nFica no Loop, a poucos quarteirões do Millennium Park e do Cultural Center — dá pra ir a pé pro resto do dia.',
+    desc: 'HI Chicago, The J. Ira and Nicki Harris Family Hostel · 24 E Ida B. Wells Drive · +1 312-360-0300.\n\nGuardar as malas antes do check-in é de graça, e depois do check-out eles guardam até as 21h. Recepção 24 horas.\n\nFica no Loop, a poucos quarteirões do Millennium Park e do Cultural Center.',
     abertura: 'Check-in 15h · check-out 11h · recepção 24h',
     maps: 'https://www.google.com/maps/search/?api=1&query=HI+Chicago+Hostel+24+E+Ida+B+Wells+Dr',
     link: 'https://www.hiusa.org/find-hostels/illinois/chicago-24-e-idabwells-drive',
   },
   {
-    id: 'pg-chi20-cultural', dia: '2026-09-20', ordem: 3,
-    titulo: 'Chicago Cultural Center',
-    desc: 'Grátis, a 5 min a pé. A cúpula Tiffany do 3º andar (Preston Bradley Hall) é a maior do mundo: são 1.134 m² de mosaico, com cerca de 30 mil peças de vidro.\n\nO prédio foi a biblioteca central da cidade e hoje abriga exposições gratuitas que mudam ao longo do ano. As galerias começam a fechar 15 min antes do prédio.',
-    abertura: 'Todos os dias, 10h–17h', preco: 'Grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Chicago+Cultural+Center+78+E+Washington+St',
-    link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/chicago_culturalcenter.html',
+    id: 'pg-chi20-feira', dia: '2026-09-20', ordem: 3,
+    titulo: 'Logan Square Farmers Market',
+    desc: 'A feira de domingo do bairro, na W Logan Blvd entre a Milwaukee e a Kedzie. Em 2026 ela vai de 10 de maio a 25 de outubro, sempre aos domingos, das 8h30 às 15h — então o dia 20 pega.\n\nAtenção ao relógio: ela FECHA ÀS 15h. Contando o pouso 8h51 e a passada no hostel, dá tempo com folga, mas não é pra deixar pro fim da tarde.\n\nDetalhe prático: Logan Square fica na MESMA Blue Line do aeroporto, algumas estações antes do Loop — e a Milwaukee liga Logan Square a Wicker Park em linha reta.',
+    abertura: 'Domingos, 8h30–15h (até 25/10)', preco: 'Grátis (entrar)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Logan+Square+Farmers+Market+Chicago',
+    link: 'https://www.logansquarefarmersmarket.org/',
   },
   {
-    id: 'pg-chi20-millennium', dia: '2026-09-20', ordem: 4,
-    titulo: 'Millennium Park — Cloud Gate, Pritzker, Lurie Garden',
-    desc: 'Colado no Cultural Center. O Cloud Gate (o "feijão") espelha a skyline inteira; o Jay Pritzker Pavilion é o palco de Frank Gehry; o Lurie Garden fica no canto sudeste do parque.\n\nUm aviso sobre o Lurie: ele ficou fechado de março ao começo de julho de 2026 por causa de uma obra no deque e na água. Em setembro já deve estar aberto — se estiver interditado, é essa obra.',
+    id: 'pg-chi20-milwaukee', dia: '2026-09-20', ordem: 4,
+    titulo: 'Milwaukee Avenue — brechós e vintage',
+    desc: 'O eixo do bairro: a Milwaukee entre a North Ave e a Division concentra os brechós, os sebos e as lojas de roupa usada. É uma caminhada de loja em loja, sem hora marcada.\n\nDe metrô: Blue Line, estação Damen, que sai bem no meio disso.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=N+Milwaukee+Ave+Wicker+Park+Chicago',
+  },
+  {
+    id: 'pg-chi20-myopic', dia: '2026-09-20', ordem: 5,
+    titulo: 'Myopic Books',
+    desc: 'Três andares de livro usado, desde 1991 — um dos sebos mais antigos da cidade. Tem seção grande de poesia e de filosofia, e as escadas são estreitas de propósito.\n\n1564 N Milwaukee Ave.',
+    abertura: 'Todos os dias, 12h–20h', preco: 'Grátis (entrar)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Myopic+Books+1564+N+Milwaukee+Ave+Chicago',
+    link: 'https://www.myopicbookstore.com/',
+  },
+  {
+    id: 'pg-chi20-quimbys', dia: '2026-09-20', ordem: 6,
+    titulo: 'Quimby\'s',
+    desc: 'Quadrinhos, zines e publicação independente — a loja que virou referência do gênero nos Estados Unidos. Boa parte do que está na prateleira foi feita à mão e não existe em outro lugar.\n\n1854 W North Ave.',
+    abertura: 'Todos os dias, 12h–19h',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Quimby%27s+Bookstore+1854+W+North+Ave+Chicago',
+    link: 'https://www.quimbys.com/',
+  },
+  {
+    id: 'pg-chi20-flatiron', dia: '2026-09-20', ordem: 7,
+    titulo: 'Flat Iron Arts Building',
+    desc: 'O prédio triangular do cruzamento de seis pontas (Milwaukee, North e Damen) — a esquina mais fotografada do bairro. Por dentro são ateliês de artistas; de vez em quando abrem as portas ao público.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Flat+Iron+Arts+Building+Chicago',
+  },
+  {
+    id: 'pg-chi20-wormhole', dia: '2026-09-20', ordem: 8,
+    titulo: 'The Wormhole — café com DeLorean',
+    desc: 'Café temático com um DeLorean de verdade no fundo, Nintendinho, VHS e bugigangas de Gremlins pelas paredes. Torras de produtores pequenos, que trocam o tempo todo.\n\nUma correção carinhosa: o tema é mais anos 80 do que 90 — DeLorean é De Volta para o Futuro (1985), e o resto acompanha.\n\n1462 N Milwaukee Ave, no mesmo quarteirão do Myopic.',
+    abertura: 'Aprox. 7h–19h (fim de semana abre 8h) — confira no dia',
+    maps: 'https://www.google.com/maps/search/?api=1&query=The+Wormhole+Coffee+1462+N+Milwaukee+Ave+Chicago',
+    link: 'https://www.thewormhole.us/',
+  },
+  {
+    id: 'pg-chi20-606', dia: '2026-09-20', ordem: 9,
+    titulo: 'The 606 / Bloomingdale Trail',
+    desc: 'Uma ferrovia elevada virada parque linear: 4,3 km de caminho suspenso, sem um carro no meio. A entrada da Damen com a Bloomingdale é a mais central.\n\nSe der pra deixar pro fim da tarde, é a melhor hora do lugar — a luz baixa pega o caminho inteiro.',
     abertura: 'Todos os dias, 6h–23h', preco: 'Grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Millennium+Park+201+E+Randolph+St+Chicago',
-    link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/millennium_park.html',
+    maps: 'https://www.google.com/maps/search/?api=1&query=The+606+Damen+Bloomingdale+Chicago',
+    link: 'https://www.the606.org/',
   },
   {
-    id: 'pg-chi20-riverwalk', dia: '2026-09-20', ordem: 5,
-    titulo: 'Chicago Riverwalk',
-    desc: 'Caminhada na margem sul do rio. Fazendo o trecho leste, você termina na ponte da Michigan Avenue — que é exatamente de onde o barco sai às 17h.\n\nOs quiosques e restaurantes da beira funcionam de maio a outubro, então em setembro está tudo aberto.',
-    abertura: 'Todos os dias, 6h–23h', preco: 'Grátis (só se paga o que consumir)',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Chicago+Riverwalk',
-    link: 'https://www.chicago.gov/city/en/sites/chicagoriverwalk/home.html',
-  },
-  {
-    id: 'pg-chi20-cruise', dia: '2026-09-20', ordem: 6, hora: '17:00',
+    id: 'pg-chi20-cruise', dia: '2026-09-20', ordem: 10, hora: '17:00',
     titulo: 'Architecture River Cruise · Chicago\'s First Lady',
-    desc: '90 min pelos três braços do rio, com guia voluntário treinado pelo Chicago Architecture Center: mais de 50 prédios explicados. Este é o barco OFICIAL do CAC — há vários outros passeios parecidos no mesmo cais.\n\nEmbarque no canto SUDESTE do cruzamento da Michigan Ave com a Wacker, no 112 E Wacker Dr: procure o toldo preto e a escada que desce para o rio. Eles pedem pra chegar 30 min antes, ou seja, 16h30.\n\nCompre online antes: fim de semana esgota. Não consegui confirmar o horário exato de um domingo de setembro — as partidas vão de ~10h às 18h, então o das 17h deve existir, mas confirme na hora de comprar.',
+    desc: '90 min pelos três braços do rio, com guia voluntário treinado pelo Chicago Architecture Center: mais de 50 prédios explicados. Este é o barco OFICIAL do CAC — há vários outros passeios parecidos no mesmo cais.\n\nEmbarque no canto SUDESTE do cruzamento da Michigan Ave com a Wacker, no 112 E Wacker Dr: procure o toldo preto e a escada que desce para o rio. Eles pedem pra chegar 30 min antes, ou seja, 16h30.\n\nDe Wicker Park até aqui são ~20 min de Blue Line, mais uma caminhada — não deixe pra sair em cima da hora.\n\nCompre online antes: fim de semana esgota. Não consegui confirmar o horário exato de um domingo de setembro — as partidas vão de ~10h às 18h, então o das 17h deve existir, mas confirme na hora de comprar.',
     abertura: 'Partidas de ~10h às 18h', preco: 'A partir de US$ 57',
     maps: 'https://www.google.com/maps/search/?api=1&query=112+E+Wacker+Dr+Chicago',
     link: 'https://www.architecture.org/city-tours/river-cruise',
   },
   {
-    id: 'pg-chi20-loop', dia: '2026-09-20', ordem: 7,
+    id: 'pg-chi20-loop', dia: '2026-09-20', ordem: 11,
     titulo: 'Volta a pé pelo Loop, cortando o Grant Park',
     desc: 'O barco encosta por volta das 18h30. Dá pra voltar atravessando o Loop e descendo pelo Grant Park no fim da tarde.',
     preco: 'Grátis',
     maps: 'https://www.google.com/maps/search/?api=1&query=Grant+Park+Chicago',
   },
+  { id: 'pg-chi20-noite', dia: '2026-09-20', ordem: 12, titulo: 'Noite — decidir' },
+
+  // --- Segunda, 21/09: caminhada do Loop, Art Institute e a corrida do pôr do sol. ---
   {
-    id: 'pg-chi20-musica', dia: '2026-09-20', ordem: 8,
-    titulo: 'Música à noite — decidir',
-    desc: 'Três casas que tocam no domingo:\n\n· Buddy Guy\'s Legends (700 S Wabash, South Loop) — a mais perto do hostel, do próprio Buddy Guy. A jam de blues começa 21h30; couvert de US$ 10 a 15.\n\n· Kingston Mines (2548 N Halsted, Lincoln Park) — duas bandas em dois palcos, alternando a noite inteira até de madrugada. Couvert de US$ 12 a 15.\n\n· Green Mill (4802 N Broadway, Uptown) — jazz desde os anos 1920, o bar que era do Al Capone. Fica longe: ~40 min de metrô.\n\nHorário e couvert mudam; confira no site da casa no dia.',
-    preco: 'Couvert de US$ 10 a 15',
-    link: 'https://buddyguy.com/',
-  },
-  // --- Segunda, 21/09 (ela mandou em 26/ago). "Um card para cada coisa". ---
-  {
-    id: 'pg-chi21-rookery', dia: '2026-09-21', ordem: 10,
+    id: 'pg-chi21-rookery', dia: '2026-09-21', ordem: 20,
     titulo: 'The Rookery — átrio de luz',
     desc: 'Burnham & Root, 1888. Dezesseis anos depois, Frank Lloyd Wright refez o átrio central em mármore branco e folha de ouro — é o ponto alto da caminhada.\n\nO saguão é aberto a quem quiser entrar, sem tour e sem pagar; 15 a 30 min bastam. O Frank Lloyd Wright Trust faz visitas guiadas de 1h em dias úteis, por volta de US$ 22, se você quiser subir a escada em espiral.\n\nOs quatro prédios da caminhada estão num quadrado de seis quarteirões, a pé do hostel — e todos os saguões só abrem em dia útil.',
     abertura: 'Saguão: seg–sex 7h–18h · sáb 8h–14h · fecha domingo',
@@ -513,7 +537,7 @@ const CHICAGO_ITENS = [
     link: 'https://www.therookerybuilding.com/',
   },
   {
-    id: 'pg-chi21-marquette', dia: '2026-09-21', ordem: 11,
+    id: 'pg-chi21-marquette', dia: '2026-09-21', ordem: 21,
     titulo: 'Marquette Building — mosaicos Tiffany',
     desc: 'Holabird & Roche, 1895. O saguão é forrado de mosaicos de vidro da Tiffany contando a expedição do padre Marquette pelo rio, com bustos de bronze de exploradores e chefes indígenas sobre as portas do elevador.\n\nTem uma pequena exposição gratuita sobre a história e a arquitetura do prédio, mantida pela Fundação MacArthur, que é a dona.',
     abertura: 'Saguão: dias úteis 7h–18h', preco: 'Grátis',
@@ -521,15 +545,15 @@ const CHICAGO_ITENS = [
     link: 'https://marquette.macfound.org/',
   },
   {
-    id: 'pg-chi21-monadnock', dia: '2026-09-21', ordem: 12,
+    id: 'pg-chi21-monadnock', dia: '2026-09-21', ordem: 22,
     titulo: 'Monadnock Building — a parede que sustenta',
-    desc: 'O último grande prédio do mundo erguido em alvenaria portante: não há estrutura de aço: é a parede que segura tudo. Por isso, na base, ela tem cerca de 1,80 m de espessura — repare no vão fundo das janelas do térreo, é a espessura aparecendo.\n\nA metade norte é de 1891 (Burnham & Root); a sul, de 1893, já usa estrutura de aço — dá pra ver a diferença de dentro.',
+    desc: 'O último grande prédio do mundo erguido em alvenaria portante: não há estrutura de aço, é a parede que segura tudo. Por isso, na base, ela tem cerca de 1,80 m de espessura — repare no vão fundo das janelas do térreo, é a espessura aparecendo.\n\nA metade norte é de 1891 (Burnham & Root); a sul, de 1893, já usa estrutura de aço — dá pra ver a diferença de dentro.',
     abertura: 'Saguão: seg–sex 8h–18h · fecha fim de semana', preco: 'Grátis',
     maps: 'https://www.google.com/maps/search/?api=1&query=Monadnock+Building+53+W+Jackson+Blvd+Chicago',
     link: 'https://monadnockbuilding.com/',
   },
   {
-    id: 'pg-chi21-cbot', dia: '2026-09-21', ordem: 13,
+    id: 'pg-chi21-cbot', dia: '2026-09-21', ordem: 23,
     titulo: 'Chicago Board of Trade — art déco e a Ceres',
     desc: 'Holabird & Root, 1930. Fecha a perspectiva da LaSalle como um paredão de calcário. No topo, a Ceres de alumínio, deusa romana da colheita, com quase 10 m — e sem rosto: conta-se que o escultor não se deu ao trabalho, porque nenhum prédio vizinho era alto o bastante pra alguém ver.\n\nO saguão art déco é aberto ao público em dia útil. O pregão e o subsolo não são: só em visita guiada.',
     abertura: 'Saguão: seg–sex 8h–18h', preco: 'Grátis',
@@ -537,113 +561,79 @@ const CHICAGO_ITENS = [
     link: 'https://www.cbotbuilding.com/the-building/',
   },
   {
-    id: 'pg-chi21-artic', dia: '2026-09-21', ordem: 14,
+    id: 'pg-chi21-artic', dia: '2026-09-21', ordem: 24,
     titulo: 'Art Institute of Chicago',
-    desc: 'Não perca: Nighthawks (Hopper), American Gothic (Wood), Un dimanche après-midi à la Grande Jatte (Seurat), as janelas azuis do Chagall e o Modern Wing.\n\nSegunda ela abre. O público entra a partir das 11h — as 10h são hora só de sócios. Vale conferir no site no dia: as fontes divergem sobre o horário de 2026, e uma diz que passou a abrir todos os dias.\n\nA entrada dos leões é na Michigan Ave, a cinco minutos do Millennium Park.',
-    abertura: 'Aberta na segunda · público a partir das 11h (fecha terça)',
+    desc: 'Não perca: Nighthawks (Hopper), American Gothic (Wood), Un dimanche après-midi à la Grande Jatte (Seurat), as janelas azuis do Chagall e o Modern Wing.\n\nSegunda ela abre. O público entra a partir das 11h — as 10h são hora só de sócios. Vale conferir no site no dia: as fontes divergem sobre o horário de 2026.\n\nA entrada dos leões é na Michigan Ave, a cinco minutos do Millennium Park.',
+    abertura: 'Aberta na segunda · público a partir das 11h',
     preco: 'US$ 32 (adulto, não residente)',
     maps: 'https://www.google.com/maps/search/?api=1&query=Art+Institute+of+Chicago+111+S+Michigan+Ave',
     link: 'https://www.artic.edu/visit',
   },
   {
-    id: 'pg-chi21-magmile', dia: '2026-09-21', ordem: 15,
+    id: 'pg-chi21-magmile', dia: '2026-09-21', ordem: 25,
     titulo: 'Magnificent Mile',
     desc: 'O trecho da N Michigan Ave que vai do rio até a Oak St. Além das lojas: o Wrigley Building (branco, iluminado à noite), a Tribune Tower — que tem pedras de monumentos do mundo inteiro embutidas na fachada, com plaquinhas — e a Water Tower, uma das poucas coisas que sobrou do incêndio de 1871.',
     preco: 'Grátis (andar)',
     maps: 'https://www.google.com/maps/search/?api=1&query=Magnificent+Mile+Chicago',
   },
   {
-    id: 'pg-chi21-wells', dia: '2026-09-21', ordem: 16,
+    id: 'pg-chi21-wells', dia: '2026-09-21', ordem: 26,
     titulo: 'Wells Street por Old Town',
     desc: 'O trecho bom da Wells é entre a Division e a North Ave: casas vitorianas que escaparam do incêndio, bares e a Second City (1616 N Wells), o teatro de improviso de onde saíram Belushi, Bill Murray e Tina Fey.\n\nDe metrô, Brown ou Purple Line até a estação Sedgwick.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Wells+St+Old+Town+Chicago',
   },
   {
-    id: 'pg-chi21-trocar', dia: '2026-09-21', ordem: 17,
-    titulo: 'Voltar ao hostel e trocar de roupa pra correr',
-    desc: 'Do Old Town de volta ao hostel: Brown/Purple Line até a Library ou a Adams.',
-  },
-  {
-    id: 'pg-chi21-corrida', dia: '2026-09-21', ordem: 18,
-    titulo: 'Correr no pôr do sol — até o Adler',
-    desc: 'O sol se põe às 18h49 nesse dia. Saindo do hostel uns 40 min antes, você chega no Adler com o skyline acendendo.\n\nTrajeto: hostel → Grant Park → Museum Campus → Adler Planetarium. São ~2,5 km de ida, ~5 km ida e volta, quase tudo plano e pela beira. Esticando até a Northerly Island ou a 31st St Beach, dá de 8 a 10 km.\n\nO ponto do Adler é a vista: é de lá que sai a foto do skyline inteiro, com o lago na frente.\n\nDetalhe bonito: o equinócio é no dia seguinte, 22/09. Nos dias em volta dele o sol se põe alinhado com as ruas do quadriculado da cidade — os moradores chamam de Chicagohenge, e as ruas leste-oeste do Loop viram um corredor de luz.',
+    id: 'pg-chi21-corrida', dia: '2026-09-21', ordem: 27,
+    titulo: 'Voltar ao hostel e correr no pôr do sol',
+    desc: 'O sol se põe às 18h49 nesse dia. Saindo do hostel uns 40 min antes, você chega no Adler com o skyline acendendo.\n\nTrajeto: hostel → Grant Park → Museum Campus → Adler Planetarium. São ~2,5 km de ida, ~5 km ida e volta, quase tudo plano e pela beira. Esticando até a Northerly Island ou a 31st St Beach, dá de 8 a 10 km.\n\nO ponto do Adler é a vista: é de lá que sai a foto do skyline inteiro, com o lago na frente.\n\nDetalhe bonito: o equinócio é no dia seguinte, 22/09. Nos dias em volta dele o sol se põe alinhado com o quadriculado das ruas — os moradores chamam de Chicagohenge.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Adler+Planetarium+Chicago',
   },
-  // --- Terça, 22/09: beira do lago de manhã, Wicker Park à tarde. ---
+  { id: 'pg-chi21-noite', dia: '2026-09-21', ordem: 28, titulo: 'Noite — decidir' },
+
+  // --- Terça, 22/09: corrida na beira do lago e o Loop com calma. ---
   {
-    id: 'pg-chi22-navypier', dia: '2026-09-22', ordem: 30,
-    titulo: 'Navy Pier',
-    desc: 'Entrar no píer é de graça; as atrações de dentro é que se pagam à parte, incluindo a roda-gigante Centennial (confira o valor no dia — teve promoção em 2026 e o preço andou mudando).\n\nAtenção ao horário: o de verão, 10h–22h, vale até 7 de setembro. Depois disso ele encurta, e o site não deixa claro quanto — vale conferir antes de sair.',
-    abertura: 'Ver no site (o horário de verão acaba em 7/9)', preco: 'Entrada grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Navy+Pier+Chicago',
-    link: 'https://navypier.org/plan-your-visit/hours-and-admission/',
-  },
-  {
-    id: 'pg-chi22-oakstreet', dia: '2026-09-22', ordem: 31,
-    titulo: 'Oak Street Beach',
-    desc: 'A praia onde a Gold Coast encosta no lago, no pé dos prédios. É de lá que sai aquela foto do skyline visto da areia.\n\nDo Navy Pier dá pra ir pela beira, e a passagem por baixo da Lake Shore Drive evita atravessar a avenida.',
+    id: 'pg-chi22-corrida', dia: '2026-09-22', ordem: 40,
+    titulo: 'Correr: Navy Pier → Oak Street Beach → North Avenue Beach',
+    desc: 'Tudo pelo Lakefront Trail, o caminho que acompanha o lago sem cruzar rua. Do Navy Pier à Oak Street são ~2 km; da Oak Street à North Avenue Beach, mais ~1,5 km — e daí em diante você já está dentro do Lincoln Park, que segue por quilômetros.\n\nA Oak Street Beach é a praia no pé dos prédios da Gold Coast; a North Avenue tem o posto em forma de barco, com o skyline inteiro atrás. A passagem por baixo da Lake Shore Drive evita atravessar a avenida.',
     preco: 'Grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Oak+Street+Beach+Chicago',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Lakefront+Trail+Navy+Pier+Chicago',
+  },
+  { id: 'pg-chi22-arrumar', dia: '2026-09-22', ordem: 41, titulo: 'Me arrumar no hostel' },
+  {
+    id: 'pg-chi22-cultural', dia: '2026-09-22', ordem: 42,
+    titulo: 'Chicago Cultural Center',
+    desc: 'Grátis. A cúpula Tiffany do 3º andar (Preston Bradley Hall) é a maior do mundo: são 1.134 m² de mosaico, com cerca de 30 mil peças de vidro.\n\nO prédio foi a biblioteca central da cidade e hoje abriga exposições gratuitas que mudam ao longo do ano. As galerias começam a fechar 15 min antes do prédio.',
+    abertura: 'Todos os dias, 10h–17h', preco: 'Grátis',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Chicago+Cultural+Center+78+E+Washington+St',
+    link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/chicago_culturalcenter.html',
   },
   {
-    id: 'pg-chi22-corrida', dia: '2026-09-22', ordem: 32,
-    titulo: 'Correr pelo Lincoln Park até a North Avenue Beach',
-    desc: 'Tudo pelo Lakefront Trail, o caminho que acompanha o lago sem cruzar rua. Do Navy Pier à Oak Street são ~2 km; da Oak Street à North Avenue Beach, mais ~1,5 km — e daí em diante você já está dentro do Lincoln Park, que segue por quilômetros.\n\nNa North Avenue Beach fica o posto em forma de barco, com o skyline inteiro atrás.',
-    preco: 'Grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=North+Avenue+Beach+Chicago',
-  },
-  {
-    id: 'pg-chi22-almoco', dia: '2026-09-22', ordem: 33,
-    titulo: 'Almoço',
-    desc: 'Duas opções no cruzamento da Damen, já em Wicker Park, pra emendar na tarde:\n\n· Big Star (1531 N Damen) — tacos e pátio; na terça abre 11h30.\n· Dove\'s Luncheonette (1545 N Damen) — lanchonete de balcão, comida mexicana com sotaque do sul dos EUA.\n\nConfira o horário no dia: casa de bairro muda mais do que museu.',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Big+Star+1531+N+Damen+Ave+Chicago',
-    link: 'https://www.bigstarchicago.com/location/wicker-park/',
-  },
-  {
-    id: 'pg-chi22-milwaukee', dia: '2026-09-22', ordem: 34,
-    titulo: 'Milwaukee Avenue — brechós e vintage',
-    desc: 'O eixo do bairro: a Milwaukee entre a North Ave e a Division concentra os brechós, os sebos e as lojas de roupa usada. É uma caminhada de loja em loja, sem hora marcada.\n\nDe metrô: Blue Line, estação Damen, que sai bem no meio disso.',
-    maps: 'https://www.google.com/maps/search/?api=1&query=N+Milwaukee+Ave+Wicker+Park+Chicago',
-  },
-  {
-    id: 'pg-chi22-myopic', dia: '2026-09-22', ordem: 35,
-    titulo: 'Myopic Books',
-    desc: 'Três andares de livro usado, desde 1991 — um dos sebos mais antigos da cidade. Tem seção grande de poesia e de filosofia, e as escadas são estreitas de propósito.\n\n1564 N Milwaukee Ave.',
-    abertura: 'Todos os dias, 12h–20h', preco: 'Grátis (entrar)',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Myopic+Books+1564+N+Milwaukee+Ave+Chicago',
-    link: 'https://www.myopicbookstore.com/',
-  },
-  {
-    id: 'pg-chi22-quimbys', dia: '2026-09-22', ordem: 36,
-    titulo: 'Quimby\'s',
-    desc: 'Quadrinhos, zines e publicação independente — a loja que virou referência do gênero nos Estados Unidos. Boa parte do que está na prateleira foi feita à mão e não existe em outro lugar.\n\n1854 W North Ave.',
-    abertura: 'Todos os dias, 12h–19h',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Quimby%27s+Bookstore+1854+W+North+Ave+Chicago',
-    link: 'https://www.quimbys.com/',
-  },
-  {
-    id: 'pg-chi22-flatiron', dia: '2026-09-22', ordem: 37,
-    titulo: 'Flat Iron Arts Building',
-    desc: 'O prédio triangular do cruzamento de seis pontas (Milwaukee, North e Damen) — a esquina mais fotografada do bairro. Por dentro são ateliês de artistas; de vez em quando abrem as portas ao público.',
-    maps: 'https://www.google.com/maps/search/?api=1&query=Flat+Iron+Arts+Building+Chicago',
-  },
-  {
-    id: 'pg-chi22-606', dia: '2026-09-22', ordem: 38,
-    titulo: 'The 606 / Bloomingdale Trail',
-    desc: 'Uma ferrovia elevada virada parque linear: 4,3 km de caminho suspenso, sem um carro no meio. A entrada da Damen com a Bloomingdale é a mais central.\n\nComo você chega no fim da tarde, pega a luz baixa em cima — é a melhor hora do lugar.',
+    id: 'pg-chi22-millennium', dia: '2026-09-22', ordem: 43,
+    titulo: 'Millennium Park — Cloud Gate, Pritzker, Lurie Garden',
+    desc: 'Colado no Cultural Center. O Cloud Gate (o "feijão") espelha a skyline inteira; o Jay Pritzker Pavilion é o palco de Frank Gehry; o Lurie Garden fica no canto sudeste do parque.\n\nUm aviso sobre o Lurie: ele ficou fechado de março ao começo de julho de 2026 por causa de uma obra no deque e na água. Em setembro já deve estar aberto — se estiver interditado, é essa obra.',
     abertura: 'Todos os dias, 6h–23h', preco: 'Grátis',
-    maps: 'https://www.google.com/maps/search/?api=1&query=The+606+Damen+Bloomingdale+Chicago',
-    link: 'https://www.the606.org/',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Millennium+Park+201+E+Randolph+St+Chicago',
+    link: 'https://www.chicago.gov/city/en/depts/dca/supp_info/millennium_park.html',
   },
   {
-    id: 'pg-chi22-noite', dia: '2026-09-22', ordem: 39,
-    titulo: 'Noite na região',
-    desc: 'O cruzamento Milwaukee/North/Damen é o centro da noite do bairro: bares, casas de show pequenas e cozinha aberta até tarde, tudo a pé.\n\nSe quiser um lugar certo pra começar, The Violet Hour (1520 N Damen) é a casa de coquetéis do bairro — sem placa na porta, entrada por uma porta de madeira. Confira se está aberta no dia.',
+    id: 'pg-chi22-riverwalk', dia: '2026-09-22', ordem: 44,
+    titulo: 'Chicago Riverwalk',
+    desc: 'Caminhada na margem sul do rio, do lago até a Lake St. Os quiosques e restaurantes da beira funcionam de maio a outubro, então em setembro está tudo aberto.',
+    abertura: 'Todos os dias, 6h–23h', preco: 'Grátis (só se paga o que consumir)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Chicago+Riverwalk',
+    link: 'https://www.chicago.gov/city/en/sites/chicagoriverwalk/home.html',
+  },
+  {
+    id: 'pg-chi22-noite', dia: '2026-09-22', ordem: 45,
+    titulo: 'Noite: explorar Wicker Park',
+    desc: 'O cruzamento Milwaukee/North/Damen é o centro da noite do bairro, tudo a pé. Blue Line, estação Damen, sai bem ali.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Damen+Ave+North+Ave+Milwaukee+Ave+Wicker+Park+Chicago',
   },
-  // --- Quarta, 23/09: Wrigley Field, Cubs x Marlins. ---
+
+  // --- Quarta, 23/09: manhã livre e Wrigley Field à noite. ---
+  { id: 'pg-chi23-manha', dia: '2026-09-23', ordem: 60, titulo: 'Manhã livre — ver as opções em "Sem data"' },
   {
-    id: 'pg-chi23-redline', dia: '2026-09-23', ordem: 40, hora: '15:00',
+    id: 'pg-chi23-redline', dia: '2026-09-23', ordem: 61, hora: '15:00',
     titulo: 'Red Line da Jackson até a Addison',
     desc: 'Cerca de 25 min, direto. A estação Addison abre praticamente na porta do estádio.\n\nO passe Ventra de 7 dias cobre esta ida e a volta.',
     abertura: 'Red Line 24h', preco: 'Já pago pelo passe',
@@ -651,14 +641,14 @@ const CHICAGO_ITENS = [
     link: 'https://www.transitchicago.com/ventra/',
   },
   {
-    id: 'pg-chi23-wrigleyville', dia: '2026-09-23', ordem: 41,
+    id: 'pg-chi23-wrigleyville', dia: '2026-09-23', ordem: 62,
     titulo: 'Wrigleyville antes do jogo',
     desc: 'A marquise vermelha na esquina da Clark com a Addison é A foto — é o letreiro de 1934, e sempre tem fila pra fotografar.\n\nBares em volta: Murphy\'s Bleachers, Bernie\'s e The Cubby Bear, todos a menos de um quarteirão. A praça Gallagher Way, colada no estádio, costuma ter movimento, música e telão antes do jogo.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Clark+St+and+Addison+St+Chicago',
     link: 'https://www.gallagherway.com/',
   },
   {
-    id: 'pg-chi23-entrar', dia: '2026-09-23', ordem: 42, hora: '17:30',
+    id: 'pg-chi23-entrar', dia: '2026-09-23', ordem: 63, hora: '17:30',
     titulo: 'Entrar no estádio cedo',
     desc: 'Os portões abrem 90 min antes do primeiro arremesso, ou seja, por volta das 17h10 — às 17h30 você entra sem fila e ainda pega o campo vazio.\n\nO que ver antes de sentar: a hera nas paredes do outfield, plantada em 1937, e o placar manual do mesmo ano, que até hoje é operado à mão, número por número, por gente lá dentro.\n\nMOCHILA NÃO ENTRA — nem as transparentes. Bolsa, pochete e sacola até 16 x 16 x 8 polegadas (~40 x 40 x 20 cm) podem. Quem entra sem bolsa nenhuma pega a fila expressa.',
     abertura: 'Portões abrem 90 min antes do jogo',
@@ -666,22 +656,26 @@ const CHICAGO_ITENS = [
     link: 'https://www.mlb.com/cubs/ballpark/information/guide',
   },
   {
-    id: 'pg-chi23-jogo', dia: '2026-09-23', ordem: 43, hora: '18:40',
+    id: 'pg-chi23-jogo', dia: '2026-09-23', ordem: 64, hora: '18:40',
     titulo: '⚾ Cubs x Marlins',
-    desc: 'No estádio: Chicago dog, da Vienna Beef — salsicha, mostarda, cebola, picles, tomate, pimenta esportiva e sal de aipo. Ketchup, nunca. Falam sério mesmo.\n\nNo meio da sétima entrada todo mundo levanta e canta Take Me Out to the Ball Game; é o momento mais bonito da noite, e em Wrigley é levado quase como hino.\n\nSe os Cubs ganharem, içam a bandeira branca com o W no mastro do placar.',
+    desc: 'No estádio: Chicago dog, da Vienna Beef — salsicha, mostarda, cebola, picles, tomate, pimenta esportiva e sal de aipo. Ketchup, nunca. Falam sério mesmo.\n\nNo meio da sétima entrada todo mundo levanta e canta Take Me Out to the Ball Game; em Wrigley isso é levado quase como hino.\n\nSe os Cubs ganharem, içam a bandeira branca com o W no mastro do placar.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Wrigley+Field+1060+W+Addison+St+Chicago',
     link: 'https://www.mlb.com/cubs',
   },
   {
-    id: 'pg-chi23-volta', dia: '2026-09-23', ordem: 44, hora: '21:30',
+    id: 'pg-chi23-volta', dia: '2026-09-23', ordem: 65, hora: '21:30',
     titulo: 'Volta de Red Line',
     desc: 'Fim de jogo por volta das 21h30. A Addison fica cheia na saída — os 25 min de volta viram uns 40 se você pegar o primeiro trem junto com o estádio inteiro. Andar um quarteirão e esperar cinco minutos resolve.',
     preco: 'Já pago pelo passe',
     maps: 'https://www.google.com/maps/search/?api=1&query=Addison+Red+Line+Station+Chicago',
   },
-  // --- Quinta, 24/09: a volta pra Nova York. ---
+  { id: 'pg-chi23-noite', dia: '2026-09-23', ordem: 66, titulo: 'Noite — decidir' },
+
+  // --- Quinta, 24/09: manhã livre e a volta pra Nova York. ---
+  { id: 'pg-chi24-arrumar', dia: '2026-09-24', ordem: 80, titulo: 'Arrumar tudo no hostel' },
+  { id: 'pg-chi24-manha', dia: '2026-09-24', ordem: 81, titulo: 'Manhã livre — ver as opções em "Sem data"' },
   {
-    id: 'pg-chi24-aeroporto', dia: '2026-09-24', ordem: 20, hora: '14:45',
+    id: 'pg-chi24-aeroporto', dia: '2026-09-24', ordem: 82, hora: '14:45',
     titulo: 'Ir ao aeroporto (Blue Line)',
     desc: 'Blue Line do Loop até o O\'Hare, 45 a 50 min. Saindo 14h45 você chega por volta das 15h40, umas 2h20 antes do voo.\n\nO passe Ventra de 7 dias que você comprou no dia 20 ainda está valendo — vale até o dia 27.',
     abertura: 'Blue Line 24h', preco: 'Já pago pelo passe',
@@ -689,24 +683,29 @@ const CHICAGO_ITENS = [
     link: 'https://www.transitchicago.com/ventra/',
   },
   {
-    id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 21, hora: '18:08',
+    id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 83, hora: '18:08',
     titulo: 'Voo Chicago → Nova York · AA 774',
     desc: 'O\'Hare (ORD) 18h08 → La Guardia (LGA) 21h29. American Airlines, econômica (classe B).\n\nSão 2h21 de voo; a hora de chegada já está no fuso de Nova York (1h à frente de Chicago).\n\nO\'Hare é grande e a saída da tarde costuma ter fila: estar lá às 16h. A American sai do Terminal 3.',
     maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+International+Airport+Terminal+3',
     link: 'https://www.aa.com',
   },
   {
-    id: 'pg-chi24-napyork', dia: '2026-09-24', ordem: 22,
+    id: 'pg-chi24-napyork', dia: '2026-09-24', ordem: 84,
     titulo: 'Me hospedar em NYC — Nap York Central Park',
     desc: 'Nap York Central Park Sleep Station · 940 8th Ave (entre a 55th e a 56th) · +1 212-203-9675.\n\nFica a dois quarteirões do Columbus Circle e da entrada sul do Central Park. Recepção 24h, mas o CHECK-IN É ATÉ 23h59 — o voo encosta 21h29 na La Guardia e o trajeto até lá leva de 45 min a 1h, então dá tempo com folga curta. Se o voo atrasar, avise a recepção.\n\nLevam a sério: pedem passaporte e cartão de crédito no check-in e seguram US$ 50 de caução. Silêncio das 21h às 9h.',
     abertura: 'Recepção 24h · check-in até 23h59',
     maps: 'https://www.google.com/maps/search/?api=1&query=Nap+York+Central+Park+940+8th+Ave+New+York',
   },
+
+  // --- Opções, sem data (vão pra seção "Sem data", na cidade Chicago). ---
+  {
+    id: 'pg-chiop-almoco', bucket: 'semdata', ordem: 90,
+    titulo: 'Almoço em Wicker Park',
+    desc: 'Duas casas no cruzamento da Damen, pra quando estiver por lá:\n\n· Big Star (1531 N Damen) — tacos e pátio; abre 11h30 nos dias de semana.\n· Dove\'s Luncheonette (1545 N Damen) — lanchonete de balcão, comida mexicana com sotaque do sul dos EUA.\n\nConfira o horário no dia: casa de bairro muda mais do que museu.',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Big+Star+1531+N+Damen+Ave+Chicago',
+    link: 'https://www.bigstarchicago.com/location/wicker-park/',
+  },
 ];
-// Acha a viagem de três jeitos, do mais exato pro mais tolerante: o id do seed
-// antigo, o título ("Nova York & Chicago") e, se nada casar, as DATAS — a viagem
-// que contém 20/09/2026. Devolve -1 quando não achou (aí o bilhete não escreve
-// nada e tenta de novo na próxima abertura).
 const HOSPEDAGEM_ANTERIOR = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
 const HOSPEDAGEM = HOSPEDAGEM_ANTERIOR
   + '\n\nNap York Central Park Sleep Station (na volta a NY, a partir de 24/09)\n940 8th Ave · +1 212-203-9675\nCheck-in até 23h59 · recepção 24h';
@@ -718,17 +717,27 @@ function acharViagemChicago(viagens) {
   if (porNome >= 0) return porNome;
   return viagens.findIndex(v => (v.inicio || '9999') <= '2026-09-20' && '2026-09-20' <= (v.fim || '0000'));
 }
+// Tudo que ESTE bilhete escreveu leva marca no id. Serve pra reescrever o
+// roteiro inteiro sem tocar em nada que seja dela: o que é meu sai, o que é dela
+// fica. (Ela refez a programação de Chicago em 26/ago e pediu pra trocar só os
+// cards que EU tinha feito.)
+const ehMeuCard = (id) => /^pg-(chi|voo-lga-ord|voo-ord-lga)/.test(String(id || ''));
 function ensureChicagoRoteiro(d) {
-  if (d.chicagoRoteiro4) return d;
+  if (d.chicagoRoteiro5) return d;
   const viagens = d.viagensFuturas || [];
   const i = acharViagemChicago(viagens);
   if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
   const trip = viagens[i];
   const mesas = trip.mesas || [];
-  // Substitui pelo id só o que é MEU (nada aqui foi editado por ela: nunca chegou
-  // a aparecer). Todo o resto da programação fica exatamente como está.
-  const meus = new Set(CHICAGO_ITENS.map(x => x.id));
-  const proximas = [...mesas.filter(m => !meus.has(m.id)), ...CHICAGO_ITENS];
+  // Os "sem data" entram na cidade Chicago, se ela existir. Os ids das cidades
+  // são criados por ela no app, então acho pelo nome; sem achar, o lugar ainda
+  // cai em "Sem data", só que solto — e é um toque pra ela encaixar.
+  const cidadeChicago = (trip.cidades || []).find(c => /chicago/i.test(c.nome || ''));
+  const itens = CHICAGO_ITENS.map(x => (x.bucket === 'semdata' && cidadeChicago)
+    ? { ...x, cidadeId: cidadeChicago.id } : x);
+  // Fora TODOS os meus cards antigos (inclusive os que sumiram do roteiro novo),
+  // dentro os de agora. O que é dela não é tocado.
+  const proximas = [...mesas.filter(m => !ehMeuCard(m.id)), ...itens];
   const next = [...viagens];
   next[i] = { ...trip, mesas: proximas };
   // A capa da viagem tem um campo de Hospedagem em texto livre. Só escreve se
@@ -736,7 +745,7 @@ function ensureChicagoRoteiro(d) {
   // rodada anterior — qualquer coisa escrita por ela fica intocada.
   const hospAtual = String(trip.hospedagem || '').trim();
   if (!hospAtual || hospAtual === HOSPEDAGEM_ANTERIOR) next[i].hospedagem = HOSPEDAGEM;
-  return { ...d, chicagoRoteiro4: true, viagensFuturas: next };
+  return { ...d, chicagoRoteiro5: true, viagensFuturas: next };
 }
 
 // ---- O que ainda roda a cada abertura ----
