@@ -415,7 +415,8 @@ function ensureCarteiraMesAtual(d) {
 // ============================================================================
 // BILHETE DE USO ÚNICO — APAGAR ASSIM QUE A MARI CONFIRMAR
 // ============================================================================
-// Chicago: os dois voos, o domingo 20/09 e a segunda 21/09, que ela mandou em
+// Chicago: os dois voos, o domingo 20/09, a segunda 21/09 e a volta na quinta
+// 24/09 (com o hostel de Nova York), que ela mandou em
 // 26/ago/2026. Cada dia novo entra aqui e a FLAG SOBE um número (chicagoRoteiro2,
 // 3…), senão quem já rodou o bilhete antes não recebe o dia seguinte.
 // Não tenho como escrever no documento dela de outro jeito (os dados são
@@ -568,18 +569,37 @@ const CHICAGO_ITENS = [
     desc: 'O sol se põe às 18h49 nesse dia. Saindo do hostel uns 40 min antes, você chega no Adler com o skyline acendendo.\n\nTrajeto: hostel → Grant Park → Museum Campus → Adler Planetarium. São ~2,5 km de ida, ~5 km ida e volta, quase tudo plano e pela beira. Esticando até a Northerly Island ou a 31st St Beach, dá de 8 a 10 km.\n\nO ponto do Adler é a vista: é de lá que sai a foto do skyline inteiro, com o lago na frente.\n\nDetalhe bonito: o equinócio é no dia seguinte, 22/09. Nos dias em volta dele o sol se põe alinhado com as ruas do quadriculado da cidade — os moradores chamam de Chicagohenge, e as ruas leste-oeste do Loop viram um corredor de luz.',
     maps: 'https://www.google.com/maps/search/?api=1&query=Adler+Planetarium+Chicago',
   },
+  // --- Quinta, 24/09: a volta pra Nova York. ---
   {
-    id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 9, hora: '18:08',
+    id: 'pg-chi24-aeroporto', dia: '2026-09-24', ordem: 20, hora: '14:45',
+    titulo: 'Ir ao aeroporto (Blue Line)',
+    desc: 'Blue Line do Loop até o O\'Hare, 45 a 50 min. Saindo 14h45 você chega por volta das 15h40, umas 2h20 antes do voo.\n\nO passe Ventra de 7 dias que você comprou no dia 20 ainda está valendo — vale até o dia 27.',
+    abertura: 'Blue Line 24h', preco: 'Já pago pelo passe',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Jackson+Blue+Line+Station+Chicago',
+    link: 'https://www.transitchicago.com/ventra/',
+  },
+  {
+    id: 'pg-voo-ord-lga', dia: '2026-09-24', ordem: 21, hora: '18:08',
     titulo: 'Voo Chicago → Nova York · AA 774',
     desc: 'O\'Hare (ORD) 18h08 → La Guardia (LGA) 21h29. American Airlines, econômica (classe B).\n\nSão 2h21 de voo; a hora de chegada já está no fuso de Nova York (1h à frente de Chicago).\n\nO\'Hare é grande e a saída da tarde costuma ter fila: estar lá às 16h. A American sai do Terminal 3.',
     maps: 'https://www.google.com/maps/search/?api=1&query=O%27Hare+International+Airport+Terminal+3',
     link: 'https://www.aa.com',
+  },
+  {
+    id: 'pg-chi24-napyork', dia: '2026-09-24', ordem: 22,
+    titulo: 'Me hospedar em NYC — Nap York Central Park',
+    desc: 'Nap York Central Park Sleep Station · 940 8th Ave (entre a 55th e a 56th) · +1 212-203-9675.\n\nFica a dois quarteirões do Columbus Circle e da entrada sul do Central Park. Recepção 24h, mas o CHECK-IN É ATÉ 23h59 — o voo encosta 21h29 na La Guardia e o trajeto até lá leva de 45 min a 1h, então dá tempo com folga curta. Se o voo atrasar, avise a recepção.\n\nLevam a sério: pedem passaporte e cartão de crédito no check-in e seguram US$ 50 de caução. Silêncio das 21h às 9h.',
+    abertura: 'Recepção 24h · check-in até 23h59',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Nap+York+Central+Park+940+8th+Ave+New+York',
   },
 ];
 // Acha a viagem de três jeitos, do mais exato pro mais tolerante: o id do seed
 // antigo, o título ("Nova York & Chicago") e, se nada casar, as DATAS — a viagem
 // que contém 20/09/2026. Devolve -1 quando não achou (aí o bilhete não escreve
 // nada e tenta de novo na próxima abertura).
+const HOSPEDAGEM_ANTERIOR = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
+const HOSPEDAGEM = HOSPEDAGEM_ANTERIOR
+  + '\n\nNap York Central Park Sleep Station (na volta a NY, a partir de 24/09)\n940 8th Ave · +1 212-203-9675\nCheck-in até 23h59 · recepção 24h';
 function acharViagemChicago(viagens) {
   const porId = viagens.findIndex(v => v.id === 'vf-nychicago2026');
   if (porId >= 0) return porId;
@@ -589,7 +609,7 @@ function acharViagemChicago(viagens) {
   return viagens.findIndex(v => (v.inicio || '9999') <= '2026-09-20' && '2026-09-20' <= (v.fim || '0000'));
 }
 function ensureChicagoRoteiro(d) {
-  if (d.chicagoRoteiro2) return d;
+  if (d.chicagoRoteiro3) return d;
   const viagens = d.viagensFuturas || [];
   const i = acharViagemChicago(viagens);
   if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
@@ -601,12 +621,12 @@ function ensureChicagoRoteiro(d) {
   const proximas = [...mesas.filter(m => !meus.has(m.id)), ...CHICAGO_ITENS];
   const next = [...viagens];
   next[i] = { ...trip, mesas: proximas };
-  // A capa da viagem tem um campo de Hospedagem em texto livre. Só preenche se
-  // estiver VAZIO — se ela já escreveu algo lá, não encosto.
-  if (!String(trip.hospedagem || '').trim()) {
-    next[i].hospedagem = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
-  }
-  return { ...d, chicagoRoteiro2: true, viagensFuturas: next };
+  // A capa da viagem tem um campo de Hospedagem em texto livre. Só escreve se
+  // estiver VAZIO ou se o que estiver lá for exatamente o texto que EU pus na
+  // rodada anterior — qualquer coisa escrita por ela fica intocada.
+  const hospAtual = String(trip.hospedagem || '').trim();
+  if (!hospAtual || hospAtual === HOSPEDAGEM_ANTERIOR) next[i].hospedagem = HOSPEDAGEM;
+  return { ...d, chicagoRoteiro3: true, viagensFuturas: next };
 }
 
 // ---- O que ainda roda a cada abertura ----
