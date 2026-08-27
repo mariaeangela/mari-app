@@ -236,7 +236,9 @@
       "WebFetch(domain:www.chicago.gov)",
       "WebFetch(domain:www.architecture.org)",
       "WebFetch(domain:firstlady.com)",
-      "WebFetch(domain:www.artic.edu)"
+      "WebFetch(domain:www.artic.edu)",
+      "WebFetch(domain:www.quimbys.com)",
+      "WebFetch(domain:navypier.org)"
     ]
   }
 }
