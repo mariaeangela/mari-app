@@ -705,6 +705,58 @@ const CHICAGO_ITENS = [
     maps: 'https://www.google.com/maps/search/?api=1&query=Big+Star+1531+N+Damen+Ave+Chicago',
     link: 'https://www.bigstarchicago.com/location/wicker-park/',
   },
+  {
+    id: 'pg-chiop-obama', bucket: 'semdata', ordem: 91,
+    titulo: 'Obama Presidential Center (Hyde Park)',
+    desc: 'Abriu em 19 de junho de 2026, no Jackson Park — 6001 S Stony Island Ave. O campus, a biblioteca pública, os jardins e a John Lewis Plaza são GRÁTIS e sem ingresso; só o museu cobra (US$ 30 o adulto).\n\nUm aviso importante: os ingressos do museu estavam ESGOTADOS de junho a outubro quando eu pesquisei — as primeiras vagas apareciam só em novembro. Ou seja, conte com a caminhada pelo campus, que já vale, e trate o museu como sorte se abrir alguma data.\n\nComo chegar: Metra Electric da Millennium Station até a altura da 59th/60th, uns 15 min — bem mais rápido que ônibus.',
+    abertura: 'Campus e jardins: livres · museu com ingresso marcado',
+    preco: 'Campus grátis · museu US$ 30',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Obama+Presidential+Center+6001+S+Stony+Island+Ave+Chicago',
+    link: 'https://www.obama.org/visit/',
+  },
+  {
+    id: 'pg-chiop-msi', bucket: 'semdata', ordem: 92,
+    titulo: 'Museum of Science and Industry (Hyde Park)',
+    desc: 'Vizinho de porta do Obama Center, no último prédio que sobrou da Exposição Mundial de 1893 — era o Palácio de Belas Artes da feira, e é isso que explica aquele tamanho todo.\n\nHoje se chama Griffin Museum of Science and Industry (mudou de nome em 2024), caso o cartaz não bata com o que você procurar.\n\nPreço: as fontes divergem entre ~US$ 21 e ~US$ 26 pro adulto. Os filmes do Giant Dome e algumas experiências são cobrados à parte.',
+    abertura: 'Todos os dias, 9h30–17h30 (confira datas especiais)',
+    preco: '~US$ 21 a 26 (adulto)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Griffin+Museum+of+Science+and+Industry+Chicago',
+    link: 'https://www.griffinmsi.org/pricing',
+  },
+  {
+    id: 'pg-chiop-flwcasa', bucket: 'semdata', ordem: 93,
+    titulo: 'FLW Home & Studio (Oak Park)',
+    desc: '951 Chicago Ave. A casa onde Frank Lloyd Wright morou e trabalhou por vinte anos, e onde a Prairie School nasceu.\n\nSó se entra em visita guiada de 1h, com hora marcada — RESERVE ANTES. Sai por volta de US$ 25; o combo "Inside and Out", que junta a visita com o áudio-passeio pelo bairro, fica em torno de US$ 36. As visitas correm das 10h às 16h.\n\nOak Park fica a uns 25 a 35 min do Loop de Green Line ou Blue Line, e os três lugares daqui são a pé um do outro.',
+    abertura: 'Visitas guiadas, 10h–16h · reservar antes',
+    preco: '~US$ 25 (combo ~US$ 36)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Frank+Lloyd+Wright+Home+and+Studio+951+Chicago+Ave+Oak+Park',
+    link: 'https://flwright.org/',
+  },
+  {
+    id: 'pg-chiop-unity', bucket: 'semdata', ordem: 94,
+    titulo: 'Unity Temple (Oak Park)',
+    desc: '875 Lake St. De 1908, em concreto aparente — na época, material de calçada, não de igreja. Wright resolveu o barulho da avenida virando o templo pra dentro: não há janela na fachada, a luz entra pelo teto.\n\nIngresso separado do Home & Studio: o áudio-guia sai por volta de US$ 18, e as visitas guiadas costumam ser às 10h e às 12h. Confira o dia no site, porque é uma igreja em funcionamento e a agenda muda.',
+    abertura: 'Visitas com horário marcado (confira no site)',
+    preco: '~US$ 18 (áudio-guia)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Unity+Temple+875+Lake+St+Oak+Park',
+    link: 'https://flwright.org/',
+  },
+  {
+    id: 'pg-chiop-forest', bucket: 'semdata', ordem: 95,
+    titulo: 'Forest Avenue (Oak Park)',
+    desc: 'A maior concentração de casas Prairie do mundo, e a melhor parte: a rua é pública, então você anda de graça e vê tudo por fora, uma casa depois da outra.\n\nFica a poucos quarteirões do Home & Studio — dá pra emendar os dois na mesma ida.',
+    preco: 'Grátis',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Forest+Ave+Oak+Park+Illinois',
+  },
+  {
+    id: 'pg-chiop-adler', bucket: 'semdata', ordem: 96,
+    titulo: 'Adler Planetarium (por dentro)',
+    desc: 'É o mesmo ponto aonde você vai correr na segunda, no fim da península do Museum Campus — mas de dia dá pra entrar.\n\nAbre 9h e fecha 16h, com última entrada 1h antes: é museu que fecha CEDO, então só cabe numa manhã livre.\n\nA entrada de museu fica na casa dos vinte e poucos dólares; os espetáculos no domo são cobrados à parte, então confira antes o que você quer ver.',
+    abertura: 'Todos os dias, 9h–16h · última entrada 15h',
+    preco: '~US$ 25 (domo à parte)',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Adler+Planetarium+Chicago',
+    link: 'https://www.adlerplanetarium.org/tickets/',
+  },
 ];
 const HOSPEDAGEM_ANTERIOR = 'HI Chicago Hostel (20 a 24/09)\n24 E Ida B. Wells Drive · +1 312-360-0300\nCheck-in 15h · check-out 11h';
 const HOSPEDAGEM = HOSPEDAGEM_ANTERIOR
@@ -723,7 +775,7 @@ function acharViagemChicago(viagens) {
 // cards que EU tinha feito.)
 const ehMeuCard = (id) => /^pg-(chi|voo-lga-ord|voo-ord-lga)/.test(String(id || ''));
 function ensureChicagoRoteiro(d) {
-  if (d.chicagoRoteiro5) return d;
+  if (d.chicagoRoteiro6) return d;
   const viagens = d.viagensFuturas || [];
   const i = acharViagemChicago(viagens);
   if (i < 0) return d;                       // viagem ainda não carregou: tenta de novo depois
@@ -745,7 +797,7 @@ function ensureChicagoRoteiro(d) {
   // rodada anterior — qualquer coisa escrita por ela fica intocada.
   const hospAtual = String(trip.hospedagem || '').trim();
   if (!hospAtual || hospAtual === HOSPEDAGEM_ANTERIOR) next[i].hospedagem = HOSPEDAGEM;
-  return { ...d, chicagoRoteiro5: true, viagensFuturas: next };
+  return { ...d, chicagoRoteiro6: true, viagensFuturas: next };
 }
 
 // ---- O que ainda roda a cada abertura ----
