@@ -12,6 +12,7 @@ import {
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
   MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
   parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm, ROTA_SUBTIPOS, COM_DISTANCIA,
+  CORINGA_COR, CORINGAS, coringasDoDia,
 } from './calendarConfig.js';
 import { RotaField } from './rota.jsx';
 
@@ -864,22 +865,6 @@ function ExerciciosList({ data, onEdit }) {
 // Dias que ela reserva pra si TODO mês. O nome é fixo (mora aqui, no código);
 // o que muda é a data — escolhida mês a mês: toca no dia coringa e abre a grade
 // daquele mês. Guardado em `coringas` ('YYYY-MM' → { id: dia }) no calendarStore.
-const CORINGA_COR = '#5f8ba6';
-const CORINGAS = [
-  { id: 'financeira', nome: 'Arrumar vida financeira' },
-  { id: 'together', nome: 'Get your shit together' },
-  { id: 'fieldtrip', nome: 'Field trip' },
-  { id: 'journaling', nome: 'Journaling' },
-  { id: 'creativite', nome: 'Creativity' },
-];
-// Nomes dos coringas marcados NESTE dia (usa o mês do próprio dia, então a
-// estrelinha aparece certa também nos dias de fora da grade). Devolve [] se não houver.
-const coringasDoDia = (data, date) => {
-  const mes = (data.coringas || {})[`${date.getFullYear()}-${pad2(date.getMonth() + 1)}`];
-  if (!mes) return [];
-  return CORINGAS.filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
-};
-
 function DiasCoringa({ mesKey, mesLabel, refDate }) {
   const cal = useCalendar();
   const [aberto, setAberto] = useState(null); // id do coringa com a grade aberta

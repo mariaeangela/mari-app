@@ -375,7 +375,11 @@ Aba "Calendário" (tab id `calendar`). Persistência na nuvem na chave
   **estrelinha ★** (não pontinho) na cor `CORINGA_COR`, com o nome no `title`, mais o chip
   "★ dia coringa" na legenda quando há algum no mês; `coringasDoDia(data, date)` lê pelo mês do
   PRÓPRIO dia, então os dias de fora da grade mostram a estrela do mês deles. Prop `comEstrela`
-  na `MonthView` — só a visão Mês passa (a de Exercício não). No **DayModal** aparece como um chip
+  na `MonthView` — só a visão Mês passa (a de Exercício não). **Na Tela Hoje** o coringa do dia abre o
+  bloco "hoje" (`HojeAgenda`, App.jsx): linha com ★ e o nome, ANTES de tudo (inclusive do treino) e
+  sem ☑ — é o tom do dia, não um item da fila; o bloco passa a aparecer mesmo sem nenhum outro item.
+  Por isso `CORINGAS`/`CORINGA_COR`/`coringasDoDia` moram em **calendarConfig.js**, não em Calendario.jsx.
+  No **DayModal** aparece como um chip
   "★ nome" logo abaixo da data, só de leitura: a data se escolhe na lista da visão Mês, e ter dois
   caminhos pra mesma coisa é a bagunça que a gente vem desfazendo.
   Há ainda "Compras do mês" (dataLimite), "Cultural do mês" (dataMax) e **"Planos do

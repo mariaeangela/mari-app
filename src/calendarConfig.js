@@ -192,3 +192,24 @@ export async function getOnThisDay(date) {
     return null;
   }
 }
+
+// ---- Dias coringa ----
+// Cinco dias que a Mari reserva pra si TODO mês. O nome é fixo; o que muda é a
+// data, escolhida mês a mês na visão Mês do Calendário (slice `coringas` do
+// calendarStore: 'AAAA-MM' → { id: dia }). Moram aqui, e não no Calendario.jsx,
+// porque a Tela Hoje também mostra o coringa do dia.
+export const CORINGA_COR = '#5f8ba6';
+export const CORINGAS = [
+  { id: 'financeira', nome: 'Arrumar vida financeira' },
+  { id: 'together', nome: 'Get your shit together' },
+  { id: 'fieldtrip', nome: 'Field trip' },
+  { id: 'journaling', nome: 'Journaling' },
+  { id: 'creativite', nome: 'Creativity' },
+];
+// Nomes dos coringas marcados NESTE dia (usa o mês do próprio dia, então a
+// estrelinha aparece certa também nos dias de fora da grade). Devolve [] se não houver.
+export const coringasDoDia = (data, date) => {
+  const mes = (data.coringas || {})[`${date.getFullYear()}-${pad2(date.getMonth() + 1)}`];
+  if (!mes) return [];
+  return CORINGAS.filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
+};

@@ -5,7 +5,7 @@ import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
 import { CalendarProvider, useCalendar } from './calendarStore.jsx';
 import Calendario, { itemsForDay, tarefasRecorrentesAtrasadas, trabTag, AddSheet, PLANO_COR } from './Calendario.jsx';
-import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27 } from './calendarConfig.js';
+import { getOnThisDay, MESES, MOODS, ymd, parseYmd, CAT_BY_ID, EXERCICIO_BY_ID, cicloDia27, coringasDoDia, CORINGA_COR } from './calendarConfig.js';
 import { LifeProvider, useLife, getViagemAtiva, getOrcamentoViagem, simboloMoeda } from './lifeStore.jsx';
 // Telas pesadas carregam SÓ quando abertas (Life ~330 KB, Retrospectiva ~150 KB,
 // Gastos detalhados ~65 KB). Antes tudo vinha junto na abertura, mesmo pra ficar
@@ -407,10 +407,19 @@ function HojeAgenda() {
   // aparecem aqui marcadas com o dia em que venceram.
   const atrasadas = tarefasRecorrentesAtrasadas(cal.data, hoje);
   const items = [...atrasadas, ...itemsForDay(cal.data, hoje, life.planos).all];
-  if (!items.length) return null;
+  // Dia coringa (o da estrelinha no calendário) abre o bloco: é o tom do dia,
+  // não mais um item da fila — por isso vem ANTES de tudo, e sem ☑.
+  const coringas = coringasDoDia(cal.data, hoje);
+  if (!items.length && !coringas.length) return null;
   return (
     <div style={{ marginBottom: 24 }}>
       <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8 }}>hoje</p>
+      {coringas.map(n => (
+        <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
+          <span style={{ fontSize: 13, lineHeight: 1, color: CORINGA_COR, flexShrink: 0, width: 9, textAlign: 'center' }}>★</span>
+          <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: CORINGA_COR }}>{n}</span>
+        </div>
+      ))}
       {items.map(it => (
         <div key={it._atrasadaDe ? it.id + it._atrasadaDe : it.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
           {it._tipo === 'tarefa'
