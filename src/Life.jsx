@@ -2127,7 +2127,6 @@ function SalariosVida() {
   });
   const vidaTotal = acc;
   const maxTotal = Math.max(...anos.map(a => a.total), 1);
-  const plPrev = (ano) => { const idx = anos.findIndex(a => a.ano === ano); for (let j = idx - 1; j >= 0; j--) if (anos[j].pl != null) return anos[j].pl; return 0; };
 
   const snaps2026 = [...life.financas.snapshots].filter(s => s.mes.startsWith('2026')).sort((x, y) => x.mes.localeCompare(y.mes));
   const mesesPL = snaps2026.map(s => ({ mes: s.mes, valor: totalCarteiraBRL(s.holdings, rateOf(s)) }));
@@ -2139,8 +2138,25 @@ function SalariosVida() {
   // Destaques do ano corrente (último ano da lista)
   const cy = anos[anos.length - 1] || {};
   const plAtual = mesesPL.length ? mesesPL[mesesPL.length - 1].valor : (cy.pl != null ? cy.pl : 0);
-  const plAnoAnt = (() => { for (let j = anos.length - 2; j >= 0; j--) if (anos[j].pl != null) return anos[j].pl; return 0; })();
-  const poupouAno = cy.total ? (plAtual - plAnoAnt) / cy.total * 100 : 0;
+  // ---- Quanto SAIU (era "quanto poupei") ----
+  // O destaque antigo dizia "poupei X%", calculado como (patrimônio de hoje −
+  // patrimônio do ano passado) ÷ renda. Isso conta o RENDIMENTO dos ativos como
+  // se fosse dinheiro guardado: num ano de bolsa boa o número inflava sozinho,
+  // sem ela ter poupado um real a mais. Ela pediu o contrário — o que de fato
+  // saiu, vindo dos Gastos, e o que sobrou, que é o aporte novo de verdade.
+  //
+  // Só entram os meses que JÁ TÊM gasto lançado, e o salário é somado nos MESMOS
+  // meses: comparar 8 meses de gasto com 12 de salário dá um número bonito e falso.
+  const gastoDoAno = (a) => {
+    const ms = (life.gastos || []).filter(m => String(m.mes || '').startsWith(String(a.ano)) && (m.itens || []).length);
+    if (!ms.length || !a.meses) return null;
+    const total = ms.reduce((s, m) => s + (m.itens || []).reduce((t, i) => t + (Number(i.valor) || 0), 0), 0);
+    const idxs = ms.map(m => Number(m.mes.slice(5, 7)) - 1).filter(i => i >= 0 && i < 12);
+    const renda = idxs.reduce((s, i) => s + (Number(a.meses[i]) || 0), 0);
+    if (!renda) return null;
+    return { total, renda, sobrou: renda - total, pct: total / renda * 100, n: idxs.length };
+  };
+  const gastoCy = gastoDoAno(cy);
   const metaPL = Number(cy.metaPL) || 0;
   const metaProg = metaPL ? plAtual / metaPL * 100 : 0;
 
@@ -2169,15 +2185,22 @@ function SalariosVida() {
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {destaque('ganhei em ' + (cy.ano || ''), <V>{fmtBRLcurto(cy.total || 0)}</V>)}
-            {destaque('poupei em ' + (cy.ano || ''), poupouAno.toFixed(0) + '%')}
+            {gastoCy && destaque('gastei em ' + (cy.ano || ''), <V>{fmtBRLcurto(gastoCy.total)}</V>,
+              <span>{gastoCy.pct.toFixed(0)}% · sobrou <V>{fmtBRLcurto(gastoCy.sobrou)}</V></span>)}
             {metaPL > 0 && destaque('meta de PL', <V>{fmtBRLcurto(metaPL)}</V>, metaProg.toFixed(0) + '% atingido', '#1a7a4f', metaProg)}
           </div>
+          {gastoCy && (
+            <p style={{ fontSize: 11, color: '#aaa', margin: '-4px 0 12px', lineHeight: 1.45 }}>
+              Gasto e salário dos MESMOS {gastoCy.n} meses já lançados (extra e bônus ficam de fora).
+              O que sobrou é o dinheiro novo que dá pra aportar — sem contar o que os investimentos renderam.
+            </p>
+          )}
           <BarrasSalario barras={barrasGanhos} />
           <p style={{ fontSize: 12, color: '#999', textAlign: 'center', margin: '8px 0 0' }}>ganho na vida <b style={{ color: '#555' }}><V>{fmtBRL(vidaTotal)}</V></b> · {anos.length} anos</p>
           <div style={{ marginTop: 18 }}>
             {[...anos].reverse().map(a => {
               const exp = aberto === a.ano;
-              const sav = a.pl != null ? (a.pl - plPrev(a.ano)) / a.total * 100 : null;
+              const g = gastoDoAno(a);   // ano sem gasto lançado não mostra nada (era "poupou X%")
               return (
                 <div key={a.ano} style={{ border: '1px solid #eee', borderRadius: 12, marginBottom: 8, overflow: 'hidden', background: '#fff' }}>
                   <div onClick={() => setAberto(exp ? null : a.ano)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}>
@@ -2187,7 +2210,7 @@ function SalariosVida() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{a.cargo}</div>
-                      <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>média <V>{fmtBRLcurto(a.media)}</V>/mês{sav != null ? ` · poupou ${sav.toFixed(0)}%` : ''}</div>
+                      <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>média <V>{fmtBRLcurto(a.media)}</V>/mês{g ? ` · gastou ${g.pct.toFixed(0)}%` : ''}</div>
                       <div style={{ height: 4, background: '#f0f0f0', borderRadius: 4, marginTop: 6, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: (a.total / maxTotal * 100) + '%', background: '#111', borderRadius: 4 }} />
                       </div>

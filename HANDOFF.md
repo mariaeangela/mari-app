@@ -507,8 +507,15 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
     via `FIN_ORDEM`/`finRank`), `FinPizza`/`PizzaFin` (ativo/categoria/finalidade/moeda,
     hover), `FinEvolucao`/`EvolucaoFin` (linha preta + tooltip; séries carteira/ativo/cat/fin).
   - Salários: `SalariosVida`/`SalarioForm`, `salarios=[{ano,idade,cargo,meses[12],extra,
-    bonus,yoy?,pl?,metaPL?}]`. Destaques do ano (ganhei / % poupei = ΔPL/renda / meta PL com
+    bonus,yoy?,pl?,metaPL?}]`. Destaques do ano (ganhei / **gastei** / meta PL com
     barra). `BarrasSalario({barras,fmt})` (genérico). Patrimônio 2026 = snapshots da carteira.
+    **"gastei" substituiu "% poupei" (ago/2026, pedido dela).** O antigo era ΔPL/renda —
+    contava o RENDIMENTO dos ativos como se fosse dinheiro guardado, e inflava sozinho em ano
+    de bolsa boa. Agora `gastoDoAno(a)` soma os `gastos` do ano e mostra valor, % e **sobrou**
+    (= o aporte novo de verdade). Regra que não pode cair: só entram os meses COM gasto
+    lançado, e a renda é somada nos MESMOS meses (8 meses de gasto contra 12 de salário daria
+    um número bonito e falso); extra e bônus ficam de fora. Ano sem gasto lançado não mostra
+    percentual nenhum — melhor nada do que um número errado.
   - Gastos: `GastosVida`/`GastoForm`/`TabelaGastos`/`LinhasGastos`, `gastos=[{mes,itens:
     [{categoria,valor}]}]`. Views Mês / Tabela (mês recente 1º) / Linhas (1 por categoria,
     eixo Y, valores ao focar). Campo de valor aceita conta via `evalValor()`.
