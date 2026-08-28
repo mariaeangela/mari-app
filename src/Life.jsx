@@ -2145,16 +2145,28 @@ function SalariosVida() {
   // sem ela ter poupado um real a mais. Ela pediu o contrário — o que de fato
   // saiu, vindo dos Gastos, e o que sobrou, que é o aporte novo de verdade.
   //
-  // Só entram os meses que JÁ TÊM gasto lançado, e o salário é somado nos MESMOS
-  // meses: comparar 8 meses de gasto com 12 de salário dá um número bonito e falso.
+  // Comparação mês a mês, e só onde os DOIS lados existem: mês que tem gasto
+  // lançado E salário preenchido. A 1ª versão comparava o gasto de 8 meses com o
+  // salário só dos meses que ela já tinha digitado, e passava de 100% sem ela ter
+  // gastado mais do que ganhou. Extra e bônus são anuais: entram na proporção dos
+  // meses contados, senão o "gastei" briga com o "ganhei" logo ao lado.
   const gastoDoAno = (a) => {
-    const ms = (life.gastos || []).filter(m => String(m.mes || '').startsWith(String(a.ano)) && (m.itens || []).length);
-    if (!ms.length || !a.meses) return null;
-    const total = ms.reduce((s, m) => s + (m.itens || []).reduce((t, i) => t + (Number(i.valor) || 0), 0), 0);
-    const idxs = ms.map(m => Number(m.mes.slice(5, 7)) - 1).filter(i => i >= 0 && i < 12);
-    const renda = idxs.reduce((s, i) => s + (Number(a.meses[i]) || 0), 0);
-    if (!renda) return null;
-    return { total, renda, sobrou: renda - total, pct: total / renda * 100, n: idxs.length };
+    if (!a.meses) return null;
+    const gastoDe = (m) => (m.itens || []).reduce((t, i) => t + (Number(i.valor) || 0), 0);
+    const doAno = (life.gastos || []).filter(m => String(m.mes || '').startsWith(String(a.ano)));
+    const pares = doAno
+      .map(m => ({ i: Number(m.mes.slice(5, 7)) - 1, gasto: gastoDe(m) }))
+      .filter(x => x.i >= 0 && x.i < 12 && x.gasto > 0 && (Number(a.meses[x.i]) || 0) > 0);
+    if (!pares.length) return null;
+    const total = pares.reduce((s, x) => s + x.gasto, 0);
+    const salario = pares.reduce((s, x) => s + Number(a.meses[x.i]), 0);
+    const anuais = (Number(a.extra) || 0) + (Number(a.bonus) || 0);
+    const renda = salario + anuais * pares.length / 12;
+    return {
+      total, renda, sobrou: renda - total, pct: total / renda * 100, n: pares.length,
+      de: MES_ABREV[Math.min(...pares.map(x => x.i))], ate: MES_ABREV[Math.max(...pares.map(x => x.i))],
+      temAnuais: anuais > 0,
+    };
   };
   const gastoCy = gastoDoAno(cy);
   const metaPL = Number(cy.metaPL) || 0;
@@ -2191,8 +2203,10 @@ function SalariosVida() {
           </div>
           {gastoCy && (
             <p style={{ fontSize: 11, color: '#aaa', margin: '-4px 0 12px', lineHeight: 1.45 }}>
-              Gasto e salário dos MESMOS {gastoCy.n} meses já lançados (extra e bônus ficam de fora).
-              O que sobrou é o dinheiro novo que dá pra aportar — sem contar o que os investimentos renderam.
+              Comparados os mesmos {gastoCy.n} meses ({gastoCy.de}–{gastoCy.ate}): o que você gastou contra
+              o que ganhou neles{gastoCy.temAnuais ? ', com extra e bônus na proporção desses meses' : ''} —
+              por isso os dois números não batem com o "ganhei" do ano inteiro. O que sobrou é o dinheiro novo
+              que dá pra aportar, sem contar o que os investimentos renderam.
             </p>
           )}
           <BarrasSalario barras={barrasGanhos} />

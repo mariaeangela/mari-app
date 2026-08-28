@@ -512,10 +512,15 @@ Sándor Márai (asl8) em 4 livros individuais padronizados — só age se o item
     **"gastei" substituiu "% poupei" (ago/2026, pedido dela).** O antigo era ΔPL/renda —
     contava o RENDIMENTO dos ativos como se fosse dinheiro guardado, e inflava sozinho em ano
     de bolsa boa. Agora `gastoDoAno(a)` soma os `gastos` do ano e mostra valor, % e **sobrou**
-    (= o aporte novo de verdade). Regra que não pode cair: só entram os meses COM gasto
-    lançado, e a renda é somada nos MESMOS meses (8 meses de gasto contra 12 de salário daria
-    um número bonito e falso); extra e bônus ficam de fora. Ano sem gasto lançado não mostra
-    percentual nenhum — melhor nada do que um número errado.
+    (= o aporte novo de verdade). Regras que não podem cair, todas de erro já visto na tela dela:
+    (1) só entra o mês em que os DOIS lados existem — gasto lançado **e** salário preenchido
+    (mês com gasto e salário 0 estourava a conta); (2) a renda é somada nos MESMOS meses
+    (8 meses de gasto contra 12 de salário daria um número bonito e falso); (3) **extra e bônus
+    entram na PROPORÇÃO dos meses contados** — deixá-los de fora deu **138%, com "sobrou"
+    negativo**, ao lado de um "ganhei" que os incluía; ela viu na hora que estava errado.
+    A linha de texto embaixo dos números diz quais meses entraram (jan–ago) e por que eles não
+    batem com o "ganhei" do ano. Ano sem gasto lançado não mostra percentual nenhum — melhor
+    nada do que um número errado.
   - Gastos: `GastosVida`/`GastoForm`/`TabelaGastos`/`LinhasGastos`, `gastos=[{mes,itens:
     [{categoria,valor}]}]`. Views Mês / Tabela (mês recente 1º) / Linhas (1 por categoria,
     eixo Y, valores ao focar). Campo de valor aceita conta via `evalValor()`.
