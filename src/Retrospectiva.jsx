@@ -1,11 +1,10 @@
 // Aba "Retrospectiva": hub que agrega seus números e marcos.
 // Página inicial: "o ano em números" (clicável) + cards que abrem sub-retrospectivas.
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCalendar } from './calendarStore.jsx';
 import { useLife } from './lifeStore.jsx';
-// A tela de Saúde continua morando na Life.jsx (é lá que estão os estilos e os
-// helpers dela); aqui ela é só carregada sob demanda, ao abrir o card.
-const SaudeSection = lazy(() => import('./Life.jsx').then(m => ({ default: m.SaudeSection })));
+// Saúde saiu daqui em set/2026: virou uma aba da Life (é canto pessoal do dia a
+// dia, não retrospectiva). As contagens do ano foram junto.
 import { fetchSpotifyCover } from './cloud.js';
 import { EXERCICIO_BY_ID, fmtTempo, paceSecs, fmtPace, fmtKm } from './calendarConfig.js';
 import { RotaField } from './rota.jsx';
@@ -52,7 +51,6 @@ const CARDS = [
   { id: 'musica', label: 'Música', desc: 'minutos, artistas e o gráfico do ano', cor: '#1db954', pronto: true },
   { id: 'albuns', label: 'Álbuns marcantes', desc: 'os discos que ficaram', cor: '#1db954', pronto: true },
   { id: 'leituras', label: 'Leituras', desc: 'os livros do seu ano', cor: '#7a5c9e', pronto: true },
-  { id: 'saude', label: 'Saúde', desc: 'consultas, peso, remédios, exames', cor: '#d96459', pronto: true },
   { id: 'habitos', label: 'Acompanhamento', desc: 'sono, trabalho e hábitos do dia', cor: '#3fb6a8', pronto: true },
   { id: 'corridas', label: 'Corridas', desc: 'suas provas e pace', cor: '#ef6c4d', pronto: true },
   { id: 'trilhas', label: 'Trilhas', desc: 'seus percursos na natureza', cor: '#6b8e5a', pronto: true },
@@ -76,7 +74,6 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'quem') return <QuemRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (baseSec === 'saude') return <SaudeRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'habitos') return <HabitosRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
@@ -261,72 +258,6 @@ function QuemRetro({ onBack, isWide }) {
             )}
           </div>
         ))}
-      </>}
-    </div>
-  );
-}
-
-// Saúde: a seção INTEIRA, que era uma aba da Life (consultas, peso, remédios,
-// vacinas, menstruação, exercícios), mais o retrato do ano que já existia aqui —
-// quantas sessões de terapia, consultas e exames, contados pelos eventos de
-// categoria "saúde" do Calendário. Mudou de casa em ago/2026: saúde é histórico,
-// e histórico é o que a Retrospectiva faz.
-function SaudeRetro({ onBack, isWide }) {
-  return (
-    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <SaudeAno onBack={onBack} />
-      <div style={{ marginTop: 26, paddingTop: 4, borderTop: '1px solid #eee' }}>
-        <Suspense fallback={<p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '30px 0', fontStyle: 'italic' }}>carregando…</p>}>
-          <SaudeSection embutido />
-        </Suspense>
-      </div>
-    </div>
-  );
-}
-
-// O retrato do ano (contagens do Calendário), que abre a tela de Saúde.
-function SaudeAno({ onBack }) {
-  const cal = useCalendar();
-  const cor = '#d96459';
-  const [tipoSel, setTipoSel] = useState(null);
-  const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
-  const { anos, anoSel, setAnoSel } = useAnoSel(eventos.map(e => e.inicio));
-  const doAno = eventos.filter(e => (e.inicio || '').slice(0, 4) === anoSel);
-  const classifica = (e) => { const t = (e.titulo || '').toLowerCase(); if (/terapia|psic[oó]|psiqui/.test(t)) return 'terapia'; if (/exame/.test(t)) return 'exame'; return 'consulta'; };
-  const grupos = { terapia: [], consulta: [], exame: [] };
-  doAno.forEach(e => grupos[classifica(e)].push(e));
-  const cards = [['terapia', 'sessões de terapia'], ['consulta', 'consultas'], ['exame', 'exames']]
-    .map(([k, label]) => ({ k, label, itens: grupos[k].sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')) }))
-    .filter(c => c.itens.length);
-  const sel = cards.find(c => c.k === tipoSel);
-  return (
-    <div>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
-      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Saúde</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>o ano em consultas, terapia e exames (do Calendário)</p>
-      <AnoChips anos={anos} anoSel={anoSel} setAnoSel={(a) => { setAnoSel(a); setTipoSel(null); }} cor={cor} />
-      {cards.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Nada de saúde em {anoSel}. Marque consultas e exames como categoria “saúde” no Calendário (terapia, psiquiatria e exames são reconhecidos pelo título).</p>
-      ) : <>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 8 }}>
-          {cards.map(c => (
-            <div key={c.k} onClick={() => setTipoSel(tipoSel === c.k ? null : c.k)} style={{ background: tipoSel === c.k ? cor + '1c' : cor + '10', border: '1px solid ' + (tipoSel === c.k ? cor : cor + '28'), borderRadius: 14, padding: '14px 12px', cursor: 'pointer' }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#111', lineHeight: 1 }}>{c.itens.length}</div>
-              <div style={{ fontSize: 11, color: '#777', marginTop: 5 }}>{c.label}<span style={{ color: cor, fontWeight: 700 }}> ›</span></div>
-            </div>
-          ))}
-        </div>
-        {sel && (
-          <div style={{ marginTop: 10, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 14px' }}>
-            {sel.itens.map((e, i) => (
-              <div key={e.id || i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '1px solid #f4f4f4' }}>
-                <span style={{ fontSize: 12, color: cor, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtDiaMes(e.inicio)}</span>
-                <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>{e.titulo || '—'}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </>}
     </div>
   );

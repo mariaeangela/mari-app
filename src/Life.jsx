@@ -17,10 +17,12 @@ import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';
 import GastosDetalhado from './GastosDetalhado.jsx';
 
 // A Life é dividida em ABAS (ago/2026, a pedido da Mari: estava complexa demais).
-// Duas de conteúdo — Planos e Estudo — mais "Seus dados" (exportar, cópias e
-// versões do servidor), que antes ficava espremido no fim da lista de cards.
-// A Vida Financeira saiu daqui há mais tempo (aba VF própria) e a Saúde foi pra
-// Retrospectiva, junto das contagens de consultas e exames.
+// Duas de conteúdo — Planos e Estudo —, a Saúde e "Seus dados" (exportar, cópias
+// e versões do servidor), que antes ficava espremido no fim da lista de cards.
+// A Vida Financeira saiu daqui há mais tempo (aba VF própria). A Saúde tinha ido
+// pra Retrospectiva em ago/2026 e VOLTOU em set/2026: é canto pessoal do dia a
+// dia (a próxima consulta, o remédio de agora), não retrospectiva. As contagens
+// do ano vieram junto — Saúde é uma coisa só, num lugar só.
 const SECOES = [
   { id: 'planos',         label: 'Planos',         desc: 'projetos com info + checklist',    cor: '#6b7a99' },
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
@@ -29,9 +31,11 @@ const SECOES = [
   { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
   { id: 'legendas',       label: 'Legendas',       desc: 'frases salvas pra reusar',         cor: '#c2548f' },
 ];
+// Saúde e "Seus dados" não têm cards: a aba já abre o conteúdo (secoes: []).
 const ABAS_LIFE = [
   { id: 'planos', label: 'Planos', secoes: ['planos', 'compras', 'viagens'] },
   { id: 'estudo', label: 'Estudo', secoes: ['estudos', 'aprendizados', 'legendas'] },
+  { id: 'saude',  label: 'Saúde', secoes: [] },
   { id: 'dados',  label: 'Seus dados', secoes: [] },
 ];
 const ABA_DA_SECAO = (id) => (ABAS_LIFE.find(a => a.secoes.includes(id)) || ABAS_LIFE[0]).id;
@@ -2732,9 +2736,64 @@ function PesoLinha({ pontos }) {
   );
 }
 
-// Saúde: mora na RETROSPECTIVA desde ago/2026 (junto das contagens de consultas,
-// terapia e exames do Calendário). O componente ficou aqui, onde estão os estilos
-// e os helpers que ele usa; a Retrospectiva importa por este `export`.
+// O retrato do ano: quantas sessões de terapia, quantas consultas e quantos
+// exames — contados pelos eventos de categoria "saúde" do Calendário (terapia,
+// psiquiatria e exames são reconhecidos pelo título). Tocar num número abre a
+// lista. Estava na Retrospectiva; voltou junto com o resto da Saúde (set/2026).
+const fmtDiaMesAbrev = (s) => { const [, m, d] = s.split('-'); return `${+d} ${MES_ABREV[+m - 1]}`; };
+function SaudeAno() {
+  const cal = useCalendar();
+  const [tipoSel, setTipoSel] = useState(null);
+  const anoAtual = String(new Date().getFullYear());
+  const [anoSelRaw, setAnoSel] = useState(anoAtual);
+  const eventos = (cal.data.events || []).filter(e => e.categoria === 'saude');
+  const anos = [...new Set(eventos.map(e => (e.inicio || '').slice(0, 4)).filter(Boolean))].filter(a => a <= anoAtual).sort().reverse();
+  const anoSel = anos.includes(anoSelRaw) ? anoSelRaw : (anos[0] || anoAtual);
+  const classifica = (e) => { const t = (e.titulo || '').toLowerCase(); if (/terapia|psic[oó]|psiqui/.test(t)) return 'terapia'; if (/exame/.test(t)) return 'exame'; return 'consulta'; };
+  const grupos = { terapia: [], consulta: [], exame: [] };
+  eventos.filter(e => (e.inicio || '').slice(0, 4) === anoSel).forEach(e => grupos[classifica(e)].push(e));
+  const cards = [['terapia', 'sessões de terapia'], ['consulta', 'consultas'], ['exame', 'exames']]
+    .map(([k, label]) => ({ k, label, itens: grupos[k].sort((a, b) => (b.inicio || '').localeCompare(a.inicio || '')) }))
+    .filter(c => c.itens.length);
+  const sel = cards.find(c => c.k === tipoSel);
+  if (cards.length === 0) return null;   // sem nada no ano, o bloco nem aparece
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px' }}>o ano em consultas, terapia e exames (do Calendário)</p>
+      {anos.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 14 }}>
+          {anos.map(a => (
+            <button key={a} onClick={() => { setAnoSel(a); setTipoSel(null); }} style={{
+              whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+              border: '1px solid ' + (anoSel === a ? COR_SAUDE : '#e2e2e2'), background: anoSel === a ? COR_SAUDE + '1c' : '#fff', color: anoSel === a ? '#333' : '#999',
+            }}>{a}</button>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        {cards.map(c => (
+          <div key={c.k} onClick={() => setTipoSel(tipoSel === c.k ? null : c.k)} style={{ background: tipoSel === c.k ? COR_SAUDE + '1c' : COR_SAUDE + '10', border: '1px solid ' + (tipoSel === c.k ? COR_SAUDE : COR_SAUDE + '28'), borderRadius: 14, padding: '14px 12px', cursor: 'pointer' }}>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: '#111', lineHeight: 1 }}>{c.itens.length}</div>
+            <div style={{ fontSize: 11, color: '#777', marginTop: 5 }}>{c.label}<span style={{ color: COR_SAUDE, fontWeight: 700 }}> ›</span></div>
+          </div>
+        ))}
+      </div>
+      {sel && (
+        <div style={{ marginTop: 10, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: '12px 14px' }}>
+          {sel.itens.map((e, i) => (
+            <div key={e.id || i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '1px solid #f4f4f4' }}>
+              <span style={{ fontSize: 12, color: COR_SAUDE, fontWeight: 700, width: 46, flexShrink: 0 }}>{fmtDiaMesAbrev(e.inicio)}</span>
+              <span style={{ flex: 1, fontSize: 13.5, color: '#222' }}>{e.titulo || '—'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Saúde: voltou pra Life em set/2026 (é uma ABA dela). O `embutido` desliga o
+// título e o "voltar" próprios — quem embute já tem os seus.
 export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
   const life = useLife();
   const cal = useCalendar();
@@ -6162,7 +6221,8 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
           );
         })}
       </div>
-      {abaAtual.id === 'dados' ? <SeusDados /> : (
+      {abaAtual.id === 'saude' ? <><SaudeAno /><SaudeSection embutido /></>
+        : abaAtual.id === 'dados' ? <SeusDados /> : (
         <div style={{ display: 'grid', gridTemplateColumns: isWide ? 'repeat(auto-fill, minmax(180px, 1fr))' : '1fr 1fr', gap: 12 }}>
           {cards.map(s => (
             <button key={s.id} onClick={() => setSec(s.id)} style={{
