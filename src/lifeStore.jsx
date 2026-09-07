@@ -800,6 +800,34 @@ function ensureChicagoRoteiro(d) {
   return { ...d, chicagoRoteiro6: true, viagensFuturas: next };
 }
 
+// BILHETE DE USO ÚNICO — os cinco livros que a Mari mandou em 07/set/2026 pras
+// Próximas leituras. Entram na ESTANTE (é onde cai um livro novo adicionado à
+// mão); um toque em "Não tenho" muda, se ela não tiver o exemplar. Título que já
+// estiver na lista não entra de novo. Roda UMA vez: assim que estiver gravado no
+// documento dela, esta função e o nome dela lá embaixo saem daqui.
+const LEITURAS_SET26 = [
+  { id: 'lv-set26-nausea', titulo: 'A Náusea', autor: 'Jean-Paul Sartre', pais: 'França', ano: 1938,
+    tipo: 'ficção', genero: 'Romance', temas: ['existencialismo', 'absurdo', 'solidão'] },
+  { id: 'lv-set26-estrangeiro', titulo: 'O Estrangeiro', autor: 'Albert Camus', pais: 'França', ano: 1942,
+    tipo: 'ficção', genero: 'Romance', temas: ['absurdo', 'indiferença', 'justiça'] },
+  { id: 'lv-set26-ivanilitch', titulo: 'A Morte de Ivan Ilitch', autor: 'Lev Tolstói', pais: 'Rússia', ano: 1886,
+    tipo: 'ficção', genero: 'Novela', temas: ['morte', 'doença', 'sentido da vida'] },
+  // Só título, autor e país: não consegui confirmar ano, gênero e temas desta
+  // obra, e chute aqui vira filtro errado depois. Ela completa ao abrir o livro.
+  { id: 'lv-set26-razaoimpura', titulo: 'Crítica da Razão Impura', autor: 'Gonçalo M. Tavares', pais: 'Portugal' },
+  { id: 'lv-set26-pensamentomagico', titulo: 'O Ano do Pensamento Mágico', autor: 'Joan Didion', pais: 'Estados Unidos', ano: 2005,
+    tipo: 'não ficção', genero: 'Memória', temas: ['luto', 'perda', 'casamento', 'memória'] },
+];
+export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.leiturasSet26) return d;
+  const have = new Set((d.leituras || []).map(l => (l.titulo || '').trim().toLowerCase()));
+  const novos = LEITURAS_SET26
+    .filter(l => !have.has(l.titulo.toLowerCase()))
+    .map(l => ({ idioma: 'Português', temas: [], ...l, lido: false, tenho: true }));
+  if (!novos.length) return { ...d, leiturasSet26: true };
+  return { ...d, leiturasSet26: true, leituras: [...(d.leituras || []), ...novos] };
+}
+
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -820,7 +848,8 @@ function ensureChicagoRoteiro(d) {
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
-    ensureChicagoRoteiro /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureChicagoRoteiro, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
+    ensureLeiturasSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
