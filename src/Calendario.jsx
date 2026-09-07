@@ -872,6 +872,8 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
   const ano = refDate.getFullYear(), mes = refDate.getMonth();
   const ultimoDia = new Date(ano, mes + 1, 0).getDate();
   const vazios = new Date(ano, mes, 1).getDay(); // quadradinhos antes do dia 1
+  // Tocar no dia já escolhido TIRA a data (não existe "obrigada a marcar algum
+  // dia"): o mês pode ficar sem nenhum coringa. Mesmo efeito do "deixar sem dia".
   const escolher = (id, dia) => { cal.setCoringa(mesKey, id, dia); setAberto(null); };
 
   return (
@@ -901,7 +903,7 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
                   {Array.from({ length: ultimoDia }, (_, i) => i + 1).map(n => {
                     const sel = dia === n;
                     return (
-                      <button key={n} onClick={() => escolher(c.id, n)} style={{
+                      <button key={n} onClick={() => escolher(c.id, sel ? null : n)} style={{
                         padding: '7px 0', borderRadius: 8, fontSize: 12.5, fontWeight: sel ? 700 : 500, cursor: 'pointer',
                         border: '1px solid ' + (sel ? CORINGA_COR : '#eee'),
                         background: sel ? CORINGA_COR : '#fff', color: sel ? '#fff' : '#555',
@@ -910,7 +912,10 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
                   })}
                 </div>
                 {dia && (
-                  <button onClick={() => escolher(c.id, null)} style={{ marginTop: 8, background: 'none', border: 'none', color: '#bbb', fontSize: 12, cursor: 'pointer', padding: 0 }}>tirar a data</button>
+                  <button onClick={() => escolher(c.id, null)} style={{
+                    marginTop: 10, background: '#fff', border: '1px solid ' + CORINGA_COR + '55', borderRadius: 8,
+                    color: CORINGA_COR, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '7px 12px',
+                  }}>deixar este mês sem dia</button>
                 )}
               </div>
             )}

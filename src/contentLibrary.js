@@ -69,12 +69,15 @@ export const SEASON_THEMES = {
   },
 };
 
-export function getSeason() {
-  const m = new Date().getMonth() + 1;
-  if (m >= 12 || m <= 2) return 'summer';
-  if (m >= 3 && m <= 5) return 'autumn';
-  if (m >= 6 && m <= 8) return 'winter';
-  return 'spring';
+// Estação no hemisfério SUL, pelas datas de virada de verdade (e não pelo mês
+// cheio): 7 de setembro ainda é inverno aqui, a primavera só começa no dia 22.
+// As viradas oscilam um dia de ano para ano; estas são as do calendário brasileiro.
+export function getSeason(date = new Date()) {
+  const md = (date.getMonth() + 1) * 100 + date.getDate();  // 907 = 7 de setembro
+  if (md >= 1221 || md < 320) return 'summer';   // 21/12 → 19/03
+  if (md < 621) return 'autumn';                 // 20/03 → 20/06
+  if (md < 922) return 'winter';                 // 21/06 → 21/09
+  return 'spring';                               // 22/09 → 20/12
 }
 
 export function getGreeting() {
