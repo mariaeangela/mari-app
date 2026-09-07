@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { useLife, MOEDAS, simboloMoeda, getOrcamentoViagem } from './lifeStore.jsx';
 import { useCalendar } from './calendarStore.jsx';
-import { EXERCICIO_BY_ID, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
+import { EXERCICIO_BY_ID, subtipoCanon, fmtKm, fmtTempo, parseTempo } from './calendarConfig.js';
 import { eventOccursOn } from './Calendario.jsx';
 import { useNav } from './nav.jsx';
 import { useSaved } from './savedStore.jsx';
@@ -2865,8 +2865,10 @@ export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
   const anoEx = (exAtualMes || '').slice(0, 4);
   const exAno = exercicios.filter(x => (x.data || '').startsWith(anoEx) && (x.data || '').slice(0, 7) <= mesAtualKey);
   // A quebra por tipo (Perna, Corrida rua…) é do ANO — o mês fica só no resumo de cima.
+  // Conta pelo subtipo CANÔNICO: 'corrida' (nome antigo) e 'corrida_prova' são a
+  // mesma coisa e têm que somar na mesma linha.
   const porTipo = {};
-  exAno.forEach(x => { porTipo[x.subtipo] = (porTipo[x.subtipo] || 0) + 1; });
+  exAno.forEach(x => { const k = subtipoCanon(x.subtipo); porTipo[k] = (porTipo[k] || 0) + 1; });
   const tiposOrd = Object.entries(porTipo)
     .map(([id, n]) => ({ id, n, label: EXERCICIO_BY_ID[id]?.label || id, cor: EXERCICIO_BY_ID[id]?.cor || '#999' }))
     .sort((a, b) => b.n - a.n);

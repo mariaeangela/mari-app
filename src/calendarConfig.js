@@ -33,6 +33,11 @@ export const EXERCICIO_BY_ID = Object.fromEntries(EXERCICIO_SUBTIPOS.map(e => [e
 EXERCICIO_BY_ID.corrida = EXERCICIO_BY_ID.corrida_prova;
 EXERCICIO_BY_ID.corrida_treino = EXERCICIO_BY_ID.corrida_treino_rua; // treino antigo -> rua (editável)
 ['natacao', 'caminhada', 'jogo', 'danca'].forEach(k => { EXERCICIO_BY_ID[k] = EXERCICIO_BY_ID.outros; });
+// Nome DE VERDADE do subtipo: os apelidos acima apontam para o mesmo objeto do
+// subtipo atual, então o `.id` dele é o canônico. Quem CONTA por tipo tem que
+// passar por aqui — senão 'corrida' e 'corrida_prova' viram duas linhas
+// "Corrida prova", com 1× cada, em vez de uma com 2×.
+export const subtipoCanon = (subtipo) => EXERCICIO_BY_ID[subtipo]?.id || subtipo;
 // Subtipos com distância (mostram km/tempo no form e no rótulo): corrida + trilha.
 export const COM_DISTANCIA = new Set(['corrida_prova', 'corrida', 'corrida_treino', 'corrida_treino_rua', 'corrida_treino_esteira', 'trilha']);
 // Subtipos em que faz sentido desenhar o trajeto (têm GPS/rua/mato). Esteira não.
