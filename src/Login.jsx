@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSeason, SEASON_THEMES, getGreeting, getDayName, carregarFatoDoDia } from './contentLibrary.js';
+import { getSeason, SEASON_THEMES, getGreeting, getDayName, carregarFatoDoDia, arteDaTelaDeEntrada } from './contentLibrary.js';
 import { getViagemAtivaCache } from './lifeStore.jsx';
 import { getCidadeFato } from './cidadeFatos.js';
 import { setApiKey, pingProtegido, checarSenha } from './cloud.js';
@@ -63,7 +63,20 @@ export default function Login({ onLogin }) {
   useEffect(() => { let vivo = true; carregarFatoDoDia().then(f => { if (vivo) setFact(f); }); return () => { vivo = false; }; }, []);
   // Modo Viagem: com viagem ativa (lida do cache local), a senha vira "Bom dia em <cidade>" + fato da cidade.
   const viagem = getViagemAtivaCache();
-  const fatoCidade = viagem ? getCidadeFato(viagem.cidade, now) : null;
+  // Fundo: a pintura da estação (ou a da cidade, viajando). Enquanto a imagem
+  // não chega, fica o degradê da estação por baixo — e ela entra suave.
+  const hojeYmd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const arte = arteDaTelaDeEntrada(season, viagem, hojeYmd);
+  // Numa viagem de duas cidades, vale a de HOJE (a que a programação do dia diz).
+  const cidadeHoje = viagem ? (arte.cidade || viagem.cidade) : null;
+  const fatoCidade = viagem ? getCidadeFato(cidadeHoje, now) : null;
+  const [arteCarregou, setArteCarregou] = useState(false);
+  useEffect(() => {
+    setArteCarregou(false);
+    const img = new Image();
+    img.onload = () => setArteCarregou(true);
+    img.src = arte.url;
+  }, [arte.url]);
 
   const recusar = (texto) => {
     setMsg(texto || 'senha incorreta. tente novamente.');
@@ -114,29 +127,11 @@ export default function Login({ onLogin }) {
       <style>{`
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
       `}</style>
 
-      {/* Decorative floating shapes */}
-      {theme.decoration.map((color, i) => (
-        <div key={i} style={{
-          position: 'absolute',
-          width: [80,60,100,70][i], height: [80,60,100,70][i],
-          borderRadius: '50%',
-          background: color + '40',
-          top: [`8%`,`70%`,`15%`,`55%`][i],
-          left: [`75%`,`8%`,`5%`,`80%`][i],
-          animation: `float ${3 + i}s ease-in-out infinite`,
-          animationDelay: `${i * 0.5}s`,
-        }} />
-      ))}
-
-      {/* Color band top */}
-      <div style={{ display: 'flex', height: 5 }}>
-        {theme.decoration.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-        <div style={{ flex: 1, background: theme.accent }} />
-        <div style={{ flex: 1, background: '#111' }} />
-      </div>
+      {/* Fundo: a obra, e um véu claro por cima pra letra continuar legível */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url("${arte.url}")`, backgroundSize: 'cover', backgroundPosition: arte.pos, filter: 'sepia(0.18) saturate(0.9)', opacity: arteCarregou ? 1 : 0, transition: 'opacity 1.2s ease' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,252,246,0.05) 0%, rgba(255,252,246,0.22) 40%, rgba(255,252,246,0.40) 100%)' }} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 28px', animation: shaking ? 'shake 0.5s ease' : 'fadeUp 0.7s ease', position: 'relative', zIndex: 1 }}>
 
@@ -148,16 +143,12 @@ export default function Login({ onLogin }) {
 
         {/* Logo */}
         <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 10vw, 48px)', fontWeight: 700, color: '#111', letterSpacing: '1.5px', lineHeight: 1.1, textTransform: 'uppercase', marginBottom: 6, whiteSpace: 'nowrap' }}>diagonal</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-          <div style={{ flex: 1, height: 1.5, background: theme.accent }} />
-          <span style={{ fontSize: 9, letterSpacing: '2.5px', color: theme.sub, textTransform: 'uppercase' }}>arte · literatura · história</span>
-          <div style={{ flex: 1, height: 1.5, background: theme.accent }} />
-        </div>
+        <div style={{ height: 1.5, background: theme.accent, marginBottom: 32 }} />
 
         {/* Greeting card */}
         <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '20px 22px', marginBottom: 28, border: `1px solid ${theme.accentLight}`, boxShadow: `0 4px 24px ${theme.accent}15` }}>
           <p style={{ fontFamily: "'Lora', serif", fontSize: 20, color: '#111', marginBottom: 4, fontStyle: 'italic' }}>
-            {viagem ? `${greeting} em ${viagem.cidade}, Mari! ✨` : `${greeting}, Mari! ✨`}
+            {viagem ? `${greeting} em ${cidadeHoje}, Mari! ✨` : `${greeting}, Mari! ✨`}
           </p>
           <p style={{ fontSize: 12, color: '#777', marginBottom: 14 }}>
             Hoje é {dayName}, {dateStr}.{viagem ? ` ${viagem.titulo} 📚` : ''}
@@ -165,14 +156,14 @@ export default function Login({ onLogin }) {
           <div style={{ width: '100%', height: 1, background: theme.accentLight, marginBottom: 14 }} />
           <p style={{ fontSize: 12, color: '#555', lineHeight: 1.65 }}>
             {viagem && fatoCidade
-              ? <><span style={{ fontWeight: 700, color: theme.accent }}>{viagem.cidade}</span> {fatoCidade}</>
+              ? <><span style={{ fontWeight: 700, color: theme.accent }}>{cidadeHoje}</span> {fatoCidade}</>
               : fact ? <><span style={{ fontWeight: 700, color: theme.accent }}>Sabia que</span> {fact}</> : null}
           </p>
         </div>
 
         {/* Input */}
         <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 9, color: theme.sub, letterSpacing: '2.5px', textTransform: 'uppercase', display: 'block', marginBottom: 8, fontWeight: 600 }}>senha de acesso</label>
+          <label style={{ fontSize: 9, color: theme.sub, letterSpacing: '2.5px', textTransform: 'uppercase', display: 'block', marginBottom: 8, fontWeight: 700, textShadow: '0 0 6px rgba(255,252,246,0.95), 0 0 2px rgba(255,252,246,0.95)' }}>senha de acesso</label>
           <input
             type="password"
             value={password}
@@ -190,12 +181,8 @@ export default function Login({ onLogin }) {
         </button>
       </div>
 
-      {/* Color band bottom */}
-      <div style={{ display: 'flex', height: 5 }}>
-        <div style={{ flex: 1, background: '#111' }} />
-        <div style={{ flex: 1, background: theme.accent }} />
-        {theme.decoration.map((c, i) => <div key={i} style={{ flex: 1, background: c }} />)}
-      </div>
+      {/* De quem é a obra do fundo — como a legenda de um museu */}
+      <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', padding: '0 18px 14px', fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 10.5, color: 'rgba(40,30,20,0.7)', textShadow: '0 0 6px rgba(255,252,246,0.95), 0 0 2px rgba(255,252,246,0.95)', opacity: arteCarregou ? 1 : 0, transition: 'opacity 1.2s ease' }}>{arte.credito}</div>
     </div>
   );
 }

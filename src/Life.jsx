@@ -15,6 +15,7 @@ import { evalValor, contaInvalida, PreviaConta } from './conta.jsx';
 // Aba "Gastos detalhados" da VF: componente próprio e INDEPENDENTE (cópia, não
 // linkada à Retrospectiva, que vai ser aposentada).
 import GastosDetalhado from './GastosDetalhado.jsx';
+import { previsaoMenstruacao } from './saudeCalc.js';
 
 // A Life é dividida em ABAS (ago/2026, a pedido da Mari: estava complexa demais).
 // Duas de conteúdo — Planos e Estudo —, a Saúde e "Seus dados" (exportar, cópias
@@ -3023,8 +3024,22 @@ export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
           <button onClick={() => setForm({ tipo: 'vacina', editing: v })} style={editLink}>editar</button>
         </>, v.id)))}
 
-      {bloco('Menstruação', 'menstruacao',
-        menstr.length === 0 ? vazio('Nenhum registro ainda.') : menstr.map((m, i) => {
+      {bloco('Menstruação', 'menstruacao', <>
+        {(() => {
+          // Previsão pela média dos ciclos que ela registrou (ver saudeCalc.js).
+          const p = previsaoMenstruacao(menstr, hk);
+          if (!p) return null;
+          const quando = p.faltam > 1 ? `daqui a ${p.faltam} dias` : p.faltam === 1 ? 'amanhã' : p.faltam === 0 ? 'hoje' : `era há ${-p.faltam} ${p.faltam === -1 ? 'dia' : 'dias'}`;
+          return (
+            <div style={{ background: '#fdeef3', border: '1px solid #f5c6d6', borderRadius: 12, padding: '10px 13px', marginBottom: 10 }}>
+              <div style={{ fontSize: 13.5, color: '#8a2a4c', fontWeight: 700 }}>Próxima: por volta de {fmtData(p.proxima)} · {quando}</div>
+              <div style={{ fontSize: 11.5, color: '#b0708a', marginTop: 3, lineHeight: 1.45 }}>
+                pela média dos seus últimos {p.amostra} {p.amostra === 1 ? 'ciclo' : 'ciclos'}: {p.ciclo} dias{p.duracao ? ` · costuma durar ${p.duracao} ${p.duracao === 1 ? 'dia' : 'dias'}` : ''}
+              </div>
+            </div>
+          );
+        })()}
+        {menstr.length === 0 ? vazio('Nenhum registro ainda.') : menstr.map((m, i) => {
           const prev = menstr[i + 1];
           const ciclo = prev ? Math.round((new Date(m.data) - new Date(prev.data)) / 86400000) : null;
           const dur = m.fim ? Math.round((new Date(m.fim) - new Date(m.data)) / 86400000) + 1 : null;
@@ -3034,7 +3049,8 @@ export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
             {ciclo != null && <span style={{ fontSize: 11.5, color: '#aaa' }}>ciclo de {ciclo} dias</span>}
             <button onClick={() => setForm({ tipo: 'menstruacao', editing: m })} style={editLink}>editar</button>
           </>, m.id);
-        }))}
+        })}
+      </>)}
 
       {form && <SaudeForm tipo={form.tipo} editing={form.editing} onClose={() => setForm(null)} />}
     </div>

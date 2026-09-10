@@ -13,8 +13,6 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 - 🟢 **Faxina depois da viagem (depois de 26/09)** — o roteiro de Chicago ficou
   pronto em 27/08, mas o bilhete `ensureChicagoRoteiro` ainda está no código.
   Sai assim que a viagem acabar (a programação já está no documento dela).
-- 🟢 **Tirar o bilhete dos sete livros** (`ensureLeiturasSet26b`, 10/09) assim
-  que ela abrir o app e os livros aparecerem em "Não tenho".
 - 🟡 **Esportes: manter a agenda viva** — `esportesSeed.js` é escrito à mão e
   envelhece sozinho. Antes de reescrever, buscar na web datas/confrontos/transmissões.
 
@@ -31,10 +29,9 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 
 ## 3. Finanças (o plano por passos)
 
-Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
+Passos 1–4 feitos (importar gastos · VR por dia · painel "posso gastar" · lançar
+o gasto na hora, que já está na capa).
 
-- 🔴 **Passo 4 — lançador rápido** ⏳ — lançar o gasto **na hora que acontece**, já
-  categorizado, em vez de colar totais do Excel. É o passo que ela mais quer.
 - 🟡 **Gastos detalhados: acabar com o "outros"** ⏳ — hoje são duas listas que
   divergem (o total do mês, digitado; e os itens, com nome). A diferença vira uma
   linha "outros". O objetivo é o total ser a **soma dos itens**. Ela ia mandar um
@@ -54,8 +51,6 @@ Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
 
 - 🟢 **Reportagens: edições 226 e 227** ⏳ — faltaram na planilha da piauí (jul e
   ago/2025). Ela manda a planilha; eu cadastro no mesmo formato.
-- 🟡 **Temas para estudar + o que aprendi por tema** ⏳ — o card Temas já existe
-  (set/2026, com Rússia e Filosofia); falta ela dizer se era isso ou se quer mais.
 - 🟡 **"Pedir guia" pra qualquer livro** — hoje o guia de contexto é escrito à mão
   (só Anna Kariênina tem).
 - 🟡 **"Me sugere um livro"** — sugere da estante por tempo/humor/tema ("tá com 1h?
@@ -64,14 +59,8 @@ Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
 ## 5. Saúde
 
 - 🟡 **Aviso de remédio acabando** — a partir do início + duração.
-- 🟡 **Previsão da próxima menstruação** — média dos ciclos.
 
-## 6. Viagens
-
-- 🟡 **Viagens feitas** — o passado hoje mora na Retrospectiva e o futuro em Life.
-  Juntar os dois (uma coisa, um lugar).
-
-## 7. Ideias (sem pressa, nenhuma começada)
+## 6. Ideias (sem pressa, nenhuma começada)
 
 - 🔴 **"Seu ano em revisão"** — a tela do fim do ano juntando livros, viagens,
   corridas, música, humor, gastos e dias importantes.
@@ -82,7 +71,6 @@ Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
 - 🟡 **Humor + correlações** — "fica melhor nos dias que corre ou lê".
 - 🟡 **Diário cultural narrativo** — "em junho: leu X, foi ao MASP, viajou pra Y".
 - 🟡 **Indicações de álbuns** a partir do histórico do Spotify.
-- 🟢 **Imagem de fundo na tela de senha** — hoje é só cor.
 
 ---
 
@@ -98,7 +86,9 @@ Próximas leituras · Esportes.
 ## Descartadas antes (decisão dela)
 
 **Rabbit Hole** · **Pessoas / linhas do tempo** de figuras · **subtítulos das
-páginas** (ela prefere sem, mais clean) · **Cursos online**.
+páginas** (ela prefere sem, mais clean) · **Cursos online** · **juntar viagens
+feitas e futuras** (10/09: não foi pedido dela — saiu da lista) · **"o que aprendi
+por tema"** (10/09: o card Temas resolve).
 
 ---
 

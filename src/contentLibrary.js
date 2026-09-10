@@ -69,6 +69,46 @@ export const SEASON_THEMES = {
   },
 };
 
+// ---- Fundo da tela de entrada (set/2026) ----
+// Pinturas e fotos antigas em DOMÍNIO PÚBLICO (Wikimedia Commons), uma por estação;
+// viajando, a da cidade. Substituíram os círculos coloridos que flutuavam. `pos` é
+// o recorte no celular (a tela é em pé e a maioria das obras é deitada).
+const WM = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/';
+export const ARTE_ESTACAO = {
+  winter: { url: WM + '7/78/Claude_Monet_-_The_Magpie_-_Google_Art_Project.jpg/1280px-Claude_Monet_-_The_Magpie_-_Google_Art_Project.jpg',
+    pos: '24% center', credito: 'Claude Monet, A pega (1869)' },
+  spring: { url: WM + '6/68/Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg/1280px-Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg',
+    pos: 'center', credito: 'Vincent van Gogh, Amendoeira em flor (1890)' },
+  summer: { url: WM + '1/1b/Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg/1280px-Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg',
+    pos: '50% 30%', credito: 'Claude Monet, Mulher com sombrinha (1875)' },
+  autumn: { url: WM + '5/57/Levitan_Zolotaya_Osen.jpg/1280px-Levitan_Zolotaya_Osen.jpg',
+    pos: '58% center', credito: 'Isaac Levitan, Outono dourado (1895)' },
+};
+// Cidades com imagem própria. Pra uma cidade nova, é só somar aqui; as outras
+// ficam com a da estação.
+const ARTE_CIDADE = [
+  { cidade: 'Chicago', re: /chicago/i, url: WM + '4/40/South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg/1280px-South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg',
+    pos: '62% center', credito: 'O rio Chicago em 1900 (fotocromo)' },
+  { cidade: 'Nova York', re: /nova york|new york|nyc|manhattan|brooklyn/i, url: WM + '3/3a/The_Avenue_in_the_Rain_Frederick_Childe_Hassam_1917.jpeg/1280px-The_Avenue_in_the_Rain_Frederick_Childe_Hassam_1917.jpeg',
+    pos: 'center', credito: 'Childe Hassam, A avenida na chuva (1917)' },
+];
+// Viajando: vale a cidade que aparece na programação de HOJE (numa viagem de
+// duas cidades — NY e Chicago — a viagem só tem uma cidade no cadastro); se hoje
+// não tiver nada que diga, a cidade da viagem; se nenhuma tiver imagem, a estação.
+export function arteDaTelaDeEntrada(season, viagem, hoje) {
+  if (viagem) {
+    const textos = [
+      ...(viagem.mesas || []).filter(m => m && m.dia === hoje).map(m => [m.titulo, m.desc, m.maps].join(' ')),
+      viagem.cidade || '',
+    ];
+    for (const t of textos) {
+      const c = ARTE_CIDADE.find(a => a.re.test(t));
+      if (c) return c;
+    }
+  }
+  return ARTE_ESTACAO[season] || ARTE_ESTACAO.winter;
+}
+
 // Estação no hemisfério SUL, pelas datas de virada de verdade (e não pelo mês
 // cheio): 7 de setembro ainda é inverno aqui, a primavera só começa no dia 22.
 // As viradas oscilam um dia de ano para ano; estas são as do calendário brasileiro.

@@ -800,63 +800,6 @@ function ensureChicagoRoteiro(d) {
   return { ...d, chicagoRoteiro6: true, viagensFuturas: next };
 }
 
-// BILHETE DE USO ÚNICO — os sete livros que a Mari mandou em 10/set/2026 pras
-// Próximas leituras (dois do David Grossman e cinco do Ian Buruma). Entram em
-// NÃO TENHO — ela avisou que não tem nenhum. Título que já estiver na lista não
-// entra de novo. Roda UMA vez: assim que estiver gravado no documento dela, esta função e
-// o nome dela lá embaixo saem daqui. (O bilhete anterior, dos cinco livros de
-// 07/set, já tinha rodado e saiu nesta mesma troca.)
-const LEITURAS_SET26B = [
-  { id: 'lv-set26-infernooutros', titulo: 'O Inferno dos Outros', autor: 'David Grossman', pais: 'Israel', ano: 2014,
-    tipo: 'ficção', genero: 'Romance', temas: ['humor', 'luto', 'infância', 'Israel'],
-    nota: 'título original: Sus echad nichnas lebar (A Horse Walks into a Bar)' },
-  { id: 'lv-set26-vidabrinca', titulo: 'A Vida Brinca Comigo', autor: 'David Grossman', pais: 'Israel', ano: 2019,
-    tipo: 'ficção', genero: 'Romance', temas: ['família', 'memória', 'mães e filhas', 'Iugoslávia'],
-    nota: 'título em inglês: More Than I Love My Life' },
-  { id: 'lv-set26-colaboradores', titulo: 'Os Colaboradores', autor: 'Ian Buruma', pais: 'Holanda', ano: 2022,
-    tipo: 'não ficção', genero: 'História', temas: ['Segunda Guerra', 'colaboração', 'identidade', 'sobrevivência'],
-    nota: 'título original: The Collaborators: Three Stories of Deception and Survival in World War II' },
-  // Sem edição em português que eu tenha achado: vai com o título e o idioma do original.
-  { id: 'lv-set26-stayalive', titulo: 'Stay Alive: Berlin, 1939–1945', autor: 'Ian Buruma', pais: 'Holanda', ano: 2026,
-    idioma: 'Inglês', tipo: 'não ficção', genero: 'História', temas: ['Segunda Guerra', 'Berlim', 'nazismo', 'vida cotidiana'] },
-  { id: 'lv-set26-assassinatoams', titulo: 'Assassinato em Amsterdã', autor: 'Ian Buruma', pais: 'Holanda', ano: 2006,
-    tipo: 'não ficção', genero: 'Reportagem', temas: ['islã', 'Europa', 'imigração', 'tolerância'],
-    nota: 'título original: Murder in Amsterdam' },
-  { id: 'lv-set26-ocidentalismo', titulo: 'Ocidentalismo: O Ocidente aos Olhos de seus Inimigos', autor: 'Ian Buruma e Avishai Margalit', pais: 'Holanda', ano: 2004,
-    tipo: 'não ficção', genero: 'Ensaio', temas: ['Ocidente', 'fundamentalismo', 'ideias políticas'],
-    nota: 'título original: Occidentalism: The West in the Eyes of Its Enemies' },
-  { id: 'lv-set26-domardeuses', titulo: 'Domar os Deuses: Religião e Democracia em Três Continentes', autor: 'Ian Buruma', pais: 'Holanda', ano: 2010,
-    tipo: 'não ficção', genero: 'Ensaio', temas: ['religião', 'democracia', 'secularismo'],
-    nota: 'título original: Taming the Gods' },
-];
-// A primeira versão deste bilhete (759eaf2) punha os sete na ESTANTE e pode já
-// ter rodado no aparelho dela. O segundo passo (flag `leiturasSet26bNaoTenho`)
-// passa esses sete pra "Não tenho" — só pelo id, e nunca um que ela já marcou
-// como lido.
-export function ensureLeiturasSet26b(d) {   // exportada só pro teste; sai junto com a função
-  let out = d;
-  if (!out.leiturasSet26b) {
-    const have = new Set((out.leituras || []).map(l => (l.titulo || '').trim().toLowerCase()));
-    const novos = LEITURAS_SET26B
-      .filter(l => !have.has(l.titulo.toLowerCase()))
-      .map(l => ({ idioma: 'Português', temas: [], ...l, lido: false, tenho: false }));
-    out = novos.length
-      ? { ...out, leiturasSet26b: true, leituras: [...(out.leituras || []), ...novos] }
-      : { ...out, leiturasSet26b: true };
-  }
-  if (!out.leiturasSet26bNaoTenho) {
-    const ids = new Set(LEITURAS_SET26B.map(l => l.id));
-    let mudou = false;
-    const leituras = (out.leituras || []).map(l => {
-      if (!ids.has(l.id) || l.lido || l.tenho === false) return l;
-      mudou = true;
-      return { ...l, tenho: false };
-    });
-    out = mudou ? { ...out, leiturasSet26bNaoTenho: true, leituras } : { ...out, leiturasSet26bNaoTenho: true };
-  }
-  return out;
-}
-
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -877,8 +820,7 @@ export function ensureLeiturasSet26b(d) {   // exportada só pro teste; sai junt
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
-    ensureChicagoRoteiro, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
-    ensureLeiturasSet26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureChicagoRoteiro /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
