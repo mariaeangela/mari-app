@@ -21,11 +21,6 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
   perde nada (a mescla por fatia salva os dois lados), só confunde.
   **É o único com risco de verdade, porque mexe no servidor e nos três stores.**
   (As regras de sync já têm teste: 409 que mescla, falta de espaço, dois aparelhos.)
-- 🟡 **Abrir o app sem internet** ⏳ — os dados dela já ficam no aparelho e a senha
-  já funciona offline; o que falta é o próprio app ficar guardado no aparelho
-  (service worker) pra abrir sem rede — avião, metrô, roaming. Proposta feita em
-  10/09, antes da viagem; espera o ok dela. Cuidado: não pode prender o app numa
-  versão velha (o aviso de versão nova tem que continuar funcionando).
 
 ## 3. Finanças (o plano por passos)
 

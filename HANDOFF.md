@@ -4,6 +4,22 @@ App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 `mariaeangela/mari-app` (branch `main`). Publicar = `git push origin main`
 (a Vercel republica sozinha). Senha do app (login): `taylor13` (em `src/Login.jsx`).
 
+## App guardado no aparelho — abre sem internet (10/set/2026)
+`pwa/sw.js` é o MODELO do service worker; o plugin `appNoAparelho` em
+`vite.config.js` gera `dist/sw.js` com a lista exata do build (`/assets/*` +
+ícones/manifest) e uma versão = hash da lista + do modelo. Registrado em
+`src/main.jsx` só no build (`import.meta.env.PROD`).
+- Página: **rede primeiro** (4s), senão a guardada. A guardada só é escrita na
+  instalação, junto com os pedaços — página e pedaços sempre da mesma versão.
+- `/assets/*`: da memória do aparelho (`ignoreVary` é obrigatório: sem ele o
+  script com `crossorigin` não casa e o app abria em BRANCO offline — testado).
+- Não toca em `/api` nem em outro site (pinturas, fontes).
+- Versão nova: o SW novo instala tudo, apaga o cache velho e assume; quem estava
+  com o app aberto cai no "Saiu uma versão nova do app" de sempre (os pedaços
+  velhos deixam de existir). Com internet nunca fica preso em versão velha.
+- Testar: `npm run build` + `npm run preview`, abrir, derrubar o servidor e
+  recarregar.
+
 ## SIMPLIFICAÇÃO + anti-perda (11/ago/2026) — LEIA PRIMEIRO
 A Mari perdeu as notas de terapia do dia. Duas causas REAIS, as duas corrigidas:
 
