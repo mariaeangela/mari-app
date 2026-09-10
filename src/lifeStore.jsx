@@ -1335,12 +1335,12 @@ export function LifeProvider({ children }) {
   // ---- Estudos › Reportagens (as matérias da piauí, edição por edição) ----
   // Duas fatias, de propósito: `reportagens` é o CATÁLOGO (edições + matérias),
   // que só eu escrevo, quando ela manda a planilha de uma edição nova; e
-  // `reportagensMarcas` é o que é DELA — ★ quero ler, ✓ li, o comentário. Assim
+  // `reportagensMarcas` é o que é DELA — ★ quero ler, ✓ li, ♥ favorita, o comentário. Assim
   // cadastrar edição nova nunca encosta numa marca dela, e marcar uma estrela
   // sobe só a fatia pequena, e não as centenas de matérias.
   // reportagens = { edicoes:[{n,mes}], materias:[{id,ed,tipo,chapeu?,titulo,linha?,autor?}] }
   //   tipo: 'reportagem' | 'esquina' | 'outro'
-  // reportagensMarcas = { [materiaId]: { quero?, lida?, lidaEm?, comentario? } }
+  // reportagensMarcas = { [materiaId]: { quero?, lida?, lidaEm?, favorita?, comentario? } }
   const reportagens = data.reportagens || { edicoes: [], materias: [] };
   const reportagensMarcas = data.reportagensMarcas || {};
   // Forma de FUNÇÃO: dois toques seguidos (★ e ✓) não se apagam. Campo vazio sai;

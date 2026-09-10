@@ -148,7 +148,7 @@ export function exportarTexto(life, calendario) {
     linha();
   }
 
-  // --- Reportagens (só as que ela marcou: ★, ✓ ou comentário) ---
+  // --- Reportagens (só as que ela marcou: ★, ✓, ♥ ou comentário) ---
   const rep = (l.reportagens && l.reportagens.materias) || [];
   const marcas = l.reportagensMarcas || {};
   const marcadas = rep.filter(m => marcas[m.id]);
@@ -160,7 +160,7 @@ export function exportarTexto(life, calendario) {
       linha(`## piauí ${ed}${mes ? ` — ${mes}` : ''}`); linha();
       marcadas.filter(m => m.ed === ed).forEach(m => {
         const mc = marcas[m.id];
-        const selo = [mc.lida ? '✓ li' : '', mc.quero && !mc.lida ? '★ quero ler' : ''].filter(Boolean).join(' · ');
+        const selo = [mc.lida ? '✓ li' : '', mc.lida && mc.favorita ? '♥ favorita' : '', mc.quero && !mc.lida ? '★ quero ler' : ''].filter(Boolean).join(' · ');
         linha(`- **${m.titulo}**${m.autor ? ` — ${m.autor}` : ''}${selo ? `  *(${selo})*` : ''}`);
         if (mc.comentario) linha(`  > ${mc.comentario.replace(/\n/g, '\n  > ')}`);
       });

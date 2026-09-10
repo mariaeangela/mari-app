@@ -5717,8 +5717,9 @@ function InglesSection({ onBack }) {
 // ===== Estudos › Reportagens (as matérias da piauí, edição por edição) =====
 // As edições ela lê no Kindle; aqui ela escolhe e acompanha. O catálogo entra
 // pela planilha que ela me manda (eu cadastro); na tela ela só marca: ☆ quero
-// ler, ✓ li e, tocando na matéria, um comentário. Toda matéria tem o selo do
-// tipo (Reportagem, Esquina, Outro) e dá pra filtrar por ele.
+// ler, ✓ li, ♡ favorita (depois de lida) e, tocando na matéria, um comentário.
+// Toda matéria tem o selo do tipo (Reportagem, Esquina, Outro) e dá pra filtrar
+// por ele.
 const COR_REPORT = '#b5523b';
 const TIPOS_REPORT = [
   { id: 'reportagem', label: 'Reportagem', filtro: 'Reportagens', cor: '#3f6fb5' },
@@ -5741,15 +5742,23 @@ function SeloTipo({ tipo }) {
   return <span style={{ fontSize: 10, fontWeight: 700, color: t.cor, background: t.cor + '18', borderRadius: 5, padding: '2px 6px', letterSpacing: 0.3 }}>{t.label}</span>;
 }
 
-// Os dois botões da matéria: ☆/★ quero ler e ○/✓ já li.
+// Os dois botões da matéria. Antes de ler: ☆ quero ler + ✓. Depois de ler, a
+// estrela (que já cumpriu o papel) dá lugar ao ♡ favorita, no mesmo lugar.
+// Desmarcar o ✓ não apaga o ♥ — só esconde; marcou de novo, ele volta.
+const COR_FAV = '#d6336c';
 function MarcasReportagem({ m, marca, grande }) {
   const life = useLife();
   const tam = grande ? 40 : 32;
   const base = { width: tam, height: tam, borderRadius: '50%', cursor: 'pointer', fontSize: grande ? 18 : 15, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' };
   return (
     <>
-      <button onClick={() => life.marcarReportagem(m.id, { quero: !marca.quero })} title={marca.quero ? 'tirar de "quero ler"' : 'quero ler'}
-        style={{ ...base, border: '1px solid ' + (marca.quero ? '#e0a800' : '#e2e2e2'), background: marca.quero ? '#fff6d6' : '#fff', color: marca.quero ? '#d49b00' : '#bbb' }}>{marca.quero ? '★' : '☆'}</button>
+      {marca.lida ? (
+        <button onClick={() => life.marcarReportagem(m.id, { favorita: !marca.favorita })} title={marca.favorita ? 'tirar das favoritas' : 'favorita'}
+          style={{ ...base, border: '1px solid ' + (marca.favorita ? COR_FAV : '#e2e2e2'), background: marca.favorita ? '#fde8ef' : '#fff', color: marca.favorita ? COR_FAV : '#bbb' }}>{marca.favorita ? '♥' : '♡'}</button>
+      ) : (
+        <button onClick={() => life.marcarReportagem(m.id, { quero: !marca.quero })} title={marca.quero ? 'tirar de "quero ler"' : 'quero ler'}
+          style={{ ...base, border: '1px solid ' + (marca.quero ? '#e0a800' : '#e2e2e2'), background: marca.quero ? '#fff6d6' : '#fff', color: marca.quero ? '#d49b00' : '#bbb' }}>{marca.quero ? '★' : '☆'}</button>
+      )}
       <button onClick={() => life.marcarReportagem(m.id, { lida: !marca.lida, lidaEm: marca.lida ? undefined : hojeISO() })} title={marca.lida ? 'desmarcar "já li"' : 'já li'}
         style={{ ...base, border: '1px solid ' + (marca.lida ? '#2e9e5b' : '#e2e2e2'), background: marca.lida ? '#2e9e5b' : '#fff', color: marca.lida ? '#fff' : '#ccc', fontWeight: 700 }}>✓</button>
     </>
@@ -5784,7 +5793,9 @@ function ReportagemSheet({ m, mes, onClose }) {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16 }}>
           <MarcasReportagem m={m} marca={marca} grande />
           <span style={{ fontSize: 12.5, color: '#888' }}>
-            {marca.lida ? 'já li' : marca.quero ? 'quero ler' : 'marque ☆ se quer ler, ✓ quando ler'}
+            {marca.lida
+              ? (marca.favorita ? 'já li · favorita' : 'já li · toque no ♡ se gostou muito')
+              : marca.quero ? 'quero ler' : 'marque ☆ se quer ler, ✓ quando ler'}
           </span>
         </div>
         <label style={labelStyle}>O que achei</label>
@@ -5801,17 +5812,25 @@ function ReportagensSection({ onBack }) {
   const materias = life.reportagens?.materias || [];
   const marcas = life.reportagensMarcas || {};
   const [tipo, setTipo] = useState('todos');
-  // `vista`: null = tudo, por edição | 'quero' = só as ★ ainda não lidas |
-  // 'lidas' = só as ✓. Nas duas últimas, as edições vêm abertas e juntas.
+  // `vista`: null = tudo, por edição | 'quero' = ★ ainda não lidas | 'lidas' =
+  // ✓ | 'favoritas' = ♥ (entre as lidas). Uma de cada vez; nelas as edições vêm
+  // abertas e juntas.
   const [vista, setVista] = useState(null);
   const junta = !!vista;   // edições abertas e juntas, sem abrir/fechar
   const [abertas, setAbertas] = useState(() => new Set(edicoes[0] ? [edicoes[0].n] : []));
   const [aberta, setAberta] = useState(null);   // matéria no painel de comentário
   const quero = (m) => marcas[m.id]?.quero && !marcas[m.id]?.lida;
   const lida = (m) => !!marcas[m.id]?.lida;
-  const passa = (m) => (tipo === 'todos' || m.tipo === tipo)
-    && (!vista || (vista === 'quero' ? quero(m) : lida(m)));
-  const nQuero = materias.filter(quero).length;
+  const favorita = (m) => marcas[m.id]?.favorita && marcas[m.id]?.lida;
+  const VISTAS = {
+    quero: { label: '★ Quero ler', cor: '#d49b00', fundo: '#fff6d6', borda: '#e0c060', texto: '#886a10', f: quero,
+      vazio: 'Toque na ☆ de uma matéria e ela aparece aqui, junto com as das outras edições.' },
+    lidas: { label: '✓ Lidas', cor: '#2e9e5b', fundo: '#e9f6ee', borda: '#8fcfa8', texto: '#2a6b44', f: lida,
+      vazio: 'Toque no ✓ de uma matéria quando terminar de ler e ela aparece aqui.' },
+    favoritas: { label: '♥ Favoritas', cor: COR_FAV, fundo: '#fde8ef', borda: '#f0a3bd', texto: '#9c2350', f: favorita,
+      vazio: 'Depois de marcar ✓, a estrela vira ♡. Toque nele nas que você mais gostou e elas aparecem aqui.' },
+  };
+  const passa = (m) => (tipo === 'todos' || m.tipo === tipo) && (!vista || VISTAS[vista].f(m));
   const lidas = materias.filter(lida).length;
   const alternar = (n) => setAbertas(s => { const nx = new Set(s); if (nx.has(n)) nx.delete(n); else nx.add(n); return nx; });
   const chip = (ativo, cor) => ({ border: '1px solid ' + (ativo ? cor : '#e2e2e2'), background: ativo ? cor : '#fff', color: ativo ? '#fff' : '#666', borderRadius: 20, padding: '6px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' });
@@ -5841,23 +5860,24 @@ function ReportagensSection({ onBack }) {
             <button onClick={() => setTipo('todos')} style={chip(tipo === 'todos', '#111')}>Tudo</button>
             {TIPOS_REPORT.map(t => <button key={t.id} onClick={() => setTipo(t.id)} style={chip(tipo === t.id, t.cor)}>{t.filtro}</button>)}
           </div>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-            <button onClick={() => setVista(v => v === 'quero' ? null : 'quero')} style={chip(vista === 'quero', '#d49b00')}>★ Quero ler{nQuero ? ` (${nQuero})` : ''}</button>
-            <button onClick={() => setVista(v => v === 'lidas' ? null : 'lidas')} style={chip(vista === 'lidas', '#2e9e5b')}>✓ Lidas{lidas ? ` (${lidas})` : ''}</button>
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 12 }}>
+            {Object.entries(VISTAS).map(([id, v]) => {
+              const n = materias.filter(v.f).length;
+              return <button key={id} onClick={() => setVista(x => x === id ? null : id)} style={chip(vista === id, v.cor)}>{v.label}{n ? ` (${n})` : ''}</button>;
+            })}
           </div>
 
           {vista && blocos.length === 0 && (
-            <div style={{ padding: 18, borderRadius: 14, background: vista === 'quero' ? '#fff6d6' : '#e9f6ee', border: '1px dashed ' + (vista === 'quero' ? '#e0c060' : '#8fcfa8'), textAlign: 'center', fontSize: 13.5, color: vista === 'quero' ? '#886a10' : '#2a6b44', lineHeight: 1.5 }}>
-              Nenhuma ainda{tipo !== 'todos' ? ' deste tipo' : ''}. {vista === 'quero'
-                ? 'Toque na ☆ de uma matéria e ela aparece aqui, junto com as das outras edições.'
-                : 'Toque no ✓ de uma matéria quando terminar de ler e ela aparece aqui.'}
+            <div style={{ padding: 18, borderRadius: 14, background: VISTAS[vista].fundo, border: '1px dashed ' + VISTAS[vista].borda, textAlign: 'center', fontSize: 13.5, color: VISTAS[vista].texto, lineHeight: 1.5 }}>
+              Nenhuma ainda{tipo !== 'todos' ? ' deste tipo' : ''}. {VISTAS[vista].vazio}
             </div>
           )}
 
           {blocos.map(({ e, daEd, itens }) => {
             const aberto = junta || abertas.has(e.n);
-            const lidasEd = daEd.filter(m => marcas[m.id]?.lida).length;
+            const lidasEd = daEd.filter(lida).length;
             const queroEd = daEd.filter(quero).length;
+            const favEd = daEd.filter(favorita).length;
             return (
               <div key={e.n} style={{ marginBottom: 8, border: '1px solid #eee', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
                 <button onClick={() => !junta && alternar(e.n)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', background: 'none', border: 'none', cursor: junta ? 'default' : 'pointer', textAlign: 'left' }}>
@@ -5865,7 +5885,7 @@ function ReportagensSection({ onBack }) {
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14, color: '#222', fontWeight: 600 }}>{e.mes}</span>
                     <span style={{ display: 'block', fontSize: 11.5, color: '#999', marginTop: 2 }}>
-                      {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}
+                      {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}{favEd ? ` · ♥ ${favEd}` : ''}
                     </span>
                   </span>
                   {!junta && <span style={{ color: '#bbb', fontSize: 13 }}>{aberto ? '▲' : '▼'}</span>}
@@ -5877,7 +5897,7 @@ function ReportagensSection({ onBack }) {
                       const mc = marcas[m.id] || {};
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 0', borderBottom: i === itens.length - 1 ? 'none' : '1px solid #f3f3f3' }}>
-                          <div onClick={() => setAberta(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer', opacity: mc.lida && vista !== 'lidas' ? 0.5 : 1 }}>
+                          <div onClick={() => setAberta(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer', opacity: mc.lida && !vista ? 0.5 : 1 }}>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
                               <SeloTipo tipo={m.tipo} />
                               {m.chapeu && m.chapeu !== 'esquina' && <span style={{ fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.chapeu}</span>}
