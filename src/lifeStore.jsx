@@ -8,7 +8,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife, gravarLocal, fatiasNaoConfirmadas } from './cloud';
 import { rebasear } from './mesclar.js';
-import { PIAUI_EDICOES_SET26, PIAUI_MATERIAS_SET26 } from './piauiSet26.js';   // BILHETE — sai junto com ensurePiauiSet26
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -829,23 +828,6 @@ export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto
   return { ...d, leiturasSet26: true, leituras: [...(d.leituras || []), ...novos] };
 }
 
-// BILHETE DE USO ÚNICO — as matérias da piauí (edições 218 a 229) da planilha
-// que a Mari mandou em 10/set/2026, pro card Estudos › Reportagens. Escreve só
-// no CATÁLOGO (`reportagens`); as marcas dela (★ ✓ comentário) moram em outra
-// fatia e não são tocadas. Edição ou matéria que já estiver lá não entra de novo.
-// Roda UMA vez: assim que estiver gravado no documento dela, esta função, o nome
-// dela lá embaixo e o arquivo piauiSet26.js saem daqui.
-export function ensurePiauiSet26(d) {   // exportada só pro teste; sai junto com a função
-  if (d.piauiSet26) return d;
-  const cat = d.reportagens || {};
-  const edAntes = cat.edicoes || [], matAntes = cat.materias || [];
-  const temEd = new Set(edAntes.map(e => e.n));
-  const temId = new Set(matAntes.map(m => m.id));
-  const edicoes = [...edAntes, ...PIAUI_EDICOES_SET26.filter(e => !temEd.has(e.n))].sort((a, b) => b.n - a.n);
-  const materias = [...matAntes, ...PIAUI_MATERIAS_SET26.filter(m => !temId.has(m.id))];
-  return { ...d, piauiSet26: true, reportagens: { ...cat, edicoes, materias } };
-}
-
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -867,8 +849,7 @@ export function ensurePiauiSet26(d) {   // exportada só pro teste; sai junto co
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureChicagoRoteiro, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
-    ensureLeiturasSet26, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
-    ensurePiauiSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função e o piauiSet26.js */];
+    ensureLeiturasSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);

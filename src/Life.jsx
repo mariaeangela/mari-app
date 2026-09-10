@@ -5801,13 +5801,18 @@ function ReportagensSection({ onBack }) {
   const materias = life.reportagens?.materias || [];
   const marcas = life.reportagensMarcas || {};
   const [tipo, setTipo] = useState('todos');
-  const [soQuero, setSoQuero] = useState(false);
+  // `vista`: null = tudo, por edição | 'quero' = só as ★ ainda não lidas |
+  // 'lidas' = só as ✓. Nas duas últimas, as edições vêm abertas e juntas.
+  const [vista, setVista] = useState(null);
+  const junta = !!vista;   // edições abertas e juntas, sem abrir/fechar
   const [abertas, setAbertas] = useState(() => new Set(edicoes[0] ? [edicoes[0].n] : []));
   const [aberta, setAberta] = useState(null);   // matéria no painel de comentário
   const quero = (m) => marcas[m.id]?.quero && !marcas[m.id]?.lida;
-  const passa = (m) => (tipo === 'todos' || m.tipo === tipo) && (!soQuero || quero(m));
+  const lida = (m) => !!marcas[m.id]?.lida;
+  const passa = (m) => (tipo === 'todos' || m.tipo === tipo)
+    && (!vista || (vista === 'quero' ? quero(m) : lida(m)));
   const nQuero = materias.filter(quero).length;
-  const lidas = materias.filter(m => marcas[m.id]?.lida).length;
+  const lidas = materias.filter(lida).length;
   const alternar = (n) => setAbertas(s => { const nx = new Set(s); if (nx.has(n)) nx.delete(n); else nx.add(n); return nx; });
   const chip = (ativo, cor) => ({ border: '1px solid ' + (ativo ? cor : '#e2e2e2'), background: ativo ? cor : '#fff', color: ativo ? '#fff' : '#666', borderRadius: 20, padding: '6px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' });
   const mesDe = (ed) => edicoes.find(e => e.n === ed)?.mes;
@@ -5815,7 +5820,7 @@ function ReportagensSection({ onBack }) {
     const daEd = materias.filter(m => m.ed === e.n);
     const itens = daEd.filter(passa).sort((a, b) => ORDEM_TIPO_REPORT[a.tipo] - ORDEM_TIPO_REPORT[b.tipo]);
     return { e, daEd, itens };
-  }).filter(b => !soQuero || b.itens.length);
+  }).filter(b => !junta || b.itens.length);
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -5836,21 +5841,26 @@ function ReportagensSection({ onBack }) {
             <button onClick={() => setTipo('todos')} style={chip(tipo === 'todos', '#111')}>Tudo</button>
             {TIPOS_REPORT.map(t => <button key={t.id} onClick={() => setTipo(t.id)} style={chip(tipo === t.id, t.cor)}>{t.filtro}</button>)}
           </div>
-          <button onClick={() => setSoQuero(v => !v)} style={{ ...chip(soQuero, '#d49b00'), marginBottom: 14 }}>★ Quero ler{nQuero ? ` (${nQuero})` : ''}</button>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+            <button onClick={() => setVista(v => v === 'quero' ? null : 'quero')} style={chip(vista === 'quero', '#d49b00')}>★ Quero ler{nQuero ? ` (${nQuero})` : ''}</button>
+            <button onClick={() => setVista(v => v === 'lidas' ? null : 'lidas')} style={chip(vista === 'lidas', '#2e9e5b')}>✓ Lidas{lidas ? ` (${lidas})` : ''}</button>
+          </div>
 
-          {soQuero && blocos.length === 0 && (
-            <div style={{ padding: 18, borderRadius: 14, background: '#fff6d6', border: '1px dashed #e0c060', textAlign: 'center', fontSize: 13.5, color: '#886a10', lineHeight: 1.5 }}>
-              Nenhuma ainda{tipo !== 'todos' ? ' deste tipo' : ''}. Toque na ☆ de uma matéria e ela aparece aqui, junto com as das outras edições.
+          {vista && blocos.length === 0 && (
+            <div style={{ padding: 18, borderRadius: 14, background: vista === 'quero' ? '#fff6d6' : '#e9f6ee', border: '1px dashed ' + (vista === 'quero' ? '#e0c060' : '#8fcfa8'), textAlign: 'center', fontSize: 13.5, color: vista === 'quero' ? '#886a10' : '#2a6b44', lineHeight: 1.5 }}>
+              Nenhuma ainda{tipo !== 'todos' ? ' deste tipo' : ''}. {vista === 'quero'
+                ? 'Toque na ☆ de uma matéria e ela aparece aqui, junto com as das outras edições.'
+                : 'Toque no ✓ de uma matéria quando terminar de ler e ela aparece aqui.'}
             </div>
           )}
 
           {blocos.map(({ e, daEd, itens }) => {
-            const aberto = soQuero || abertas.has(e.n);
+            const aberto = junta || abertas.has(e.n);
             const lidasEd = daEd.filter(m => marcas[m.id]?.lida).length;
             const queroEd = daEd.filter(quero).length;
             return (
               <div key={e.n} style={{ marginBottom: 8, border: '1px solid #eee', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
-                <button onClick={() => !soQuero && alternar(e.n)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', background: 'none', border: 'none', cursor: soQuero ? 'default' : 'pointer', textAlign: 'left' }}>
+                <button onClick={() => !junta && alternar(e.n)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', background: 'none', border: 'none', cursor: junta ? 'default' : 'pointer', textAlign: 'left' }}>
                   <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: COR_REPORT, minWidth: 40 }}>{e.n}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14, color: '#222', fontWeight: 600 }}>{e.mes}</span>
@@ -5858,7 +5868,7 @@ function ReportagensSection({ onBack }) {
                       {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}
                     </span>
                   </span>
-                  {!soQuero && <span style={{ color: '#bbb', fontSize: 13 }}>{aberto ? '▲' : '▼'}</span>}
+                  {!junta && <span style={{ color: '#bbb', fontSize: 13 }}>{aberto ? '▲' : '▼'}</span>}
                 </button>
                 {aberto && (
                   <div style={{ padding: '0 14px 4px', borderTop: '1px solid #f3f3f3' }}>
@@ -5867,7 +5877,7 @@ function ReportagensSection({ onBack }) {
                       const mc = marcas[m.id] || {};
                       return (
                         <div key={m.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 0', borderBottom: i === itens.length - 1 ? 'none' : '1px solid #f3f3f3' }}>
-                          <div onClick={() => setAberta(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer', opacity: mc.lida ? 0.5 : 1 }}>
+                          <div onClick={() => setAberta(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer', opacity: mc.lida && vista !== 'lidas' ? 0.5 : 1 }}>
                             <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
                               <SeloTipo tipo={m.tipo} />
                               {m.chapeu && m.chapeu !== 'esquina' && <span style={{ fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.chapeu}</span>}
