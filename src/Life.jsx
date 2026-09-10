@@ -23,18 +23,26 @@ import GastosDetalhado from './GastosDetalhado.jsx';
 // pra Retrospectiva em ago/2026 e VOLTOU em set/2026: é canto pessoal do dia a
 // dia (a próxima consulta, o remédio de agora), não retrospectiva. As contagens
 // do ano vieram junto — Saúde é uma coisa só, num lugar só.
+//
+// set/2026: a aba Estudos deixou de ter um card "Estudos" que abria OUTRA tela de
+// cards. Os cards de dentro subiram pra aba: Acompanhamento de leituras, Idiomas
+// (o Inglês mora dentro), Reportagens, Temas (os tópicos que ela cria — Rússia,
+// Filosofia…) e Aprendizados. Legendas foi pra aba Planos.
 const SECOES = [
   { id: 'planos',         label: 'Planos',         desc: 'projetos com info + checklist',    cor: '#6b7a99' },
   { id: 'compras',        label: 'Compras',        desc: 'o que você quer comprar',          cor: '#ff8a3d' },
   { id: 'viagens',        label: 'Viagens',        desc: 'pra onde e quando',                cor: '#19b3a6' },
-  { id: 'estudos',        label: 'Estudos',        desc: 'aulas, leituras, cursos',          cor: '#5c6bc0' },
-  { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
   { id: 'legendas',       label: 'Legendas',       desc: 'frases salvas pra reusar',         cor: '#c2548f' },
+  { id: 'acomp',          label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: '#7e57c2' },
+  { id: 'idiomas',        label: 'Idiomas',        desc: 'inglês',                           cor: '#3f7cac' },
+  { id: 'reportagens',    label: 'Reportagens',    desc: 'as matérias da piauí',             cor: '#b5523b' },
+  { id: 'temas',          label: 'Temas',          desc: 'os assuntos que você estuda',      cor: '#5c6bc0' },
+  { id: 'aprendizados',   label: 'Aprendizados',   desc: 'o que você aprendeu',              cor: '#c78a3a' },
 ];
 // Saúde e "Seus dados" não têm cards: a aba já abre o conteúdo (secoes: []).
 const ABAS_LIFE = [
-  { id: 'planos', label: 'Planos', secoes: ['planos', 'compras', 'viagens'] },
-  { id: 'estudo', label: 'Estudo', secoes: ['estudos', 'aprendizados', 'legendas'] },
+  { id: 'planos', label: 'Planos', secoes: ['planos', 'compras', 'viagens', 'legendas'] },
+  { id: 'estudo', label: 'Estudos', secoes: ['acomp', 'idiomas', 'reportagens', 'temas', 'aprendizados'] },
   { id: 'saude',  label: 'Saúde', secoes: [] },
   { id: 'dados',  label: 'Seus dados', secoes: [] },
 ];
@@ -3154,7 +3162,7 @@ const cadAprend = (life) => ({
   salvarNota: life.saveAprendNota, apagarNota: life.deleteAprendNota, apagarTopico: life.deleteAprendTopico,
 });
 const cadEstudos = (life) => ({
-  dados: life.estudoTemas, cor: COR_ESTUDO, voltar: 'Estudos', comQuando: true, ordemManual: true, maxNivel: 1,
+  dados: life.estudoTemas, cor: COR_ESTUDO, voltar: 'Temas', comQuando: true, ordemManual: true, maxNivel: 1,
   salvarNota: life.saveEstudoNota, apagarNota: life.deleteEstudoNota, apagarTopico: life.deleteEstudoTopico,
   moverNota: life.moveEstudoNota,
 });
@@ -5497,7 +5505,7 @@ function AcompLeiturasSection({ onBack }) {
   const lista = [...livros].sort((a, b) => (ordem[a.status] ?? 3) - (ordem[b.status] ?? 3) || (b.inicio || '').localeCompare(a.inicio || ''));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Estudos</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_ACOMP, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
         <div>
@@ -5533,14 +5541,13 @@ function AcompLeiturasSection({ onBack }) {
   );
 }
 
-// ===== Estudos — hub (cards: acompanhamento de leituras; outros virão) =====
-// Hub de Estudos: 2 cards FIXOS (Acompanhamento de leituras e Inglês, que têm
-// tela própria) + os tópicos que a Mari cria aqui — cada um vira um card com
-// notas (mesmo formato dos Aprendizados). Fixos não se apagam nem se renomeiam;
-// o ⚙ só mexe nos dela.
-function EstudosPage({ onBack }) {
+// ===== Estudos › Temas (os tópicos que a Mari cria: Rússia, Filosofia…) =====
+// Até set/2026 isto era o hub "Estudos", que também tinha os cards fixos
+// (Acompanhamento, Inglês, Reportagens). Os fixos subiram pra aba Estudos da
+// Life; aqui ficaram só os temas dela — cada um vira um card com notas (mesmo
+// formato dos Aprendizados). Por dentro o dado continua sendo `estudoTemas`.
+function TemasPage({ onBack }) {
   const life = useLife();
-  const [sec, setSec] = useState(null);
   const [topicoSel, setTopicoSel] = useState(null);
   const [novo, setNovo] = useState('');
   const [adicionando, setAdicionando] = useState(false);
@@ -5549,17 +5556,9 @@ function EstudosPage({ onBack }) {
   const cad = cadEstudos(life);
   const topicos = cad.dados.topicos || [];
   const topico = topicos.find(t => t.id === topicoSel);
-  if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
-  if (sec === 'ingles') return <InglesSection onBack={() => setSec(null)} />;
-  if (sec === 'reportagens') return <ReportagensSection onBack={() => setSec(null)} />;
   if (topico) return <TopicoView topico={topico} cad={cad} onBack={() => setTopicoSel(null)} />;
   const addTopico = () => { const nome = novo.trim(); if (!nome) return; const id = life.addEstudoTopico(nome); setNovo(''); setAdicionando(false); setTopicoSel(id); };
   const countNotas = (id) => (cad.dados.notas || []).filter(n => n.topicoId === id && !n.paiId).length;
-  const fixos = [
-    { id: 'acomp', label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: COR_ACOMP, n: (life.acompLeituras || []).length, sufixo: 'leitura' },
-    { id: 'ingles', label: 'Inglês', desc: 'dicionário de palavras', cor: COR_INGLES, n: (life.ingles || []).length, sufixo: 'palavra' },
-    { id: 'reportagens', label: 'Reportagens', desc: 'as matérias da piauí', cor: COR_REPORT, sub: resumoReportagens(life) },
-  ];
   const cardStyle = (cor) => ({ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' });
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
@@ -5567,19 +5566,12 @@ function EstudosPage({ onBack }) {
       <div style={{ width: 36, height: 4, background: COR_ESTUDO, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
         <div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Estudos</h2>
-          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>aulas, leituras e cursos</p>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Temas</h2>
+          <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>os assuntos que você está estudando</p>
         </div>
-        {topicos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar / apagar tópicos" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
+        {topicos.length > 0 && <button onClick={() => setGerenciar(true)} title="renomear / reordenar / apagar temas" style={{ flexShrink: 0, border: '1px solid #e2e2e2', borderRadius: 20, background: '#fff', color: '#999', cursor: 'pointer', padding: '7px 11px', fontSize: 14 }}>⚙</button>}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {fixos.map(c => (
-          <button key={c.id} onClick={() => setSec(c.id)} style={cardStyle(c.cor)}>
-            <div style={{ width: 24, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c.label}</div>
-            <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{c.sub || (c.n ? `${c.n} ${c.sufixo}${c.n === 1 ? '' : 's'}` : c.desc)}</div>
-          </button>
-        ))}
         {topicos.map(t => {
           const n = countNotas(t.id);
           return (
@@ -5594,18 +5586,18 @@ function EstudosPage({ onBack }) {
 
       {adicionando ? (
         <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
-          <input value={novo} autoFocus onChange={e => setNovo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addTopico(); if (e.key === 'Escape') { setAdicionando(false); setNovo(''); } }} placeholder="novo tópico (ex.: Astronomia)" style={inputStyle} />
+          <input value={novo} autoFocus onChange={e => setNovo(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addTopico(); if (e.key === 'Escape') { setAdicionando(false); setNovo(''); } }} placeholder="novo tema (ex.: Astronomia)" style={inputStyle} />
           <button onClick={addTopico} style={{ border: 'none', borderRadius: 10, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 16px', fontSize: 18 }}>+</button>
         </div>
       ) : (
-        <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo tópico</button>
+        <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '11px 0', borderRadius: 11, border: '1px dashed #bbb', background: '#fff', color: '#555', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>+ novo tema</button>
       )}
 
       {gerenciar && (
         <div onClick={() => { setGerenciar(false); setRenomeando(null); }} style={overlay}>
           <div onClick={e => e.stopPropagation()} style={sheet}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar tópicos</h3>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Gerenciar temas</h3>
               <button onClick={() => { setGerenciar(false); setRenomeando(null); }} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
             </div>
             {topicos.map((t, idx) => (
@@ -5622,15 +5614,37 @@ function EstudosPage({ onBack }) {
                     <span onClick={() => setRenomeando({ id: t.id, nome: t.nome })} title="tocar pra renomear" style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600, cursor: 'pointer' }}>{t.nome} <span style={{ color: '#ccc', fontSize: 12 }}>✎</span></span>
                     <button onClick={() => life.moveEstudoTopico(t.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
                     <button onClick={() => life.moveEstudoTopico(t.id, 1)} disabled={idx === topicos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === topicos.length - 1 ? '#ddd' : '#777', cursor: idx === topicos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
-                    <button onClick={() => { if (window.confirm(`Apagar o tópico "${t.nome}" e todas as suas notas?`)) life.deleteEstudoTopico(t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+                    <button onClick={() => { if (window.confirm(`Apagar o tema "${t.nome}" e todas as suas notas?`)) life.deleteEstudoTopico(t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
                   </>
                 )}
               </div>
             ))}
-            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia. ↑ ↓ reordenam. Apagar remove o tópico e todas as suas notas. (Acompanhamento de leituras, Inglês e Reportagens não entram aqui — são fixos.)</p>
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia. ↑ ↓ reordenam. Apagar remove o tema e todas as suas notas.</p>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ===== Estudos › Idiomas (por enquanto só o Inglês mora aqui) =====
+function IdiomasPage({ onBack }) {
+  const life = useLife();
+  const [sec, setSec] = useState(null);
+  if (sec === 'ingles') return <InglesSection onBack={() => setSec(null)} />;
+  const n = (life.ingles || []).length;
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Life</button>
+      <div style={{ width: 36, height: 4, background: COR_INGLES, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 18px' }}>Idiomas</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <button onClick={() => setSec('ingles')} style={{ background: COR_INGLES + '12', border: '1px solid ' + COR_INGLES + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' }}>
+          <div style={{ width: 24, height: 4, background: COR_INGLES, borderRadius: 4, marginBottom: 12 }} />
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>Inglês</div>
+          <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{n ? `${n} ${n === 1 ? 'palavra' : 'palavras'}` : 'dicionário de palavras'}</div>
+        </button>
+      </div>
     </div>
   );
 }
@@ -5685,7 +5699,7 @@ function InglesSection({ onBack }) {
   const lista = [...filtrados].sort((a, b) => (a.termo || '').localeCompare(b.termo || '', 'en', { sensitivity: 'base' }));
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Estudos</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Idiomas</button>
       <div style={{ width: 36, height: 4, background: COR_INGLES, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
         <div>
@@ -5843,7 +5857,7 @@ function ReportagensSection({ onBack }) {
 
   return (
     <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Estudos</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Life</button>
       <div style={{ width: 36, height: 4, background: COR_REPORT, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Reportagens</h2>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>
@@ -6398,6 +6412,7 @@ function CopiasNoAparelho() {
 }
 
 export default function LifePage({ isWide, viagemInicial, onConsumeViagem, comprasInicial, onConsumeCompras }) {
+  const life = useLife();
   const [sec, setSec] = useState(null);
   const [aba, setAba] = useState('planos');
   const [viagemId, setViagemId] = useState(null);
@@ -6415,12 +6430,23 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
   if (sec === 'planos') return <PlanosSection onBack={() => setSec(null)} />;
   if (sec === 'aprendizados') return <AprendizadosSection onBack={() => setSec(null)} />;
   if (sec === 'legendas') return <LegendasSection onBack={() => setSec(null)} />;
-  if (sec === 'estudos') return <EstudosPage onBack={() => setSec(null)} />;
+  if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
+  if (sec === 'idiomas') return <IdiomasPage onBack={() => setSec(null)} />;
+  if (sec === 'reportagens') return <ReportagensSection onBack={() => setSec(null)} />;
+  if (sec === 'temas') return <TemasPage onBack={() => setSec(null)} />;
   if (sec === 'viagens') return <ViagensSection onBack={() => setSec(null)} viagemInicial={viagemId} onConsumeViagem={() => setViagemId(null)} />;
   if (sec) return <SubPlaceholder secao={SECOES.find(s => s.id === sec)} onBack={() => setSec(null)} />;
 
   const abaAtual = ABAS_LIFE.find(a => a.id === aba) || ABAS_LIFE[0];
   const cards = abaAtual.secoes.map(id => SECOES.find(s => s.id === id)).filter(Boolean);
+  // Alguns cards dizem o que tem dentro em vez da descrição fixa.
+  const nomesTemas = (life.estudoTemas?.topicos || []).map(t => t.nome).join(', ');
+  const nAcomp = (life.acompLeituras || []).length;
+  const subDe = {
+    acomp: nAcomp ? `${nAcomp} ${nAcomp === 1 ? 'leitura' : 'leituras'}` : '',
+    reportagens: resumoReportagens(life),
+    temas: nomesTemas,
+  };
   return (
     <div style={{ padding: '24px 20px 80px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#111', margin: '0 0 4px' }}>Life</h2>
@@ -6447,7 +6473,7 @@ export default function LifePage({ isWide, viagemInicial, onConsumeViagem, compr
             }}>
               <div style={{ width: 24, height: 4, background: s.cor, borderRadius: 4, marginBottom: 12 }} />
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{s.label}</div>
-              <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.45, marginTop: 5 }}>{s.desc}</div>
+              <div style={{ fontSize: 11.5, color: '#999', lineHeight: 1.45, marginTop: 5 }}>{subDe[s.id] || s.desc}</div>
             </button>
           ))}
         </div>
