@@ -10,9 +10,6 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 
 ## 1. Com data marcada
 
-- 🟢 **Faxina depois da viagem (depois de 26/09)** — o roteiro de Chicago ficou
-  pronto em 27/08, mas o bilhete `ensureChicagoRoteiro` ainda está no código.
-  Sai assim que a viagem acabar (a programação já está no documento dela).
 - 🟡 **Esportes: manter a agenda viva** — `esportesSeed.js` é escrito à mão e
   envelhece sozinho. Antes de reescrever, buscar na web datas/confrontos/transmissões.
 
