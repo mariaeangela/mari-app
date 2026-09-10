@@ -10,10 +10,11 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 
 ## 1. Com data marcada
 
-- 🔴 **Roteiro de Chicago (20–24/09)** ⏳ — a viagem é **13–26/09/2026** e hoje há
-  só um marcador vazio em 20/09. Ela manda os lugares; eu preencho no mesmo padrão
-  de Nova York (descrição, horário de abertura, preço, link do Maps, site) e
-  confirmo o voo NY→Chicago. **É o único item com prazo real.**
+- 🟢 **Faxina depois da viagem (depois de 26/09)** — o roteiro de Chicago ficou
+  pronto em 27/08, mas o bilhete `ensureChicagoRoteiro` ainda está no código.
+  Sai assim que a viagem acabar (a programação já está no documento dela).
+- 🟢 **Tirar o bilhete dos sete livros** (`ensureLeiturasSet26b`, 10/09) assim
+  que ela abrir o app e os livros aparecerem em "Não tenho".
 - 🟡 **Esportes: manter a agenda viva** — `esportesSeed.js` é escrito à mão e
   envelhece sozinho. Antes de reescrever, buscar na web datas/confrontos/transmissões.
 
@@ -23,11 +24,8 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
   quem tem a hora mais adiantada ganha, mesmo estando errado. O conserto é o
   **servidor** dar o número da versão (o app só guarda o que voltou). Hoje não
   perde nada (a mescla por fatia salva os dois lados), só confunde.
-  **É o único dos quatro que sobrou — e o único com risco de verdade,
-  porque mexe no servidor e nos três stores.**
-- 🟡 **Cobrir mais coisa de teste** — `npm test` existe desde 11/ago (campos de
-  dinheiro + detecção de versão nova, 12 testes). Falta cobrir as regras de sync:
-  duas edições no mesmo instante, o 409 que mescla, a falta de espaço.
+  **É o único com risco de verdade, porque mexe no servidor e nos três stores.**
+  (As regras de sync já têm teste: 409 que mescla, falta de espaço, dois aparelhos.)
 - 🟢 **Sem internet o app não abre** — dá pra editar depois de aberto, mas abrir
   precisa de rede (não há cópia offline do app). Nunca atrapalhou; fica registrado.
 
@@ -54,7 +52,10 @@ Passos 1–3 feitos (importar gastos · VR por dia · painel "posso gastar").
 
 ## 4. Estudos e leituras
 
-- 🟡 **Temas para estudar + o que aprendi por tema** ⏳ — ela vai detalhar.
+- 🟢 **Reportagens: edições 226 e 227** ⏳ — faltaram na planilha da piauí (jul e
+  ago/2025). Ela manda a planilha; eu cadastro no mesmo formato.
+- 🟡 **Temas para estudar + o que aprendi por tema** ⏳ — o card Temas já existe
+  (set/2026, com Rússia e Filosofia); falta ela dizer se era isso ou se quer mais.
 - 🟡 **"Pedir guia" pra qualquer livro** — hoje o guia de contexto é escrito à mão
   (só Anna Kariênina tem).
 - 🟡 **"Me sugere um livro"** — sugere da estante por tempo/humor/tema ("tá com 1h?
