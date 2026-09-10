@@ -4,3 +4,4 @@ dist
 .claude/launch.json
 .wf*.py
 .wf_*.txt
+.claude/settings.local.json
