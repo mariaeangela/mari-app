@@ -20,12 +20,13 @@ describe('ensureLeiturasSet26b — os sete livros de 10/set/2026', () => {
     expect(d.leiturasSet26b).toBe(true);
   });
 
-  it('entram na estante, não lidos, com id estável; o idioma padrão é português', () => {
+  it('entram em "Não tenho", não lidos, com id estável; o idioma padrão é português', () => {
     const d = ensureLeiturasSet26b({});
     expect(d.leituras[0]).toMatchObject({
       id: 'lv-set26-infernooutros', titulo: 'O Inferno dos Outros', autor: 'David Grossman',
-      idioma: 'Português', lido: false, tenho: true,
+      idioma: 'Português', lido: false, tenho: false,
     });
+    expect(d.leituras.every(l => l.tenho === false)).toBe(true);
     expect(d.leituras.find(l => l.id === 'lv-set26-stayalive').idioma).toBe('Inglês');
     d.leituras.forEach(l => expect(Array.isArray(l.temas)).toBe(true));
   });
@@ -48,6 +49,21 @@ describe('ensureLeiturasSet26b — os sete livros de 10/set/2026', () => {
     const d = ensureLeiturasSet26b({ leituras: [{ id: 'meu-2', titulo: 'assassinato em amsterdã', autor: 'Buruma' }] });
     expect(titulos(d).filter(t => /amsterd/i.test(t))).toEqual(['assassinato em amsterdã']);
     expect(d.leituras).toHaveLength(7);
+  });
+
+  it('se a 1ª versão já tinha posto os sete na estante, eles vão pra "Não tenho"', () => {
+    const naEstante = ensureLeiturasSet26b({}).leituras.map(l => ({ ...l, tenho: true }));
+    const d = ensureLeiturasSet26b({ leiturasSet26b: true, leituras: naEstante });
+    expect(d.leituras.every(l => l.tenho === false)).toBe(true);
+    expect(d.leiturasSet26bNaoTenho).toBe(true);
+  });
+
+  it('esse acerto não encosta em livro dela nem em um dos sete que ela já leu', () => {
+    const dela = { id: 'meu-3', titulo: 'Anna Kariênina', tenho: true, lido: false };
+    const lido = { id: 'lv-set26-colaboradores', titulo: 'Os Colaboradores', tenho: true, lido: true };
+    const d = ensureLeiturasSet26b({ leiturasSet26b: true, leituras: [dela, lido] });
+    expect(d.leituras[0]).toBe(dela);
+    expect(d.leituras[1]).toBe(lido);
   });
 
   it('sem nada novo pra escrever, não mexe na lista', () => {

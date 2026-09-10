@@ -801,10 +801,9 @@ function ensureChicagoRoteiro(d) {
 }
 
 // BILHETE DE USO ÚNICO — os sete livros que a Mari mandou em 10/set/2026 pras
-// Próximas leituras (dois do David Grossman e cinco do Ian Buruma). Entram na
-// ESTANTE (é onde cai um livro novo adicionado à mão); um toque em "Não tenho"
-// muda, se ela não tiver o exemplar. Título que já estiver na lista não entra de
-// novo. Roda UMA vez: assim que estiver gravado no documento dela, esta função e
+// Próximas leituras (dois do David Grossman e cinco do Ian Buruma). Entram em
+// NÃO TENHO — ela avisou que não tem nenhum. Título que já estiver na lista não
+// entra de novo. Roda UMA vez: assim que estiver gravado no documento dela, esta função e
 // o nome dela lá embaixo saem daqui. (O bilhete anterior, dos cinco livros de
 // 07/set, já tinha rodado e saiu nesta mesma troca.)
 const LEITURAS_SET26B = [
@@ -830,14 +829,32 @@ const LEITURAS_SET26B = [
     tipo: 'não ficção', genero: 'Ensaio', temas: ['religião', 'democracia', 'secularismo'],
     nota: 'título original: Taming the Gods' },
 ];
+// A primeira versão deste bilhete (759eaf2) punha os sete na ESTANTE e pode já
+// ter rodado no aparelho dela. O segundo passo (flag `leiturasSet26bNaoTenho`)
+// passa esses sete pra "Não tenho" — só pelo id, e nunca um que ela já marcou
+// como lido.
 export function ensureLeiturasSet26b(d) {   // exportada só pro teste; sai junto com a função
-  if (d.leiturasSet26b) return d;
-  const have = new Set((d.leituras || []).map(l => (l.titulo || '').trim().toLowerCase()));
-  const novos = LEITURAS_SET26B
-    .filter(l => !have.has(l.titulo.toLowerCase()))
-    .map(l => ({ idioma: 'Português', temas: [], ...l, lido: false, tenho: true }));
-  if (!novos.length) return { ...d, leiturasSet26b: true };
-  return { ...d, leiturasSet26b: true, leituras: [...(d.leituras || []), ...novos] };
+  let out = d;
+  if (!out.leiturasSet26b) {
+    const have = new Set((out.leituras || []).map(l => (l.titulo || '').trim().toLowerCase()));
+    const novos = LEITURAS_SET26B
+      .filter(l => !have.has(l.titulo.toLowerCase()))
+      .map(l => ({ idioma: 'Português', temas: [], ...l, lido: false, tenho: false }));
+    out = novos.length
+      ? { ...out, leiturasSet26b: true, leituras: [...(out.leituras || []), ...novos] }
+      : { ...out, leiturasSet26b: true };
+  }
+  if (!out.leiturasSet26bNaoTenho) {
+    const ids = new Set(LEITURAS_SET26B.map(l => l.id));
+    let mudou = false;
+    const leituras = (out.leituras || []).map(l => {
+      if (!ids.has(l.id) || l.lido || l.tenho === false) return l;
+      mudou = true;
+      return { ...l, tenho: false };
+    });
+    out = mudou ? { ...out, leiturasSet26bNaoTenho: true, leituras } : { ...out, leiturasSet26bNaoTenho: true };
+  }
+  return out;
 }
 
 // ---- O que ainda roda a cada abertura ----
