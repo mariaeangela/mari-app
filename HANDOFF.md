@@ -2,7 +2,8 @@
 
 App de cultura em React + Vite. Deploy: Vercel, a partir do GitHub
 `mariaeangela/mari-app` (branch `main`). Publicar = `git push origin main`
-(a Vercel republica sozinha). Senha do app (login): `taylor13` (em `src/Login.jsx`).
+(a Vercel republica sozinha). A senha do app NÃO fica escrita em lugar nenhum do
+repositório (ele é público): quem confere é o servidor (`DIAGONAL_API_SECRET` na Vercel).
 
 ## App guardado no aparelho — abre sem internet (10/set/2026)
 `pwa/sw.js` é o MODELO do service worker; o plugin `appNoAparelho` em
@@ -250,7 +251,7 @@ localStorage, que o iOS apagava). Camada:
   o `ping`: protegido → quem valida é o servidor (`checarSenha`); sem proteção ou sem resposta
   (offline / `npm run dev`, que não tem `/api`) → cai na constante `SENHA_LOCAL` da própria tela.
   **Com a variável configurada, a senha do bundle deixa de valer** (testado: servidor protegido
-  recusa `taylor13` e só aceita o valor da env). Um GET que volta 401 continua sendo `UNREACHABLE`
+  recusa a senha antiga do bundle e só aceita o valor da env). Um GET que volta 401 continua sendo `UNREACHABLE`
   ("não consegui ler"), NUNCA "nuvem vazia" — senão o local seria empurrado por cima.
 - **EXPORTAR (`src/exportar.js` + `ExportarBloco` no fim do hub da Life)** — com o `/api/data`
   protegido, abrir o endereço no navegador não devolve mais nada, então é o app que entrega os
