@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense, Component } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, carregarFraseDoDia, getEditionPeriod, getSeason, arteDaTelaDeEntrada } from './contentLibrary.js';
+import { CONTENT_TYPES, CARD_PALETTES, carregarFraseDoDia, getEditionPeriod, getSeason, arteDaTelaDeEntrada, cidadeDoDia } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
@@ -184,10 +184,12 @@ function Saudacao() {
   const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   // Modo Viagem: com viagem ativa, a saudação vira "Bom dia em <cidade>" + um fato da cidade.
   const viagem = getViagemAtiva(life.viagensFuturas);
-  const fatoCidade = viagem ? getCidadeFato(viagem.cidade, d) : null;
+  // Numa viagem de duas cidades (NY e Chicago), vale a de HOJE.
+  const cidade = cidadeDoDia(viagem, ymd(d));
+  const fatoCidade = viagem ? getCidadeFato(cidade, d) : null;
   return (
     <div style={{ marginBottom: 16 }}>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0, lineHeight: 1.15 }}>{viagem ? `${saud} em ${viagem.cidade}` : `${saud}, Mari`}</h2>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: 0, lineHeight: 1.15 }}>{viagem ? `${saud} em ${cidade}` : `${saud}, Mari`}</h2>
       <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '0.5px', marginTop: 3 }}>{DIAS_SEM[d.getDay()]}, {d.getDate()} de {MESES[d.getMonth()]}{viagem ? ` · ${viagem.titulo}` : ''}</p>
       {fatoCidade && <p style={{ fontSize: 12.5, color: '#2a6b65', fontStyle: 'italic', marginTop: 8, lineHeight: 1.55, background: '#19b3a612', border: '1px solid #19b3a633', borderRadius: 10, padding: '9px 11px' }}>{fatoCidade}</p>}
     </div>
@@ -855,13 +857,12 @@ function PossoGastarViagem() {
   if (!viagem) return null;
   const oc = getOrcamentoViagem(viagem);
   const cor = '#19b3a6';
-  const onde = viagem.cidade || viagem.titulo;
   const fmt = (v) => fmtMoedaVal(v, oc.moeda);
   const limiteTotal = oc.categorias.reduce((s, c) => s + (Number(c.limite) || 0), 0);
   const gastoTotal = oc.categorias.reduce((s, c) => s + (c.gastos || []).reduce((a, g) => a + (Number(g.valor) || 0), 0), 0);
   return (
     <div style={{ marginBottom: 24, border: '1px solid ' + cor + '2e', background: cor + '0a', borderRadius: 16, padding: '12px 16px 8px' }}>
-      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>✈ Posso gastar em {onde}</div>
+      <div style={{ fontSize: 11, color: cor, letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700 }}>✈ Orçamento da viagem</div>
       {oc.categorias.length === 0 ? (
         <div style={{ padding: '10px 0 6px' }}>
           <p style={{ fontSize: 12.5, color: '#888', lineHeight: 1.55, margin: '0 0 10px' }}>Esta viagem ainda não tem orçamento. As categorias (hotel, comida, roupas…), os limites e a moeda são definidos na viagem, em Life › Viagens.</p>
@@ -952,14 +953,93 @@ function TrackingHoje() {
   );
 }
 
+// Modo viagem: no lugar do "hoje" do Calendário, a PROGRAMAÇÃO da viagem pro dia
+// de hoje (a mesma do roteiro em Life › Viagens). O ☐ é o mesmo ☑ de visitado do
+// roteiro; tocar no nome abre a viagem. Dia com roteiros alternativos (`opcao`)
+// mostra um bloco por opção, como lá.
+const horaMinProg = (m) => {
+  if (typeof m.horaMin === 'number') return m.horaMin;
+  const x = /(\d{1,2})\s*[h:]\s*(\d{2})?/.exec((m.hora || '').trim());
+  return x ? (+x[1]) * 60 + (x[2] ? +x[2] : 0) : 9999;
+};
+function ProgramacaoHoje({ viagem }) {
+  const life = useLife();
+  const nav = useNav();
+  const hoje = ymd(hojeMid());
+  const doDia = (viagem.mesas || []).filter(m => !m.bucket && m.dia === hoje).sort((a, b) =>
+    ((a.ordem == null ? 9999 : a.ordem) - (b.ordem == null ? 9999 : b.ordem)) || (horaMinProg(a) - horaMinProg(b)));
+  const opcoes = [...new Set(doDia.map(m => m.opcao).filter(Boolean))];
+  const blocos = opcoes.length ? opcoes.map(op => ({ op, ms: doDia.filter(m => m.opcao === op) })) : [{ op: null, ms: doDia }];
+  const cor = '#19b3a6';
+  const alternar = (id) => life.saveViagemFutura({ ...viagem, mesas: (viagem.mesas || []).map(m => m.id === id ? { ...m, visitado: !m.visitado } : m) });
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, color: '#aaa', letterSpacing: '1px', textTransform: 'uppercase', margin: 0 }}>programação de hoje</p>
+        <button onClick={() => nav.goViagem(viagem.id)} style={{ border: 'none', background: 'none', color: cor, fontSize: 12, fontWeight: 700, cursor: 'pointer', padding: 0 }}>ver a viagem ›</button>
+      </div>
+      {doDia.length === 0 && <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', margin: '4px 0 0' }}>Nada marcado pra hoje na programação.</p>}
+      {blocos.map(b => (
+        <div key={b.op || 'dia'}>
+          {b.op && <p style={{ fontSize: 11.5, color: cor, fontWeight: 700, margin: '10px 0 2px' }}>{b.op}</p>}
+          {b.ms.map(m => (
+            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <span onClick={() => alternar(m.id)} title={m.visitado ? 'visitado — toque pra desmarcar' : 'marcar como visitado'} style={{ fontSize: 18, color: m.visitado ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{m.visitado ? '☑' : '☐'}</span>
+              {m.hora && <span style={{ fontSize: 12.5, fontWeight: 700, color: cor, flexShrink: 0 }}>{m.hora}</span>}
+              <span onClick={() => nav.goViagem(viagem.id)} style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: m.visitado ? 'line-through' : 'none', opacity: m.visitado ? 0.5 : 1, cursor: 'pointer' }}>{m.titulo}</span>
+              {m.maps && <a href={m.maps} target="_blank" rel="noopener noreferrer" title="abrir no Google Maps" style={{ textDecoration: 'none', fontSize: 15, flexShrink: 0 }}>📍</a>}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Feed({ isWide }) {
   // Capa (Hoje) — enxuta, a pedido da Mari: saudação · neste dia · seu dia
   // (humor + diário) · antecipação (viagem/prova/compra + cultura acabando) ·
   // lendo · ouvindo · agenda do dia (hoje) · VR · Posso gastar (fim). Metas do mês,
   // planos e os cards de conteúdo saíram daqui (metas/planos no Calendário; conteúdo no Explorar).
+  //
+  // MODO VIAGEM (set/2026, a pedido dela): com viagem ativa a capa fica limpa —
+  // saudação com a curiosidade da cidade · humor · programação de hoje · orçamento
+  // da viagem. O bilhete continua (só aparece se ela deixou um pra este dia). Um
+  // botão discreto troca pra "tela comum"; a escolha vale até fechar o app
+  // (sessionStorage) — ao abrir de novo, volta o modo viagem.
+  const life = useLife();
+  const viagem = getViagemAtiva(life.viagensFuturas);
+  const CHAVE = 'diagonal_hoje_tela_comum';
+  const [comum, setComum] = useState(() => { try { return !!viagem && sessionStorage.getItem(CHAVE) === viagem.id; } catch { return false; } });
+  const trocar = () => {
+    const nx = !comum;
+    setComum(nx);
+    try { if (nx) sessionStorage.setItem(CHAVE, viagem.id); else sessionStorage.removeItem(CHAVE); } catch { /* ignora */ }
+  };
+  const modoViagem = !!viagem && !comum;
+  const botaoTela = viagem && (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+      <button onClick={trocar} style={{ border: '1px solid #e6e6e6', borderRadius: 20, background: '#fff', color: '#aaa', fontSize: 11, fontWeight: 600, padding: '4px 11px', cursor: 'pointer', fontFamily: 'inherit' }}>
+        {modoViagem ? 'tela comum' : '✈ modo viagem'}
+      </button>
+    </div>
+  );
+  if (modoViagem) return (
+    <div style={{ paddingBottom: 40 }}>
+      <div style={{ padding: '14px 20px 0' }}>
+        {botaoTela}
+        <Saudacao />
+        <BilheteHoje />
+        <SeuDia />
+        <ProgramacaoHoje viagem={viagem} />
+        <PossoGastarViagem />
+      </div>
+    </div>
+  );
   return (
     <div style={{ paddingBottom: 40 }}>
-      <div style={{ padding: '20px 20px 0' }}>
+      <div style={{ padding: viagem ? '14px 20px 0' : '20px 20px 0' }}>
+        {botaoTela}
         <Saudacao />
         <NesteDiaFato />
         <BilheteHoje />

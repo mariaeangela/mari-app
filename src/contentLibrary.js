@@ -95,18 +95,26 @@ const ARTE_CIDADE = [
 // Viajando: vale a cidade que aparece na programação de HOJE (numa viagem de
 // duas cidades — NY e Chicago — a viagem só tem uma cidade no cadastro); se hoje
 // não tiver nada que diga, a cidade da viagem; se nenhuma tiver imagem, a estação.
-export function arteDaTelaDeEntrada(season, viagem, hoje) {
-  if (viagem) {
-    const textos = [
-      ...(viagem.mesas || []).filter(m => m && m.dia === hoje).map(m => [m.titulo, m.desc, m.maps].join(' ')),
-      viagem.cidade || '',
-    ];
-    for (const t of textos) {
-      const c = ARTE_CIDADE.find(a => a.re.test(t));
-      if (c) return c;
-    }
+function arteDaCidadeDeHoje(viagem, hoje) {
+  const textos = [
+    ...(viagem.mesas || []).filter(m => m && m.dia === hoje).map(m => [m.titulo, m.desc, m.maps].join(' ')),
+    viagem.cidade || '',
+  ];
+  for (const t of textos) {
+    const c = ARTE_CIDADE.find(a => a.re.test(t));
+    if (c) return c;
   }
-  return ARTE_ESTACAO[season] || ARTE_ESTACAO.winter;
+  return null;
+}
+export function arteDaTelaDeEntrada(season, viagem, hoje) {
+  return (viagem && arteDaCidadeDeHoje(viagem, hoje)) || ARTE_ESTACAO[season] || ARTE_ESTACAO.winter;
+}
+// A cidade em que ela está HOJE, numa viagem (a do dia, pela programação; senão a
+// do cadastro da viagem). Usada na saudação da tela de entrada e da tela Hoje.
+export function cidadeDoDia(viagem, hoje) {
+  if (!viagem) return null;
+  const c = arteDaCidadeDeHoje(viagem, hoje);
+  return (c && c.cidade) || viagem.cidade;
 }
 
 // Estação no hemisfério SUL, pelas datas de virada de verdade (e não pelo mês
