@@ -8,7 +8,7 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
 
 ---
 
-## 1. Com data marcada
+## 1. Pra manter em dia
 
 - 🟡 **Esportes: manter a agenda viva** — `esportesSeed.js` é escrito à mão e
   envelhece sozinho. Antes de reescrever, buscar na web datas/confrontos/transmissões.
