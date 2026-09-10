@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense, Component } from 'react';
-import { CONTENT_TYPES, CARD_PALETTES, carregarFraseDoDia, getEditionPeriod } from './contentLibrary.js';
+import { CONTENT_TYPES, CARD_PALETTES, carregarFraseDoDia, getEditionPeriod, getSeason, arteDaTelaDeEntrada } from './contentLibrary.js';
 import Login from './Login.jsx';
 import ContentCard from './ContentCard.jsx';
 import { SavedProvider, useSaved } from './savedStore.jsx';
@@ -1061,6 +1061,33 @@ function SavedPage({ isWide }) {
   );
 }
 
+// No computador, a coluna do app fica no meio e sobram as bordas dos lados. Nelas
+// entra a mesma obra da tela de entrada (a da estação, ou a da cidade viajando),
+// parada atrás da coluna. No celular não há borda, então nada disso é montado
+// (e a imagem nem é baixada). A coluna fica por cima só por vir depois no HTML —
+// sem z-index nela de propósito: com z-index, as janelas que sobem de baixo
+// (formulários) passariam a ficar ATRÁS do botão Salvar.
+function FundoDasBordas() {
+  const life = useLife();
+  const [carregou, setCarregou] = useState(false);
+  const agora = new Date();
+  const hoje = ymd(agora);
+  const arte = arteDaTelaDeEntrada(getSeason(agora), getViagemAtiva(life.viagensFuturas, hoje), hoje);
+  useEffect(() => {
+    setCarregou(false);
+    const img = new Image();
+    img.onload = () => setCarregou(true);
+    img.src = arte.url;
+  }, [arte.url]);
+  return (
+    <>
+      <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 0, backgroundImage: `url("${arte.url}")`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'sepia(0.18) saturate(0.9)', opacity: carregou ? 1 : 0, transition: 'opacity 1.2s ease' }} />
+      <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 0, background: 'rgba(255,252,246,0.15)' }} />
+      <div style={{ position: 'fixed', left: 16, bottom: 14, zIndex: 1, fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 11, color: 'rgba(40,30,20,0.72)', textShadow: '0 0 6px rgba(255,252,246,0.95), 0 0 2px rgba(255,252,246,0.95)', opacity: carregou ? 1 : 0, transition: 'opacity 1.2s ease', maxWidth: 'calc((100vw - 1160px) / 2 - 24px)' }}>{arte.credito}</div>
+    </>
+  );
+}
+
 // Botão flutuante "Salvar" GLOBAL — grava Life + Calendário + Salvos na nuvem
 // AGORA e AGUARDA a confirmação. Fica em TODAS as abas (a Mari pediu garantia de
 // que nada se perde ao fechar; o autosync já roda sozinho, isto é o reforço manual).
@@ -1283,7 +1310,8 @@ export default function App() {
       <CalendarProvider>
         <LifeProvider>
           <NavContext.Provider value={{ goRetro, goViagem, goCompras }}>
-          <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+          {isWide && <FundoDasBordas />}
+          <div style={{ minHeight: '100dvh', background: '#fafafa', maxWidth: isWide ? 1160 : 480, margin: '0 auto', fontFamily: "'DM Sans', sans-serif", ...(isWide ? { position: 'relative', boxShadow: '0 0 40px rgba(0,0,0,0.12)' } : {}) }}>
             <div style={{ position: 'sticky', top: 0, zIndex: 40 }}>
               <Header tab={tab} setTab={goTab} />
               <FaixaViagem />
