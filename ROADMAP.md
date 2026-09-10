@@ -21,8 +21,11 @@ Tamanho: 🟢 rápido · 🟡 médio · 🔴 grande. ⏳ = espera uma decisão o
   perde nada (a mescla por fatia salva os dois lados), só confunde.
   **É o único com risco de verdade, porque mexe no servidor e nos três stores.**
   (As regras de sync já têm teste: 409 que mescla, falta de espaço, dois aparelhos.)
-- 🟢 **Sem internet o app não abre** — dá pra editar depois de aberto, mas abrir
-  precisa de rede (não há cópia offline do app). Nunca atrapalhou; fica registrado.
+- 🟡 **Abrir o app sem internet** ⏳ — os dados dela já ficam no aparelho e a senha
+  já funciona offline; o que falta é o próprio app ficar guardado no aparelho
+  (service worker) pra abrir sem rede — avião, metrô, roaming. Proposta feita em
+  10/09, antes da viagem; espera o ok dela. Cuidado: não pode prender o app numa
+  versão velha (o aviso de versão nova tem que continuar funcionando).
 
 ## 3. Finanças (o plano por passos)
 
@@ -40,9 +43,10 @@ o gasto na hora, que já está na capa).
 - ⏸ **Ano a ano** — parado até 2027 ter dados de verdade (decisão dela, 29/07).
 - 🟢 **CDBs antigos** ⏳ — ela ofereceu reclassificar em massa; eu perguntei antes e
   a decisão ficou parada.
-- 🟢 **`comprasFeitas` sem tela** ⏳ — os registros continuam no documento dela sem
-  nenhuma tela que os leia (a tela foi apagada em 31/07 a pedido dela). Apagar de
-  vez ou dar tela? Falta a palavra dela.
+- 🟢 **Compras antigas sem tela (`comprasFeitas`)** ⏳ — ~30 compras de jan–jun/2026
+  (nome, mês, valor: vinil, óculos, livros…) que apareciam no card Compras da
+  Retrospectiva. O card saiu em 31/07 a pedido dela; os registros ficaram no
+  documento, invisíveis. Deixar como está, apagar, ou mostrar em algum canto?
 
 ## 4. Estudos e leituras
 
@@ -50,12 +54,13 @@ o gasto na hora, que já está na capa).
   ago/2025). Ela manda a planilha; eu cadastro no mesmo formato.
 - 🟡 **"Pedir guia" pra qualquer livro** — hoje o guia de contexto é escrito à mão
   (só Anna Kariênina tem).
-- 🟡 **"Me sugere um livro"** — sugere da estante por tempo/humor/tema ("tá com 1h?
-  esse tem 96 páginas").
+- 🟡 **"Me sugere um livro"** ⏳ — sugere da estante por tamanho/tipo/tema ("tá com
+  pouco tempo? esse tem 96 páginas"). Proposta feita em 10/09; espera o ok dela.
 
 ## 5. Saúde
 
-- 🟡 **Aviso de remédio acabando** — a partir do início + duração.
+- 🟡 **Cadastro de remédios** ⏳ — ela vai ver depois o que quer aqui (era "aviso de
+  remédio acabando").
 
 ## 6. Ideias (sem pressa, nenhuma começada)
 
