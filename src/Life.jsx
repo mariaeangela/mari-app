@@ -5861,7 +5861,7 @@ function ReportagensSection({ onBack }) {
       <div style={{ width: 36, height: 4, background: COR_REPORT, borderRadius: 4, marginBottom: 12 }} />
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Reportagens</h2>
       <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>
-        {materias.length ? `piauí · ${edicoes.length} ${edicoes.length === 1 ? 'edição' : 'edições'} · ${lidas} de ${materias.length} lidas` : 'as matérias da piauí'}
+        {materias.length ? `piauí · ${edicoes.length} ${edicoes.length === 1 ? 'edição' : 'edições'} · ✓ ${lidas} de ${materias.length} lidas` : 'as matérias da piauí'}
       </p>
 
       {materias.length === 0 ? (
@@ -5899,7 +5899,7 @@ function ReportagensSection({ onBack }) {
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14, color: '#222', fontWeight: 600 }}>{e.mes}</span>
                     <span style={{ display: 'block', fontSize: 11.5, color: '#999', marginTop: 2 }}>
-                      {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}{favEd ? ` · ♥ ${favEd}` : ''}
+                      ✓ {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}{favEd ? ` · ♥ ${favEd}` : ''}
                     </span>
                   </span>
                   {!junta && <span style={{ color: '#bbb', fontSize: 13 }}>{aberto ? '▲' : '▼'}</span>}
