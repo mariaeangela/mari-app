@@ -8,6 +8,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchLife, pushLife, saveLifeNow, onSyncStatus, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, definirBaseLife, gravarLocal, fatiasNaoConfirmadas } from './cloud';
 import { rebasear } from './mesclar.js';
+import { PIAUI_EDICOES_SET26, PIAUI_MATERIAS_SET26 } from './piauiSet26.js';   // BILHETE — sai junto com ensurePiauiSet26
 
 const KEY = 'diagonal_life';
 const P = (id, data, valor, local, treino, periodo) => ({ id, data, valor, local, treino, periodo });
@@ -828,6 +829,23 @@ export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto
   return { ...d, leiturasSet26: true, leituras: [...(d.leituras || []), ...novos] };
 }
 
+// BILHETE DE USO ÚNICO — as matérias da piauí (edições 218 a 229) da planilha
+// que a Mari mandou em 10/set/2026, pro card Estudos › Reportagens. Escreve só
+// no CATÁLOGO (`reportagens`); as marcas dela (★ ✓ comentário) moram em outra
+// fatia e não são tocadas. Edição ou matéria que já estiver lá não entra de novo.
+// Roda UMA vez: assim que estiver gravado no documento dela, esta função, o nome
+// dela lá embaixo e o arquivo piauiSet26.js saem daqui.
+export function ensurePiauiSet26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.piauiSet26) return d;
+  const cat = d.reportagens || {};
+  const edAntes = cat.edicoes || [], matAntes = cat.materias || [];
+  const temEd = new Set(edAntes.map(e => e.n));
+  const temId = new Set(matAntes.map(m => m.id));
+  const edicoes = [...edAntes, ...PIAUI_EDICOES_SET26.filter(e => !temEd.has(e.n))].sort((a, b) => b.n - a.n);
+  const materias = [...matAntes, ...PIAUI_MATERIAS_SET26.filter(m => !temId.has(m.id))];
+  return { ...d, piauiSet26: true, reportagens: { ...cat, edicoes, materias } };
+}
+
 // ---- O que ainda roda a cada abertura ----
 // Até ago/2026 eram 51 "bilhetes": pedaços de conteúdo que eu escrevia no código
 // (o roteiro de NY, a programação da FLIP, as leituras) e que se reescreviam no
@@ -849,7 +867,8 @@ export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureChicagoRoteiro, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
-    ensureLeiturasSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureLeiturasSet26, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
+    ensurePiauiSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função e o piauiSet26.js */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
@@ -1332,6 +1351,27 @@ export function LifeProvider({ children }) {
     : [...ingles, { id: uid('en'), ...e }] });
   const deleteInglesEntry = (id) => persist({ ...data, ingles: ingles.filter(x => x.id !== id) });
 
+  // ---- Estudos › Reportagens (as matérias da piauí, edição por edição) ----
+  // Duas fatias, de propósito: `reportagens` é o CATÁLOGO (edições + matérias),
+  // que só eu escrevo, quando ela manda a planilha de uma edição nova; e
+  // `reportagensMarcas` é o que é DELA — ★ quero ler, ✓ li, o comentário. Assim
+  // cadastrar edição nova nunca encosta numa marca dela, e marcar uma estrela
+  // sobe só a fatia pequena, e não as centenas de matérias.
+  // reportagens = { edicoes:[{n,mes}], materias:[{id,ed,tipo,chapeu?,titulo,linha?,autor?}] }
+  //   tipo: 'reportagem' | 'esquina' | 'outro'
+  // reportagensMarcas = { [materiaId]: { quero?, lida?, lidaEm?, comentario? } }
+  const reportagens = data.reportagens || { edicoes: [], materias: [] };
+  const reportagensMarcas = data.reportagensMarcas || {};
+  // Forma de FUNÇÃO: dois toques seguidos (★ e ✓) não se apagam. Campo vazio sai;
+  // matéria sem marca nenhuma sai do mapa.
+  const marcarReportagem = (id, patch) => persistFn(d => {
+    const todas = d.reportagensMarcas || {};
+    const nova = { ...(todas[id] || {}), ...patch };
+    Object.keys(nova).forEach(k => { if (!nova[k]) delete nova[k]; });
+    const { [id]: _antes, ...resto } = todas;
+    return { ...d, reportagensMarcas: Object.keys(nova).length ? { ...resto, [id]: nova } : resto };
+  });
+
   // ---- Retrospectiva › Amorosa (privada: transas, dates, beijos, relações) ----
   // entrada = { id, tipo:'transa'|'date'|'beijo'|'relacao', data, fim?, pessoa?, local?, nota? }
   const amorosa = data.amorosa || [];
@@ -1614,6 +1654,7 @@ export function LifeProvider({ children }) {
     viagensQuero, addQueroGrupo, renameQueroGrupo, deleteQueroGrupo, moveQueroGrupo, addQueroItem, saveQueroItemTexto, deleteQueroItem, addQueroNota, saveQueroNotaTexto, deleteQueroNota,
     planosViagem, addPVGrupo, renamePVGrupo, deletePVGrupo, movePVGrupo, addPVItem, savePVItemTexto, deletePVItem,
     ingles, saveInglesEntry, deleteInglesEntry,
+    reportagens, reportagensMarcas, marcarReportagem,
     amorosa, saveAmorosa, deleteAmorosa,
     gastosItens, saveGastoItem, deleteGastoItem,
     gastoSubcats, addGastoSubcat, deleteGastoSubcat, setGastoSubItem,

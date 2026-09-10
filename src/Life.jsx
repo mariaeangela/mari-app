@@ -5551,12 +5551,14 @@ function EstudosPage({ onBack }) {
   const topico = topicos.find(t => t.id === topicoSel);
   if (sec === 'acomp') return <AcompLeiturasSection onBack={() => setSec(null)} />;
   if (sec === 'ingles') return <InglesSection onBack={() => setSec(null)} />;
+  if (sec === 'reportagens') return <ReportagensSection onBack={() => setSec(null)} />;
   if (topico) return <TopicoView topico={topico} cad={cad} onBack={() => setTopicoSel(null)} />;
   const addTopico = () => { const nome = novo.trim(); if (!nome) return; const id = life.addEstudoTopico(nome); setNovo(''); setAdicionando(false); setTopicoSel(id); };
   const countNotas = (id) => (cad.dados.notas || []).filter(n => n.topicoId === id && !n.paiId).length;
   const fixos = [
     { id: 'acomp', label: 'Acompanhamento de leituras', desc: 'o livro que você está lendo, de perto', cor: COR_ACOMP, n: (life.acompLeituras || []).length, sufixo: 'leitura' },
     { id: 'ingles', label: 'Inglês', desc: 'dicionário de palavras', cor: COR_INGLES, n: (life.ingles || []).length, sufixo: 'palavra' },
+    { id: 'reportagens', label: 'Reportagens', desc: 'as matérias da piauí', cor: COR_REPORT, sub: resumoReportagens(life) },
   ];
   const cardStyle = (cor) => ({ background: cor + '12', border: '1px solid ' + cor + '33', borderRadius: 16, padding: '18px 16px', cursor: 'pointer', textAlign: 'left' });
   return (
@@ -5575,7 +5577,7 @@ function EstudosPage({ onBack }) {
           <button key={c.id} onClick={() => setSec(c.id)} style={cardStyle(c.cor)}>
             <div style={{ width: 24, height: 4, background: c.cor, borderRadius: 4, marginBottom: 12 }} />
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15, color: '#222', fontWeight: 700, lineHeight: 1.2 }}>{c.label}</div>
-            <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{c.n ? `${c.n} ${c.sufixo}${c.n === 1 ? '' : 's'}` : c.desc}</div>
+            <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{c.sub || (c.n ? `${c.n} ${c.sufixo}${c.n === 1 ? '' : 's'}` : c.desc)}</div>
           </button>
         ))}
         {topicos.map(t => {
@@ -5625,7 +5627,7 @@ function EstudosPage({ onBack }) {
                 )}
               </div>
             ))}
-            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia. ↑ ↓ reordenam. Apagar remove o tópico e todas as suas notas. (Acompanhamento de leituras e Inglês não entram aqui — são fixos.)</p>
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia. ↑ ↓ reordenam. Apagar remove o tópico e todas as suas notas. (Acompanhamento de leituras, Inglês e Reportagens não entram aqui — são fixos.)</p>
           </div>
         </div>
       )}
@@ -5708,6 +5710,188 @@ function InglesSection({ onBack }) {
       ))}
 
       {form && <InglesForm editing={form.editing} onClose={() => setForm(null)} />}
+    </div>
+  );
+}
+
+// ===== Estudos › Reportagens (as matérias da piauí, edição por edição) =====
+// As edições ela lê no Kindle; aqui ela escolhe e acompanha. O catálogo entra
+// pela planilha que ela me manda (eu cadastro); na tela ela só marca: ☆ quero
+// ler, ✓ li e, tocando na matéria, um comentário. Toda matéria tem o selo do
+// tipo (Reportagem, Esquina, Outro) e dá pra filtrar por ele.
+const COR_REPORT = '#b5523b';
+const TIPOS_REPORT = [
+  { id: 'reportagem', label: 'Reportagem', filtro: 'Reportagens', cor: '#3f6fb5' },
+  { id: 'esquina', label: 'Esquina', filtro: 'Esquina', cor: '#b8860b' },
+  { id: 'outro', label: 'Outro', filtro: 'Outros', cor: '#8a8a8a' },
+];
+const tipoReport = (id) => TIPOS_REPORT.find(t => t.id === id) || TIPOS_REPORT[0];
+const ORDEM_TIPO_REPORT = { reportagem: 0, esquina: 1, outro: 2 };
+const hojeISO = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+const resumoReportagens = (life) => {
+  const materias = life.reportagens?.materias || [];
+  if (!materias.length) return '';
+  const marcas = life.reportagensMarcas || {};
+  const lidas = materias.filter(m => marcas[m.id]?.lida).length;
+  return `${lidas} de ${materias.length} lidas`;
+};
+
+function SeloTipo({ tipo }) {
+  const t = tipoReport(tipo);
+  return <span style={{ fontSize: 10, fontWeight: 700, color: t.cor, background: t.cor + '18', borderRadius: 5, padding: '2px 6px', letterSpacing: 0.3 }}>{t.label}</span>;
+}
+
+// Os dois botões da matéria: ☆/★ quero ler e ○/✓ já li.
+function MarcasReportagem({ m, marca, grande }) {
+  const life = useLife();
+  const tam = grande ? 40 : 32;
+  const base = { width: tam, height: tam, borderRadius: '50%', cursor: 'pointer', fontSize: grande ? 18 : 15, lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+  return (
+    <>
+      <button onClick={() => life.marcarReportagem(m.id, { quero: !marca.quero })} title={marca.quero ? 'tirar de "quero ler"' : 'quero ler'}
+        style={{ ...base, border: '1px solid ' + (marca.quero ? '#e0a800' : '#e2e2e2'), background: marca.quero ? '#fff6d6' : '#fff', color: marca.quero ? '#d49b00' : '#bbb' }}>{marca.quero ? '★' : '☆'}</button>
+      <button onClick={() => life.marcarReportagem(m.id, { lida: !marca.lida, lidaEm: marca.lida ? undefined : hojeISO() })} title={marca.lida ? 'desmarcar "já li"' : 'já li'}
+        style={{ ...base, border: '1px solid ' + (marca.lida ? '#2e9e5b' : '#e2e2e2'), background: marca.lida ? '#2e9e5b' : '#fff', color: marca.lida ? '#fff' : '#ccc', fontWeight: 700 }}>✓</button>
+    </>
+  );
+}
+
+// Tocar na matéria: ela inteira + ☆ ✓ + o comentário. O comentário grava ao
+// tocar em Salvar E ao fechar de qualquer jeito — texto escrito não se perde.
+function ReportagemSheet({ m, mes, onClose }) {
+  const life = useLife();
+  const marca = life.reportagensMarcas?.[m.id] || {};
+  const [texto, setTexto] = useState(marca.comentario || '');
+  const fechar = () => {
+    if (texto.trim() !== (marca.comentario || '')) life.marcarReportagem(m.id, { comentario: texto.trim() });
+    onClose();
+  };
+  const t = tipoReport(m.tipo);
+  return (
+    <div onClick={fechar} style={overlay}>
+      <div onClick={e => e.stopPropagation()} style={sheet}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontSize: 11.5, color: '#999' }}>piauí {m.ed}{mes ? ` · ${mes}` : ''}</span>
+          <button onClick={fechar} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+          <SeloTipo tipo={m.tipo} />
+          {m.chapeu && m.chapeu !== 'esquina' && <span style={{ fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.chapeu}</span>}
+        </div>
+        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 21, color: '#111', margin: '0 0 6px', lineHeight: 1.25 }}>{m.titulo}</h3>
+        {m.linha && <p style={{ fontSize: 14, color: '#555', lineHeight: 1.5, margin: '0 0 4px' }}>{m.linha}</p>}
+        {m.autor && <p style={{ fontSize: 12.5, color: '#999', margin: 0 }}>{m.autor}</p>}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 16 }}>
+          <MarcasReportagem m={m} marca={marca} grande />
+          <span style={{ fontSize: 12.5, color: '#888' }}>
+            {marca.lida ? 'já li' : marca.quero ? 'quero ler' : 'marque ☆ se quer ler, ✓ quando ler'}
+          </span>
+        </div>
+        <label style={labelStyle}>O que achei</label>
+        <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={5} placeholder="um comentário, uma frase que ficou, o que for…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }} />
+        <button onClick={fechar} style={{ width: '100%', marginTop: 14, border: 'none', borderRadius: 11, background: '#111', color: '#fff', cursor: 'pointer', padding: '12px 0', fontSize: 14, fontWeight: 700 }}>Salvar e fechar</button>
+      </div>
+    </div>
+  );
+}
+
+function ReportagensSection({ onBack }) {
+  const life = useLife();
+  const edicoes = life.reportagens?.edicoes || [];
+  const materias = life.reportagens?.materias || [];
+  const marcas = life.reportagensMarcas || {};
+  const [tipo, setTipo] = useState('todos');
+  const [soQuero, setSoQuero] = useState(false);
+  const [abertas, setAbertas] = useState(() => new Set(edicoes[0] ? [edicoes[0].n] : []));
+  const [aberta, setAberta] = useState(null);   // matéria no painel de comentário
+  const quero = (m) => marcas[m.id]?.quero && !marcas[m.id]?.lida;
+  const passa = (m) => (tipo === 'todos' || m.tipo === tipo) && (!soQuero || quero(m));
+  const nQuero = materias.filter(quero).length;
+  const lidas = materias.filter(m => marcas[m.id]?.lida).length;
+  const alternar = (n) => setAbertas(s => { const nx = new Set(s); if (nx.has(n)) nx.delete(n); else nx.add(n); return nx; });
+  const chip = (ativo, cor) => ({ border: '1px solid ' + (ativo ? cor : '#e2e2e2'), background: ativo ? cor : '#fff', color: ativo ? '#fff' : '#666', borderRadius: 20, padding: '6px 12px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' });
+  const mesDe = (ed) => edicoes.find(e => e.n === ed)?.mes;
+  const blocos = edicoes.map(e => {
+    const daEd = materias.filter(m => m.ed === e.n);
+    const itens = daEd.filter(passa).sort((a, b) => ORDEM_TIPO_REPORT[a.tipo] - ORDEM_TIPO_REPORT[b.tipo]);
+    return { e, daEd, itens };
+  }).filter(b => !soQuero || b.itens.length);
+
+  return (
+    <div style={{ padding: '24px 20px 90px', maxWidth: 620, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 16, padding: 0 }}>&larr; Estudos</button>
+      <div style={{ width: 36, height: 4, background: COR_REPORT, borderRadius: 4, marginBottom: 12 }} />
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Reportagens</h2>
+      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 14px' }}>
+        {materias.length ? `piauí · ${edicoes.length} ${edicoes.length === 1 ? 'edição' : 'edições'} · ${lidas} de ${materias.length} lidas` : 'as matérias da piauí'}
+      </p>
+
+      {materias.length === 0 ? (
+        <div style={{ padding: 22, borderRadius: 14, background: COR_REPORT + '0e', border: '1px dashed ' + COR_REPORT + '55', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 14.5, color: '#666', margin: 0 }}>As matérias ainda estão chegando.</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+            <button onClick={() => setTipo('todos')} style={chip(tipo === 'todos', '#111')}>Tudo</button>
+            {TIPOS_REPORT.map(t => <button key={t.id} onClick={() => setTipo(t.id)} style={chip(tipo === t.id, t.cor)}>{t.filtro}</button>)}
+          </div>
+          <button onClick={() => setSoQuero(v => !v)} style={{ ...chip(soQuero, '#d49b00'), marginBottom: 14 }}>★ Quero ler{nQuero ? ` (${nQuero})` : ''}</button>
+
+          {soQuero && blocos.length === 0 && (
+            <div style={{ padding: 18, borderRadius: 14, background: '#fff6d6', border: '1px dashed #e0c060', textAlign: 'center', fontSize: 13.5, color: '#886a10', lineHeight: 1.5 }}>
+              Nenhuma ainda{tipo !== 'todos' ? ' deste tipo' : ''}. Toque na ☆ de uma matéria e ela aparece aqui, junto com as das outras edições.
+            </div>
+          )}
+
+          {blocos.map(({ e, daEd, itens }) => {
+            const aberto = soQuero || abertas.has(e.n);
+            const lidasEd = daEd.filter(m => marcas[m.id]?.lida).length;
+            const queroEd = daEd.filter(quero).length;
+            return (
+              <div key={e.n} style={{ marginBottom: 8, border: '1px solid #eee', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
+                <button onClick={() => !soQuero && alternar(e.n)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', background: 'none', border: 'none', cursor: soQuero ? 'default' : 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: COR_REPORT, minWidth: 40 }}>{e.n}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 14, color: '#222', fontWeight: 600 }}>{e.mes}</span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: '#999', marginTop: 2 }}>
+                      {lidasEd} de {daEd.length} lidas{queroEd ? ` · ★ ${queroEd}` : ''}
+                    </span>
+                  </span>
+                  {!soQuero && <span style={{ color: '#bbb', fontSize: 13 }}>{aberto ? '▲' : '▼'}</span>}
+                </button>
+                {aberto && (
+                  <div style={{ padding: '0 14px 4px', borderTop: '1px solid #f3f3f3' }}>
+                    {itens.length === 0 && <p style={{ fontSize: 12.5, color: '#aaa', margin: '12px 0' }}>Nada deste tipo nesta edição.</p>}
+                    {itens.map((m, i) => {
+                      const mc = marcas[m.id] || {};
+                      return (
+                        <div key={m.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '12px 0', borderBottom: i === itens.length - 1 ? 'none' : '1px solid #f3f3f3' }}>
+                          <div onClick={() => setAberta(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer', opacity: mc.lida ? 0.5 : 1 }}>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                              <SeloTipo tipo={m.tipo} />
+                              {m.chapeu && m.chapeu !== 'esquina' && <span style={{ fontSize: 10.5, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>{m.chapeu}</span>}
+                            </div>
+                            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 15.5, fontWeight: 700, color: '#1a1a1a', lineHeight: 1.25 }}>{m.titulo}</div>
+                            {m.linha && <div style={{ fontSize: 13, color: '#666', lineHeight: 1.45, marginTop: 3 }}>{m.linha}</div>}
+                            {m.autor && <div style={{ fontSize: 11.5, color: '#999', marginTop: 4 }}>{m.autor}</div>}
+                            {mc.comentario && <div style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.5, marginTop: 7, borderLeft: '2px solid ' + COR_REPORT + '66', paddingLeft: 9, whiteSpace: 'pre-wrap' }}>{mc.comentario}</div>}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                            <MarcasReportagem m={m} marca={mc} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {aberta && <ReportagemSheet m={aberta} mes={mesDe(aberta.ed)} onClose={() => setAberta(null)} />}
     </div>
   );
 }

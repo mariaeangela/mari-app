@@ -148,6 +148,26 @@ export function exportarTexto(life, calendario) {
     linha();
   }
 
+  // --- Reportagens (só as que ela marcou: ★, ✓ ou comentário) ---
+  const rep = (l.reportagens && l.reportagens.materias) || [];
+  const marcas = l.reportagensMarcas || {};
+  const marcadas = rep.filter(m => marcas[m.id]);
+  if (marcadas.length) {
+    linha('---'); linha(); linha('# Reportagens (piauí)'); linha();
+    const eds = [...new Set(marcadas.map(m => m.ed))].sort((a, b) => b - a);
+    eds.forEach(ed => {
+      const mes = ((l.reportagens.edicoes || []).find(e => e.n === ed) || {}).mes;
+      linha(`## piauí ${ed}${mes ? ` — ${mes}` : ''}`); linha();
+      marcadas.filter(m => m.ed === ed).forEach(m => {
+        const mc = marcas[m.id];
+        const selo = [mc.lida ? '✓ li' : '', mc.quero && !mc.lida ? '★ quero ler' : ''].filter(Boolean).join(' · ');
+        linha(`- **${m.titulo}**${m.autor ? ` — ${m.autor}` : ''}${selo ? `  *(${selo})*` : ''}`);
+        if (mc.comentario) linha(`  > ${mc.comentario.replace(/\n/g, '\n  > ')}`);
+      });
+      linha();
+    });
+  }
+
   // --- Diário + humor (do calendário) ---
   const diary = cal.diary || {};
   const moods = cal.moods || {};
