@@ -800,32 +800,44 @@ function ensureChicagoRoteiro(d) {
   return { ...d, chicagoRoteiro6: true, viagensFuturas: next };
 }
 
-// BILHETE DE USO ÚNICO — os cinco livros que a Mari mandou em 07/set/2026 pras
-// Próximas leituras. Entram na ESTANTE (é onde cai um livro novo adicionado à
-// mão); um toque em "Não tenho" muda, se ela não tiver o exemplar. Título que já
-// estiver na lista não entra de novo. Roda UMA vez: assim que estiver gravado no
-// documento dela, esta função e o nome dela lá embaixo saem daqui.
-const LEITURAS_SET26 = [
-  { id: 'lv-set26-nausea', titulo: 'A Náusea', autor: 'Jean-Paul Sartre', pais: 'França', ano: 1938,
-    tipo: 'ficção', genero: 'Romance', temas: ['existencialismo', 'absurdo', 'solidão'] },
-  { id: 'lv-set26-estrangeiro', titulo: 'O Estrangeiro', autor: 'Albert Camus', pais: 'França', ano: 1942,
-    tipo: 'ficção', genero: 'Romance', temas: ['absurdo', 'indiferença', 'justiça'] },
-  { id: 'lv-set26-ivanilitch', titulo: 'A Morte de Ivan Ilitch', autor: 'Lev Tolstói', pais: 'Rússia', ano: 1886,
-    tipo: 'ficção', genero: 'Novela', temas: ['morte', 'doença', 'sentido da vida'] },
-  // Só título, autor e país: não consegui confirmar ano, gênero e temas desta
-  // obra, e chute aqui vira filtro errado depois. Ela completa ao abrir o livro.
-  { id: 'lv-set26-razaoimpura', titulo: 'Crítica da Razão Impura', autor: 'Gonçalo M. Tavares', pais: 'Portugal' },
-  { id: 'lv-set26-pensamentomagico', titulo: 'O Ano do Pensamento Mágico', autor: 'Joan Didion', pais: 'Estados Unidos', ano: 2005,
-    tipo: 'não ficção', genero: 'Memória', temas: ['luto', 'perda', 'casamento', 'memória'] },
+// BILHETE DE USO ÚNICO — os sete livros que a Mari mandou em 10/set/2026 pras
+// Próximas leituras (dois do David Grossman e cinco do Ian Buruma). Entram na
+// ESTANTE (é onde cai um livro novo adicionado à mão); um toque em "Não tenho"
+// muda, se ela não tiver o exemplar. Título que já estiver na lista não entra de
+// novo. Roda UMA vez: assim que estiver gravado no documento dela, esta função e
+// o nome dela lá embaixo saem daqui. (O bilhete anterior, dos cinco livros de
+// 07/set, já tinha rodado e saiu nesta mesma troca.)
+const LEITURAS_SET26B = [
+  { id: 'lv-set26-infernooutros', titulo: 'O Inferno dos Outros', autor: 'David Grossman', pais: 'Israel', ano: 2014,
+    tipo: 'ficção', genero: 'Romance', temas: ['humor', 'luto', 'infância', 'Israel'],
+    nota: 'título original: Sus echad nichnas lebar (A Horse Walks into a Bar)' },
+  { id: 'lv-set26-vidabrinca', titulo: 'A Vida Brinca Comigo', autor: 'David Grossman', pais: 'Israel', ano: 2019,
+    tipo: 'ficção', genero: 'Romance', temas: ['família', 'memória', 'mães e filhas', 'Iugoslávia'],
+    nota: 'título em inglês: More Than I Love My Life' },
+  { id: 'lv-set26-colaboradores', titulo: 'Os Colaboradores', autor: 'Ian Buruma', pais: 'Holanda', ano: 2022,
+    tipo: 'não ficção', genero: 'História', temas: ['Segunda Guerra', 'colaboração', 'identidade', 'sobrevivência'],
+    nota: 'título original: The Collaborators: Three Stories of Deception and Survival in World War II' },
+  // Sem edição em português que eu tenha achado: vai com o título e o idioma do original.
+  { id: 'lv-set26-stayalive', titulo: 'Stay Alive: Berlin, 1939–1945', autor: 'Ian Buruma', pais: 'Holanda', ano: 2026,
+    idioma: 'Inglês', tipo: 'não ficção', genero: 'História', temas: ['Segunda Guerra', 'Berlim', 'nazismo', 'vida cotidiana'] },
+  { id: 'lv-set26-assassinatoams', titulo: 'Assassinato em Amsterdã', autor: 'Ian Buruma', pais: 'Holanda', ano: 2006,
+    tipo: 'não ficção', genero: 'Reportagem', temas: ['islã', 'Europa', 'imigração', 'tolerância'],
+    nota: 'título original: Murder in Amsterdam' },
+  { id: 'lv-set26-ocidentalismo', titulo: 'Ocidentalismo: O Ocidente aos Olhos de seus Inimigos', autor: 'Ian Buruma e Avishai Margalit', pais: 'Holanda', ano: 2004,
+    tipo: 'não ficção', genero: 'Ensaio', temas: ['Ocidente', 'fundamentalismo', 'ideias políticas'],
+    nota: 'título original: Occidentalism: The West in the Eyes of Its Enemies' },
+  { id: 'lv-set26-domardeuses', titulo: 'Domar os Deuses: Religião e Democracia em Três Continentes', autor: 'Ian Buruma', pais: 'Holanda', ano: 2010,
+    tipo: 'não ficção', genero: 'Ensaio', temas: ['religião', 'democracia', 'secularismo'],
+    nota: 'título original: Taming the Gods' },
 ];
-export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto com a função
-  if (d.leiturasSet26) return d;
+export function ensureLeiturasSet26b(d) {   // exportada só pro teste; sai junto com a função
+  if (d.leiturasSet26b) return d;
   const have = new Set((d.leituras || []).map(l => (l.titulo || '').trim().toLowerCase()));
-  const novos = LEITURAS_SET26
+  const novos = LEITURAS_SET26B
     .filter(l => !have.has(l.titulo.toLowerCase()))
     .map(l => ({ idioma: 'Português', temas: [], ...l, lido: false, tenho: true }));
-  if (!novos.length) return { ...d, leiturasSet26: true };
-  return { ...d, leiturasSet26: true, leituras: [...(d.leituras || []), ...novos] };
+  if (!novos.length) return { ...d, leiturasSet26b: true };
+  return { ...d, leiturasSet26b: true, leituras: [...(d.leituras || []), ...novos] };
 }
 
 // ---- O que ainda roda a cada abertura ----
@@ -849,7 +861,7 @@ export function ensureLeiturasSet26(d) {   // exportada só pro teste; sai junto
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureChicagoRoteiro, /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */
-    ensureLeiturasSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureLeiturasSet26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
