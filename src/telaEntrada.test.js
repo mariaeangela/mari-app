@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { arteDaTelaDeEntrada, cidadeDoDia, ARTE_ESTACAO } from './contentLibrary.js';
+import { arteDaTelaDeEntrada, cidadeDoDia, ARTE_ESTACAO, IMAGENS_DA_CIDADE } from './contentLibrary.js';
 
 const viagem = (mesas = [], cidade = 'Nova York') => ({ cidade, inicio: '2026-09-13', fim: '2026-09-26', mesas });
 
@@ -31,6 +31,19 @@ describe('fundo da tela de entrada', () => {
     expect(cidadeDoDia(v, '2026-09-20')).toBe('Chicago');
     const volta = viagem([{ dia: '2026-09-24', titulo: 'Voo Chicago → Nova York' }], 'Nova York · Chicago');
     expect(cidadeDoDia(volta, '2026-09-24')).toBe('Nova York');
+  });
+
+  it('cada cidade tem várias imagens, e troca a cada dia (o mesmo o dia todo)', () => {
+    const ny = IMAGENS_DA_CIDADE('Nova York').map(i => i.url);
+    expect(ny.length).toBeGreaterThanOrEqual(5);
+    expect(IMAGENS_DA_CIDADE('Chicago').length).toBeGreaterThanOrEqual(5);
+    const v = viagem([], 'Nova York · Chicago');
+    const dias = ['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17'];
+    const urls = dias.map(d => arteDaTelaDeEntrada('winter', v, d).url);
+    expect(new Set(urls).size).toBe(5);                           // 5 dias seguidos, 5 imagens
+    urls.forEach(u => expect(ny).toContain(u));
+    expect(arteDaTelaDeEntrada('winter', v, '2026-09-15').url).toBe(urls[2]);   // mesmo dia, mesma
+    expect(arteDaTelaDeEntrada('winter', v, '2026-09-15').credito).toBeTruthy();
   });
 
   it('cidade sem imagem própria fica com a estação', () => {

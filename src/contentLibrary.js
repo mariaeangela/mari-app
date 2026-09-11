@@ -84,17 +84,50 @@ export const ARTE_ESTACAO = {
   autumn: { url: WM + '5/57/Levitan_Zolotaya_Osen.jpg/1280px-Levitan_Zolotaya_Osen.jpg',
     pos: '58% center', credito: 'Isaac Levitan, Outono dourado (1895)' },
 };
-// Cidades com imagem própria. Pra uma cidade nova, é só somar aqui; as outras
-// ficam com a da estação.
+// Cidades com imagens próprias — várias por cidade, e troca uma por DIA (a Mari
+// pediu, set/2026: uma só cansava, e a primeira de NY nem parecia NY). Fotos e
+// pinturas de ~1900, todas em domínio público. Pra uma cidade nova, é só somar
+// aqui; as outras ficam com a da estação.
+const UP = 'https://upload.wikimedia.org/wikipedia/commons/';
 const ARTE_CIDADE = [
-  { cidade: 'Chicago', re: /chicago/i, url: WM + '4/40/South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg/1280px-South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg',
-    pos: '62% center', credito: 'O rio Chicago em 1900 (fotocromo)' },
-  { cidade: 'Nova York', re: /nova york|new york|nyc|manhattan|brooklyn/i, url: WM + '3/3a/The_Avenue_in_the_Rain_Frederick_Childe_Hassam_1917.jpeg/1280px-The_Avenue_in_the_Rain_Frederick_Childe_Hassam_1917.jpeg',
-    pos: 'center', credito: 'Childe Hassam, A avenida na chuva (1917)' },
+  { cidade: 'Chicago', re: /chicago/i, imagens: [
+    { url: WM + '4/40/South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg/1280px-South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg',
+      pos: '62% center', credito: 'O rio Chicago em 1900 (fotocromo)' },
+    { url: UP + '3/3f/Detroit_Photographic_Company_%280332%29_-_State_Street%2C_Chicago.jpg',
+      pos: 'center', credito: 'State Street por volta de 1900 (fotocromo)' },
+    { url: WM + '1/18/Detroit_Photographic_Company_%280331%29.jpg/1280px-Detroit_Photographic_Company_%280331%29.jpg',
+      pos: 'center', credito: 'A Michigan Avenue por volta de 1900 (fotocromo)' },
+    { url: WM + '1/1e/Wabash_Avenue_north_from_Adams_Street%2C_Chicago-LCCN2008679500.jpg/1280px-Wabash_Avenue_north_from_Adams_Street%2C_Chicago-LCCN2008679500.jpg',
+      pos: 'center', credito: 'A Wabash Avenue e o trem elevado, em 1900 (fotocromo)' },
+    // (A pintura do Twachtman, de 1893, saiu: clara demais, sumia atrás do quadro.)
+    { url: WM + '5/53/Grant_Monument%2C_Lincoln_Park%2C_Chicago-LCCN2008678147.jpg/1280px-Grant_Monument%2C_Lincoln_Park%2C_Chicago-LCCN2008678147.jpg',
+      pos: 'center top', credito: 'O monumento a Grant no Lincoln Park, c. 1900 (fotocromo)' },
+  ] },
+  { cidade: 'Nova York', re: /nova york|new york|nyc|manhattan|brooklyn/i, imagens: [
+    { url: UP + 'f/fe/Detroit_Photographic_Company_%280645%29.jpg',
+      pos: 'center', credito: 'O Flatiron por volta de 1903 (fotocromo)' },
+    // (A Estátua da Liberdade saiu: no celular ela ficava inteira atrás do quadro
+    // da saudação, só o pedestal aparecia.)
+    { url: WM + '1/18/The_Mall%2C_Central_Park%2C_New_York_City_LCCN96512480.jpg/1280px-The_Mall%2C_Central_Park%2C_New_York_City_LCCN96512480.jpg',
+      pos: 'center', credito: 'O Mall do Central Park em 1905' },
+    { url: WM + '2/28/Brooklyn_Bridge_New_York_det.4a18745u.jpg/1280px-Brooklyn_Bridge_New_York_det.4a18745u.jpg',
+      pos: 'center', credito: 'A ponte do Brooklyn, entre 1905 e 1920' },
+    { url: WM + 'f/f7/Steichen_flatiron.jpg/1280px-Steichen_flatiron.jpg',
+      pos: 'center', credito: 'Edward Steichen, O Flatiron (1904)' },
+    { url: UP + 'c/c8/Newspaper_Row%2C_New_York_City%2C_1900.jpg',
+      pos: 'center', credito: 'Park Row, a rua dos jornais, em 1900 (fotocromo)' },
+  ] },
 ];
-// Viajando: vale a cidade que aparece na programação de HOJE (numa viagem de
-// duas cidades — NY e Chicago — a viagem só tem uma cidade no cadastro); se hoje
-// não tiver nada que diga, a cidade da viagem; se nenhuma tiver imagem, a estação.
+// Qual imagem da cidade vale HOJE: gira pelo dia do ano (o mesmo o dia todo, em
+// qualquer tela — entrada, bordas do computador).
+const diaDoAno = (ymd) => {
+  const [y, m, d] = String(ymd || '').split('-').map(Number);
+  if (!y) return 0;
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 0)) / 86400000);
+};
+const imagemDoDia = (c, hoje) => ({ cidade: c.cidade, ...c.imagens[diaDoAno(hoje) % c.imagens.length] });
+export const IMAGENS_DA_CIDADE = (nome) => ((ARTE_CIDADE.find(c => c.cidade === nome) || {}).imagens || []);
+
 // A cidade que aparece PRIMEIRO no texto — e não a primeira desta lista. A viagem
 // NY & Chicago tem as duas no cadastro ("Nova York · Chicago"); antes, nos dias
 // sem nada de Chicago na programação, saía "Bom dia em Chicago" ainda em NY.
@@ -116,7 +149,7 @@ function arteDaCidadeDeHoje(viagem, hoje) {
   ];
   for (const t of textos) {
     const c = cidadeNoTexto(t);
-    if (c) return c;
+    if (c) return imagemDoDia(c, hoje);
   }
   return null;
 }
