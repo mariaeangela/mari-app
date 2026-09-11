@@ -95,13 +95,27 @@ const ARTE_CIDADE = [
 // Viajando: vale a cidade que aparece na programação de HOJE (numa viagem de
 // duas cidades — NY e Chicago — a viagem só tem uma cidade no cadastro); se hoje
 // não tiver nada que diga, a cidade da viagem; se nenhuma tiver imagem, a estação.
+// A cidade que aparece PRIMEIRO no texto — e não a primeira desta lista. A viagem
+// NY & Chicago tem as duas no cadastro ("Nova York · Chicago"); antes, nos dias
+// sem nada de Chicago na programação, saía "Bom dia em Chicago" ainda em NY.
+// Voo ("Nova York → Chicago"): vale o destino, o que vem depois da seta.
+function cidadeNoTexto(t) {
+  const s = String(t || '');
+  const trechos = s.includes('→') ? [s.slice(s.lastIndexOf('→')), s] : [s];
+  for (const tr of trechos) {
+    let melhor = null, pos = Infinity;
+    for (const a of ARTE_CIDADE) { const i = tr.search(a.re); if (i >= 0 && i < pos) { pos = i; melhor = a; } }
+    if (melhor) return melhor;
+  }
+  return null;
+}
 function arteDaCidadeDeHoje(viagem, hoje) {
   const textos = [
     ...(viagem.mesas || []).filter(m => m && m.dia === hoje).map(m => [m.titulo, m.desc, m.maps].join(' ')),
     viagem.cidade || '',
   ];
   for (const t of textos) {
-    const c = ARTE_CIDADE.find(a => a.re.test(t));
+    const c = cidadeNoTexto(t);
     if (c) return c;
   }
   return null;
