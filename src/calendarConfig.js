@@ -199,22 +199,26 @@ export async function getOnThisDay(date) {
 }
 
 // ---- Dias coringa ----
-// Cinco dias que a Mari reserva pra si TODO mês. O nome é fixo; o que muda é a
-// data, escolhida mês a mês na visão Mês do Calendário (slice `coringas` do
-// calendarStore: 'AAAA-MM' → { id: dia }). Moram aqui, e não no Calendario.jsx,
-// porque a Tela Hoje também mostra o coringa do dia.
+// Dias que a Mari reserva pra si TODO mês: a DATA muda mês a mês (escolhida na
+// visão Mês do Calendário — slice `coringas` do calendarStore: 'AAAA-MM' →
+// { id: dia }) e a LISTA é dela (slice `coringaTipos`: pode somar, renomear,
+// reordenar e apagar). Até set/2026 a lista era fixa aqui no código; estes
+// cinco viraram só o ponto de partida de quem nunca mexeu nela.
 export const CORINGA_COR = '#5f8ba6';
-export const CORINGAS = [
+export const CORINGAS_PADRAO = [
   { id: 'financeira', nome: 'Arrumar vida financeira' },
   { id: 'together', nome: 'Get your shit together' },
   { id: 'fieldtrip', nome: 'Field trip' },
   { id: 'journaling', nome: 'Journaling' },
   { id: 'creativite', nome: 'Creativity' },
 ];
+// A lista dela (ou a de partida, se ela nunca mexeu). Lista vazia é escolha
+// legítima: ela apagou todos.
+export const coringaTipos = (data) => (Array.isArray(data && data.coringaTipos) ? data.coringaTipos : CORINGAS_PADRAO);
 // Nomes dos coringas marcados NESTE dia (usa o mês do próprio dia, então a
 // estrelinha aparece certa também nos dias de fora da grade). Devolve [] se não houver.
 export const coringasDoDia = (data, date) => {
   const mes = (data.coringas || {})[`${date.getFullYear()}-${pad2(date.getMonth() + 1)}`];
   if (!mes) return [];
-  return CORINGAS.filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
+  return coringaTipos(data).filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
 };
