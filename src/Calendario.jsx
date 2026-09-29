@@ -12,7 +12,7 @@ import {
   ROLE_COR, CULTURA_COR, TAREFA_COR, CULTURA_SUBTIPOS, CULTURA_BY_ID,
   MOODS, MOOD_BY_ID, LEGENDA, EXERCICIO_LEGENDA, ymd, parseYmd, pad2, MESES, DIAS_SEMANA, getOnThisDay,
   parseTempo, fmtTempo, paceSecs, fmtPace, fmtKm, parseKm, ROTA_SUBTIPOS, COM_DISTANCIA,
-  CORINGA_COR, coringaTipos, coringasDoDia,
+  CORINGA_COR, coringaTiposDoMes, coringasDoDia,
 } from './calendarConfig.js';
 import { RotaField } from './rota.jsx';
 
@@ -872,7 +872,7 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
   const [adicionando, setAdicionando] = useState(false);
   const [gerenciar, setGerenciar] = useState(false);
   const [renomeando, setRenomeando] = useState(null);   // {id, nome} no painel ⚙
-  const tipos = coringaTipos(cal.data);
+  const tipos = coringaTiposDoMes(cal.data, mesKey);
   const escolhidos = cal.data.coringas?.[mesKey] || {};
   const ano = refDate.getFullYear(), mes = refDate.getMonth();
   const ultimoDia = new Date(ano, mes + 1, 0).getDate();
@@ -936,7 +936,7 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
         <div onClick={() => { setGerenciar(false); setRenomeando(null); setAdicionando(false); setNovo(''); }} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fafafa', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto', borderRadius: '20px 20px 0 0', padding: '20px 20px 28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Seus dias coringa</h3>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: '#111', margin: 0 }}>Dias coringa de {mesLabel}</h3>
               <button onClick={() => { setGerenciar(false); setRenomeando(null); setAdicionando(false); setNovo(''); }} style={{ background: 'none', border: 'none', fontSize: 24, color: '#aaa', cursor: 'pointer' }}>×</button>
             </div>
             {tipos.map((t, idx) => (
@@ -944,16 +944,16 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
                 {renomeando?.id === t.id ? (
                   <>
                     <input value={renomeando.nome} autoFocus onChange={e => setRenomeando({ id: t.id, nome: e.target.value })}
-                      onKeyDown={e => { if (e.key === 'Enter' && renomeando.nome.trim()) { cal.renameCoringaTipo(t.id, renomeando.nome); setRenomeando(null); } if (e.key === 'Escape') setRenomeando(null); }}
+                      onKeyDown={e => { if (e.key === 'Enter' && renomeando.nome.trim()) { cal.renameCoringaTipo(mesKey, t.id, renomeando.nome); setRenomeando(null); } if (e.key === 'Escape') setRenomeando(null); }}
                       style={{ flex: 1, minWidth: 0, padding: '7px 10px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', background: '#fff', color: '#222' }} />
-                    <button onClick={() => { if (renomeando.nome.trim()) cal.renameCoringaTipo(t.id, renomeando.nome); setRenomeando(null); }} style={{ border: 'none', borderRadius: 8, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 12px', height: 30, fontSize: 12, fontWeight: 700 }}>ok</button>
+                    <button onClick={() => { if (renomeando.nome.trim()) cal.renameCoringaTipo(mesKey, t.id, renomeando.nome); setRenomeando(null); }} style={{ border: 'none', borderRadius: 8, background: '#111', color: '#fff', cursor: 'pointer', padding: '0 12px', height: 30, fontSize: 12, fontWeight: 700 }}>ok</button>
                   </>
                 ) : (
                   <>
                     <span onClick={() => setRenomeando({ id: t.id, nome: t.nome })} title="tocar pra renomear" style={{ flex: 1, fontSize: 14, color: '#222', fontWeight: 600, cursor: 'pointer' }}>{t.nome} <span style={{ color: '#ccc', fontSize: 12 }}>✎</span></span>
-                    <button onClick={() => cal.moveCoringaTipo(t.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
-                    <button onClick={() => cal.moveCoringaTipo(t.id, 1)} disabled={idx === tipos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === tipos.length - 1 ? '#ddd' : '#777', cursor: idx === tipos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
-                    <button onClick={() => { if (window.confirm(`Apagar o dia coringa "${t.nome}"?\n\nOs dias que você já marcou pra ele, em todos os meses, saem junto.`)) cal.deleteCoringaTipo(t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
+                    <button onClick={() => cal.moveCoringaTipo(mesKey, t.id, -1)} disabled={idx === 0} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === 0 ? '#ddd' : '#777', cursor: idx === 0 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↑</button>
+                    <button onClick={() => cal.moveCoringaTipo(mesKey, t.id, 1)} disabled={idx === tipos.length - 1} style={{ border: '1px solid #e2e2e2', borderRadius: 8, background: '#fff', color: idx === tipos.length - 1 ? '#ddd' : '#777', cursor: idx === tipos.length - 1 ? 'default' : 'pointer', width: 30, height: 30, fontSize: 14 }}>↓</button>
+                    <button onClick={() => { if (window.confirm(`Apagar o dia coringa "${t.nome}" de ${mesLabel}?\n\nOs outros meses não mudam.`)) cal.deleteCoringaTipo(mesKey, t.id); }} style={{ border: '1px solid #f0c0c0', borderRadius: 8, background: '#fff', color: '#d05050', cursor: 'pointer', padding: '0 10px', height: 30, fontSize: 12, fontWeight: 700 }}>Apagar</button>
                   </>
                 )}
               </div>
@@ -961,15 +961,15 @@ function DiasCoringa({ mesKey, mesLabel, refDate }) {
             {adicionando ? (
               <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
                 <input value={novo} autoFocus onChange={e => setNovo(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { cal.addCoringaTipo(novo); setNovo(''); setAdicionando(false); } if (e.key === 'Escape') { setAdicionando(false); setNovo(''); } }}
+                  onKeyDown={e => { if (e.key === 'Enter') { cal.addCoringaTipo(mesKey, novo); setNovo(''); setAdicionando(false); } if (e.key === 'Escape') { setAdicionando(false); setNovo(''); } }}
                   placeholder="novo dia coringa (ex.: Dia de cuidar de mim)"
                   style={{ flex: 1, minWidth: 0, padding: '9px 11px', border: '1px solid #e2e2e2', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', background: '#fff', color: '#222' }} />
-                <button onClick={() => { cal.addCoringaTipo(novo); setNovo(''); setAdicionando(false); }} style={{ border: 'none', borderRadius: 10, background: CORINGA_COR, color: '#fff', cursor: 'pointer', padding: '0 15px', fontSize: 17 }}>+</button>
+                <button onClick={() => { cal.addCoringaTipo(mesKey, novo); setNovo(''); setAdicionando(false); }} style={{ border: 'none', borderRadius: 10, background: CORINGA_COR, color: '#fff', cursor: 'pointer', padding: '0 15px', fontSize: 17 }}>+</button>
               </div>
             ) : (
               <button onClick={() => setAdicionando(true)} style={{ width: '100%', marginTop: 12, padding: '10px 0', borderRadius: 10, border: '1px dashed ' + CORINGA_COR + '66', background: '#fff', color: CORINGA_COR, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>+ novo dia coringa</button>
             )}
-            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Tocar no nome renomeia — e o nome novo vale também pros meses passados, porque é o mesmo dia coringa. ↑ ↓ mudam a ordem. Apagar tira o dia coringa e as datas dele.</p>
+            <p style={{ fontSize: 11.5, color: '#aaa', marginTop: 12, lineHeight: 1.5 }}>Vale só para {mesLabel}: os outros meses não mudam. Um mês novo já começa com esta lista. Tocar no nome renomeia, ↑ ↓ mudam a ordem, e Apagar tira o dia coringa deste mês.</p>
           </div>
         </div>
       )}

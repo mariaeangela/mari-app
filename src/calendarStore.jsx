@@ -16,7 +16,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCalendario, pushCalendario, saveCalendarioNow, UNREACHABLE, RESGATE, temPendente, guardarNaLixeira, gravarLocal } from './cloud';
 import { rebasear } from './mesclar.js';
-import { CORINGAS_PADRAO } from './calendarConfig.js';
+import { coringaAdd, coringaRename, coringaMove, coringaDelete } from './calendarConfig.js';
 
 const KEY = 'diagonal_calendario';
 const DEFAULT = { events: [], exercicios: [], tasks: [], roles: [], cultura: [], moods: {}, diary: {}, bilhetes: {}, savedRoles: [], metas: {}, tracking: {}, coringas: {} };
@@ -369,44 +369,13 @@ export function CalendarProvider({ children }) {
     return { ...d, coringas };
   });
 
-  // ---- A lista de dias coringa (nome e ordem) ----
-  // Enquanto ela nunca mexeu, a lista nem existe no documento: vale a de partida
-  // (CORINGAS_PADRAO). Na primeira mexida, a de partida é gravada inteira e a
-  // mudança entra em cima — assim nada desaparece de surpresa.
-  const setTipos = (fn) => persistFn(d => {
-    const antes = Array.isArray(d.coringaTipos) ? d.coringaTipos : CORINGAS_PADRAO;
-    const nx = fn(antes);
-    return nx === antes ? d : { ...d, coringaTipos: nx };
-  });
-  const addCoringaTipo = (nome) => {
-    const n = String(nome || '').trim();
-    if (!n) return;
-    setTipos(ts => [...ts, { id: 'cg' + Date.now().toString(36), nome: n }]);
-  };
-  const renameCoringaTipo = (id, nome) => {
-    const n = String(nome || '').trim();
-    if (!n) return;
-    setTipos(ts => ts.map(t => t.id === id ? { ...t, nome: n } : t));
-  };
-  const moveCoringaTipo = (id, dir) => setTipos(ts => {
-    const i = ts.findIndex(t => t.id === id), j = i + dir;
-    if (i < 0 || j < 0 || j >= ts.length) return ts;
-    const arr = [...ts];
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-    return arr;
-  });
-  // Apagar um coringa leva junto as datas dele em TODOS os meses — senão ficariam
-  // dias marcados sem nome, invisíveis e impossíveis de tirar.
-  const deleteCoringaTipo = (id) => persistFn(d => {
-    const antes = Array.isArray(d.coringaTipos) ? d.coringaTipos : CORINGAS_PADRAO;
-    const tipos = antes.filter(t => t.id !== id);
-    const coringas = {};
-    Object.entries(d.coringas || {}).forEach(([mes, dias]) => {
-      const { [id]: _fora, ...resto } = dias || {};
-      if (Object.keys(resto).length) coringas[mes] = resto;
-    });
-    return { ...d, coringaTipos: tipos, coringas };
-  });
+  // ---- A lista de dias coringa (nome e ordem), POR MÊS ----
+  // As contas moram em calendarConfig.js (puras, com teste); aqui só a gravação.
+  // Grava por FUNÇÃO: mexer duas vezes seguidas mexe na MESMA fatia.
+  const addCoringaTipo = (mesKey, nome) => persistFn(d => coringaAdd(d, mesKey, nome, 'cg' + Date.now().toString(36)));
+  const renameCoringaTipo = (mesKey, id, nome) => persistFn(d => coringaRename(d, mesKey, id, nome));
+  const moveCoringaTipo = (mesKey, id, dir) => persistFn(d => coringaMove(d, mesKey, id, dir));
+  const deleteCoringaTipo = (mesKey, id) => persistFn(d => coringaDelete(d, mesKey, id));
 
   const value = {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,

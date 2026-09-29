@@ -212,13 +212,68 @@ export const CORINGAS_PADRAO = [
   { id: 'journaling', nome: 'Journaling' },
   { id: 'creativite', nome: 'Creativity' },
 ];
-// A lista dela (ou a de partida, se ela nunca mexeu). Lista vazia é escolha
-// legítima: ela apagou todos.
-export const coringaTipos = (data) => (Array.isArray(data && data.coringaTipos) ? data.coringaTipos : CORINGAS_PADRAO);
-// Nomes dos coringas marcados NESTE dia (usa o mês do próprio dia, então a
-// estrelinha aparece certa também nos dias de fora da grade). Devolve [] se não houver.
+// A lista é POR MÊS (a Mari pediu, set/2026: renomear em outubro não pode
+// renomear setembro). `coringaTipos` é um objeto 'AAAA-MM' → lista.
+//
+// Mês que ela nunca mexeu herda o último mês ANTERIOR que tem lista — só do
+// passado, nunca do futuro: assim um mês novo já nasce com os dias dela (sem
+// recadastrar nada) e mexer em outubro não muda setembro. Sem nenhum mês
+// anterior, valem os cinco de partida.
+//
+// Compat: quem tem o formato antigo (uma lista só, em array) segue com ela em
+// todos os meses; na primeira mexida ela é guardada como a lista "de sempre"
+// (chave BASE, anterior a qualquer mês), então os meses passados continuam
+// mostrando o que sempre mostraram.
+const BASE = '0000-00';   // a lista "de sempre": vale pros meses sem nenhum anterior
+const mesesComLista = (m) => Object.keys(m).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+export const coringaTiposDoMes = (data, mesKey) => {
+  const m = data && data.coringaTipos;
+  if (Array.isArray(m)) return m;                        // formato antigo: uma lista só
+  if (!m || typeof m !== 'object') return CORINGAS_PADRAO;
+  if (Array.isArray(m[mesKey])) return m[mesKey];
+  const anteriores = mesesComLista(m).filter(k => k < mesKey);
+  return anteriores.length ? m[anteriores[anteriores.length - 1]] : CORINGAS_PADRAO;
+};
+// Escreve a lista DAQUELE mês (congelando o que ele herdava, se for a 1ª mexida).
+// Se o documento ainda estiver no formato antigo, ela vira a lista "de sempre".
+const comLista = (data, mesKey, lista) => {
+  const antes = Array.isArray(data.coringaTipos) ? { [BASE]: data.coringaTipos }
+    : (data.coringaTipos && typeof data.coringaTipos === 'object' ? data.coringaTipos : {});
+  return { ...data, coringaTipos: { ...antes, [mesKey]: lista } };
+};
+// As quatro mudanças, puras (o store só as chama por persistFn).
+export const coringaAdd = (data, mesKey, nome, id) => {
+  const n = String(nome || '').trim();
+  if (!n) return data;
+  return comLista(data, mesKey, [...coringaTiposDoMes(data, mesKey), { id, nome: n }]);
+};
+export const coringaRename = (data, mesKey, id, nome) => {
+  const n = String(nome || '').trim();
+  if (!n) return data;
+  return comLista(data, mesKey, coringaTiposDoMes(data, mesKey).map(t => t.id === id ? { ...t, nome: n } : t));
+};
+export const coringaMove = (data, mesKey, id, dir) => {
+  const ts = coringaTiposDoMes(data, mesKey);
+  const i = ts.findIndex(t => t.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= ts.length) return data;
+  const arr = [...ts];
+  arr[i] = ts[j]; arr[j] = ts[i];
+  return comLista(data, mesKey, arr);
+};
+// Apagar tira o dia coringa SÓ deste mês — e a data marcada dele neste mês,
+// senão sobraria uma estrelinha sem nome, impossível de tirar.
+export const coringaDelete = (data, mesKey, id) => {
+  const d = comLista(data, mesKey, coringaTiposDoMes(data, mesKey).filter(t => t.id !== id));
+  const mes = (d.coringas || {})[mesKey];
+  if (!mes || mes[id] == null) return d;
+  const { [id]: _fora, ...resto } = mes;
+  const coringas = { ...d.coringas };
+  if (Object.keys(resto).length) coringas[mesKey] = resto; else delete coringas[mesKey];
+  return { ...d, coringas };
+};
 export const coringasDoDia = (data, date) => {
   const mes = (data.coringas || {})[`${date.getFullYear()}-${pad2(date.getMonth() + 1)}`];
   if (!mes) return [];
-  return coringaTipos(data).filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
+  const mesKey = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}`;
+  return coringaTiposDoMes(data, mesKey).filter(c => mes[c.id] === date.getDate()).map(c => c.nome);
 };
