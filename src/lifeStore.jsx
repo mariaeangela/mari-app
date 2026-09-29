@@ -430,8 +430,40 @@ function ensureCarteiraMesAtual(d) {
 // Ficaram só os três que PRECISAM rodar sempre, porque dependem da data de hoje:
 //   · rolarComprasVencidas / rolarPlanosVencidos — puxam pra hoje o que venceu
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
+// BILHETE DE USO ÚNICO — as exposições que a Mari pediu em 29/set/2026, no
+// Calendário cultural. As datas de encerramento e os endereços foram conferidos
+// nos sites das instituições no mesmo dia. Nome que já estiver na lista não
+// entra de novo (a Contrarregra pode já estar lá, de ago/2026). Roda UMA vez:
+// assim que estiver gravado no documento dela, esta função e o nome dela lá
+// embaixo saem daqui.
+const EXPOS_SET26 = [
+  { id: 'cult-set26-naolugares', nome: 'Não lugares — Vera Chaves Barcellos',
+    local: 'Zielinsky — Travessa Dona Paula, 33, Higienópolis · ter a sex 11h–19h, sáb 11h–17h',
+    dataMax: '2026-10-03', preco: 'Grátis', link: 'https://www.zielinskyart.com/current' },
+  { id: 'cult-set26-cantaria', nome: 'Cantaria — Daniel Jorge',
+    local: 'Mendes Wood DM — Rua Barra Funda, 216 · ter a sex 11h–19h, sáb 10h–17h · 1ª individual dele em SP',
+    dataMax: '2026-11-06', preco: 'Grátis', link: 'https://mendeswooddm.com/exhibitions/418-daniel-jorge-daniel-jorge/' },
+  { id: 'cult-set26-contrarregra', nome: 'Contrarregra — Tatiana Blass',
+    local: 'Instituto Tomie Ohtake — Rua Coropés, 88, Pinheiros · ~50 obras de 2008 a 2026',
+    dataMax: '2026-10-25', preco: 'Grátis', link: 'https://www.institutotomieohtake.org.br/exposicoes/tatiana-blass-contrarregra/' },
+];
+export function ensureExposSet26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.exposSet26) return d;
+  const cultural = d.cultural || { itens: [] };
+  const itens = cultural.itens || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const tem = new Set(itens.map(i => norm(i.nome)));
+  const temId = new Set(itens.map(i => i.id));
+  const novas = EXPOS_SET26
+    .filter(e => !tem.has(norm(e.nome)) && !temId.has(e.id))
+    .map(e => ({ tipo: 'exposicao', cidade: 'São Paulo', ...e }));
+  if (!novas.length) return { ...d, exposSet26: true };
+  return { ...d, exposSet26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
+}
+
 function runLifeSeeds(d) {
-  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual];
+  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
+    ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
