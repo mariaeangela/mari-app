@@ -2717,6 +2717,13 @@ const normPeriodo = (p) => (p === 'dia' ? 'manha' : p); // pesagens antigas salv
 const TREINOS = [['pre', 'pré treino'], ['pos', 'pós treino']];
 const TREINO_LABEL = { pre: 'pré treino', pos: 'pós treino' };
 const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// Janela do gráfico de peso: quantos meses pra trás (null = tudo). LTM = últimos 12.
+const PESO_JANELAS = [['1M', 1], ['3M', 3], ['LTM', 12], ['All', null]];
+const inicioJanela = (meses) => {
+  if (!meses) return '';
+  const d = new Date(); d.setMonth(d.getMonth() - meses);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 function PesoLinha({ pontos }) {
   if (pontos.length < 2) return null;
@@ -2810,6 +2817,7 @@ export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
   const [exMes, setExMes] = useState(null);
   const [fLocal, setFLocal] = useState(null);
   const [fPeriodo, setFPeriodo] = useState(null);
+  const [janelaPeso, setJanelaPeso] = useState(null); // meses do gráfico de peso; null = All
   const [pesosAberto, setPesosAberto] = useState(false); // lista de pesos anteriores expandida?
   const [verPassado, setVerPassado] = useState(false);
   const [metaEdit, setMetaEdit] = useState(null); // { id, valor } — edição de meta de tempo da prova
@@ -2997,7 +3005,17 @@ export function SaudeSection({ onBack, backLabel = 'Life', embutido = false }) {
             {PERIODOS.map(([k, l]) => chipF(fPeriodo === k, l, () => setFPeriodo(fPeriodo === k ? null : k)))}
           </div>
         )}
-        {pesos.length >= 2 && <PesoLinha pontos={pesos} />}
+        {pesos.length >= 2 && (
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginBottom: 4 }}>
+            {PESO_JANELAS.map(([l, m]) => chipF(janelaPeso === m, l, () => setJanelaPeso(m)))}
+          </div>
+        )}
+        {(() => {
+          const ini = inicioJanela(janelaPeso);
+          const doGrafico = pesos.filter(p => (p.data || '') >= ini);
+          if (pesos.length >= 2 && doGrafico.length < 2) return <p style={{ fontSize: 12, color: '#aaa', margin: '8px 0 14px' }}>Menos de duas pesagens nesse período.</p>;
+          return doGrafico.length >= 2 && <PesoLinha pontos={doGrafico} />;
+        })()}
         {pesosDesc.length === 0 ? vazio('Nenhuma pesagem ainda.') : (pesosAberto ? pesosDesc : pesosDesc.slice(0, 1)).map((p, idx) => linha(<>
           <span style={{ fontSize: 12.5, color: '#999', width: 46, flexShrink: 0 }}>{fmtData(p.data)}</span>
           <span style={{ fontSize: 14, color: '#222', fontWeight: 600, width: 72, flexShrink: 0 }}>{(Number(p.valor) || 0).toLocaleString('pt-BR')} kg</span>
