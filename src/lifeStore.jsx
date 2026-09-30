@@ -461,9 +461,28 @@ export function ensureExposSet26(d) {   // exportada só pro teste; sai junto co
   return { ...d, exposSet26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
 }
 
+// BILHETE DE USO ÚNICO — a peça que a Mari pediu em 30/set/2026. SEM "quando ir":
+// ela vai no dia em que conseguir sair a tempo do trabalho, então entram só os
+// dias possíveis (qua e qui, 20h) e o fim da temporada. Dados do Sympla, mesmo dia.
+const ANTIGONA_SET26 = {
+  id: 'cult-set26-antigona', nome: 'Antígona — Lulu Raczka', tipo: 'teatro', cidade: 'São Paulo',
+  local: 'Espaço Cia da Revista — Al. Nothmann, 1135, Campos Elíseos · estreia 14/10 · 90 min · dir. Daniela Stirbulov',
+  dataMax: '2026-11-05', funcionamento: { dias: [3, 4], abre: '20:00' },
+  link: 'https://www.sympla.com.br/antgona-de-lulu-raczka__3579134',
+};
+export function ensureAntigonaSet26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.antigonaSet26) return d;
+  const cultural = d.cultural || { itens: [] };
+  const itens = cultural.itens || [];
+  const jaTem = itens.some(i => i.id === ANTIGONA_SET26.id || /ant[ií]gona/i.test(i.nome || ''));
+  if (jaTem) return { ...d, antigonaSet26: true };
+  return { ...d, antigonaSet26: true, cultural: { ...cultural, itens: [...itens, { ...ANTIGONA_SET26 }] } };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
-    ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
