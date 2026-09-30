@@ -538,11 +538,43 @@ export function ensureCultOut26(d) {   // exportada só pro teste; sai junto com
   return { ...d, cultOut26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
 }
 
+// BILHETE DE USO ÚNICO — as galerias que ela pediu pra conferir em 30/set/2026
+// (flag própria: o de cima pode já ter rodado no aparelho dela). Pivô não tem
+// nada anunciado e a Jaqueline Martins está se separando da Sé; ficaram de fora.
+const CULT_GAL_OUT26 = [
+  { id: 'cult-out26-renno', tipo: 'exposicao', nome: 'Fazendo a América — Rosângela Rennó',
+    local: 'Vermelho — R. Minas Gerais, 350, Higienópolis · abre sáb 03/10 · 48 retratos entre Governador Valadares e Massachusetts · ter a sex 10h–19h, sáb 11h–17h · na mesma data abre "Shh…", de Edgard de Souza',
+    dataMax: '2026-10-31', link: 'https://galeriavermelho.com.br/exposicoes/fazendo-a-america/' },
+  { id: 'cult-out26-cohen', tipo: 'exposicao', nome: 'O parado das coisas — Felipe Cohen',
+    local: 'Almeida & Dale (ex-Millan) — R. Fradique Coutinho, 1430, Pinheiros · seg a sex 10h–19h, sáb 11h–16h',
+    dataMax: '2026-10-24', link: 'https://almeidaedale.com.br/exposicoes/o-parado-das-coisas/' },
+  { id: 'cult-out26-kaga', tipo: 'exposicao', nome: 'Two Big Footers — Atsushi Kaga e Tarsila do Amaral',
+    local: 'Almeida & Dale (ex-Millan) — R. Fradique Coutinho, 1360, Pinheiros · seg a sex 10h–19h, sáb 11h–16h',
+    dataMax: '2026-10-24', link: 'https://almeidaedale.com.br/exposicoes/two-big-footers/' },
+  { id: 'cult-out26-shwafaty', tipo: 'exposicao', nome: 'Controle | Corrosão | Dispersão — Beto Shwafaty',
+    local: 'Galeria Leme — Av. Valdemar Ferreira, 130, Butantã · seg a sex (horário varia entre 9h–18h e 10h–17h)',
+    dataMax: '2026-10-02', link: 'https://galerialeme.com/agenda/beto-shwafaty-2026/' },
+];
+export function ensureCultGalOut26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.cultGalOut26) return d;
+  const cultural = d.cultural || { itens: [] };
+  const itens = cultural.itens || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const tem = new Set(itens.map(i => norm(i.nome)));
+  const temId = new Set(itens.map(i => i.id));
+  const novas = CULT_GAL_OUT26
+    .filter(e => !tem.has(norm(e.nome)) && !temId.has(e.id))
+    .map(e => ({ cidade: 'São Paulo', ...e }));
+  if (!novas.length) return { ...d, cultGalOut26: true };
+  return { ...d, cultGalOut26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
