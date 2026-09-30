@@ -2718,7 +2718,7 @@ const TREINOS = [['pre', 'pré treino'], ['pos', 'pós treino']];
 const TREINO_LABEL = { pre: 'pré treino', pos: 'pós treino' };
 const hojeKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 // Janela do gráfico de peso: quantos meses pra trás (null = tudo). LTM = últimos 12.
-const PESO_JANELAS = [['1M', 1], ['3M', 3], ['LTM', 12], ['All', null]];
+const PESO_JANELAS = [['1M', 1], ['3M', 3], ['6M', 6], ['LTM', 12], ['All', null]];
 const inicioJanela = (meses) => {
   if (!meses) return '';
   const d = new Date(); d.setMonth(d.getMonth() - meses);
