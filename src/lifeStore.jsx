@@ -479,10 +479,70 @@ export function ensureAntigonaSet26(d) {   // exportada só pro teste; sai junto
   return { ...d, antigonaSet26: true, cultural: { ...cultural, itens: [...itens, { ...ANTIGONA_SET26 }] } };
 }
 
+// BILHETE DE USO ÚNICO — a lista que a Mari mandou em 30/set/2026. Cada item foi
+// conferido no site da instituição no mesmo dia; onde o site discorda da lista
+// dela, vale o site. Horário que muda por dia vai escrito no `local` (o
+// funcionamento {dias, abre, fecha} só guarda um horário). Nome ou id que já
+// estiver na lista não entra de novo.
+const TER_A_DOM = [0, 2, 3, 4, 5, 6];
+const CULT_OUT26 = [
+  { id: 'cult-out26-lemos', tipo: 'exposicao', nome: 'Quanto mais desejo, mais invento o que vejo — Fernando Lemos',
+    local: 'IMS Paulista — Av. Paulista, 2424 · fotografia, retrospectiva do centenário, ~400 itens · FECHA 04/10 (eleição)',
+    dataMax: '2027-02-07', preco: 'Grátis', funcionamento: { dias: TER_A_DOM, abre: '10:00', fecha: '20:00' },
+    link: 'https://ims.com.br/exposicao/fernando-lemos/' },
+  { id: 'cult-out26-mulheresboca', tipo: 'exposicao', nome: 'Mulheres da Boca — Wagner Carvalho',
+    local: 'MIS — Av. Europa, 158, Jardim Europa · fotografia · ter a sex 10h–19h, sáb 10h–20h, dom 10h–18h · 16 anos',
+    dataMax: '2026-10-18', preco: 'Grátis', link: 'https://mis-sp.org.br/exposicao/mulheres-da-boca/' },
+  { id: 'cult-out26-vilanova', tipo: 'exposicao', nome: 'Não há só uma maneira — Oriol Vilanova',
+    local: 'Luisa Strina — R. Padre João Manuel, 755, Jardins · seg a sex 10h–19h, sáb 10h–17h · abertura qui 01/10, 18h–21h · na mesma noite abre "nome ar", de Jarbas Lopes',
+    dataMax: '2026-11-14', preco: 'Grátis',
+    link: 'https://www.luisastrina.com.br/en/exhibitions/295-oriol-vilanova-nao-ha-so-uma-maneira/' },
+  { id: 'cult-out26-kiarostami', tipo: 'filme', nome: 'Um Alguém Apaixonado — Abbas Kiarostami',
+    local: 'IMS Paulista — Av. Paulista, 2424 · cópia restaurada · qua 07/10 às 19h40 ou sáb 31/10 às 17h50 · senha 60 min antes, uma por pessoa',
+    dataMax: '2026-10-31', preco: 'Grátis', link: 'https://ims.com.br/mostra/abbas-kiarostami-em-retrospectiva/' },
+  { id: 'cult-out26-ecos', tipo: 'exposicao', nome: 'Ecos — Ricardo Ribeiro',
+    local: 'Galeria Marcelo Guarnieri — Al. Franca, 1054, Jardins · fotografia · seg a sex 10h–19h, sáb 10h–17h · abre sáb 03/10',
+    dataMax: '2026-10-17', preco: 'Grátis', link: 'https://www.galeriamarceloguarnieri.com.br/ricardo-ribeiro-ecos' },
+  { id: 'cult-out26-arruda', tipo: 'exposicao', nome: 'A tragédia e o escárnio — Victor Arruda',
+    local: 'Almeida & Dale — R. Fradique Coutinho, 1360, Pinheiros · retrospectiva de 4 décadas · seg a sex 10h–19h, sáb 11h–16h',
+    dataMax: '2026-10-24', preco: 'Grátis', link: 'https://almeidaedale.com.br/en/exposicoes/a-tragedia-e-o-escarnio/' },
+  { id: 'cult-out26-weishof', tipo: 'exposicao', nome: 'Quarto de máscaras — Maya Weishof',
+    local: 'Almeida & Dale — R. Fradique Coutinho, 1430 (o outro prédio), Pinheiros · pintura · seg a sex 10h–19h, sáb 11h–16h',
+    dataMax: '2026-10-24', preco: 'Grátis', link: 'https://almeidaedale.com.br/en/exposicoes/quarto-de-mascaras/' },
+  { id: 'cult-out26-ibsen', tipo: 'teatro', nome: 'Quando Despertarmos de Entre os Mortos — Ibsen',
+    local: 'Sesc Pinheiros, Teatro Paulo Autran — R. Paes Leme, 195 · estreia 08/10 · qui a sáb 20h, dom e 12/10 18h, extra qui 29/10 e 05/11 17h · dir. Elias Andreato, com Celso Frateschi e Maria Fernanda Cândido · comprar antes',
+    dataMax: '2026-11-08', preco: 'R$ 90 / 45 / 27 (Credencial)', link: 'https://www.sescsp.org.br/programacao/quando-despertarmos-de-entre-os-mortos/' },
+  { id: 'cult-out26-mimosa', tipo: 'evento', nome: 'Mimosa — Flávia Pinheiro (dança)',
+    local: 'Sesc Avenida Paulista, 13º andar — Av. Paulista, 119 · qui a sáb 20h, 11 e 12/10 18h · 45 min',
+    dataMax: '2026-10-12', preco: 'R$ 50 / 25 / 15',
+    link: 'https://www.sescsp.org.br/editorial/performance-mimosa-de-flavia-pinheiro-estreia-no-sesc-avenida-paulista/' },
+  { id: 'cult-out26-satyrianas', tipo: 'evento', nome: 'Satyrianas (27ª edição)',
+    local: 'Praça Roosevelt e arredores, Consolação · de 08/10 (qui, 20h) a 12/10, 78 horas seguidas · ~400 atrações de 15 estados',
+    dataMax: '2026-10-12', preco: 'Grátis ou pague quanto puder', link: 'https://satyrianas.com.br/' },
+  { id: 'cult-out26-carson', tipo: 'evento', nome: 'Clube de Leitura: Autobiografia do Vermelho — Anne Carson',
+    local: 'Travessa Iguatemi — Av. Faria Lima, 2232, piso 3 · seg 05/10, 19h30 · mediação Peterson Vale',
+    dataMax: '2026-10-05',
+    link: 'https://www.travessa.com.br/wpgEventoTravessa.aspx?evento=ebd49b46-9c96-4b52-ba87-842c8543dc4a' },
+];
+export function ensureCultOut26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.cultOut26) return d;
+  const cultural = d.cultural || { itens: [] };
+  const itens = cultural.itens || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const tem = new Set(itens.map(i => norm(i.nome)));
+  const temId = new Set(itens.map(i => i.id));
+  const novas = CULT_OUT26
+    .filter(e => !tem.has(norm(e.nome)) && !temId.has(e.id))
+    .map(e => ({ cidade: 'São Paulo', ...e }));
+  if (!novas.length) return { ...d, cultOut26: true };
+  return { ...d, cultOut26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
