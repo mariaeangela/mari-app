@@ -19,6 +19,7 @@ const PlanoCheckSheet = lazyDe(() => import('./Life.jsx'), 'PlanoCheckSheet');
 const RetrospectivaPage = lazyDe(() => import('./Retrospectiva.jsx'));
 const VFPage = lazyDe(() => import('./VF.jsx'));
 const EsportesSection = lazyDe(() => import('./Esportes.jsx'));
+const MostraSection = lazyDe(() => import('./Mostra.jsx'));
 // Enquanto o pedaço chega (só na 1ª vez que abre a aba).
 const Carregando = () => <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, padding: '40px 0', fontStyle: 'italic' }}>carregando…</p>;
 import { NavContext, useNav } from './nav.jsx';
@@ -1058,13 +1059,14 @@ function Feed({ isWide }) {
   );
 }
 
-// Explorar: quatro seções, e só. Os cards de conteúdo (texto, cartas, imagem,
+// Explorar: cinco seções, e só. Os cards de conteúdo (texto, cartas, imagem,
 // cena, mito, mundo) saíram em ago/2026 — não era mais essa a intenção do app.
 const EXPLORE_SECOES = [
   { id: 'cultural', label: 'Calendário cultural',    cor: '#c2548f', Comp: () => CulturalSection },
   { id: 'assistir', label: 'Conteúdos para assistir', cor: '#4f7cca', Comp: () => AssistirSection },
   { id: 'leituras', label: 'Próximas leituras',       cor: '#7a5c9e', Comp: () => LeiturasSection },
   { id: 'esportes', label: 'Esportes',                cor: '#e2603a', Comp: () => EsportesSection },
+  { id: 'mostra',   label: 'Mostra de Cinema de SP',  cor: '#b8392f', Comp: () => MostraSection },
 ];
 
 function ExplorePage({ isWide }) {

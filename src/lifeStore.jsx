@@ -601,13 +601,27 @@ export function ensureCultOut26b(d) {   // exportada só pro teste; sai junto co
   return { ...d, cultOut26b: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
 }
 
+// BILHETE DE USO ÚNICO — os dois primeiros filmes da 50ª Mostra de Cinema de SP,
+// que ela pediu em 02/out/2026. Só escreve se a lista dela ainda estiver vazia;
+// os próximos ela cadastra pela própria tela (ou me manda).
+export function ensureMostra26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.mostra26) return d;
+  const mostra = d.mostra || {};
+  if ((mostra.filmes || []).length) return { ...d, mostra26: true };
+  return { ...d, mostra26: true, mostra: { ...mostra, filmes: [
+    { id: 'mo-tigre', titulo: 'Tigre de Papel', diretor: 'James Gray', pais: 'EUA', obs: 'filme de abertura', sessoes: [] },
+    { id: 'mo-allofasudden', titulo: 'All of a Sudden', diretor: 'Ryusuke Hamaguchi', pais: 'Japão', sessoes: [] },
+  ] } };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureMostra26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
@@ -1170,6 +1184,21 @@ export function LifeProvider({ children }) {
     : [...musica, { ...m, id: uid('mu') }] });
   const deleteMusica = (id) => persist({ ...data, musica: musica.filter(x => x.id !== id) });
 
+  // ---- Mostra de Cinema de SP (aba Explorar): os filmes que ela quer ver e as
+  // sessões de cada um, que ela vai preenchendo conforme a programação sai ----
+  const mostra = data.mostra || {};
+  const mostraFilmes = mostra.filmes || [];
+  const setMostraFilmes = (filmes) => persist({ ...data, mostra: { ...mostra, filmes } });
+  const saveMostraFilme = (f) => setMostraFilmes(f.id && mostraFilmes.some(x => x.id === f.id)
+    ? mostraFilmes.map(x => x.id === f.id ? f : x)
+    : [...mostraFilmes, { sessoes: [], ...f, id: uid('mo') }]);
+  const deleteMostraFilme = (id) => setMostraFilmes(mostraFilmes.filter(x => x.id !== id));
+  const addMostraSessao = (filmeId, sessao) => setMostraFilmes(mostraFilmes.map(x => x.id === filmeId
+    ? { ...x, sessoes: [...(x.sessoes || []), { ...sessao, id: uid('ms') }] } : x));
+  const deleteMostraSessao = (filmeId, sessaoId) => setMostraFilmes(mostraFilmes.map(x => x.id === filmeId
+    ? { ...x, sessoes: (x.sessoes || []).filter(z => z.id !== sessaoId) } : x));
+  const setMostraIngressos = (texto) => persist({ ...data, mostra: { ...mostra, ingressos: texto || undefined } });
+
   // ---- Conteúdos para assistir/ler depois (aba Explorar) ----
   const assistir = data.assistir || [];
   const saveAssistir = (a) => persist({ ...data, assistir: a.id && assistir.some(x => x.id === a.id)
@@ -1382,6 +1411,7 @@ export function LifeProvider({ children }) {
     estudoTemas, addEstudoTopico, deleteEstudoTopico, moveEstudoTopico, renameEstudoTopico, saveEstudoNota, deleteEstudoNota, moveEstudoNota,
     musica, saveMusica, deleteMusica,
     assistir, saveAssistir, deleteAssistir, toggleAssistir,
+    mostra, saveMostraFilme, deleteMostraFilme, addMostraSessao, deleteMostraSessao, setMostraIngressos,
     marcos, saveMarco, deleteMarco,
     coisasCaras, saveCoisaCara, deleteCoisaCara,
     viagens, saveViagem, deleteViagem,
