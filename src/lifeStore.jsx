@@ -569,12 +569,45 @@ export function ensureCultGalOut26(d) {   // exportada só pro teste; sai junto 
   return { ...d, cultGalOut26: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
 }
 
+// BILHETE DE USO ÚNICO — mais quatro exposições que ela pediu em 02/out/2026
+// ("O parado das coisas" já tinha entrado no bilhete das galerias). Figurae e
+// Cerâmica em Curso só foram achadas na imprensa, não no site oficial.
+const CULT_OUT26B = [
+  { id: 'cult-out26-tudomove', tipo: 'exposicao', nome: 'Tudo aquilo que move — coletiva de dez artistas',
+    local: 'Galeria Frente — R. Dr. Melo Alves, 400, Cerqueira César · seg a qui 10h–19h, sex 10h–18h, sáb 10h–14h · curadoria Ana Carolina Ralston',
+    dataMax: '2026-10-29', preco: 'Grátis', link: 'https://www.galeriafrente.com.br/exposicoes/tudo-aquilo-que-move' },
+  { id: 'cult-out26-lavaolhos', tipo: 'exposicao', nome: 'Lava-Olhos de Emergência — Lucas Simões',
+    local: 'Casa Triângulo — R. Estados Unidos, 1324, Jardim América · ter a sex 10h–19h, sáb 10h–17h',
+    dataMax: '2026-11-07',
+    link: 'https://www.casatriangulo.com/pt/exhibitions/192-lucas-simoes-.-lava-olhos-de-emergencia-critical-texts-by-pollyana-quintella-and-ciro-miguel/' },
+  { id: 'cult-out26-figurae', tipo: 'exposicao', nome: 'Figurae: pluralis nominis figura — coletiva de pintura',
+    local: 'Galeria Contempo — Al. Gabriel Monteiro da Silva, 1644, Jardim Paulistano · abre sáb 03/10 · seg a sex 10h–19h, sáb 10h–16h · datas só pela imprensa',
+    dataMax: '2026-10-31', link: 'https://galeriacontempo.com.br/exposicoes/' },
+  { id: 'cult-out26-ceramica', tipo: 'exposicao', nome: 'Cerâmica em Curso',
+    local: 'Japan House — Av. Paulista, 52, Bela Vista · abre ter 06/10 · ter a sex 10h–18h, sáb, dom e feriado 10h–19h · 19 peças de cerâmica japonesa · datas só pela imprensa',
+    dataMax: '2027-05-30', preco: 'Grátis', link: 'https://www.japanhousesp.com.br/' },
+];
+export function ensureCultOut26b(d) {   // exportada só pro teste; sai junto com a função
+  if (d.cultOut26b) return d;
+  const cultural = d.cultural || { itens: [] };
+  const itens = cultural.itens || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const tem = new Set(itens.map(i => norm(i.nome)));
+  const temId = new Set(itens.map(i => i.id));
+  const novas = CULT_OUT26B
+    .filter(e => !tem.has(norm(e.nome)) && !temId.has(e.id))
+    .map(e => ({ cidade: 'São Paulo', ...e }));
+  if (!novas.length) return { ...d, cultOut26b: true };
+  return { ...d, cultOut26b: true, cultural: { ...cultural, itens: [...itens, ...novas] } };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureAntigonaSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);

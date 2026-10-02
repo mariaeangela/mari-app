@@ -43,3 +43,15 @@ describe('ensureCultGalOut26 — as galerias de 30/set/2026', () => {
     expect(duas.cultural.itens).toHaveLength(5);
   });
 });
+
+import { ensureCultOut26b } from './lifeStore.jsx';
+describe('ensureCultOut26b — as quatro de 02/out/2026', () => {
+  it('entram as quatro, sem duplicar e sem encostar no resto', () => {
+    const dela = { id: 'meu-1', nome: 'Uma expo minha' };
+    const uma = ensureCultOut26b({ cultural: { itens: [dela] } });
+    expect(uma.cultural.itens[0]).toBe(dela);
+    expect(uma.cultural.itens).toHaveLength(5);
+    const duas = ensureCultOut26b({ ...uma, cultOut26b: false });
+    expect(duas.cultural.itens).toHaveLength(5);
+  });
+});
