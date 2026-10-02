@@ -614,6 +614,28 @@ export function ensureMostra26(d) {   // exportada só pro teste; sai junto com 
   ] } };
 }
 
+// BILHETE DE USO ÚNICO — os quatro títulos que ela mandou em 02/out/2026 pros
+// Conteúdos para assistir. As notas são as dela. Título que já estiver na lista
+// (visto ou não) não entra de novo.
+const ASSISTIR_OUT26 = [
+  { id: 'as-out26-twolovers', tipo: 'filme', titulo: 'Two Lovers', nota: 'Prime Video · 110 min' },
+  { id: 'as-out26-carrie', tipo: 'serie', titulo: 'Carrie', nota: 'Prime Video · 1 temporada · estreia 07/10' },
+  { id: 'as-out26-campmiasma', tipo: 'filme', titulo: 'Teenage Sex and Death at Camp Miasma', nota: 'Mubi · 112 min · estreou sex 02/10' },
+  { id: 'as-out26-smallprophets', tipo: 'serie', titulo: 'Small Prophets', nota: 'Apple TV · 6 episódios · estreia 07/10' },
+];
+export function ensureAssistirOut26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.assistirOut26) return d;
+  const assistir = d.assistir || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const tem = new Set(assistir.map(i => norm(i.titulo)));
+  const temId = new Set(assistir.map(i => i.id));
+  const novos = ASSISTIR_OUT26
+    .filter(e => !tem.has(norm(e.titulo)) && !temId.has(e.id))
+    .map(e => ({ ...e, criadoEm: '2026-10-02' }));
+  if (!novos.length) return { ...d, assistirOut26: true };
+  return { ...d, assistirOut26: true, assistir: [...novos, ...assistir] };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
@@ -621,7 +643,8 @@ function runLifeSeeds(d) {
     ensureCultOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureMostra26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureMostra26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureAssistirOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
