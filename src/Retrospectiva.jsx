@@ -46,7 +46,6 @@ function AnoChips({ anos, anoSel, setAnoSel, cor }) {
 const CARDS = [
   { id: 'dias', label: 'Dias importantes', desc: 'seus marcos de vida', cor: '#7a6ff0', pronto: true },
   { id: 'coisasCaras', label: 'Coisas caras', desc: 'quando comprei e quanto duram', cor: '#ff8a3d', pronto: true },
-  { id: 'quem', label: 'Quem você viu', desc: 'as pessoas do seu ano', cor: '#ff5d8f', pronto: true },
   { id: 'viagens', label: 'Viagens', desc: 'pra onde você foi', cor: '#19b3a6', pronto: true },
   { id: 'musica', label: 'Música', desc: 'minutos, artistas e o gráfico do ano', cor: '#1db954', pronto: true },
   { id: 'albuns', label: 'Álbuns marcantes', desc: 'os discos que ficaram', cor: '#1db954', pronto: true },
@@ -73,7 +72,6 @@ export default function RetrospectivaPage({ isWide, secInicial, onConsumeSec }) 
   if (baseSec === 'dias') return <DiasRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'viagens') return <ViagensRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'amorosa') return <AmorosaRetro onBack={() => setSec(null)} isWide={isWide} />;
-  if (baseSec === 'quem') return <QuemRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec === 'habitos') return <HabitosRetro onBack={() => setSec(null)} isWide={isWide} />;
   if (baseSec) return <EmBreve card={CARDS.find(c => c.id === baseSec)} onBack={() => setSec(null)} />;
   return <RetroHome isWide={isWide} onOpen={setSec} />;
@@ -209,56 +207,6 @@ function RetroHome({ isWide, onOpen }) {
           </button>
         ))}
       </div>
-    </div>
-  );
-}
-
-// Quem você viu: soma as pessoas marcadas (comQuem) em eventos/rolês/cultura, por ano.
-function QuemRetro({ onBack, isWide }) {
-  const cal = useCalendar();
-  const cor = '#ff5d8f';
-  const [pessoaSel, setPessoaSel] = useState(null);
-  const ocasioes = [];
-  (cal.data.events || []).forEach(e => { if (e.comQuem) ocasioes.push({ data: e.inicio, quem: e.comQuem, oque: e.titulo }); });
-  (cal.data.roles || []).forEach(r => { if (r.comQuem) ocasioes.push({ data: r.data, quem: r.comQuem, oque: r.titulo }); });
-  (cal.data.cultura || []).forEach(c => { if (c.comQuem) ocasioes.push({ data: c.data, quem: c.comQuem, oque: c.titulo }); });
-  const registros = [];
-  ocasioes.forEach(o => (o.quem || '').split(/[,;]/).map(s => s.trim()).filter(Boolean).forEach(nome => registros.push({ nome, data: o.data, oque: o.oque })));
-  const { anos, anoSel, setAnoSel } = useAnoSel(registros.map(r => r.data));
-  const doAno = registros.filter(r => (r.data || '').slice(0, 4) === anoSel);
-  const porPessoa = {};
-  doAno.forEach(r => { (porPessoa[r.nome] = porPessoa[r.nome] || []).push(r); });
-  const pessoas = Object.entries(porPessoa).map(([nome, arr]) => ({ nome, n: arr.length, arr: arr.sort((a, b) => (b.data || '').localeCompare(a.data || '')) })).sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome));
-  return (
-    <div style={{ padding: '24px 20px 90px', maxWidth: isWide ? 620 : 'none', margin: '0 auto' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 13, marginBottom: 18, padding: 0 }}>&larr; Retrospectiva</button>
-      <div style={{ width: 36, height: 4, background: cor, borderRadius: 4, marginBottom: 12 }} />
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: '#111', margin: '0 0 4px' }}>Quem você viu</h2>
-      <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 18px' }}>as pessoas que você marcou no calendário</p>
-      <AnoChips anos={anos} anoSel={anoSel} setAnoSel={(a) => { setAnoSel(a); setPessoaSel(null); }} cor={cor} />
-      {pessoas.length === 0 ? (
-        <p style={{ fontSize: 13, color: '#bbb', fontStyle: 'italic', padding: '20px 0', lineHeight: 1.6 }}>Ninguém marcado em {anoSel}. Use o campo “com quem” ao criar eventos, rolês e cultura no Calendário.</p>
-      ) : <>
-        <p style={{ fontSize: 12.5, color: '#999', margin: '0 0 12px' }}><b style={{ color: cor }}>{pessoas.length}</b> {pessoas.length === 1 ? 'pessoa' : 'pessoas'} · {doAno.length} {doAno.length === 1 ? 'encontro' : 'encontros'} em {anoSel}</p>
-        {pessoas.map(p => (
-          <div key={p.nome} style={{ borderBottom: '1px solid #f3f3f3' }}>
-            <div onClick={() => setPessoaSel(pessoaSel === p.nome ? null : p.nome)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', cursor: 'pointer' }}>
-              <span style={{ fontSize: 14, color: '#222', fontWeight: 600 }}>{pessoaSel === p.nome ? '▾' : '▸'} {p.nome}</span>
-              <span style={{ fontSize: 13, color: cor, fontWeight: 700 }}>{p.n}×</span>
-            </div>
-            {pessoaSel === p.nome && (
-              <div style={{ padding: '0 0 10px 16px' }}>
-                {p.arr.map((r, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, padding: '4px 0', fontSize: 12.5, color: '#666' }}>
-                    <span style={{ color: cor, fontWeight: 700, width: 46, flexShrink: 0 }}>{r.data ? fmtDiaMes(r.data) : '—'}</span>
-                    <span>{r.oque || '—'}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </>}
     </div>
   );
 }
