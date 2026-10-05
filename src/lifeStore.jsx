@@ -636,6 +636,36 @@ export function ensureAssistirOut26(d) {   // exportada só pro teste; sai junto
   return { ...d, assistirOut26: true, assistir: [...novos, ...assistir] };
 }
 
+// BILHETE DE USO ÚNICO — a viagem Natal & Pipa (18–28/dez/2026), das fotos do voo
+// e das reservas que ela mandou em 05/out/2026. Se ela já tiver cadastrado uma
+// viagem com Natal ou Pipa no nome, não entra outra.
+const NATAL_PIPA_26 = {
+  id: 'vf-natalpipa26', titulo: 'Natal & Pipa', cidade: 'Natal · Pipa', inicio: '2026-12-18', fim: '2026-12-28',
+  passagens: 'IDA — sex 18/12 · GOL G3 1680 · sai de Guarulhos (Terminal 2) às 23h05, chega em Natal às 02h25 de sáb 19/12 · voo direto, 3h20\n'
+    + 'VOLTA — seg 28/12 · GOL G3 1681 · sai de Natal às 03h20, chega em Guarulhos (Terminal 2) às 07h00 · voo direto, 3h40\n'
+    + '2 passageiras · tarifa Light · assentos ainda não confirmados',
+  hospedagem: 'Natal — Apart Hotel Casa Grande · 18 a 20/12\n'
+    + 'Pipa — Pousada Carambola · 20 a 24/12\n'
+    + 'Natal — Sol Nascente Hotel Pousada Beira Mar · 24 a 28/12\n'
+    + 'As três confirmadas, com cancelamento grátis.',
+  notas: '',
+  cidades: [{ id: 'cd-natal', nome: 'Natal' }, { id: 'cd-pipa', nome: 'Pipa' }],
+  mesas: [
+    { id: 'pg-np26-ida', dia: '2026-12-18', hora: '23h05', titulo: 'Voo São Paulo → Natal', desc: 'GOL G3 1680 · Guarulhos, Terminal 2 · chega às 02h25 de sábado' },
+    { id: 'pg-np26-casagrande', dia: '2026-12-19', hora: '02h25', titulo: 'Chegada em Natal · Apart Hotel Casa Grande', desc: 'Reserva de 18 a 20/12' },
+    { id: 'pg-np26-pipa', dia: '2026-12-20', titulo: 'Natal → Pipa · Pousada Carambola', desc: 'Saída do Casa Grande · reserva em Pipa de 20 a 24/12' },
+    { id: 'pg-np26-solnascente', dia: '2026-12-24', titulo: 'Pipa → Natal · Sol Nascente Hotel Pousada Beira Mar', desc: 'Saída da Carambola · reserva em Natal de 24 a 28/12' },
+    { id: 'pg-np26-volta', dia: '2026-12-28', hora: '03h20', titulo: 'Voo Natal → São Paulo', desc: 'GOL G3 1681 · chega em Guarulhos (Terminal 2) às 07h00 · sair do hotel na noite de 27/12' },
+  ],
+};
+export function ensureNatalPipa26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.natalPipa26) return d;
+  const viagens = d.viagensFuturas || [];
+  const jaTem = viagens.some(v => v.id === NATAL_PIPA_26.id || /natal|pipa/i.test(`${v.titulo || ''} ${v.cidade || ''}`));
+  if (jaTem) return { ...d, natalPipa26: true };
+  return { ...d, natalPipa26: true, viagensFuturas: [...viagens, NATAL_PIPA_26] };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
@@ -644,7 +674,8 @@ function runLifeSeeds(d) {
     ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureMostra26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureAssistirOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureAssistirOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureNatalPipa26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);

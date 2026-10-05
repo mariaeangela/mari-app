@@ -984,13 +984,24 @@ function MetasMes({ mesKey, mesLabel }) {
   const [txt, setTxt] = useState('');
   const metas = cal.data.metas?.[mesKey] || [];
   const add = () => { cal.addMeta(mesKey, txt); setTxt(''); };
+  // Tocar no texto de uma meta abre ela pra editar ali mesmo: Enter (ou sair do
+  // campo) guarda, Esc desiste. Texto vazio não apaga a meta — fica como estava.
+  const [editId, setEditId] = useState(null);
+  const [editTxt, setEditTxt] = useState('');
+  const guardar = () => { if (editId) cal.updateMeta(mesKey, editId, editTxt); setEditId(null); };
   return (
     <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
       <div style={{ fontSize: 11, color: META_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Metas de {mesLabel}</div>
       {metas.map(m => (
         <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
           <span onClick={() => cal.toggleMeta(mesKey, m.id)} style={{ fontSize: 18, color: m.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{m.feito ? '☑' : '☐'}</span>
-          <span style={{ flex: 1, fontSize: 14, color: '#333', textDecoration: m.feito ? 'line-through' : 'none', opacity: m.feito ? 0.5 : 1 }}>{m.texto}</span>
+          {editId === m.id ? (
+            <input value={editTxt} autoFocus onChange={e => setEditTxt(e.target.value)} onBlur={guardar}
+              onKeyDown={e => { if (e.key === 'Enter') guardar(); if (e.key === 'Escape') setEditId(null); }}
+              style={{ ...inputStyle, flex: 1, minWidth: 0, width: 'auto', padding: '6px 9px' }} />
+          ) : (
+            <span onClick={() => { setEditId(m.id); setEditTxt(m.texto); }} title="tocar para editar" style={{ flex: 1, fontSize: 14, color: '#333', cursor: 'text', textDecoration: m.feito ? 'line-through' : 'none', opacity: m.feito ? 0.5 : 1 }}>{m.texto}</span>
+          )}
           <button onClick={() => cal.deleteMeta(mesKey, m.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
         </div>
       ))}

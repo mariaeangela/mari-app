@@ -355,6 +355,7 @@ export function CalendarProvider({ children }) {
   // ---- Metas do mês (chave 'YYYY-MM' → [{id, texto, feito}]) ----
   const addMeta = (mesKey, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: [...(data.metas?.[mesKey] || []), { id: uid('m'), texto: t, feito: false }] } }); };
   const toggleMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, feito: !m.feito } : m) } });
+  const updateMeta = (mesKey, id, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, texto: t } : m) } }); };
   const deleteMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).filter(m => m.id !== id) } });
 
   // ---- Dias coringa (chave 'YYYY-MM' → { [id do coringa]: dia do mês }) ----
@@ -381,7 +382,7 @@ export function CalendarProvider({ children }) {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, deleteMeta, setCoringa, salvarAgora, setTracking, trocarTudo,
+    addMeta, toggleMeta, updateMeta, deleteMeta, setCoringa, salvarAgora, setTracking, trocarTudo,
     addCoringaTipo, renameCoringaTipo, moveCoringaTipo, deleteCoringaTipo,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;
