@@ -108,13 +108,13 @@ function Header({ tab, setTab }) {
 
       {/* Frase do dia. `minHeight` reserva o lugar dela: sem isso a tela dava um
           pulinho quando a frase chegava, um instante depois da abertura. */}
-      <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 10, minHeight: 58, boxSizing: 'border-box' }}>
+      <div style={{ padding: '14px 24px 0', display: 'flex', alignItems: 'flex-start', gap: 10, minHeight: 46, boxSizing: 'border-box' }}>
         {quote && <>
           <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 16.5, color: '#444', lineHeight: 1.5, margin: '0 0 5px' }}>
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: 'italic', fontSize: 13, color: '#555', lineHeight: 1.55, margin: '0 0 3px' }}>
               "{quote.texto}"
             </p>
-            <p style={{ fontSize: 12, color: '#aaa', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
+            <p style={{ fontSize: 10, color: '#bbb', letterSpacing: '0.5px' }}>— {quote.autor}, <em>{quote.obra}</em></p>
           </div>
           <button onClick={() => toggle(fraseItem)} title={favoritada ? 'remover dos salvos' : 'salvar frase'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1, color: favoritada ? '#e0a83e' : '#ccc', flexShrink: 0, padding: 0 }}>{favoritada ? '★' : '☆'}</button>
         </>}

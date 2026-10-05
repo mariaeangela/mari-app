@@ -85,37 +85,36 @@ export const ARTE_ESTACAO = {
     pos: '58% center', credito: 'Isaac Levitan, Outono dourado (1895)' },
 };
 // Cidades com imagens próprias — várias por cidade, e troca uma por DIA (a Mari
-// pediu, set/2026: uma só cansava, e a primeira de NY nem parecia NY). Fotos e
-// pinturas de ~1900, todas em domínio público. Pra uma cidade nova, é só somar
-// aqui; as outras ficam com a da estação.
-const UP = 'https://upload.wikimedia.org/wikipedia/commons/';
+// pediu, set/2026: uma só cansava). São as da viagem que vem; as de NY e Chicago
+// saíram em out/2026, depois da viagem. Fotos do Wikimedia Commons, com o nome de
+// quem fez no crédito. Pra uma cidade nova, é só somar aqui; as outras ficam com
+// a da estação.
 const ARTE_CIDADE = [
-  { cidade: 'Chicago', re: /chicago/i, imagens: [
-    { url: WM + '4/40/South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg/1280px-South_Branch_of_the_Chicago_River_at_14th_Street_1900_photochrom.jpg',
-      pos: '62% center', credito: 'O rio Chicago em 1900 (fotocromo)' },
-    { url: UP + '3/3f/Detroit_Photographic_Company_%280332%29_-_State_Street%2C_Chicago.jpg',
-      pos: 'center', credito: 'State Street por volta de 1900 (fotocromo)' },
-    { url: WM + '1/18/Detroit_Photographic_Company_%280331%29.jpg/1280px-Detroit_Photographic_Company_%280331%29.jpg',
-      pos: 'center', credito: 'A Michigan Avenue por volta de 1900 (fotocromo)' },
-    { url: WM + '1/1e/Wabash_Avenue_north_from_Adams_Street%2C_Chicago-LCCN2008679500.jpg/1280px-Wabash_Avenue_north_from_Adams_Street%2C_Chicago-LCCN2008679500.jpg',
-      pos: 'center', credito: 'A Wabash Avenue e o trem elevado, em 1900 (fotocromo)' },
-    // (A pintura do Twachtman, de 1893, saiu: clara demais, sumia atrás do quadro.)
-    { url: WM + '5/53/Grant_Monument%2C_Lincoln_Park%2C_Chicago-LCCN2008678147.jpg/1280px-Grant_Monument%2C_Lincoln_Park%2C_Chicago-LCCN2008678147.jpg',
-      pos: 'center top', credito: 'O monumento a Grant no Lincoln Park, c. 1900 (fotocromo)' },
+  { cidade: 'Natal', re: /\bnatal\b/i, imagens: [
+    { url: WM + '3/3c/Alex_Regis_Morro_do_Careca_Ponta_Negra_Natal_RN_%2839161823760%29.jpg/1280px-Alex_Regis_Morro_do_Careca_Ponta_Negra_Natal_RN_%2839161823760%29.jpg',
+      pos: '30% center', credito: 'Ponta Negra e o Morro do Careca · foto de Alex Régis (MTur)' },
+    { url: WM + '4/4e/Natal_-_Forte_dos_Reis_Magos.jpg/1280px-Natal_-_Forte_dos_Reis_Magos.jpg',
+      pos: '40% center', credito: 'O Forte dos Reis Magos · foto de DlauriniJr (CC BY-SA 4.0)' },
+    { url: WM + 'b/b7/Alex_Regis_Morro_do_Careca_Ponta_Negra_Natal_RN_%2840261556354%29.jpg/1280px-Alex_Regis_Morro_do_Careca_Ponta_Negra_Natal_RN_%2840261556354%29.jpg',
+      pos: '35% center', credito: 'O Morro do Careca · foto de Alex Régis (MTur)' },
+    { url: WM + '5/55/Dunas_de_Genipabu_-_RN.jpg/1280px-Dunas_de_Genipabu_-_RN.jpg',
+      pos: 'center', credito: 'As dunas de Genipabu · foto de ReginaFaig (CC0)' },
+    { url: WM + '1/1d/Ponte_Newton_Navarro_Natal_RN_BR.jpg/1280px-Ponte_Newton_Navarro_Natal_RN_BR.jpg',
+      pos: '45% center', credito: 'A ponte Newton Navarro, sobre o rio Potengi · foto de Lisboaff (CC BY-SA 3.0)' },
+    { url: WM + '0/06/Genipabu_2.jpg/1280px-Genipabu_2.jpg',
+      pos: 'center', credito: 'Genipabu vista das dunas · foto de Fabricio Ferreira Silva (CC BY-SA 3.0)' },
   ] },
-  { cidade: 'Nova York', re: /nova york|new york|nyc|manhattan|brooklyn/i, imagens: [
-    { url: UP + 'f/fe/Detroit_Photographic_Company_%280645%29.jpg',
-      pos: 'center', credito: 'O Flatiron por volta de 1903 (fotocromo)' },
-    // (A Estátua da Liberdade saiu: no celular ela ficava inteira atrás do quadro
-    // da saudação, só o pedestal aparecia.)
-    { url: WM + '1/18/The_Mall%2C_Central_Park%2C_New_York_City_LCCN96512480.jpg/1280px-The_Mall%2C_Central_Park%2C_New_York_City_LCCN96512480.jpg',
-      pos: 'center', credito: 'O Mall do Central Park em 1905' },
-    { url: WM + '2/28/Brooklyn_Bridge_New_York_det.4a18745u.jpg/1280px-Brooklyn_Bridge_New_York_det.4a18745u.jpg',
-      pos: 'center', credito: 'A ponte do Brooklyn, entre 1905 e 1920' },
-    { url: WM + 'f/f7/Steichen_flatiron.jpg/1280px-Steichen_flatiron.jpg',
-      pos: 'center', credito: 'Edward Steichen, O Flatiron (1904)' },
-    { url: UP + 'c/c8/Newspaper_Row%2C_New_York_City%2C_1900.jpg',
-      pos: 'center', credito: 'Park Row, a rua dos jornais, em 1900 (fotocromo)' },
+  { cidade: 'Pipa', re: /\bpipa\b|tibau do sul/i, imagens: [
+    { url: WM + '3/3b/Humberto_Sales_Praia_do_Amor_Pipa_Tibau_do_Sul_RN_%2826690345177%29.jpg/1280px-Humberto_Sales_Praia_do_Amor_Pipa_Tibau_do_Sul_RN_%2826690345177%29.jpg',
+      pos: 'center', credito: 'A Praia do Amor · foto de Humberto Sales (MTur)' },
+    { url: WM + 'a/aa/Chapad%C3%A3o_de_Pipa.jpg/1280px-Chapad%C3%A3o_de_Pipa.jpg',
+      pos: 'center', credito: 'O Chapadão · foto de Walter Britto Gaspar (CC BY-SA 4.0)' },
+    { url: WM + '2/25/Baia_dos_Golfinhos_-_Pipa.jpg/1280px-Baia_dos_Golfinhos_-_Pipa.jpg',
+      pos: 'center', credito: 'A Baía dos Golfinhos · foto de Gustavo Mitilene Cordeiro (CC BY-SA 4.0)' },
+    { url: WM + '2/21/Humberto_Sales_Praia_do_Amor_Pipa_Tibau_do_Sul_RN_%2841558714051%29.jpg/1280px-Humberto_Sales_Praia_do_Amor_Pipa_Tibau_do_Sul_RN_%2841558714051%29.jpg',
+      pos: '40% center', credito: 'A Praia do Amor vista do Chapadão · foto de Humberto Sales (MTur)' },
+    { url: WM + 'd/db/Praia_dos_Golfinhos_-_Praia_de_Pipa_%28RN%29.JPG/1280px-Praia_dos_Golfinhos_-_Praia_de_Pipa_%28RN%29.JPG',
+      pos: '70% center', credito: 'As falésias da Baía dos Golfinhos · foto de Fabiano Ferrari (CC BY-SA 3.0)' },
   ] },
 ];
 // Qual imagem da cidade vale HOJE: gira pelo dia do ano (o mesmo o dia todo, em
@@ -128,10 +127,8 @@ const diaDoAno = (ymd) => {
 const imagemDoDia = (c, hoje) => ({ cidade: c.cidade, ...c.imagens[diaDoAno(hoje) % c.imagens.length] });
 export const IMAGENS_DA_CIDADE = (nome) => ((ARTE_CIDADE.find(c => c.cidade === nome) || {}).imagens || []);
 
-// A cidade que aparece PRIMEIRO no texto — e não a primeira desta lista. A viagem
-// NY & Chicago tem as duas no cadastro ("Nova York · Chicago"); antes, nos dias
-// sem nada de Chicago na programação, saía "Bom dia em Chicago" ainda em NY.
-// Voo ("Nova York → Chicago"): vale o destino, o que vem depois da seta.
+// A cidade que aparece PRIMEIRO no texto — e não a primeira desta lista.
+// Deslocamento ("Natal → Pipa"): vale o destino, o que vem depois da seta.
 function cidadeNoTexto(t) {
   const s = String(t || '');
   const trechos = s.includes('→') ? [s.slice(s.lastIndexOf('→')), s] : [s];
@@ -142,9 +139,18 @@ function cidadeNoTexto(t) {
   }
   return null;
 }
+// Onde ela está HOJE: a programação de hoje diz; num dia sem pista, vale a do
+// último dia que dizia (foi pra Pipa no dia 20 e o dia 22 está vazio: segue em
+// Pipa). Antes de qualquer pista, a primeira cidade do cadastro da viagem.
 function arteDaCidadeDeHoje(viagem, hoje) {
+  const texto = (m) => [m.titulo, m.desc, m.maps].join(' ');
+  const comDia = (viagem.mesas || []).filter(m => m && m.dia && !m.bucket);
+  // dias anteriores, do mais recente pro mais antigo (e, no mesmo dia, do fim pro começo)
+  const antes = comDia.map((m, i) => ({ m, i })).filter(x => x.m.dia < hoje)
+    .sort((x, y) => y.m.dia.localeCompare(x.m.dia) || y.i - x.i).map(x => x.m);
   const textos = [
-    ...(viagem.mesas || []).filter(m => m && m.dia === hoje).map(m => [m.titulo, m.desc, m.maps].join(' ')),
+    ...comDia.filter(m => m.dia === hoje).map(texto),
+    ...antes.map(texto),
     viagem.cidade || '',
   ];
   for (const t of textos) {
