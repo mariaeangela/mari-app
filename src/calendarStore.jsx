@@ -356,6 +356,9 @@ export function CalendarProvider({ children }) {
   const addMeta = (mesKey, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: [...(data.metas?.[mesKey] || []), { id: uid('m'), texto: t, feito: false }] } }); };
   const toggleMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, feito: !m.feito } : m) } });
   const updateMeta = (mesKey, id, texto) => { const t = (texto || '').trim(); if (!t) return; patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).map(m => m.id === id ? { ...m, texto: t } : m) } }); };
+  // Leva a meta (com o ☑ dela) pro fim da lista de outro mês. `texto` junto
+  // porque ela pode estar editando — uma gravação só, não duas no mesmo tick.
+  const moveMeta = (de, id, para, texto) => { const achada = (data.metas?.[de] || []).find(x => x.id === id); if (!achada || de === para) return; const t = (texto || '').trim(); const m = t ? { ...achada, texto: t } : achada; patch({ metas: { ...data.metas, [de]: data.metas[de].filter(x => x.id !== id), [para]: [...(data.metas?.[para] || []), m] } }); };
   const deleteMeta = (mesKey, id) => patch({ metas: { ...data.metas, [mesKey]: (data.metas?.[mesKey] || []).filter(m => m.id !== id) } });
 
   // ---- Dias coringa (chave 'YYYY-MM' → { [id do coringa]: dia do mês }) ----
@@ -382,7 +385,7 @@ export function CalendarProvider({ children }) {
     data, saveEvent, deleteEvent, addEventExcecao, saveExercicio, deleteExercicio,
     saveTask, toggleTask, deleteTask, addTaskExcecao,
     addRole, updateRole, deleteRole, saveCultura, deleteCultura, convertItem, setMood, setDiary, setBilhete,
-    addMeta, toggleMeta, updateMeta, deleteMeta, setCoringa, salvarAgora, setTracking, trocarTudo,
+    addMeta, toggleMeta, updateMeta, moveMeta, deleteMeta, setCoringa, salvarAgora, setTracking, trocarTudo,
     addCoringaTipo, renameCoringaTipo, moveCoringaTipo, deleteCoringaTipo,
   };
   return <CalContext.Provider value={value}>{children}</CalContext.Provider>;

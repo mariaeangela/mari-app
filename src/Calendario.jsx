@@ -989,11 +989,16 @@ function MetasMes({ mesKey, mesLabel }) {
   const [editId, setEditId] = useState(null);
   const [editTxt, setEditTxt] = useState('');
   const guardar = () => { if (editId) cal.updateMeta(mesKey, editId, editTxt); setEditId(null); };
+  // Enquanto edita, aparece a fileira de meses: tocar num deles leva a meta pra lá.
+  const [ano, mes] = mesKey.split('-').map(Number);
+  const mesesPerto = Array.from({ length: 12 }, (_, i) => { const d = new Date(ano, mes - 1 + i - 3, 1); return { key: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`, label: MESES[d.getMonth()].slice(0, 3) + (d.getFullYear() !== ano ? ' ' + String(d.getFullYear()).slice(2) : '') }; });
+  const moverPara = (id, para) => { if (para !== mesKey) cal.moveMeta(mesKey, id, para, editTxt); else guardar(); setEditId(null); };
   return (
     <div style={{ marginTop: 22, borderTop: '1px solid #eee', paddingTop: 16 }}>
       <div style={{ fontSize: 11, color: META_COR, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 700, marginBottom: 8 }}>Metas de {mesLabel}</div>
       {metas.map(m => (
-        <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+        <div key={m.id} style={{ padding: '7px 0', borderBottom: '1px solid #f3f3f3' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span onClick={() => cal.toggleMeta(mesKey, m.id)} style={{ fontSize: 18, color: m.feito ? '#54c08a' : '#ccc', cursor: 'pointer', flexShrink: 0 }}>{m.feito ? '☑' : '☐'}</span>
           {editId === m.id ? (
             <input value={editTxt} autoFocus onChange={e => setEditTxt(e.target.value)} onBlur={guardar}
@@ -1003,6 +1008,19 @@ function MetasMes({ mesKey, mesLabel }) {
             <span onClick={() => { setEditId(m.id); setEditTxt(m.texto); }} title="tocar para editar" style={{ flex: 1, fontSize: 14, color: '#333', cursor: 'text', textDecoration: m.feito ? 'line-through' : 'none', opacity: m.feito ? 0.5 : 1 }}>{m.texto}</span>
           )}
           <button onClick={() => cal.deleteMeta(mesKey, m.id)} style={{ background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>×</button>
+        </div>
+        {editId === m.id && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, marginTop: 8, paddingLeft: 28 }}>
+            <span style={{ fontSize: 11, color: '#aaa', marginRight: 2 }}>mudar para</span>
+            {mesesPerto.map(o => (
+              // onMouseDown pra não perder o clique quando o campo de texto sai de foco
+              <button key={o.key} onMouseDown={e => { e.preventDefault(); moverPara(m.id, o.key); }} style={{
+                padding: '3px 9px', borderRadius: 14, fontSize: 11.5, cursor: 'pointer', textTransform: 'capitalize',
+                border: '1px solid ' + (o.key === mesKey ? META_COR : '#e2e2e2'), background: o.key === mesKey ? META_COR : '#fff', color: o.key === mesKey ? '#fff' : '#666',
+              }}>{o.label}</button>
+            ))}
+          </div>
+        )}
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -1107,10 +1125,11 @@ export default function Calendario({ isWide }) {
           comEstrela={view === 'mes'}
           getDots={view === 'exercicio'
             ? (d) => itemsForDay(cal.data, d).exercicios
-            : (d) => itemsGeral(cal.data, d, life.planos)} />
+            // Tarefas não viram bolinha no Mês (poluía a vista); aparecem ao tocar no dia.
+            : (d) => itemsGeral(cal.data, d, life.planos).filter(it => it._tipo !== 'tarefa')} />
       )}
       {view === 'humor' && <HumorView data={cal.data} onDayClick={setDayModal} />}
-      {view === 'mes' && <Legenda items={temCoringaNoMes ? [...LEGENDA, { label: 'dia coringa', cor: CORINGA_COR, estrela: true }] : LEGENDA} />}
+      {view === 'mes' && <Legenda items={[...LEGENDA.filter(l => l.label !== 'Tarefa'), ...(temCoringaNoMes ? [{ label: 'dia coringa', cor: CORINGA_COR, estrela: true }] : [])]} />}
       {view === 'mes' && <DiasCoringa mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} refDate={refDate} />}
       {view === 'mes' && <MetasMes mesKey={mesKey} mesLabel={MESES[refDate.getMonth()]} />}
       {view === 'exercicio' && exView === 'cal' && <Legenda items={EXERCICIO_LEGENDA} />}
