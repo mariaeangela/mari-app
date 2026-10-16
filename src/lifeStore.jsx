@@ -653,6 +653,55 @@ export function ensureNatalPipa26(d) {   // exportada só pro teste; sai junto c
   return { ...d, natalPipa26: true, viagensFuturas: [...viagens, NATAL_PIPA_26] };
 }
 
+// BILHETE DE USO ÚNICO — os passeios de Natal & Pipa que ela aprovou em 16/out/2026.
+// Os do roteiro entram no dia; os opcionais vão para "Ainda sem data", na cidade.
+// Entra na viagem dela (a de id conhecido ou a que tiver Natal/Pipa no nome) e não
+// repete item que já esteja lá.
+const NATAL_PIPA_ROT26 = [
+  ['2026-12-19', 'Ponta Negra e vista do Morro do Careca', 'Dia leve depois da chegada de madrugada · subir no Morro é proibido, só ver · jantar por ali'],
+  ['2026-12-20', 'Parada no Cajueiro de Pirangi', 'No caminho para Pipa, pela Rota do Sol · o maior cajueiro do mundo'],
+  ['2026-12-20', 'Pôr do sol no Chapadão', 'Lá de cima a Praia do Amor tem formato de coração'],
+  ['2026-12-21', 'Baía dos Golfinhos a pé + Praia do Madeiro', 'Só com MARÉ BAIXA — olhar a tábua de marés antes'],
+  ['2026-12-21', 'Noite no centrinho de Pipa', ''],
+  ['2026-12-22', 'Santuário Ecológico de Pipa', 'De manhã · trilhas e mirantes sobre o mar'],
+  ['2026-12-22', 'Pôr do sol na Lagoa de Guaraíras', 'Em Tibau do Sul · um dos mais bonitos da região'],
+  ['2026-12-23', 'Buggy pelas praias do sul (Cacimbinhas, Sibaúma)', 'Ou só descanso e Praia do Amor · último dia inteiro em Pipa'],
+  ['2026-12-24', 'Ceia de Natal', 'RESERVAR JÁ — muitos restaurantes fecham ou fazem só menu fechado no dia 24'],
+  ['2026-12-25', 'Dia de praia e descanso', 'Natal faz aniversário hoje (fundada em 25/12/1599) · feriado, muita coisa fecha'],
+  ['2026-12-26', 'Dunas de Genipabu de buggy', 'Dia inteiro, ao norte da cidade'],
+  ['2026-12-26', 'Ponte Newton Navarro + ginga com tapioca na Redinha', 'Na volta de Genipabu'],
+  ['2026-12-27', 'Forte dos Reis Magos', 'De manhã · confirmar horário perto do Natal'],
+  ['2026-12-27', 'Tarde de descanso', 'Pedir late check-out ao hotel'],
+  ['2026-12-27', 'Transfer para o aeroporto', 'Chegar por volta de 01h20 para o voo das 03h20 · aeroporto em São Gonçalo do Amarante, uns 40 min'],
+  ['cd-natal', 'Parque das Dunas', 'Trilhas de manhã · confirmar dias e horários de visita'],
+  ['cd-natal', 'Parrachos de Maracajaú', 'Piscinas naturais, 1h ao norte · depende da maré'],
+  ['cd-natal', 'Parrachos de Pirangi', 'Piscinas naturais, perto do Cajueiro · depende da maré'],
+];
+export function ensureNatalPipaRot26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.natalPipaRot26) return d;
+  const viagens = d.viagensFuturas || [];
+  const i = viagens.findIndex(v => v.id === NATAL_PIPA_26.id);
+  const idx = i >= 0 ? i : viagens.findIndex(v => /natal|pipa/i.test(`${v.titulo || ''} ${v.cidade || ''}`));
+  if (idx < 0) return { ...d, natalPipaRot26: true };
+  const v = viagens[idx];
+  const mesas = v.mesas || [];
+  const norm = (t) => String(t || '').trim().toLowerCase();
+  const temId = new Set(mesas.map(m => m.id));
+  const temTit = new Set(mesas.map(m => norm(m.titulo)));
+  const cidadeIds = new Set((v.cidades || []).map(c => c.id));
+  const novos = NATAL_PIPA_ROT26.map(([quando, titulo, desc], n) => {
+    const semData = quando.startsWith('cd-');
+    return {
+      id: `pg-np26r-${n + 1}`, n: n + 1, titulo, desc,
+      dia: semData ? '' : quando,
+      ...(semData ? { bucket: 'semdata', cidadeId: cidadeIds.has(quando) ? quando : undefined } : {}),
+    };
+  }).filter(m => !temId.has(m.id) && !temTit.has(norm(m.titulo)));
+  if (!novos.length) return { ...d, natalPipaRot26: true };
+  const nova = { ...v, mesas: [...mesas, ...novos] };
+  return { ...d, natalPipaRot26: true, viagensFuturas: viagens.map((x, j) => j === idx ? nova : x) };
+}
+
 function runLifeSeeds(d) {
   const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
     ensureExposSet26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
@@ -661,7 +710,8 @@ function runLifeSeeds(d) {
     ensureCultGalOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureCultOut26b /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
     ensureAssistirOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
-    ensureNatalPipa26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
+    ensureNatalPipa26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */,
+    ensureNatalPipaRot26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
