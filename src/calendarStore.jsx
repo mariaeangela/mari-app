@@ -83,8 +83,19 @@ function ensureProvasCorrida(d) {
   return out;
 }
 
+// BILHETE DE USO ÚNICO — tarefa que a Mari pediu em 21/out/2026: lembrar de pedir
+// a atualização dos Esportes antes de Interlagos (6–8/nov). Entra uma vez; se ela
+// apagar, não volta. Sai daqui assim que estiver gravado no documento dela.
+export function ensureLembreteEsportesNov26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.lembreteEsportesNov26) return d;
+  const id = 'lembrete-esportes-nov26';
+  if ((d.tasks || []).some(t => t.id === id)) return { ...d, lembreteEsportesNov26: true };
+  const task = { id, titulo: 'Pedir pro Claude atualizar os Esportes', data: '2026-10-31', nota: 'A agenda vai até 1º/nov · Interlagos é de 6 a 8/nov' };
+  return { ...d, lembreteEsportesNov26: true, tasks: [...(d.tasks || []), task] };
+}
+
 // Aplica todos os seeds idempotentes do calendário, na ordem.
-function runSeeds(d) { return ensureProvasCorrida(ensureLivrosLidos2026(ensureLembreteSpotify(d))); }
+function runSeeds(d) { return ensureLembreteEsportesNov26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */(ensureProvasCorrida(ensureLivrosLidos2026(ensureLembreteSpotify(d)))); }
 
 function readLocal() {
   try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
