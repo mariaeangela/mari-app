@@ -6,7 +6,7 @@
 //
 // A Mari pede "atualiza os esportes" quando quiser: revejo a agenda dos próximos dias,
 // as datas e a constante ESPORTES_ATUALIZADO.
-export const ESPORTES_ATUALIZADO = '19 ago 2026';
+export const ESPORTES_ATUALIZADO = '21 out 2026';
 
 export const ESPORTES = [
   {
@@ -22,10 +22,10 @@ export const ESPORTES = [
     competicoes: [
       { nome: 'Copa do Mundo FIFA', genero: 'masc', oque: 'O maior torneio de seleções, de 4 em 4 anos. A de 2026 teve 48 seleções, nos EUA, México e Canadá — e a Espanha foi campeã, 1×0 na Argentina na prorrogação (gol de Ferran Torres).', quando: 'Acabou em 19/jul/2026 · próxima em 2030', assistir: 'Globo, SporTV, SBT e CazéTV' },
       { nome: 'Copa do Mundo Feminina', genero: 'fem', oque: 'O Mundial de seleções feminino — e a próxima edição é NO BRASIL, a primeira na América do Sul.', quando: 'Em 2027, no Brasil', assistir: 'Globo, SporTV e CazéTV' },
-      { nome: 'Champions League (UEFA)', genero: 'masc', oque: 'O mata-mata dos melhores clubes da Europa — o título de clubes mais cobiçado. Há também a versão feminina.', quando: 'Setembro a maio · a temporada 2026/27 começa em setembro', assistir: 'HBO Max e TNT Sports' },
-      { nome: 'Libertadores (CONMEBOL)', genero: 'masc', oque: 'A “Champions” da América do Sul. Tem edição masculina e feminina.', quando: 'Fevereiro a novembro · final em nov', assistir: 'Globo (aberta/GE TV), ESPN/Disney+ e Paramount+' },
-      { nome: 'Brasileirão (masculino e feminino)', genero: 'misto', oque: 'A liga nacional por pontos corridos — 20 clubes no masculino; o feminino cresce a cada ano.', quando: 'Masc.: abr–dez · Fem.: mar–set', assistir: 'Globo, Premiere, Prime Video, CazéTV e GE TV' },
-      { nome: 'Premier League e La Liga', genero: 'masc', oque: 'As ligas nacionais mais fortes da Europa (Inglaterra e Espanha).', quando: 'Agosto a maio · a Premier 2026/27 abre em 21/ago (Arsenal x Coventry)', assistir: 'ESPN e Disney+' },
+      { nome: 'Champions League (UEFA)', genero: 'masc', oque: 'O mata-mata dos melhores clubes da Europa — o título de clubes mais cobiçado. Há também a versão feminina.', quando: 'Setembro a maio · fase de liga até janeiro, final em maio/2027', assistir: 'HBO Max e TNT Sports' },
+      { nome: 'Libertadores (CONMEBOL)', genero: 'masc', oque: 'A “Champions” da América do Sul. Tem edição masculina e feminina.', quando: 'Fevereiro a novembro · a FINAL de 2026 é em 28/nov, no Centenário (Montevidéu)', assistir: 'Globo (aberta/GE TV), ESPN/Disney+ e Paramount+' },
+      { nome: 'Brasileirão (masculino e feminino)', genero: 'misto', oque: 'A liga nacional por pontos corridos — 20 clubes no masculino; o feminino cresce a cada ano.', quando: 'Masc.: abr–dez · Fem.: mar–out (o São Paulo foi campeão em 2026, o 1º título)', assistir: 'Globo, Premiere, Prime Video, CazéTV e GE TV' },
+      { nome: 'Premier League e La Liga', genero: 'masc', oque: 'As ligas nacionais mais fortes da Europa (Inglaterra e Espanha).', quando: 'Agosto a maio · temporada 2026/27 rolando', assistir: 'ESPN e Disney+' },
     ],
   },
   {
@@ -42,8 +42,8 @@ export const ESPORTES = [
       { nome: 'Australian Open', genero: 'misto', oque: 'O 1º Grand Slam do ano, em quadra dura, em Melbourne. Tem chave masculina e feminina.', quando: 'Todo janeiro, em Melbourne · próxima edição em jan/2027', assistir: 'ESPN e Disney+' },
       { nome: 'Roland Garros', genero: 'misto', oque: 'Grand Slam no saibro, em Paris — o mais desgastante fisicamente.', quando: 'Fim de maio a começo de junho, em Paris · próxima em 2027', assistir: 'ESPN e Disney+' },
       { nome: 'Wimbledon', genero: 'misto', oque: 'Grand Slam na grama, em Londres — o mais tradicional de todos.', quando: 'Fim de junho a meados de julho, em Londres · próxima em 2027', assistir: 'ESPN e Disney+' },
-      { nome: 'US Open', genero: 'misto', oque: 'O último Grand Slam do ano, em quadra dura, em Nova York.', quando: '31/ago a 13/set/2026', assistir: 'ESPN e Disney+' },
-      { nome: 'ATP Finals e WTA Finals', genero: 'misto', oque: 'Os torneios de encerramento, só com os 8 melhores do ano (um masculino, um feminino).', quando: 'Novembro/2026', assistir: 'ESPN e Disney+' },
+      { nome: 'US Open', genero: 'misto', oque: 'O último Grand Slam do ano, em quadra dura, em Nova York.', quando: 'Fim de agosto a meados de setembro · próxima em 2027', assistir: 'ESPN e Disney+' },
+      { nome: 'ATP Finals e WTA Finals', genero: 'misto', oque: 'Os torneios de encerramento, só com os 8 melhores do ano (um masculino, um feminino). O WTA Finals de 2026 saiu de Riad e foi pra Indian Wells (EUA).', quando: 'WTA: 8 a 15/nov (Indian Wells) · ATP: 15 a 22/nov (Turim)', assistir: 'ESPN e Disney+' },
     ],
   },
   {
@@ -57,8 +57,8 @@ export const ESPORTES = [
       'Penaliza queda, passo fora do praticável, tempo e falhas de execução.',
     ],
     competicoes: [
-      { nome: 'Mundial de Ginástica Rítmica', genero: 'fem', oque: 'A principal competição da rítmica — que no programa olímpico é só feminina (arco, bola, maças e fita).', quando: '12 a 16/ago/2026 · Frankfurt (Alemanha)', assistir: 'SporTV e Globoplay' },
-      { nome: 'Mundial de Ginástica Artística', genero: 'misto', oque: 'A principal competição da artística, com disputa masculina e feminina.', quando: '17 a 25/out/2026 · Roterdã (Holanda)', assistir: 'SporTV e Globoplay' },
+      { nome: 'Mundial de Ginástica Rítmica', genero: 'fem', oque: 'A principal competição da rítmica — que no programa olímpico é só feminina (arco, bola, maças e fita).', quando: 'A de 2026 foi em agosto, em Frankfurt · próxima em 2027', assistir: 'SporTV e Globoplay' },
+      { nome: 'Mundial de Ginástica Artística', genero: 'misto', oque: 'A principal competição da artística, com disputa masculina e feminina.', quando: '17 a 25/out/2026 · Roterdã (Holanda) — ACONTECENDO AGORA', assistir: 'SporTV e Globoplay' },
       { nome: 'Copa do Mundo FIG (etapas)', genero: 'misto', oque: 'Série de etapas pelo mundo que valem ranking ao longo do ano.', quando: 'Março a julho, todo ano', assistir: 'SporTV e canais da FIG' },
       { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'O ápice da modalidade, de 4 em 4 anos.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
     ],
@@ -76,8 +76,8 @@ export const ESPORTES = [
     competicoes: [
       { nome: 'Mundial de piscina curta (25 m)', genero: 'misto', oque: 'O Mundial em piscina de 25 m — mais viradas e tempos mais rápidos. Provas masc. e fem.', quando: '1 a 6/dez/2026 · Pequim (Water Cube)', assistir: 'SporTV e Globoplay' },
       { nome: 'Mundial (World Aquatics, 50 m)', genero: 'misto', oque: 'O grande Mundial, disputado em piscina olímpica de 50 m.', quando: 'Meio do ano (varia por edição)', assistir: 'SporTV e Globoplay' },
-      { nome: 'Campeonato Pan-Pacífico', genero: 'misto', oque: 'Reúne as potências da bacia do Pacífico (EUA, Austrália, Japão, Canadá) mais convidados — e o Brasil é presença tradicional. Estava parado desde 2018.', quando: '12 a 15/ago/2026 · Irvine (EUA)', assistir: 'SporTV e Globoplay' },
-      { nome: 'Copa do Mundo (World Cup)', genero: 'misto', oque: 'Circuito de etapas ao longo da temporada.', quando: 'Outubro a novembro', assistir: 'SporTV e World Aquatics' },
+      { nome: 'Campeonato Pan-Pacífico', genero: 'misto', oque: 'Reúne as potências da bacia do Pacífico (EUA, Austrália, Japão, Canadá) mais convidados — e o Brasil é presença tradicional. Estava parado desde 2018.', quando: 'A de 2026 foi em agosto, em Irvine (EUA)', assistir: 'SporTV e Globoplay' },
+      { nome: 'Copa do Mundo (World Cup)', genero: 'misto', oque: 'Circuito de etapas ao longo da temporada.', quando: 'A de 2026 foi em outubro (Baku, Tashkent e Astana) — já acabou', assistir: 'SporTV e World Aquatics' },
       { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'Piscina de 50 m, de 4 em 4 anos.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
     ],
   },
@@ -93,7 +93,7 @@ export const ESPORTES = [
     ],
     competicoes: [
       { nome: 'Mundial de Skate (World Skate)', genero: 'misto', oque: 'O Mundial de street — o Brasil é potência com Rayssa Leal (fem) e Kelvin Hoefler (masc).', quando: 'Julho · a edição de 2026 foi em São Paulo', assistir: 'Globo e SporTV' },
-      { nome: 'SLS — Street League', genero: 'misto', oque: 'O principal circuito profissional de street, com disputa masculina e feminina.', quando: 'SLS Rio: 9/ago/2026 (Maracanãzinho)', assistir: 'Rumble (grátis) e SporTV' },
+      { nome: 'SLS — Street League', genero: 'misto', oque: 'O principal circuito profissional de street, com disputa masculina e feminina.', quando: 'Última etapa: Tóquio, 14/nov · SUPER CROWN (a final do ano) em São Paulo, 12 e 13/dez, no Ibirapuera', assistir: 'Rumble (grátis) e SporTV' },
       { nome: 'X Games', genero: 'misto', oque: 'O clássico dos esportes radicais (street e park), com categorias masc. e fem.', quando: 'Etapas ao longo do ano · em jul/2026 foi em New Orleans', assistir: 'ESPN e Disney+' },
       { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'Street e park, no programa olímpico desde Tóquio 2020.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
     ],
@@ -109,9 +109,9 @@ export const ESPORTES = [
       'Empate no fim vai para a prorrogação (5 min), quantas forem necessárias.',
     ],
     competicoes: [
-      { nome: 'NBA', genero: 'masc', oque: 'A liga masculina dos EUA — a mais forte do mundo, com os melhores jogadores.', quando: 'Temporada out/2026 a abr/2027 · playoffs até jun', assistir: 'ESPN, Disney+ e Prime Video' },
-      { nome: 'WNBA', genero: 'fem', oque: 'A liga feminina dos EUA — a principal do mundo. Tem as brasileiras Kamilla Cardoso e Damiris Dantas.', quando: 'Maio a set/2026 · pausa em 31/ago pro Mundial e playoffs a partir de 27/set', assistir: 'ESPN, Disney+ e Prime Video' },
-      { nome: 'NBB e LBF (Brasil)', genero: 'misto', oque: 'As ligas nacionais de clubes: NBB (masculino) e LBF (feminino).', quando: 'NBB: out–mai · LBF: mai–dez', assistir: 'SporTV, Band, ESPN e YouTube (LNB/LBF)' },
+      { nome: 'NBA', genero: 'masc', oque: 'A liga masculina dos EUA — a mais forte do mundo, com os melhores jogadores.', quando: 'Começou em 20/out/2026 (Knicks são os atuais campeões) · temporada até abr/2027, playoffs até jun', assistir: 'ESPN, Disney+ e Prime Video' },
+      { nome: 'WNBA', genero: 'fem', oque: 'A liga feminina dos EUA — a principal do mundo. Tem as brasileiras Kamilla Cardoso e Damiris Dantas.', quando: 'Maio a outubro · a temporada 2026 já acabou, volta em maio/2027', assistir: 'ESPN, Disney+ e Prime Video' },
+      { nome: 'NBB e LBF (Brasil)', genero: 'misto', oque: 'As ligas nacionais de clubes: NBB (masculino) e LBF (feminino).', quando: 'NBB: out–mai (a temporada 2026/27 começou em 17/out) · LBF: mai–dez', assistir: 'SporTV, Band, ESPN e YouTube (LNB/LBF)' },
       { nome: 'Copa do Mundo FIBA e Olimpíadas', genero: 'misto', oque: 'Os grandes torneios de seleções (masculino e feminino).', quando: 'Olimpíadas: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
     ],
   },
@@ -126,8 +126,8 @@ export const ESPORTES = [
       'Rodízio de posições ao reconquistar o saque; o líbero é o defensor especialista.',
     ],
     competicoes: [
-      { nome: 'Liga das Nações (VNL)', genero: 'misto', oque: 'O principal torneio anual de seleções, com disputa masculina e feminina.', quando: 'Junho a agosto · a edição de 2026 terminou em 2/ago (Ningbo)', assistir: 'SporTV, GE TV e VBTV' },
-      { nome: 'Superliga', genero: 'misto', oque: 'A liga nacional de clubes do Brasil, masculina e feminina.', quando: 'Novembro a abril', assistir: 'SporTV e Globo' },
+      { nome: 'Liga das Nações (VNL)', genero: 'misto', oque: 'O principal torneio anual de seleções, com disputa masculina e feminina.', quando: 'Junho a agosto · próxima em 2027', assistir: 'SporTV, GE TV e VBTV' },
+      { nome: 'Superliga', genero: 'misto', oque: 'A liga nacional de clubes do Brasil, masculina e feminina — 12 times em cada.', quando: 'Out a abril · feminina começou em 17/out, masculina em 24/out', assistir: 'SporTV, Globoplay e GE TV' },
       { nome: 'Campeonato Mundial', genero: 'misto', oque: 'O Mundial de seleções (masculino e feminino).', quando: 'Edições específicas (calendário FIVB)', assistir: 'SporTV e VBTV' },
       { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'Seleções, de 4 em 4 anos.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
     ],
@@ -144,8 +144,8 @@ export const ESPORTES = [
       'Em 2026 entram carros e motores de nova geração (mais híbridos, combustível sustentável).',
     ],
     competicoes: [
-      { nome: 'Mundial de Pilotos e Construtores', genero: 'masc', oque: 'O campeonato principal, com 24 GPs pelo mundo. A F1 é masculina; a categoria feminina de acesso é a F1 Academy.', quando: 'Março a dezembro/2026 · recesso de 27/jul a 21/ago', assistir: 'Band, BandSports e F1 TV' },
-      { nome: 'GP de São Paulo (Interlagos)', genero: 'masc', oque: 'A etapa brasileira, em Interlagos — uma das corridas mais imprevisíveis do calendário.', quando: '6 a 8/nov/2026 (sem sprint neste ano)', assistir: 'Band, BandSports e F1 TV' },
+      { nome: 'Mundial de Pilotos e Construtores', genero: 'masc', oque: 'O campeonato principal, com 24 GPs pelo mundo. A F1 é masculina; a categoria feminina de acesso é a F1 Academy.', quando: 'Março a dezembro/2026 · Kimi Antonelli (Mercedes) lidera com folga e pode ser campeão já em Austin (25/out)', assistir: 'Globo, SporTV, Globoplay e F1 TV' },
+      { nome: 'GP de São Paulo (Interlagos)', genero: 'masc', oque: 'A etapa brasileira, em Interlagos — uma das corridas mais imprevisíveis do calendário.', quando: '6 a 8/nov/2026 (corrida no domingo, 8)', assistir: 'Globo, SporTV, Globoplay e F1 TV' },
       { nome: 'F1 Academy', genero: 'fem', oque: 'A categoria feminina de formação, que corre junto a etapas da F1 para revelar pilotas.', quando: 'Ao longo de 2026', assistir: 'Canais e plataformas da F1' },
     ],
   },
@@ -160,9 +160,9 @@ export const ESPORTES = [
       'O CT (elite) tem tour masculino e feminino; o título sai por pontos nas etapas.',
     ],
     competicoes: [
-      { nome: 'Championship Tour (CT)', genero: 'misto', oque: 'A elite da WSL, com tour masculino e feminino. Brasil forte: Medina, Yago Dora, Ítalo, Tati Weston-Webb.', quando: '12 etapas de jan a set/2026', assistir: 'SporTV, Globoplay e site/redes da WSL' },
-      { nome: 'Etapa de Teahupo’o (Taiti)', genero: 'misto', oque: 'Uma das ondas mais pesadas do mundo — a mesma do surfe olímpico de Paris 2024.', quando: '8 a 18/ago/2026', assistir: 'SporTV, Globoplay e WSL' },
-      { nome: 'WSL Finals (Pipeline)', genero: 'misto', oque: 'A decisão do título mundial, no Havaí, com os melhores do ranking.', quando: 'Fim da temporada 2026', assistir: 'SporTV, Globoplay e WSL' },
+      { nome: 'Championship Tour (CT)', genero: 'misto', oque: 'A elite da WSL, com tour masculino e feminino. Brasil forte: Medina, Yago Dora, Ítalo, Tati Weston-Webb.', quando: '12 etapas de abril a dezembro · o título sai na última, em Pipeline (Havaí)', assistir: 'SporTV, Globoplay e site/redes da WSL' },
+      { nome: 'Etapa de Peniche (Portugal)', genero: 'misto', oque: 'A penúltima etapa do ano, em Supertubos — tubos fortes em praia de areia. Pesa muito na briga pelo título.', quando: '22/out a 1º/nov/2026 · a WSL chama os dias conforme o mar', assistir: 'SporTV, Globoplay e WSL' },
+      { nome: 'Pipe Masters (Pipeline)', genero: 'misto', oque: 'A última etapa e a decisão do título mundial, no Havaí. Em 2026 acabou o formato “WSL Finals”: o campeão sai da soma das etapas.', quando: '8 a 20/dez/2026', assistir: 'SporTV, Globoplay e WSL' },
     ],
   },
   {
@@ -177,7 +177,7 @@ export const ESPORTES = [
       'Revezamentos 4×100 m e 4×400 m; o bastão tem de ser passado dentro da zona.',
     ],
     competicoes: [
-      { nome: 'Wanda Diamond League', genero: 'misto', oque: 'O principal circuito mundial de etapas (corridas, saltos e lançamentos), masc. e fem. Destaque brasileiro: Alison dos Santos (Piu), nos 400 m com barreiras.', quando: 'Maio a set/2026 · final 4–5/set (Bruxelas)', assistir: 'SporTV e Xsports' },
+      { nome: 'Wanda Diamond League', genero: 'misto', oque: 'O principal circuito mundial de etapas (corridas, saltos e lançamentos), masc. e fem. Destaque brasileiro: Alison dos Santos (Piu), nos 400 m com barreiras.', quando: 'Maio a setembro · a de 2026 já acabou (final em Bruxelas)', assistir: 'SporTV e Xsports' },
       { nome: 'Etapa de Londres (Diamond League)', genero: 'misto', oque: 'Uma das etapas mais fortes do circuito, no estádio olímpico de Londres.', quando: 'Julho, no estádio olímpico de Londres', assistir: 'SporTV e Xsports' },
       { nome: 'Mundial de Atletismo (World Athletics)', genero: 'misto', oque: 'O Mundial de pista e campo — o maior torneio da modalidade fora as Olimpíadas.', quando: 'Próxima edição em 2027', assistir: 'SporTV e Globoplay' },
       { nome: 'Jogos Olímpicos', genero: 'misto', oque: 'O ápice do atletismo, de 4 em 4 anos.', quando: 'Próxima: 2028 (Los Angeles)', assistir: 'Globo e SporTV' },
@@ -188,75 +188,53 @@ export const ESPORTES = [
 // AGENDA dia a dia — cada jogo/sessão com data, horário (Brasília), gênero e onde assistir.
 // Peça "atualiza os esportes" que eu revejo os próximos dias.
 export const ESPORTES_AGENDA = [
-  // Quarta 19/ago
-  { data: '2026-08-19', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — oitavas, jogos de VOLTA', sub: 'Flamengo x Cruzeiro e Cerro Porteño x Palmeiras decidem quem vai às quartas', assistir: 'SBT, ESPN e Paramount+', destaque: true },
-  { data: '2026-08-19', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Masters de Cincinnati', sub: 'Último Masters 1000 antes do US Open · Sabalenka, Rybakina, Gauff, Djokovic e Zverev na chave · final domingo', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-19', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — temporada regular', sub: 'Reta final antes da pausa pro Mundial da FIBA', assistir: 'ESPN e Disney+' },
+  // Quarta 21/out
+  { data: '2026-10-21', hora: '14h30', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial de Ginástica — FINAL POR EQUIPES feminina', sub: 'Roterdã · o Brasil, com Rebeca e Flavinha, entrou em 8º, a última vaga', assistir: 'SporTV e Globoplay', destaque: true },
+  { data: '2026-10-21', hora: '16h', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Champions League — Bayern x Arsenal', sub: 'E Real Madrid x RB Leipzig no mesmo horário · 3ª rodada da fase de liga', assistir: 'HBO Max e TNT Sports' },
+  { data: '2026-10-21', hora: '21h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — SEMIFINAL: Palmeiras x Fluminense', sub: 'Volta, em São Paulo · o Palmeiras ganhou a ida por 2 a 1 no Maracanã', assistir: 'SBT, ESPN e Paramount+', destaque: true },
+  { data: '2026-10-21', hora: 'noite', esporte: 'basquete', emoji: '🏀', genero: 'masc', titulo: 'NBA — Heat x Timberwolves e Warriors x Lakers', sub: 'Estreia de Giannis no Miami · a temporada abriu ontem', assistir: 'ESPN e Disney+' },
 
-  // Quinta 20/ago
-  { data: '2026-08-20', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — Corinthians x Rosario Central', sub: 'Fecha as oitavas · ficou 0 a 0 na Argentina, então quem vencer aqui avança', assistir: 'SBT, ESPN e Paramount+', destaque: true },
-  { data: '2026-08-20', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'masc', titulo: 'Duplantis tenta o recorde mundial do salto com vara', sub: 'Evento de rua em Lausanne, na véspera da Diamond League · de graça pro público', assistir: 'SporTV e Xsports', destaque: true },
-  { data: '2026-08-20', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Cincinnati — a chave vai afunilando', sub: 'Mason, Ohio · quadra dura', assistir: 'ESPN e Disney+' },
+  // Quinta 22/out
+  { data: '2026-10-22', hora: '21h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Libertadores — SEMIFINAL: Flamengo x Estudiantes', sub: 'Volta, no Maracanã · a ida na Argentina foi 0 a 0, então quem vencer vai à final', assistir: 'SBT, ESPN e Paramount+', destaque: true },
+  { data: '2026-10-22', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Abre a janela de Peniche (Portugal)', sub: 'Penúltima etapa do mundial, em Supertubos · a WSL chama o dia quando o mar está bom · até 1º/nov', assistir: 'SporTV, Globoplay e WSL', destaque: true },
 
-  // Sexta 21/ago
-  { data: '2026-08-21', hora: '7h30 e 11h30', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'A F1 volta do recesso: GP da Holanda', sub: 'Treino livre 7h30 e classificação da sprint 11h30 · Bortoleto na pista · é a ÚLTIMA edição em Zandvoort', assistir: 'Band, BandSports e F1 TV', destaque: true },
-  { data: '2026-08-21', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League volta em Lausanne', sub: 'Duplantis, Shericka Jackson, Letsile Tebogo e Amy Hunt · restam 4 encontros até a final', assistir: 'SporTV e Xsports', destaque: true },
-  { data: '2026-08-21', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Começa a Premier League 2026/27', sub: 'Arsenal (o campeão) x Coventry (recém-subido) no Emirates · a temporada atrasou uma semana por causa da Copa', assistir: 'ESPN e Disney+', destaque: true },
+  // Sexta 23/out
+  { data: '2026-10-23', hora: '14h30', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial — FINAL DO INDIVIDUAL GERAL feminino', sub: 'Flavinha (12ª no classificatório) e Lorrane Oliveira na disputa', assistir: 'SporTV e Globoplay', destaque: true },
+  { data: '2026-10-23', hora: '14h30 e 18h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP dos Estados Unidos — treinos livres', sub: 'Austin, Texas · fim de semana sem sprint', assistir: 'SporTV, Globoplay e F1 TV' },
 
-  // Sábado 22/ago
-  { data: '2026-08-22', hora: '7h e 11h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP da Holanda — dia de SPRINT', sub: 'Corrida sprint às 7h e classificação do GP às 11h · a 1ª vez que Zandvoort tem sprint', assistir: 'Band, BandSports e F1 TV', destaque: true },
-  { data: '2026-08-22', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Premier League — Hull City x Manchester United', sub: 'E Fulham x Chelsea no mesmo dia · 1ª rodada', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-22', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — 24ª rodada', sub: 'A rodada vai de sábado a segunda', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
-  { data: '2026-08-22', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'Cincinnati — semifinais', sub: 'Quem chega na decisão de domingo', assistir: 'ESPN e Disney+' },
+  // Sábado 24/out
+  { data: '2026-10-24', hora: '9h', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial — FINAL DO SALTO com Rebeca Andrade', sub: 'Ela foi a melhor nota do classificatório (15.533) · a mesma sessão tem as barras assimétricas', assistir: 'SporTV e Globoplay', destaque: true },
+  { data: '2026-10-24', hora: '18h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP dos Estados Unidos — classificação', sub: 'Define o grid de domingo', assistir: 'SporTV, Globoplay e F1 TV' },
+  { data: '2026-10-24', hora: '18h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — Palmeiras x Bragantino', sub: 'Briga pelo título: Flamengo 67 pontos, Palmeiras 66 · à tarde tem Inter x Botafogo e Mirassol x São Paulo', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
+  { data: '2026-10-24', hora: '', esporte: 'volei', emoji: '🏐', genero: 'masc', titulo: 'Começa a Superliga masculina', sub: 'Guarulhos x Azulim abre a temporada · a feminina já começou no dia 17', assistir: 'SporTV, Globoplay e GE TV', destaque: true },
 
-  // Domingo 23/ago
-  { data: '2026-08-23', hora: '10h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP da Holanda — A CORRIDA', sub: 'Zandvoort · a despedida da pista no calendário da F1', assistir: 'Band, BandSports e F1 TV', destaque: true },
-  { data: '2026-08-23', hora: '~17h30', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'FINAL do Masters de Cincinnati', sub: 'Homens e mulheres decidem o último 1000 antes do Grand Slam', assistir: 'ESPN e Disney+', destaque: true },
-  { data: '2026-08-23', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League — Silésia (Polônia)', sub: 'Segunda das quatro etapas finais', assistir: 'SporTV e Xsports' },
-  { data: '2026-08-23', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Premier League — Newcastle x Liverpool', sub: 'E Manchester City x Bournemouth · 1ª rodada', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-23', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — 24ª rodada', sub: 'Domingo de rodada', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
+  // Domingo 25/out
+  { data: '2026-10-25', hora: '~10h', esporte: 'ginastica', emoji: '🤸', genero: 'fem', titulo: 'Mundial — finais de TRAVE e SOLO', sub: 'Flavinha foi 3ª na trave no classificatório · último dia em Roterdã (a Holanda muda o horário de verão, confira)', assistir: 'SporTV e Globoplay', destaque: true },
+  { data: '2026-10-25', hora: '17h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP dos Estados Unidos — A CORRIDA', sub: 'Antonelli pode ser campeão mundial aqui, com 5 corridas de sobra · 56 voltas', assistir: 'Globo, SporTV, Globoplay e F1 TV', destaque: true },
+  { data: '2026-10-25', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão — Flamengo x Atlético-MG', sub: 'E Vasco x Corinthians e Santos x Bahia · rodada de sábado a segunda (confira os horários)', assistir: 'Premiere, Globo, SporTV, Record e Prime Video' },
 
-  // Segunda 24/ago
-  { data: '2026-08-24', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Fecham a 24ª do Brasileirão e a 1ª da Premier League', sub: 'Os jogos que sobraram das duas rodadas', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
+  // Sexta 30/out
+  { data: '2026-10-30', hora: '', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP da Cidade do México — treinos livres', sub: 'Autódromo Hermanos Rodríguez, na altitude', assistir: 'SporTV, Globoplay e F1 TV' },
+  { data: '2026-10-30', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'masc', titulo: 'Começa a NBA Cup', sub: 'O torneio dentro da temporada · fase de grupos até 27/nov, final em 11/dez', assistir: 'ESPN, Disney+ e Prime Video' },
 
-  // Terça 25/ago
-  { data: '2026-08-25', hora: '21h', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — CLÁSSICO MINEIRO nas quartas', sub: 'Cruzeiro x Atlético-MG no Mineirão · a volta é 1º/set, na Arena MRV', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
-  { data: '2026-08-25', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Abre a janela do Fiji Pro, em Cloudbreak', sub: '8ª etapa do mundial · a WSL chama o dia quando o mar está bom · janela até 4/set', assistir: 'SporTV, Globoplay e WSL', destaque: true },
+  // Sábado 31/out
+  { data: '2026-10-31', hora: '', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP do México — classificação', sub: 'Define o grid de domingo', assistir: 'SporTV, Globoplay e F1 TV' },
+  { data: '2026-10-31', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'masc', titulo: 'Começa o Masters de Paris', sub: 'Último Masters 1000 do ano, na La Défense Arena · vale vaga no ATP Finals · até 8/nov (algumas fontes dão início em 2/nov)', assistir: 'ESPN e Disney+' },
 
-  // Quarta 26/ago
-  { data: '2026-08-26', hora: '21h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — Palmeiras x Santos e Vasco x Vitória', sub: 'Clássico paulista nas quartas · as voltas são em 2/set', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
-  { data: '2026-08-26', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Fiji Pro — janela aberta', sub: 'Vale olhar de manhã pra ver se chamaram o dia', assistir: 'SporTV, Globoplay e WSL' },
-
-  // Quinta 27/ago
-  { data: '2026-08-27', hora: '20h', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — GRENAL nas quartas', sub: 'Grêmio x Internacional no Beira-Rio · a volta é 3/set, na Arena do Grêmio', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
-  { data: '2026-08-27', hora: '', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Diamond League — Zurique', sub: 'Última etapa antes da final de Bruxelas', assistir: 'SporTV e Xsports' },
-
-  // Sexta 28/ago
-  { data: '2026-08-28', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'US Open — semana de qualifying em Nova York', sub: 'Fan Week (23 a 29/ago), com o Mixed Doubles reformulado · a chave principal começa domingo', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-28', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'misto', titulo: 'Brasileirão masculino e feminino', sub: 'Rodada do fim de semana nas duas competições', assistir: 'Premiere, Prime Video, CazéTV e GE TV' },
-
-  // Sábado 29/ago
-  { data: '2026-08-29', hora: '', esporte: 'skate', emoji: '🛹', genero: 'misto', titulo: 'SLS Tempe — o street mundial volta ao Arizona, onde nasceu', sub: 'Rayssa Leal, Pâmela Rosa, Kelvin Hoefler e Nyjah Huston · 4ª etapa do circuito', assistir: 'Rumble (grátis) e SporTV', destaque: true },
-  { data: '2026-08-29', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão e Premier League — rodada do fim de semana', sub: 'Sábado cheio nos dois campeonatos', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
-  { data: '2026-08-29', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Fiji Pro — janela aberta', sub: 'Cloudbreak', assistir: 'SporTV, Globoplay e WSL' },
-
-  // Domingo 30/ago
-  { data: '2026-08-30', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'COMEÇA O US OPEN, o último Grand Slam do ano', sub: 'Flushing Meadows, Nova York · vai até 13/set', assistir: 'ESPN e Disney+', destaque: true },
-  { data: '2026-08-30', hora: '', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Brasileirão e Premier League — domingo de rodada', sub: 'Nos dois campeonatos', assistir: 'Premiere e Prime Video · ESPN e Disney+' },
-
-  // Segunda 31/ago
-  { data: '2026-08-31', hora: '', esporte: 'tenis', emoji: '🎾', genero: 'misto', titulo: 'US Open — 1ª rodada', sub: 'Chave de simples masculina e feminina', assistir: 'ESPN e Disney+' },
-  { data: '2026-08-31', hora: '', esporte: 'basquete', emoji: '🏀', genero: 'fem', titulo: 'WNBA — últimos jogos antes da pausa do Mundial', sub: 'A liga para pras seleções, volta em 17/set e os playoffs começam em 27/set', assistir: 'ESPN e Disney+' },
+  // Domingo 1º/nov
+  { data: '2026-11-01', hora: '16h e 18h30', esporte: 'futebol', emoji: '⚽', genero: 'masc', titulo: 'Copa do Brasil — SEMIFINAIS, jogos de ida', sub: 'Palmeiras x Vasco (16h) e Grêmio x Atlético-MG (18h30) · voltas em 7 e 8/nov, final em 6/dez em Brasília', assistir: 'Globo, SporTV, Premiere e Prime Video', destaque: true },
+  { data: '2026-11-01', hora: '17h', esporte: 'formula1', emoji: '🏎️', genero: 'misto', titulo: 'GP do México — A CORRIDA', sub: 'Na semana seguinte é Interlagos', assistir: 'Globo, SporTV, Globoplay e F1 TV', destaque: true },
+  { data: '2026-11-01', hora: 'manhã', esporte: 'atletismo', emoji: '🏃', genero: 'misto', titulo: 'Maratona de Nova York', sub: '50 anos do percurso pelos 5 distritos, da ponte Verrazzano ao Central Park · a pista já fechou a temporada', assistir: 'Transmissão no Brasil a confirmar · app e site da NYRR', destaque: true },
+  { data: '2026-11-01', hora: '', esporte: 'surfe', emoji: '🏄', genero: 'misto', titulo: 'Último dia da janela de Peniche', sub: 'Se ainda não acabou, é hoje · depois só Pipeline, em dezembro', assistir: 'SporTV, Globoplay e WSL' },
 ];
 
 // "Mais pra frente" — a próxima data marcante de CADA esporte fora dos próximos dias,
 // pra nenhum ficar de fora. Peça "atualiza os esportes".
 export const ESPORTES_PROXIMOS = [
-  { esporte: 'atletismo', emoji: '🏃', genero: 'misto', evento: 'FINAL da Diamond League, em Bruxelas — quem ganha ali leva o título da temporada', quando: '4 e 5/set', assistir: 'SporTV e Xsports' },
-  { esporte: 'formula1', emoji: '🏎️', genero: 'misto', evento: 'GP da Itália, em Monza — o templo da velocidade', quando: '4 a 6/set · depois Madri estreia no calendário (11 a 13/set)', assistir: 'Band, BandSports e F1 TV' },
-  { esporte: 'basquete', emoji: '🏀', genero: 'fem', evento: 'Mundial feminino da FIBA, na Alemanha — a WNBA para pra seleção jogar', quando: '4 a 13/set', assistir: 'ESPN, Disney+ e DAZN' },
-  { esporte: 'volei', emoji: '🏐', genero: 'misto', evento: 'Sul-Americano no Maracanãzinho, valendo vaga olímpica pra LA28', quando: 'Feminino 8 a 13/set · masculino 15 a 20/set · Brasil x Argentina no dia 13, 10h30', assistir: 'SporTV, GE TV e VBTV' },
-  { esporte: 'surfe', emoji: '🏄', genero: 'misto', evento: 'Trestles Pro, na Califórnia — 9ª etapa do mundial', quando: '11 a 20/set · Lower Trestles', assistir: 'SporTV, Globoplay e WSL' },
-  { esporte: 'ginastica', emoji: '🤸', genero: 'misto', evento: 'Mundial de Ginástica Artística — classifica as 3 melhores equipes pra LA28', quando: '17 a 25/out · Roterdã (Holanda)', assistir: 'SporTV e Globoplay' },
-  { esporte: 'natacao', emoji: '🏊', genero: 'misto', evento: 'Mundial de piscina curta (25 m)', quando: '1 a 6/dez · Pequim (Water Cube)', assistir: 'SporTV e Globoplay' },
+  { esporte: 'formula1', emoji: '🏎️', genero: 'misto', evento: 'GP de São Paulo, em Interlagos', quando: '6 a 8/nov · depois Las Vegas, Catar e Abu Dhabi (fim em 6/dez)', assistir: 'Globo, SporTV, Globoplay e F1 TV' },
+  { esporte: 'natacao', emoji: '🏊', genero: 'misto', evento: 'Copa do Mundo de águas abertas abre em Cancún', quando: '6 e 7/nov · e o Mundial de piscina curta em Pequim de 1 a 6/dez', assistir: 'SporTV, Globoplay e World Aquatics' },
+  { esporte: 'tenis', emoji: '🎾', genero: 'misto', evento: 'WTA Finals (Indian Wells) e ATP Finals (Turim) — só os 8 melhores do ano', quando: 'WTA 8 a 15/nov · ATP 15 a 22/nov', assistir: 'ESPN e Disney+' },
+  { esporte: 'skate', emoji: '🛹', genero: 'misto', evento: 'SLS Tóquio e depois o SUPER CROWN em São Paulo — Rayssa busca o 5º título seguido', quando: 'Tóquio 14/nov · Super Crown 12 e 13/dez, no Ginásio do Ibirapuera', assistir: 'Rumble (grátis) e SporTV' },
+  { esporte: 'futebol', emoji: '⚽', genero: 'masc', evento: 'FINAL da Libertadores, em jogo único', quando: '28/nov · Estádio Centenário, Montevidéu', assistir: 'SBT, ESPN e Paramount+' },
+  { esporte: 'surfe', emoji: '🏄', genero: 'misto', evento: 'Pipe Masters — última etapa, que decide os campeões mundiais', quando: '8 a 20/dez · Pipeline, Havaí', assistir: 'SporTV, Globoplay e WSL' },
 ];
