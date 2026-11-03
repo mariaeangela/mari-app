@@ -430,8 +430,54 @@ function ensureCarteiraMesAtual(d) {
 // Ficaram só os três que PRECISAM rodar sempre, porque dependem da data de hoje:
 //   · rolarComprasVencidas / rolarPlanosVencidos — puxam pra hoje o que venceu
 //   · ensureCarteiraMesAtual — abre o mês novo da carteira com base no anterior
+// BILHETE DE USO ÚNICO — outubro/2026 dos Gastos, tirado da aba Out26 do Excel em
+// 03/nov/2026: total de cada categoria + o valor de cada subcategoria. Troca o que
+// havia em outubro (o antigo fica guardado em `gastosOut26Antes`). Subcategoria casa
+// com a dela pelo nome (sem ligar pra maiúscula/acento); se não existir, é criada.
+const GASTOS_OUT26 = {
+  'Fixos': [6454.82, { 'Aluguel': 3423.36, 'Contas casa': 459.36, 'Academia/personal': 549.99, 'Streaming assinaturas': 826.34, 'Mãe': 1134.97, 'Transporte': 60.8 }],
+  'Mercado': [1343.48, { 'Mercado': 883.94, 'Nutricar': 97.88, 'Livup': 166.16, 'Performance': 195.5 }],
+  'Uber': [353.55, {}],
+  'Trabalho': [778.82, { 'Uber': 211.12, 'Refeição': 525.7, 'Outros': 42 }],
+  'Mãe': [375.44, {}],
+  'Saúde': [300, { 'Dentista': 300 }],
+  'Viagem': [7023.25, { 'NY': 2997.63, 'Natal': 4025.62 }],
+  'Coisas': [343.88, {}],
+  'Skin care': [170.05, {}],
+  'Bobeira': [49.8, { 'Comida Salgado': 43.8, 'Água': 6 }],
+  'Rolês': [2124.48, { 'Bares': 192.8, 'Restaurante': 258.59, 'Shows': 54.52, 'Cultura': 268.96, 'Corrida': 1204.72, 'Diversos': 144.89 }],
+  'Presentes': [81.8, {}],
+};
+export function ensureGastosOut26(d) {   // exportada só pro teste; sai junto com a função
+  if (d.gastosOut26) return d;
+  const mes = '2026-10';
+  const norm = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const gastos = d.gastos || DEFAULT_GASTOS;
+  const antes = gastos.find(g => g.mes === mes) || null;
+  const novoMes = { ...(antes || {}), mes, itens: Object.entries(GASTOS_OUT26).map(([categoria, [valor]]) => ({ categoria, valor })) };
+  const subcats = { ...(d.gastoSubcats || {}) };
+  const itensFora = (d.gastosItens || []).filter(x => x.mes === mes);
+  const novosItens = [];
+  Object.entries(GASTOS_OUT26).forEach(([cat, [, subs]]) => {
+    const lista = [...(subcats[cat] || [])];
+    Object.entries(subs).forEach(([nome, valor]) => {
+      let dela = lista.find(s => norm(s) === norm(nome));
+      if (!dela) { dela = nome; lista.push(nome); }
+      novosItens.push({ id: `gi-out26-${novosItens.length + 1}`, categoria: cat, mes, nome: dela, valor });
+    });
+    if (lista.length) subcats[cat] = lista;
+  });
+  return {
+    ...d, gastosOut26: true,
+    gastosOut26Antes: { gasto: antes, itens: itensFora },
+    gastos: [...gastos.filter(g => g.mes !== mes), novoMes].sort((a, b) => a.mes.localeCompare(b.mes)),
+    gastoSubcats: subcats,
+    gastosItens: [...(d.gastosItens || []).filter(x => x.mes !== mes), ...novosItens],
+  };
+}
 function runLifeSeeds(d) {
-  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual];
+  const seeds = [rolarComprasVencidas, rolarPlanosVencidos, ensureCarteiraMesAtual,
+    ensureGastosOut26 /* BILHETE DE USO ÚNICO — tirar daqui junto com a função */];
   return seeds.reduce((acc, fn) => fn(acc), d);
 }
 const LifeContext = createContext(null);
